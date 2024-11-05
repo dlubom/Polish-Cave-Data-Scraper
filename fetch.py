@@ -12,7 +12,7 @@ from requests.exceptions import RequestException, Timeout
 START_ID = 380 # 380
 END_ID = 13000 # 13000
 LOG_LEVEL = logging.INFO
-SLEEP_TIME = 0.5
+SLEEP_TIME = 0.1
 
 # List of common user agents
 USER_AGENTS = [
