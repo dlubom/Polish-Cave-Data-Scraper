@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3025">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3025;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "541052,78".replace(',', '.') + "," + "217481,51".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3025','Mysiorowa Jama w Zag&#243;rzu'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Mysiorowa Jama w Zag&#243;rzu
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bmk-03.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;34′15,27″, φ: 49&#176;49′23,78″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Mucharz (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                wadowicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Nr 1 Woj. Bielskiego z dn. 23.04.1993r. [wg http://crfop.gdos.gov.pl; Mysiorowa Jama]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                350
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                11,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                11,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    282,50
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Makowski, Zag&#243;rze, w SW stokach g&#243;ry Kurczyny (410 m n.p.m.), zwanej też g&#243;ra Kurcena (J. Żurowski 1923) lub Obłazkiem, na prawym brzegu rzeki Skawy.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od dawnego przystanku kolejowego Zagórze idziemy w kierunku miejscowości Skawce (wzdłuż dawnego toru kolejowego). Po około 1 km skręcamy w lewo i drogą leśną (niebieskie znaki szlaku turystycznego) dochodzimy do lejowatego zagłębienia. Tu znajduje się otwór jaskini. Dojście nieskomplikowane, otwór łatwy do znalezienia. Zwiedzanie głównego ciągu łatwe, choć miejscami ciasno, w ciągach bocznych trudne zaciski.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r wejściowy (szerokości 1&nbsp;m) prowadzi do pochyłego i&nbsp;krętego korytarza (długości 5&nbsp;m). Kończy się on prostokątną studnią (głębokości 2,7&nbsp;m) uchodzącą do niedużej salki o&nbsp;nieregularnych kształtach. W&nbsp;kierunku E odchodzi ponad 5&nbsp;m długi boczny korytarz - dość niski, zrazu szeroki (ponad 1 m), a&nbsp;w&nbsp;końcowej części 0,6&nbsp;m. Na wstępie jest on zasłany gliną, a&nbsp;w&nbsp;g&oacute;rnej części (za niedużym prożkiem) zawalony gdzieniegdzie większymi blokami skalnymi. Ściany nieregularne, strop miejscami niepewny. Dalsze partie udokumentowane w 2003 r. to - Ciąg ku Lisiej - W miejscu, gdzie boczny korytarz opada z Legowiska (korytarzyk z płasko ułożonymi kamieniami), schylamy się i przedostajemy do wąskiego, litego korytarza prowadzącego ku SE. W końcowej części, w stropie, otwiera się ciasna szczelina (Z2), kt&oacute;rą przeciskamy się do chodnika leżącego bezpośrednio nad zaciskiem. Nim 3 m najpierw w lewo, dalej w prawo (ciasno) wchodzimy do niewielkiej, zawaliskowej salki (długość 3 m, szerokość 1 m, wysokość do 2,5 m). Z jej E krańca kierujemy się do niewielkiego rozdroża. W lewo odchodzą dwa kr&oacute;tkie, wyklinowujące się korytarzyki. Gł&oacute;wny korytarz kontynuuje się ku S i przez ruchomą wantę (niebezpiecznie) sprowadza do rozszerzenia. Do stycznia 2003 r. dalszą drogę zagradzał zacisk (Z2). Po jego pokonaniu kierujemy się ok. 1,5 m do następnego zacisku (Z1). Za nim wchodzimy do regularnego korytarzyka biegnącego ku SE, przechodzimy 1,7 m i skręcamy na E. Po przejściu dalszych 2,5 m wychodzimy w środkowej części litej szczeliny (wysokość do 3m). Szczelina rozwinięta jest na pęknięciu NW- SE o łącznej długości 6,2 m wyklinowującym się z obu stron. Partie w większości są bardzo ciasne i mają charakter zawaliskowy opr&oacute;cz końcowej części, gdzie jest lito (Żera 2003).</p>
+<div>Wracamy do salki pod studnią wejściową.</div>
+<p>&nbsp;Od salki na NW biegnie ciąg gł&oacute;wny jaskini. Strzelisty korytarz o&nbsp;wysokości 3&nbsp;m i&nbsp;szerokości przeciętnie 0,8 m, ścianach litych, zbiegających się ku g&oacute;rze, po 4&nbsp;m skręca ku N i&nbsp;nastramia się. Podchodzimy po głazach zawalających dno, przez dwa nieduże progi i&nbsp;po około 6&nbsp;m osiągamy najwyższy punkt korytarza. Tu w&nbsp;prawo za zaciskiem niewielkie, prostokątne rozszerzenie. Dalej schodzimy zwężającym się i&nbsp;skręcającym ku W&nbsp;korytarzem, kt&oacute;ry wyprowadza nas w&nbsp;partie zawaliskowe. Przedostajemy się ciasnym przejściem do rozszerzenia zawalonego dużymi blokami skalnymi. Teraz korytarz skręca na SW i&nbsp;ponownie się zwęża. Po około 2,5&nbsp;m przez ciasny przesmyk pomiędzy dużymi głazami wydostajemy się do Sali ze Stołem (długości 3 m; szerokości 1-1,5 m; wysokości około 2&nbsp;m) ze specyficznym, czworobocznym głazem pośrodku. Od sali odchodzą boczne ciągi, udokumentowane w 2003 r.: Łącznik oraz Agresywne Partie - do kt&oacute;rych wchodzimy ok. 2 m korytarzem, odchodzącym z NW części Sali ze Stołem, kierującym się ku N. Dalej skręcamy na NW do gł&oacute;wnej szczeliny. Korytarz ma charakter zawaliskowy, jest bardzo ciasny. Po przejściu 8 m i dw&oacute;ch zacisk&oacute;w (Z1) przedostajemy się do niewielkiego rozszerzenia. Stąd ku NE odchodzi 2 m korytarzyk łączący się dalej z korytarzami prowadzącymi do zacisku &bdquo;pococipłuca&rdquo;. Gł&oacute;wna szczelina kontynuuje się dalej ku NW, po 2 m po prawej stronie na dole przeciskamy się do małej salki (długość 2,5 m, szerokość 1,5 m, wysokość 1 m). W środkowej części salki możemy zejść do zagruzowanej szczeliny prowadzącej najpierw ku NW (2 m), dalej ku W. Od salki ku NW odchodzi 3 m korytarz, kt&oacute;ry doprowadza do &bdquo;kręgosłupa&rdquo;.</p>
+<p>&bdquo;Kręgosłup&rdquo;, to skrajnie trudny zacisk (Z3) pokonany na odcinku 1,5 m. Za zaciskiem widać dalsze obszerniejsze partie. Wracamy do salki- z jej N po pokonaniu zacisku (Z1) przedostać się możemy do chodnika biegnącego z powrotem wzdłuż gł&oacute;wnej szczeliny. Po 2 m z prawej strony odchodzi korytarzyk do gł&oacute;wnej szczeliny (wcześniej opisany), w lewo przechodzimy do rozdroża. Ku N, dalej NW odchodzi ciąg wyklinowujących się, zaciskowych szczelin o łącznej długości ok. 10 m. Na SE czołgamy się zygzakowatym korytarzykiem, kt&oacute;ry po ok. 4 m doprowadza nas do zacisku &bdquo;Pococipłuca&rdquo; (Z3). Za zaciskiem korytarz kontynuuje się: ku NW (ok. 1,5 m widać wcześniejsze partie), ku SW ok. 3 m kończąc się w zawalisku. Wcześniej, po lewej stronie odchodzi szczelina nie do przejścia, za kt&oacute;rą widać ok. 5 m przestrzeni. Całość Agresywnych Partii ma charakter zawaliskowy, niemal w każdej części osypuje się rumosz skalny, ściany, strop i spąg tworzą zaklinowane wanty (Żera 2003).</p>
+<p>Wracamy do Sali ze Stałem.</p>
+<p>Kierujemy się gł&oacute;wnym ciągiem w&nbsp;d&oacute;ł zrazu ku S, następnie ku SW i&nbsp;ciasnym, zaciskowym korytarzykiem o&nbsp;długości około 3&nbsp;m przedostajemy się (czołganie) do dużej sali- Wielkiej Komnaty - faktycznie najładniejsze miejsce w&nbsp;całej jaskini. Sala o&nbsp;bardzo nieregularnym, wydłużonym kształcie w&nbsp;swojej gł&oacute;wnej części liczy około 6&nbsp;m długości; 2-3&nbsp;m szerokości przy przeciętnej wysokości 4&nbsp;m. Strop tak, jak i&nbsp;ściany, nieregularny, zaburzony. Dno na og&oacute;ł dość r&oacute;wne, tylko w&nbsp;części NW na kr&oacute;tkim odcinku nachylone ku g&oacute;rze. Opisywana sala stanowi w&nbsp;zasadzie zakończenie ciągu gł&oacute;wnego, lecz nie kończy całej jaskini. Odchodzą od niej bowiem dość zagmatwane i&nbsp;ciasne boczne ciągi i&nbsp;pojedyncze szczeliny. Ich przegląd można rozpocząć od S krańca sali, gdzie przechodzi ona w&nbsp;piękną prostą szczelinę (o&nbsp;przeciętnej szerokości 0,7&nbsp;m i&nbsp;wysokości 4 m), kt&oacute;ra po około 4&nbsp;m skręca dwukrotnie pod kątem prostym i&nbsp;dalej kończy się po 5&nbsp;m. W&nbsp;kierunku SW odchodzi 5&nbsp;m korytarz (łączy się też wąską szczeliną z&nbsp;dalszymi partiami), kt&oacute;ry łukiem obchodzi pewien fragment sali i&nbsp;wychodzi w&nbsp;jej NW części. Z&nbsp;tego też rejonu prostą, 3&nbsp;m długości szczeliną przedostać się można do rozwidlenia, z&nbsp;kt&oacute;rego:</p>
+<p>- ku N odchodzi kr&oacute;tkie rozszerzenie kończące się dwoma ciasnymi pęknięciami;</p>
+<p>- w&nbsp;kierunku S, dalej SE biegnie w&nbsp;d&oacute;ł (trzy prożki) następnie nieco w&nbsp;g&oacute;rę korytarz o&nbsp;łącznej długości około 11 m, kt&oacute;ry łączy się wąską szczeliną z&nbsp;łukowatym obejściem wspomnianym uprzednio;</p>
+<p>- na W&nbsp;dalej NW odchodzi następny korytarzyk (szerokości 0,4 m), kt&oacute;ry po około 4&nbsp;m (za prostokątną wantą) doprowadza do kolejnego rozdroża. Jest to już rejon tzw. Kruchych Partii. Na N kr&oacute;tki korytarzyk przegrodzony wantą kończy się dwoma wąskimi pęknięciami, ku NW bardzo ciasna (zacisk) 3&nbsp;m szczelina doprowadzająca do szerszego (0,4-0,5 m), prostego korytarza. Dostać się tu jednak można inną, bardziej dogodną drogą. Kierując się od rozdroża w&nbsp;kierunku SW 2,5&nbsp;m przejściem wydostajemy się do niewielkiego rozszerzenia, z&nbsp;kt&oacute;rego też odchodzą trzy odgałęzienia:</p>
+<p>&nbsp;na E w&nbsp;d&oacute;ł (za niewielkim prożkiem) kr&oacute;tki korytarzyk z&nbsp;okresowym jeziorkiem;</p>
+<p>&nbsp;na NW 5&nbsp;m szczelina o&nbsp;nier&oacute;wnym, częściowo zaglinionym dnie po 3&nbsp;m skręcając łukiem ku NE łączy się z&nbsp;dolnymi partiami jaskini;</p>
+<p>&nbsp;na N w&nbsp;g&oacute;rę (za niewielkim prożkiem) prosty, wspomniany uprzednio korytarz. Po 5&nbsp;m kończy się on prożkiem z&nbsp;zaciskiem (z lewej strony dochodzi wyżej opisana szczelina), za kt&oacute;rym przez kilka metr&oacute;w kontynuują się jeszcze g&oacute;rne partie zakończone niewielką salką. Największe boczne partie Wielkiej Komnaty- Ciasne Szczeliny i Poddasze -udokumentowano w 2003 r. Na Poddasze wchodzimy jednym z sześciu prog&oacute;w znajdujących się w W. K. i jej okolicy. Poddasze to nieregularna salka o łącznej długości 6,5 m, &bdquo;zawieszona&rdquo; nad W. K.. Z jej SE krańca ku S odchodzą Ciasne Szczeliny. Najpierw poprzez zacisk (Z1) i 3 m wysokości pr&oacute;g schodzimy na dno gł&oacute;wnej szczeliny. Tu w lewo pod progiem odchodzi 1,5 m, ślepy korytarzyk, a pod nim na tej samej szczelinie, zabłocony zaciskowy korytarz, kt&oacute;ry w końcowej części wpada małym przesmykiem (nie do przejścia) do W. K.. Gł&oacute;wny chodnik rozwija się ku S, po ok. 2 m rozszerza się do 0,5 m. Tu w prawo odchodzi wyklinowująca się szczelina, 3 m ponad dnem znajduje się zwr&oacute;cony ku S kr&oacute;tki korytarzyk. Kierujemy się dalej na S, szczelina stopniowo zwęża się. Po 2 m schodzimy niewielkim progiem, następnie 3 m dalej poprzez zacisk (Z3) (szerokość 0,2 m) i po zejściu 0,5 m progiem osiągamy najniższe miejsce w jaskini (- 11,8 m). Tu ku E i S odchodzą ciasne pęknięcia ( nie do przejścia). Ściany korytarzy są lite i regularne, tylko Poddasze utworzone jest z dużych blok&oacute;w skalnych zaklinowanych pod stropem Wielkiej Komnaty (Żera 2003).</p>
+<p>&nbsp;Jaskinia osuwiskowa, powstała w&nbsp;warstwach istebniańskich dolnych. Dno pokryte gruzem skalnym, miejscami dużymi blokami i&nbsp;gliną. W&nbsp;końcowych Kruchych Partiach znaleziono kości zwierzęce.</p>
+<p>&nbsp;Jaskinia sucha, tylko w&nbsp;jednym miejscu (boczne partie) występuje okresowe jeziorko. Silny przewiew wyczuwalny w&nbsp;partiach przyotworowych (szczeg&oacute;lnie w&nbsp;okresie zimy) świadczyć może o&nbsp;połączeniu ze znajdującą się nieopodal Jaskinią Lisią. Światło sięga w&nbsp;partie przyotworowe.</p>
+<p>&nbsp;Na ścianach w&nbsp;otworze wejściowym gdzieniegdzie występują mchy. W&nbsp;pracy z&nbsp;1954&nbsp;r. K.&nbsp;Kowalski zaznaczał występowanie w&nbsp;jaskini dw&oacute;ch gatunk&oacute;w nietoperzy: podkowca <strong>(<em>Rhinolophus hipposideros</em>)</strong> i&nbsp;nocka dużego <strong>(<em>Myotis myotis</em></strong>). W&nbsp;guanie zaobserwował roztocza i&nbsp;owady bezskrzydłe.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia (położenie otworu, może partie wstępne) znana była ludności miejscowej. powtarzane są m.in. przekazy o wyjściu po drugiej stronie rzeki Skawy. W czasie wojny podobno chronili się też w niej ludzie. Pierwszą wzmiankę w literaturze o tym obiekcie podaje J. Żurowski w 1923 r. Opis wstępnych partii przedstawia G. Leńczyk w 1935 r. Opis inwentarzowy, plan i przekr&oacute;j rozwinięty publikuje w 1954 r. K. Kowalski szacując długość jaskini na 80 m.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń beskidzkich materiał dokumentacyjny zebrali dnia 17 marca 1985 r. S. Polański, R. Czarnecki, J. Pukowski i J. Ganszer oraz dnia 16 maja 1992 r. M. Rachwaniec, I. Barankiewicz, S. Nikiel ze Speleoklubu Bielsko-Biała. W wyniku tych prac długość jaskini wzrosła do 112 m. Dalsze prace eksploracyjne prowadzone od 1998 r. (Ar. i Al. Żera, M. Zieliński) przyniosły znaczące odkrycia ciąg&oacute;w bocznych. W tym zakresie materiał dokumentacyjny zebrali:<br />dnia 10 kwietnia 1998 r. Ar. i M. Żera i J. Ganszer - pomniejsze partie , długość 18 m;<br />dnia 27 stycznia 2003 r. Ar. Żera (za zaciskami), 01 maja 2003 r. Ar. i Al. Żera, B. Zaczyński (do zacisku) - Ciąg ku Lisiej, długość 37 m;<br />dnia 12 maja 2003 r. Ar. i Al. Żera - Ciasne Szczeliny i Poddasze, długość 22 m;<br />dwukrotnie w lutym 2003 r. Ar. i Al. Żera - Agresywne Partie, długość 44 m;<br />dnia 01 maja 2003 r. Ar. i Al. Żera, B. Zaczyński, 12 maja 2003 r. Ar. i Al. Żera - korytarze odkryte w innych częściach jaskini oraz partie wcześniej znane.<br />Długość jaskini wzrosła do 282,5 m.<br />Pomiary wykonano busolą geologiczną Freiberg, taśmą parcianą i upadomierzem. Dane zostały zaktualizowane w 2009 r.<br />Plan I opracował Ar. Żera.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Żurowski J. 1923 (wzmianka o jaskini); Leńczyk G. 1935 (opis wstępnych partii); Kowalski K. 1953 (wzmianka o występujących w jaskini nietoperzach); Kowalski K. 1954 (opis inwentarzowy, plan i przekr&#243;j rozwinięty); Ganszer J. 1986 (wzmianka o zwiedzaniu jaskini oraz o inwentaryzacji); Klassek G. 1986a (wzmianka o ewentualnym połączeniu z Jaskinią Lisią); Klassek G. 1986b (ujęta na liście najdłuższych jaskiń Karpat Fliszowych); Wiśniewski W.W. 1989 (ujęta w wykazie jaskiń Karpat); Klassek G. 1990a (ujęta na liście najdłuższych jaskiń Karpat Fliszowych); Klassek G. 1990b (uzupełnienia - opis inwentarzowy oraz ujęta w wykazie najdłuższych jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Rozporządzeni... nr 1/93 Wojewody Bielskiego 1993 (ustanowienie jaskini pomnikiem przyrody); Wiśniewski W.W. 1993b (ujęta w wykazie jaskiń Karpat); Klassek G. 1994 (ujęta na liście najdłuższych jaskiń Karpat Fliszowych); Wiśniewski W.W. 1994 (ujęta na liście najdłuższych jaskiń Karpat Fliszowych); Klassek G. 1995 (wzmianka o eksploracji oraz ujęta na liście najdłuższych jaskiń Karpat Fliszowych); Wiśniewski W.W. 1996b (ujęta w wykazie jaskiń Karpat); Jaskinie Polskich Karpat fliszowych 1997b (plan I i opis inwentarzowy); Ganszer J. 1999b (wzmianka o nowych odkryciach); Żera Ar. 2000 (wzmianka o aktualnej długości i głębokości jaskini); Klassek G., Mleczek T. 2000 (wzmianka o zwiększeniu długości jaskini); Alexandrowicz Z., Poprawa D. (red.) 2000 (pomnik przyrody - lokalizacja i og&#243;lny opis jaskini); Żera Ar. 2003 (informacje o eksploracji jaskini), 2003 (plan II kompleksowy, opisy nowych bocznych ciąg&#243;w, aktualna długość i głębokość jaskini); Klassek G., Mleczek T. 2003 (wzmianka o zwiększeniu długości jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2011
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15135)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(13129)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

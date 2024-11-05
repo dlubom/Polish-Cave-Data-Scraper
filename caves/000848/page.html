@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F848">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 848;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "647464,47".replace(',', '.') + "," + "326036,80".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('848','Jaskinia Zb&#243;jecka w Łagowie'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Zb&#243;jecka w Łagowie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Łagowska, Jaskinia w Łagowie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-3.1
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 21&#176;05′33,00″, φ: 50&#176;46′57,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Łag&#243;w (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kielecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Zesp&#243;ł przyrodniczo-krajobrazowy Wąw&#243;z Dule
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                312
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                17
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                22
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    174
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                34
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Otw&#243;r jaskini znajduje się w g&#243;rnej części wschodniego zbocza wąwozu Dule, około 0,7 km na p&#243;łnocny-wsch&#243;d (NNE) od centrum Łagowa. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Dojście do wąwozu prowadzi z rynku szosą na północ (w kierunku Słupi Nowej), za mostem na Łagowicy na wschód ulicą Dule. Po dotarciu do wylotu wąwozu (około 150 m od głównej szosy) należy skręcić na północny-wschód w drogę gruntową, która prowadząc w górę wąwozu dochodzi pod skałkę z dobrze widocznym otworem jaskini. Dojście bez trudności, zwiedzanie miejscami utrudnione, ciasno. Podczas zwiedzania należy zachować przepisy ochronne obowiązujące na terenie zespołu przyrodniczo-krajobrazowego. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jest naturalny, tr&oacute;jkątny, ma wysokość 2,7&nbsp;m, szerokość 3,5&nbsp;m. Wprowadza do obszernego, poziomego korytarza wstępnego o długości 23&nbsp;m. W jego stropie występują liczne szczeliny krasowe i kominki. Korytarz kończy się Dużą Salą (nazewnictwo większości element&oacute;w jaskini za Wołoszynem i W&oacute;jcikiem 1965) z ciasnymi rurkami krasowymi w ścianach. Do dalszych partii jaskini prowadzi wąskie przejście w lewej ścianie sali. Kilkumetrowy, niski kanał krasowy łączy Dużą Salę ze studnią o głębokości 5&nbsp;m. Nad studnią dwoma przejściami w stropie kanału dochodzi się do Sali Naciekowej. W sali tej o długości 10&nbsp;m, szerokości 4&nbsp;m i wysokości 3&nbsp;m występuje bogata, choć miejscami nieco zniszczona szata naciekowa. Dno sali pokrywają bloki skalne. W p&oacute;łnocnej części sali znajduje się studzienka głębokości 1,8&nbsp;m z gruzem na dnie. Z części wschodniej sali prowadzący w g&oacute;rę przełaz doprowadza do Małej Sali. Jej kontynuacją jest Kominek Naciekowy o wysokości 3&nbsp;m, stanowiący najwyższy punkt jaskini (+5&nbsp;m).</p>
+<p>W zachodniej części kanału krasowego doprowadzającego do 5m studni, około 1 m przed jej krawędzią znajduje się ciasne wejście do płaskiej salki o wymiarach 4x3 m.</p>
+<div>&nbsp;</div>
+<p>W studni na końcu kanału bocznego z Dużej Sali (pod wejściami do Sali Naciekowej) znajduje się wąska szczelina doprowadzająca do Dolnej Komory. Dolna Komora ma wysokość do 2,5&nbsp;m i wymiary 3&nbsp;x 3&nbsp;m. Jej dno pokryte jest blokami. Odchodzą od niej liczne, ciasne i kr&oacute;tkie korytarzyki wypełnione na końcach namuliskiem. W południowo &ndash;zachodniej części Dolnej Komory położone są dwa ciasne wejścia do płaskiej salki o wymiarach 5x3m i wysokości do 1 m, dno kt&oacute;rej rozcina niedostępna szczelina krasowa.</p>
+<p>W kierunku południowym Dolna Komora przedłuża się w korytarz krasowy o długości 17&nbsp;m, tzw. Kanion. Kanion, początkowo obszerny (wysokości i szerokości do 2,5&nbsp;m), w końcowej części przechodzi w rurę o średnicy 0,5&nbsp;m skręcającą gwałtownie na p&oacute;łnocny-zach&oacute;d i zagłębiającą się w gliniastym namulisku. Cechą charakterystyczną Kanionu jest wyraźnie meandrująca rynna rozwinięta w jego dolnej części. Przy jej południowym końcu znajduje się niski przełaz doprowadzający do Płaskiej Sali - najniższej pustki jaskini (-17&nbsp;m).</p>
+<div>&nbsp;</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;Jaskinia występuje w wapieniach dewońskich. Stanowi formę krasową rozwiniętą wzdłuż szczelin ciosowych, częściowo krasowo-zawaliskową (rozwarcia międzyławicowe). Zdaniem Walczowskiego (1966) powstała w pliocenie. Jej dno pokrywa namulisko gliniaste, miejscami gruz i bloki skalne. W namulisku Sali Naciekowej zostały znalezione kości dzika lub świni domowej <em>Sus sp.</em> oraz r&oacute;wnowiekowa im ceramika pochodząca prawdopodobnie z XI - XII lub XIII wieku (Wołoszyn, W&oacute;jcik 1965; Hadamik, Kalina, Traczyński 2004).</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Szata naciekowa występuje wyłącznie w Sali Naciekowej. Reprezentowana jest przez: polewy naciekowe, draperie z licznymi drobnymi "polami ryżowymi", stalaktyty (w tym "makarony"), stalagmity wysokości do 0,5&nbsp;m i nieduże kolumny naciekowe a także cienkie naskorupienia naciek&oacute;w agrawitacyjnych - "grzybk&oacute;w" i "krzaczk&oacute;w" zbudowanych gł&oacute;wnie ze stwardniałego mleka wapiennego. "Makarony" i kolumienki naciekowe najlepiej zachowane są w rozległych, niskich (niedostępnych) rozwarciach międzyławicowych, otwierających się na obrzeżach sali. O perłach jaskiniowych i heliktytach wspominają Wołoszyn i W&oacute;jcik (1965).</p>
+<p>Korytarz Wstępny i Duża Sala są suche, położone w strefie światła pełnego i p&oacute;łmroku. Głębsze partie są ciemne i wilgotne.</p>
+<p>Mikroklimat jaskini ma charakter statyczny, przy czym wyższa część jej pustek jest statycznie "ciepła" (średnia temperatura - 7,6<sup>0</sup> C, przy wahaniach 2,2<sup>0</sup> C), natomiast jej dolne partie - statycznie "zimne" (średnia temperatura 5,9 <sup>0</sup>C). Warunki termiczno-wilgotnościowe korytarza wstępnego są silnie kształtowane przez warunki zewnętrzne (Wołoszyn 1977). Zr&oacute;żnicowanie warunk&oacute;w środowiska w jaskini wpływa na charakter występujących w niej zbiorowisk faunistycznych (Sanocka-Wołoszyn, Wołoszyn 1971).</p>
+<p>Wejście do jaskini porasta roślinność zielna.</p>
+<p>Fauna Jaskini Zb&oacute;jeckiej jest bardzo r&oacute;żnorodna i należy do najciekawszych zespoł&oacute;w tego typu w Polsce. Jaskinia jest jedynym stanowiskiem występowania troglobiont&oacute;w w regionie. Tę grupę zwierząt reprezentują tu <strong><em>Arrhopalites pygmaeus </em></strong>(Wank.) i <strong><em>Porrhomma egeria </em></strong>Simon(Sanocka-Wołoszyn 1964, Wołoszyn, W&oacute;jcik 1965). Do troglofil&oacute;w zalicza się spotykane tu chrząszcze (Coleoptera) z gatunk&oacute;w<strong><em> Choleva agilis </em></strong>(Illiger)(Wołoszyn, W&oacute;jcik 1965) oraz <strong><em>Choleva angustata </em></strong>(Fabr.) i <strong><em>Quedius mesomelinus mesomelinus </em></strong>(Marsh.) oznaczone przez M. Bidasa (Gubała 1996a). Do tej grupy należą r&oacute;wnież pająki <strong><em>Meta menardi </em></strong><span>(Latr.),<strong><em> Lepthyphantes nebulosus </em></strong>(Sund.),<strong><em> Lepthyphantes angulipalpis </em></strong>(Westr.),<strong><em> Lepthyphantes leprosus </em></strong>(Ohlert)</span><strong> i <em>Porrhomma pallidium </em></strong>Jackson (Sanocka-Wołoszyn 1964, Wołoszyn, W&oacute;jcik 1965). Skalski (1971) wspomina o występowaniu w jaskini pająka <strong><em>Porrhomma moravicum </em></strong><span>(Miller et Kratochvil).</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Licznie reprezentowane są troglokseny. Do tej grupy należą much&oacute;wki, błonk&oacute;wki, wśr&oacute;d kt&oacute;rych są pszczołowate (Apidae), a także wymieniane już przez Wołoszyna i W&oacute;jcika (1965) motyle z gatunk&oacute;w szczerb&oacute;wka ksieni <strong><em>Scoliopteryx libatrix </em></strong>(L.) i rusałka pawik <strong><em>Inachis io (L.)</em></strong> oraz oznaczone przez Sanocką-Wołoszyn (1964) pająki:<em> <strong>Segestria senoculata </strong></em><span>(L.),<strong><em> Centromerus sylvaticus </em></strong>(Bl.), <strong><em>Syedra gracilis </em></strong>(Menge), <strong><em>Meioneta rurestris </em></strong>(C.L.Koch),<strong><em> Linyphia triangularis </em></strong>(Cl.),<strong><em> Micrargus herbigradus </em></strong>(Bl.),<strong><em> Tetragnatha pinicola </em></strong>L. Koch,<strong><em> Tegenaria ferruginea </em></strong>(Panc.),<strong><em> Amaurobius claustrarius </em></strong>(Hahn.),<strong><em> Amaurobius fenestralis </em></strong>(Stroem.),<strong><em> Lepthyphantes alacris </em></strong>(BL.).</span></p>
+<p>Obserwowano tu szereg gatunk&oacute;w nietoperzy: nocka dużego <strong><em>Myotis myotis </em></strong>(Borkhausen), nocka Bechsteina<em> <strong>Myotis bechsteinii </strong></em>(Kuhl), nocka Natterera <strong><em>Myotis nattereri </em></strong>(Kuhl), nocka wąsatka <strong><em>Myotis mystacinus </em></strong>(Kuhl), nocka Brandta <strong><em>Myotis Brandtii </em></strong>(Eversmann), nocka rudego <strong><em>Myotis daubentonii </em></strong>(Kuhl), nocka łydkowłosego <strong><em>Myotis dasycneme </em></strong>(Boie), gacka brunatnego <strong><em>Plecotus auritus </em></strong>(L.) (Ruprecht 1974, Wołoszyn 1960a, 1961a, 1962a, 1964a,b, 1992, 1994a, Wołoszyn, Postawa 1993, Wołoszyn, W&oacute;jcik 1965). Podczas obserwacji prowadzonych w latach 1994-96 poza wyżej wymienionymi gatunkami nietoperzy (z wyjątkiem nie obserwowanego <strong><em>Myotis dasycneme</em></strong>) napotkano w jaskini ponadto gacka szarego <strong><em>Plecotus austriacus </em></strong>(Fischer) i mopka <strong><em>Barbastella barbastellus </em></strong>(Schreber) (Gubała 1996b). Kowalski (1965) wspomina, że w jaskini chronią się lisy <strong><em>Vulpes vulpes </em></strong>L. Obserwowano tu r&oacute;wnież psy oraz kota polującego na nietoperze.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia Zb&oacute;jecka jest jedną z najdawniej znanych jaskiń świętokrzyskich. Wymieniają ją publikacje geograficzne i krajoznawcze z końca XIX i początk&oacute;w XX wieku, zazwyczaj bez nazwy lub jako Jaskinię Łagowską. Pierwsza wzmianka pochodzi z 1877 r. i jest to drzeworyt &bdquo;Grota w Łagowie&rdquo; wykonany według rysunku Wacława Zawadzkiego a opublikowany w &bdquo;Tygodniku Powszechnym&rdquo; wraz z tekstem o tym samym tytule (Tygodnik Powszechny 1877, Wiśniewski 1999). Już jednak Gruszecki (1878) potwierdza tradycję wiążącą ją ze zb&oacute;jcami. Od okresu międzywojennego jaskinia znana jest szeroko i często odwiedzana zar&oacute;wno przez miejscowych jak i turyst&oacute;w. Opis i pierwszy plan jaskini, obejmujący jej dolne partie (długość 80 m) opublikował Kowalski (1954). Cały obecnie znany ciąg pustek jaskini znalazł się na planie Wołoszyna i W&oacute;jcika (1965), kt&oacute;rzy podają szereg istotnych danych dotyczących historii poznania jaskini oraz bogactwa jej fauny. <br /> U wejścia do Jaskini Zb&oacute;jeckiej palone są ogniska (ślady, zakopcenie ścian). Na ścianach widoczne są napisy, na dnie - porozrzucane śmieci. Dno korytarza wstępnego (między otworem a Dużą Salą) jest wysypane grysem i wyr&oacute;wnane.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację jaskini sporządzili 9.03.1996 r. J. Gubałą, Z. Grzela, A. Kasza , J. Urban i B.W. Wołoszyn. Lokalizację otworu jaskini wykonał 18.04.2009 r. A. Kasza przy pomocy odbiornika GPS Map60CSx. Zaktualizował A. Kasza w 2009 r.<br />Plan opracowali J. Gubała, Z. Grzela i A. Kasza.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zawadzki W. 1877 (drzeworyt, opis); Gruszecki A. 1878 (wzmianka);  Słownik Geograficzny 1884 (wzmianka); Dybczyński T. 1912 (wzmianka); Przesmycki P. 1912 (kr&#243;tki opis); Lencewicz S. 1913 (wzmianka); Dybczyński T. 1923 (wzmianka); Czarnocki J. 1932 (wzmianka); Danysz-Fleszarowa R. 1933 (wzmianka); Kowalski K. 1954 (plan, opis); Kowalczewski S. 1957 (wzmianka); Kotański Z. 1959 (wzmianka); Wołoszyn B.W. 1960a (nietoperze); Wołoszyn B.W. 1960b (wielkość, fauna); W&#243;jcik Z. 1960b (ochrona); Kowalczewski S. 1961 (wzmianka); Wołoszyn B.W. 1961a (nietoperze); Wołoszyn B.W. 1962a (nietoperze); Walczowski A. 1962 (opis, rozw&#243;j krasu); Sanocka-Wołoszyn E. 1964 (pająki, w tym troglobionty); Wołoszyn B.W. 1964a (nietoperze); Wołoszyn B.W. 1964b (nietoperze); Kowalski K. 1965 (opis, fauna, mikroklimat); Wołoszyn B.W. 1965b (nietoperze); Wołoszyn B.W., W&#243;jcik Z. 1965 (opis, historia poznania, fauna); Walczowski A. 1966 (badania i wiek jaskini); Kowalczewski S. 1967 (wzmianka); Rubinowski Z., Wr&#243;blewski T. 1968 (kr&#243;tki opis); Sanocka-Wołoszyn E., Wołoszyn B.W. 1971 (strefy ekologiczne i odpowiadające im zespoły zwierzęce); Skalski A. 1971 (rzadki gatunek pająka); Gradziński R. 1972 (wzmianka); Rubinowski Z. 1974a (wzmianka); Ruprecht A. 1974 (nietoperze); Rubinowski Z. 1975 (wzmianka o dewastacji); Siedlecka W., Micuła G. 1976 (opis, plan); W&#243;jcik Z. 1976a (jaskinia elementem zespołu form krasowych); Wołoszyn B.W. 1977 (plan, mikroklimat-termika, wilgotność); Wr&#243;blewski T. 1977 (opis); Ruprecht A. 1983 (nietoperze); Wiśniewski W. 1989 (korekta długości); Urban J. 1990 (ochrona); Wołoszyn B.W. 1992 (nietoperz); Wołoszyn B.W., Postawa T. 1993 (nietoperze); W&#243;jtowicz B., W&#243;jtowicz J. 1993 (opis, plan, fauna-nieprecyzyjne dane); Wołoszyn B.W. 1994a (nietoperze); Przyroda 1995 (zesp&#243;ł przyrodniczo-krajobrazowy); Gubała J. 1996a (fauna); Gubała J. 1996b (nietoperze);  Gubała J., Kasza A., Urban J. 1996 (wielkość); Urban J. 1996b (opis); Jaskinie Regionu Świętokrzyskiego 1996 (dokumentacja, plan); Wr&#243;blewscy T. i E. 1996 (wzmianka); Bujna E., Klauzińska M. 1997 (nietoperze ); Urban J., Gubała J., Kasza A. 1997a (długość, deniwelacja, udostępnienie turystyczne wzmianka); Urban J., Gubała J., Kasza A. 1997b (fauna, ochrona wzmianka); Wiśniewski W.W. 1999 (drzeworyt z 1877 r.); Wr&#243;blewski T. 2000 (kr&#243;tki opis); Paszkowski M. 2001 wkładka (opis, plan, fotografia); Hadamik Cz. i in. 2004 (znalezisko ceramiki białej).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Wołoszyn B.W., Wołoszyn K.P. 1990. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jan Urban, Andrzej Kasza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(349)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

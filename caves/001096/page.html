@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1096">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1096;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563218,65".replace(',', '.') + "," + "153885,69".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1096','Okna Zb&#243;jnickie Niżnie'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Okna Zb&#243;jnickie Niżnie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-08.09
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;52′08,15″, φ: 49&#176;14′57,15″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NNE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2-3 - ku NNE; 4 - ku g&#243;rze; 5-9 - ku SSW.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1227
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                225
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                2,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                16,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    160
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na prawym orograficznie zboczu Doliny Kościeliskiej, w grani Organ&#243;w. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Idziemy czarnym szlakiem od Lodowego Źródła w stronę północnego otworu Jaskini Mroźnej. Po dojściu do wyraźnej płaśni (za skrętem szlaku w lewo), skręcamy w prawo, na zarośniętą ścieżkę wiodącą  przez las. Z miejsca, gdzie z lasu wychodzi się na zarastające malinisko z wiatrołomami, idziemy jeszcze kilkadziesiąt metrów do góry i skręcamy w niewyraźną perć przez wiatrołomy, która prowadzi na prawo, do grani, wprost do otworu Okien Zbójnickich Niżnich (Po drodze mijamy otwory Jaskini Przelot). Dojście łatwe, zwiedzanie bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Gł&oacute;wny otw&oacute;r, położony w dużym leju krasowym, jest myty, ma wymiary 1,8x2,5 m. Prowadzi do obszernego, stromo opadającego korytarza, kt&oacute;ry przebija <span>Dziurawą Turnię. Uchodzi on ku SSW szczelinowym otworem</span> (1,6x4&ndash;5 m), tworzącym okno skalne nad przepaścistym stokiem. Z korytarza na lewo, do g&oacute;ry, idziemy pod malowniczym łukiem skalnym na Dziedziniec. &bdquo;&hellip;<em>powstał niewątpliwie przez zapadnięcie się dawnej komory jaskiniowej, a ściany jego nachylone są ku wnętrzu tworząc okapy. Dziedziniec otwarty jest ku południowi na stok Doliny Kościeliskiej </em>(Kowalski, 1953a)<em>&rdquo;.</em></span></p>
+<p><span>Zaraz za ostrogą skalną, wzdłuż kt&oacute;rej idziemy na Dziedziniec, odchodzi na lewo kr&oacute;tka, bardzo ciasna odnoga z odgałęzieniami. Nieco dalej, w pobliżu szczytu stożka nasypowego, w stropie widać komin (8,8 m), uchodzący otworem o średnicy około 1 m na powierzchnię w grani Organ&oacute;w. (Aktualnie wiatrołomy utrudniają dojście do niego z grani). Natomiast od podstawy ściany prowadzi ku NE kr&oacute;tka, bardzo ciasna, zwężająca się szczelina. Za jej odejściem znajduje się duży otw&oacute;r&nbsp;obszernego korytarza ciągu gł&oacute;wnego jaskini. Korytarz ten, rozwinięty na szczelinie SWW&ndash;NEE,&nbsp;ma 49 m długości. Po kilku metrach od wejścia do niego, następuje rozszerzenie do 3 m (za rozszerzeniem na prawo, ku S odchodzi bardzo ciasny boczny korytarzyk o długości 7 m), a po około 20 m &ndash; ponowne zwężenie. Początek i koniec szerokiej części ciągu ma charakter kom&oacute;r zawaliskowych. W tej części jaskini dno pokrywają&nbsp;wielkie wanty i rumosz skalny. Dalej korytarz staje się wysoką, lecz węższą szczeliną, jego dno opada nieco, jest zamulone. Na ślepym końcu korytarza widać głębokie jeziorko, wysychające tylko przy długotrwałej suszy. Z niedostępnej szczeliny wpływa do niego struga wody. </span></p>
+<p><span>Wracamy na Dziedziniec. Z jego SE krańca, za niskim otworem, wiedzie ku SSW wąski, myty na szczelinie korytarz, kt&oacute;ry po 19 m uchodzi oknem (0,3x2,1 m) w ścianie turni. Nieco przed tym otworem można przejść na lewo, do kr&oacute;tkiego r&oacute;wnoległego korytarzyka, r&oacute;wnież uchodzącego w ścianie turni, tuż obok poprzedniego okna. </span></p>
+<p><span>Wracamy na Dziedziniec. Idąc ku SW, trafiamy na następny wąski, boczny korytarz (10 m długości), wiodący r&oacute;wnież ku SSW. Uchodzi on oknem w ścianie turni. W połowie tego ciągu jest przejście do dw&oacute;ch dalszych, r&oacute;wnoległych korytarzyk&oacute;w. Pierwszy z nich uchodzi na powierzchnię obok poprzedniego okna, a drugi &ndash; ku SSW kończy zwężająca się szczelina, natomiast ku N, nad progiem (2,8 m) &ndash; następuje ponowne rozdzielenie na ciasne, r&oacute;wnoległe szczeliny, uchodzące oknami w ścianie Dziedzińca.</span></p>
+<p><span>Jaskinia rozwinięta jest w wapieniach malmo-neokomu jednostki Organ&oacute;w (seria wierchowa, płaszczowina Czerwonych Wierch&oacute;w). </span></p>
+<p><span>Ściany są silnie zwietrzałe, w korytarzu gł&oacute;wnym brak naciek&oacute;w, natomiast w bocznych korytarzykach (szczeg&oacute;lnie w SW części jaskini) występują nacieki grzybkowe, mleko wapienne, drobne stalaktyty i stalagmity. W kilku miejscach zachował się poziom &bdquo;fałszywej podłogi&rdquo;, kt&oacute;rą stanowi polewa 4,5 cm grubości, zbudowana z krystalicznego kalcytu, przyrośnięta do ścian. Pierwotnie polewa ta cementowała namulisko, p&oacute;źniej wypłukane przez wodę. Dno pokryte jest przeważnie odpadłymi ze ścian i stropu głazami i namuliskiem gliniastym. W gł&oacute;wnym korytarzu W&oacute;jcik (1960b, 1966a) opisuje namulisko piaszczyste 2-metrowej miąższości. Przy otworze gł&oacute;wnym oraz na Dziedzińcu głazy pokrywa gleba.</span></p>
+<p><span>Rudnicki (1958, 1967) podobnie jak W&oacute;jcik (1960a,b, 1966a) uważa jaskinię za podziemny przepływ Potoku Kościeliskiego powstały w pliocenie. W&oacute;jcik zalicza jaskinię do VI (1960b) i do VIII (1966a) piętra jaskiń tatrzańskich. </span></p>
+<p><span>Światło sięga do kilkunastu metr&oacute;w w głąb korytarza gł&oacute;wnego. W jaskini nie wyczuwa się ruch&oacute;w powietrza, w korytarzykach SW części jest on zależny od warunk&oacute;w atmosferycznych panujących na powierzchni.</span></p>
+<p><span>Jaskinia jest silnie wilgotna, w wielu miejscach występuje deszcz podziemny, kt&oacute;rego nasilenie zwiększa się znacznie w okresach deszczowych; przed końcem gł&oacute;wnego korytarza tworzy się okresowe jeziorko. </span></p>
+<p><span>Roślinność zielona, obficie występująca przy otworze gł&oacute;wnym i na Dziedzińcu, została opisana przez Żmudę (1915). W trakcie inwentaryzacji jaskiń tatrzańskich T. Bielska 6 VIII 1979 r. zebrała i oznaczyła następujące gatunki roślin (oznaczenia mszak&oacute;w wykonała J. Mickiewicz) :</span></p>
+<p><span>kwiatowe &ndash; <strong><em>Chrysosplenium alternifolium</em></strong> L., <strong><em>Adoxa moschatellina</em></strong> Sch. et Tell., <strong><em>Viola biflora</em></strong> L., <strong><em>Arabis alpina</em></strong> L., <strong><em>Arabis halleri </em></strong>L., <strong><em>Anthriscus nitidis </em></strong>Garcke, <strong><em>Stellaria nemorum</em></strong> L.</span></p>
+<div>paproć &ndash; <strong><em>Cystopteris fragilis</em></strong> Bernh.</div>
+<p><span>mszaki &ndash; <strong><em>Neckera crispa </em></strong>(L.) Hedw.,<em> <strong>Eurhynchium swartzii</strong> </em>Hobkirk, <strong><em>Brachythecium velutinum </em></strong>Br. eur., <strong><em>Polytrichum alpinum </em></strong>L.,<em> <strong>Mnium orthorrynchum</strong> </em>Br. eur., <strong><em>Mnium cuspidatum</em></strong> Leys., <strong><em>Pellia epiphylla </em></strong>(L.) Corda,<em> <strong>Ctenidium moluscum</strong> </em>Mitt., <strong><em>Tortella tortuosa </em></strong>Limpr., <strong><em>Cratoneurum decipiens </em></strong>(De Not)Lske, <strong><em>Bryum </em></strong>sp.</span></p>
+<p><span>Fauna jest reprezentowana przez nietoperze nocki wąsate (<strong><em>Myotis mystacinus</em></strong>) i gacki wielkouche (<strong><em>Plecotus auritus</em></strong>) &ndash; Kowalski (1953a). W&oacute;jcik (1966a) opisuje z namuliska kości niedźwiedzia jaskiniowego<em> <strong>Ursus spelaeus</strong></em>, a Stach (1934) wymienia owada <strong><em>Onychiurus armatus</em></strong>. Kowalski (1955a) podaje następujące owady: <strong><em>Triphosa dubitata</em></strong> L., <strong><em>Scoliopteryx libatrix </em></strong>(L.), <strong><em>Vanessa io </em></strong>(L.)</span><span> (błędna nazwa, winno być <span style="font-weight: bold; font-style: italic;">Inachis io</span></span><span style="font-style: italic;"><span style="font-weight: bold;">&nbsp;&ndash; </span></span>przyp.red.)<span> i <strong><em>Onychiurus armatus</em></strong> Tullberg. W trakcie inwentaryzacji jaskiń tatrzańskich OW PTPNoZ E. Sobiepanek-Krzyżanowska zebrała w dniu 7 sierpnia 1978 r. i oznaczyła skoczogonki <strong><em>Onychiurus tuberculosus</em></strong>i <strong><em>Onychiurus armatus</em></strong><em>.</em> W jaskini jest prowadzony monitoring nietoperzy. Piksa (1995) wymienia następujące gatunki nietoperzy: </span><strong><em><span>Myotis Brandti</span></em></strong>,<em></em><strong><em><span> Eptesicus nilssoni</span></em></strong> (Keyserling), a w innej pracy &ndash; Piksa (1998) &ndash; <strong><em>Myotis myotis</em></strong><span> (Borkhausen) &ndash; obserwowany latem), <strong><em>Eptesicus nilssonii</em></strong> (Keyserling), <strong><em>Barbastella barbastellus. </em></strong><span>Piksa i Nowak (2001) opisują występowanie <strong><em>Barbastella barbastellus</em></strong>.</span></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>O genezie jaskini wypowiadali się Zwoliński (1955, 1961), Rudnicki (1958, 1967), W&oacute;jcik (1960b, 1966a, 1968). Osady badał W&oacute;jcik (1960a,b, 1966a, 1968). Badania fauny prowadzili: Stach (1934), Kowalski (1953a, 1955a), Elżbieta Sobiepanek-Krzyżanowska (1978 &ndash; w ramach inwentaryzacji jaskiń tatrzańskich PTPNoZ), Piksa (1995, 1998) oraz Piksa i Nowak (2001). Roślinność przyotworową badał Żmuda (1915), a w trakcie inwentaryzacji jaskiń tatrzańskich OW PTPNoZ 6 sierpnia 1979 r. Teresa Bielska zebrała okazy flory (Bielska, Mickiewicz 2000).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Według K. Kowalskiego (1953a) :<em> &bdquo;Jaskinia znana jest od dawna zb&oacute;jnikom i poszukiwaczom skarb&oacute;w. Prawdopodobnie do tej jaskini odnosi się opis Goszczyńskiego...Pierwszy dokładny opis dał Pawlikowski (1887). W r. 1900 wyznakowano drogę do groty, dziś jednak znaki są zupełnie zatarte. Niegdyś jaskinia była często zwiedzana, dziś rzadko tylko zapuszczają się do niej turyści.&rdquo;</em> I dalej: &bdquo;<em>Trzeba wreszcie wspomnieć, że Okna Zb&oacute;jnickie są miejscem, w kt&oacute;rym rozgrywa się akcja jednego z rozdział&oacute;w &bdquo;Popioł&oacute;w&rdquo; Żeromskiego, zatytułowanego &bdquo;Okno skalne&rdquo;.</em></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis jaskini, datowane na 23 lipca 1952 r. sporządził Kowalski (1953a). Wysokość otworu wejściowego (gł&oacute;wnego) ustalono na podstawie mapy topograficznej 1:10 000 TATRY POLSKIE, opracowanej przez Wojskowe Wydawnictwo Kartograficzne. W dniu 6.12.2008 I. Luty przy wsp&oacute;łpracy M. Roman wykonała nową dokumentację jaskini oraz fotografie otwor&oacute;w i wnętrza groty. Pomiary przeprowadzono przy użyciu busoli Suunto i taśmy mierniczej. Dane zaktualizowała I. Luty (2009).<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Goszczyński, S. 1835 (opis, być może Okien Zb&#243;jnickich); Pawlikowski, J.G. 1887 (opis); Pawlewski, 1900 (opis, wzmianka o wyznakowaniu szlaku); Chmielowski, J. 1907 (opis dojścia i jaskini) Talko-Hryncewicz, J. 1913 (fot. Dziedzińca); Żmuda, A. 1915 (opis jaskini, dane meteorologiczne, opis roślinności zielonej); Żmuda, A. 1916 (opis stanowisk mch&#243;w); Gadomski, A. 1924 (wzmianka o znalezieniu lodu w lecie); Gy&#246;rffy, J. 1924 (rewizja oznaczeń mch&#243;w Żmudy); Żmuda, A. 1930 (stanowiska mch&#243;w); Zwolińscy T. i S. 1930 (droga i opis jaskini); Stach, J. 1934 (wymienia owada Onychiurus armatus); Wiśniewski, P. 1935 (nowe oznaczenia mch&#243;w Żmudy); Zwoliński, T. 1937 (droga i opis); Kowalski, K. 1953a (opis inwentarzowy, plan); Kowalski, K. 1955a (fauna); Zwoliński, S. 1955b (geneza); Rudnicki, J. 1958 (geneza); W&#243;jcik, Z. 1959b (freatyczne formy krasowe); Sak, A., Szapliński, A. 1960 (og&#243;lna charakterystyka); W&#243;jcik, Z. 1960a,b (schematyczna lokalizacja, osady); Zwoliński, S. 1961 (geneza); Bac, M., Grochocka, K. 1965 (budowa geologiczna); W&#243;jcik, Z. 1966a (osady, geneza, wiek); Rudnicki, J. 1967 (geneza, wiek); W&#243;jcik, Z. 1968 (geneza, wiek); Głazek, J. i in. 1975b (wzmiankują o preglacjalnych żwirach); Bac-Moszaszwili, M. i in. 1979 (wymieniają jako przykład jaskini młodotrzeciorzędowej powstałej w ciepłym klimacie); W&#243;jcik, Z, 1979 (wzmiankuje o występowaniu kości dużych ssak&#243;w); Parma, Ch. 1980 (turystyczny opis); TATRY POLSKIE 1984 (lokalizacja na mapie); Gradziński, R. i in. 1985a (dane morfometryczne, schemat. lokalizacja); Gradziński, R. i in. 1985b (plan); Zwoliński, S. 1993 (informacja o pomiarach w maju-czerwcu 1934 r.); Jaskinie TPN 1993 b (plan i opis inwentarzowy); Piksa, K. 1995,1998 (nietoperze); Wiśniewski, W.W. 1999b (wzmianki drukowane w poemacie B. Stęczyńskiego z 1860 r. odnosi do tej jaskini); Bielska, T., Mickiewicz, J. 2000 (flora); Piksa, K., Nowak, J. 2001 (nietoperze).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    [Siarzewski, W., Zwolińska, Z.] 1986 (plany, notatki); Sobiepanek-Krzyżanowska, E. 1979 (fauna)..
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Grodzicki, Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(571)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

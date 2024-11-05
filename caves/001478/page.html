@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1478">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1478;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566108,49".replace(',', '.') + "," + "152640,46".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1478','Jaskinia Kozia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Kozia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Szczelina w Kozim Grzbiecie, Jaskinia Nova, Jaskinia Machajowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.11
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′30,38″, φ: 49&#176;14′15,72″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku N, 1872 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1875
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                100
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                376
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                389
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    3470
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                370
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, na lewym orograficznie zboczu Doliny Litworowej, kilkanaście metr&#243;w poniżej krawędzi Machaj&#243;wki stanowiącej w tym miejscu g&#243;rne, orograficznie lewe ograniczenie doliny. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Doliny Kościeliskiej podążamy czerwonym szlakiem na Ciemniak. Ze szlaku turystycznego z Chudej Przełęczy trawersujemy zboczem Twardego Upłazu w kierunku Doliny Mułowej, schodzimy do niej na morenę ograniczającą od północy Kocioł Mułowy, jej grzbietem osiągamy prawe orograficznie zbocze Doliny Mułowej. Stąd podchodzimy trawiastym stokiem w kierunku Machajówki i przekraczamy grań na stronę Doliny Litworowej. Z grani schodzimy skośnie w prawo w dół około 10 m, a następnie trawersujemy w prawo (w kierunku grani głównej) u podnóża niewielkich ścianek skalnych, i po około 30 m osiągamy pierwszy otwór Jaskini Koziej. Trawersując dalej jeszcze około 100 m na podobnym poziomie zauważymy kilka metrów powyżej podstawy ścianek charakterystyczny wystający głaz. Nieco poniżej niego znajduje się drugi otwór Jaskini Koziej, niewidoczny z dołu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Pierwszy (g&oacute;rny) otw&oacute;r znajduje się u podstawy kilkumetrowej wysokości ściany skalnej, tworzącej tu niewielką przewieszkę, jest ciasny, założony na poziomej szczelinie i&nbsp;ma wymiary około 0,3x0,8 m. Zaraz za otworem znajduje się niskie rozszerzenie nazwane Salką Śpiących Rycerzy, z&nbsp;kt&oacute;rej biorą początek dwa ciągi, biegnące w&nbsp;przeciwnych kierunkach. Pierwszy, prowadzący w&nbsp;lewo ku E, stanowi niską, szeroką na około 1&ndash;2 m szczelinę, kończącą się po kilkunastu metrach. Drugi, wiodący w&nbsp;prawo ku SW, stanowi bardzo ciasny meander uchodzący po kilku metrach do salki o&nbsp;wymiarach 2x5 m. Stąd dalej wiedzie niski i&nbsp;ciasny korytarzyk o&nbsp;tr&oacute;jkątnym przekroju, doprowadzający po 11 m do kaskady opadającej 2 m na okrągłe dno o&nbsp;średnicy około 2 m (Czarny Marmit). Dalej wąski, wysoki na około 2 m meander doprowadza po około 5 m do dość uciążliwego, pionowego zacisku (Zacisk Adama). Poniżej meander nieco się rozszerza, by po 10 m doprowadzić do kolejnej salki (4x5 m) o&nbsp;dnie zasłanym rumoszem i&nbsp;blokami skalnymi. Pomiędzy zaciskiem a salką w&nbsp;lewej orograficznie ścianie znajduje się wylot bardzo ciasnego meandra &ndash; jest to tzw. &bdquo;obejście&rdquo; Zacisku Adama, biorące sw&oacute;j początek pod stropem Czarnego Marmitu, na przedłużeniu gł&oacute;wnego korytarza. Z salki bierze początek obszerna, 2-4 m szeroka, piarżysta pochylnia, utworzona pomiędzy dwoma r&oacute;wnoległymi warstwami skały. Po 22&nbsp;m pochylnia jest częściowo zablokowana dużymi głazami. Tu ciąg rozgałęzia się i&nbsp;pojawiają się trzy możliwości dalszej drogi.</span></p>
+<p><span>Pierwszy wariant &ndash; w&nbsp;prawo ku NW poprzez spiętrzone głazy przechodzimy do obszernej (10x15 m) Sali ze Złot&oacute;wką. Pod stropem, około 12 m powyżej zawaliskowego spągu sali znajdują się dwa kilkumetrowej długości korytarzyki, zablokowane głazami. W jednym z&nbsp;nich osiągnięto maksymalne przewyższenie jaskini wynoszące +13 m, w&nbsp;drugim &ndash;przewyższenie około +8 m. Natomiast przed salą, nad wejściem do niej widnieje wylot meandra &ndash; po kilku metrach wyprowadza on pod stropem Meandra Kruchych Polew.</span></p>
+<p><span>Drugi wariant &ndash; z&nbsp;rozdroża na wprost wchodzimy do wysokiego na kilka metr&oacute;w Meandra Kruchych Polew. Tu po 3 m długości trawersie nad otwierającą się w&nbsp;d&oacute;ł szczeliną schodzimy trzema prożkami (0,5; 1,0; 1,5 m), wykonujemy kolejny, 3 m długości trawers nad zwężającą się, ślepą szczeliną i&nbsp;powyżej progu 1,7 m osiągamy mały, tr&oacute;jkątny Mokry Przełaz &ndash; w&nbsp;miejscu tym obficie kapie woda. Meander, kt&oacute;ry przeszliśmy ma ściany pokryte grubymi, kruszącymi się, starymi polewami naciekowymi. Z Mokrego Przełazu stromo w&nbsp;d&oacute;ł biegnie korytarzyk, początkowo dość ciasny, podcięty 4-metrowym połogim progiem, sprowadzającym do Śnieżnej Salki (5x7 m). Jej strop stanowi ukośna, r&oacute;wna powierzchnia skalna, pokryta cienką warstwą suchego mleka wapiennego. Jednorazowo zaobserwowano tu zjawisko samoistnego odrywania się i&nbsp;opadania niby śniegu pojedynczych płatk&oacute;w tego mleka. Z salki stromo opadający korytarz długości około 12 m, o&nbsp;spągu pokrytym luźnym, obsypującym się piargiem, doprowadza nad krawędź Studni z&nbsp;Balkonem. Znad krawędzi studni w&nbsp;prawo ku SW odchodzi ciąg boczny, kt&oacute;ry po kilku metrach poprzez 1 i&nbsp;5 m pr&oacute;g sprowadza do zakończonej zawaliskiem niewielkiej salki (2,5x5 m).</span></p>
+<p><span>Krawędź Studni z&nbsp;Balkonem stanowi niepewne zawalisko, częściowo scementowane pokruszonymi polewami. Pierwszy, 5 m odcinek zjazdu prowadzi pomiędzy skałą a poklinowanymi blokami skalnymi, następny (około 22 m) prowadzi przez bardzo stromą pochylnię, wypadającą oknem nad skalną p&oacute;łką (Balkon), zawieszoną 14 m nad dnem dużej sali. Z p&oacute;łki bierze początek r&oacute;wnież druga, r&oacute;wnoległa pochylnia, zakończona po kilkunastu metrach zawaliskiem.</span></p>
+<p><span>Kolejny &ndash; trzeci wariant z&nbsp;rozdroża prowadzi w&nbsp;d&oacute;ł poprzez 3-metrowy pr&oacute;g z&nbsp;zaklinowanych want na dolne piętro Meandra Kruchych Polew. Z salki poniżej prożka poprzez zacisk wydostajemy się do tzw. Ciąg&oacute;w Marianerii. Rozpoczyna go okrągła salka o&nbsp;średnicy około 8 m. Z prawej strony wysypują się pokruszone polewy, po kt&oacute;rych spływa niewielki ciek wodny, prawdopodobnie tej samej z&nbsp;kt&oacute;rą wcześniej mieliśmy kontakt w&nbsp;Mokrym Przełazie.</span></p>
+<p><span>Z okrągłej salki poprzez 2 m prożek schodzimy do wysokiego lecz stosunkowo wąskiego korytarza &ndash; galerii, rozszerzającego się ku g&oacute;rze. Na pewnym odcinku g&oacute;rna część tworzy jakby niezależne piętro. Idąc dolnym, wąskim wariantem, mijamy kilka potężnych odpadłych polew naciekowych i&nbsp;docieramy do wyraźnego rozszerzenia &ndash; sali o&nbsp;wymiarach 10x6 m i&nbsp;wysokości dochodzącej do 10 m kt&oacute;rej spąg pokryty jest głazami skalnymi. Z&nbsp;sali ku SE opada stromo dość obszerny (zwłaszcza w&nbsp;g&oacute;rnej swej części) meander. Rozpoczyna go 6 m głębokości krucha kaskada, niżej za kilkumetrowym, dość wąskim odcinkiem z&nbsp;osypującym się rumoszem pokrywającym spąg, otwiera się kolejna, 6 m kaskada. Po jej prawej (or.) stronie pada obfity deszcz podziemny, dlatego też należy tu wykonać trawers p&oacute;łką i&nbsp;zjechać jej lewą stroną. Z dna kaskady prowadzi wysoka szczelina, o&nbsp;szerokości około 2&ndash;3 m u podstawy i&nbsp;spągu pokrytym rumoszem oraz głazami. Po kilku metrach zaklinowane wanty tworzą w&nbsp;szczelinie niski przełaz wyprowadzający nas bezpośrednio na dno (&ndash;68,0 m) Studni z&nbsp;Balkonem o&nbsp;wymiarach 14x8 m, do kt&oacute;rej (na wysokości 14 m nad dnem) doprowadził nas opisany wyżej drugi wariant.</span></p>
+<p><span>W południowym krańcu dna studni bierze początek wąski meander, kt&oacute;ry po około 6&nbsp;m wyprowadza nad skraj obszernej, stromo opadającej galerii &ndash; jest to Krucha Pochylnia. Początkowo spąg pokrywa suchy materiał ilasty z&nbsp;okruchami skalnymi, dalej, poniżej niewielkiego progu z&nbsp;zaklinowanej wanty &ndash; osypujący się piarg. W tym miejscu korytarz przy szerokości osiągającej 2&ndash;2,5 m przybiera formę wysokiego do kilkunastu metr&oacute;w meandra.</span></p>
+<p><span>Meander kończy okrągła salka stanowiąca dno kilkunastometrowej wysokości, okrągłego w&nbsp;przekroju komina o&nbsp;średnicy około 3&ndash;4 m. Dalszy ciąg prowadzi z&nbsp;salki wąskim, wysokim meandrem. Najwygodniej poruszać się jest jego dnem. Po około 12 m docieramy do niewielkiego rozszerzenia, skąd dalsza droga wiedzie w&nbsp;g&oacute;rę poprzez 4 m wysokości, nietrudny pr&oacute;g, wyprowadzający do niewielkiej salki (3x5 m). Po jej przeciwległej stronie otwiera się wiodąca w&nbsp;d&oacute;ł, wąska szczelina &ndash; po jej strawersowaniu dostajemy się do niewielkiej, dość kruchej salki. Stąd ku SE wiedzie kr&oacute;tki, ciasny ciąg, zakończony bardzo niebezpiecznym, wiszącym zawaliskiem &ndash; występuje tu okresowo silny przewiew. Ze względu na duże ryzyko eksploracja w&nbsp;tym miejscu została zaniechana. </span></p>
+<p><span>Wracamy do salki. Schodząc zapieraczką szczeliną w&nbsp;d&oacute;ł (lub zjeżdżając 8 m) osiągamy ponownie dolne piętro meandra. Schodzimy zgodnie z&nbsp;płynącym ciekiem wodnym i&nbsp;po około 30 m stajemy nad 2,5 m progiem sprowadzającym do Salki na Rozdrożu (&ndash;121,5 m). Na odcinku pomiędzy zapieraczkowym zejściem na dno meandra a Salką na Rozdrożu istnieją g&oacute;rne, na og&oacute;ł ciasne piętra meandra, znajdujące się najwyżej 20&ndash;25 m nad spągiem dolnego piętra, doprowadzające do niewielkiej wiszącej zawaliskowej Salki Pata.</span></p>
+<p><span>Z Salki na Rozdrożu biorą początek 4 dalsze drogi.</span></p>
+<p><span>Pierwsza &ndash; prosto w&nbsp;g&oacute;rę kruchą załupą, jakby nieco w&nbsp;tył, doprowadza nieprzyjemnym terenem w&nbsp;rejon Salki Pata.</span></p>
+<p><span>Druga &ndash; w&nbsp;d&oacute;ł ku SE wiedzie niską, zapiarżoną pochylenką, kt&oacute;ra po około 5 m raptownie skręca w&nbsp;prawo, by poprzez ciasny przełaz wyprowadzić nad szeroką lecz niską, ładnie mytą pochylnię, długości około 15 m. Z jej dna ciasny, tr&oacute;jkątny przełaz doprowadza do dwu salek będących w&nbsp;rzeczywistości dnem dochodzącego tu z&nbsp;g&oacute;ry Czekoladowego Meandra. Płynąca tym ciągiem woda z&nbsp;rejonu Salki na Rozdrożu znika w&nbsp;ciasnej szczelinie biorącej sw&oacute;j początek w&nbsp;pierwszej salce (&ndash;140 m). W drugiej salce pojawia się niezależny ciek wody &ndash; prawdopodobnie z&nbsp;rejonu Kruchej Galerii. Salkę zmyka stożek drobnego piargu, wsypującego się tu z&nbsp;g&oacute;ry.</span></p>
+<p><span>Trzecia &ndash; w&nbsp;g&oacute;rę, w&nbsp;południowej części Salki na Rozdrożu, 7,5 m wysokości progiem (V+) wydostajemy się do kontynuacji gł&oacute;wnego meandra. Wprost w&nbsp;g&oacute;rę odchodzi ślepy ciasny kominek. Ku południowi po 3&ndash;4 m odchodzi w&nbsp;prawo niski korytarzyk doprowadzający zaraz do opadającego w&nbsp;d&oacute;ł ciasnego, wysokiego meandra. Doprowadza on po kilkunastu metrach do początku Kruchej Galerii.</span></p>
+<p><span>Czwarta &ndash; z&nbsp;Salki na Rozdrożu ku SW odchodzi kilkumetrowej długości ciasny korytarzyk doprowadzający bezpośrednio pod Kruchą Studzienkę i&nbsp;dalej nad Czekoladowy Meander o&nbsp;ścianach pokrytych cienką warstwą czarno-brązowych polew, od kt&oacute;rych pochodzi jego nazwa. Czekoladowym Meandrem możemy zapieraczką zejść do salki na poziomie &ndash;140 m.</span></p>
+<p><span>Wracamy do gł&oacute;wnego meandra &ndash; prawie w&nbsp;tym miejscu, w&nbsp;kt&oacute;rym się teraz znajdujemy, obrywa się 7-metrowej głębokości Krucha Studzienka, sprowadzająca do mytego, kilkumetrowej długości korytarzyka, obrywającego się 4-metrowym progiem do Czekoladowego Meandra. Trawersując nad studzienką &ndash; prożkiem sprowadzającym do Czekoladowego Meandra poprzez małe okienko wydostajemy się do Kruchej Galerii.</span></p>
+<p><span>Tu początkowo wspinamy się po wantach kilka metr&oacute;w w&nbsp;g&oacute;rę (krucho) by osiągnąć małą przełączkę, z&nbsp;kt&oacute;rej 3-metrowy prożek sprowadza do niewielkiej salki (4x2 m). Stąd poprzez kolejny 1,5 m prożek z&nbsp;silnym deszczem podziemnym przedostajemy się do kolejnej, podobnej salki (Mokra Salka).</span></p>
+<p><span>Idąc z&nbsp;Mokrej Salki przystropową częścią meanderka wydostajemy się nad kolejny 3-metrowy prożek. Wyprowadza on do obszernego fragmentu Kruchej Galerii. Z lewej strony (or.) dochodzi ciąg tzw. Ślepego Meandra, poprzez kt&oacute;ry wiedzie droga w&nbsp;kierunku Drugiego Dna i&nbsp;drugiego otworu jaskini.</span></p>
+<p><span>My posuwamy się galerią w&nbsp;d&oacute;ł początkowo ku SE, p&oacute;źniej ku E. Pokonujemy 3-metrowy pr&oacute;g utworzony z&nbsp;wielkiej zaklinowanej wanty i&nbsp;po około 30 m docieramy nad skraj Litej Dwudziestki, mającej 16 m głębokości. Studnia rozpoczyna się wciętym głęboko meandrem, w&nbsp;kt&oacute;ry wtrawersowujemy kilka metr&oacute;w i&nbsp;z wysuniętego stanowiska rozpoczynamy zjazd. Zjeżdżając mijamy dwa boczne ciągi odchodzące ze studni.</span></p>
+<p><span>Pierwszy rozpoczynają dwa okna, jedno nad drugim, wiodące ku SW. G&oacute;rne kontynuuje się ku NW kilkumetrowym kominkiem, kt&oacute;ry przechodzi w&nbsp;system ciasnych meandr&oacute;w podprowadzających z&nbsp;powrotem pod Kruchą Galerię. Dolne wiedzie do salki (3x3 m), z&nbsp;kt&oacute;rej ku S opada rozwinięty na pionowej szczelinie, 10 m długości korytarz, skręcający w&nbsp;lewo i&nbsp;po kolejnych około 6 m wyprowadzający nad 10 m kaskadę sprowadzającą do Kapliczki przy Salce Biwakowej.</span></p>
+<p><span>Drugi &ndash; po około 8 m zjazdu Litą Dwudziestką osiągamy dno meandra, kt&oacute;rym poruszając się ku N po około 8 m napotykamy wylot ciasnego, niskiego korytarzyka. Po blisko 12&nbsp;m doprowadza on do poprzecznej, niskiej, zabłoconej szczeliny, zwężającej się na obu krańcach do kilkunastu centymetr&oacute;w.</span></p>
+<p><span>Zjeżdżając pochylnią będącą kontynuacją Litej Dwudziestki osiągamy obszerną (14x8 m) salę. W SE jej części znajduje się charakterystyczna wnęka zwana Kapliczką. Wschodnie odgałęzienie sali (będące przedsionkiem Ciasnego Meandra) pełniło funkcję salki biwakowej. Bierze tu początek Ciasny Meander o&nbsp;całkowitej długości wynoszącej około 60&nbsp;m. Pierwszy odcinek jest wąski, o&nbsp;wysokości 4&ndash;2 m i&nbsp;dość kręty, należy go pokonywać początkowo pod stropem, p&oacute;źniej spągiem, środkowa część jest niska, ale nieco obszerniejsza, końcowa to zn&oacute;w klasyczny, bardzo ciasny meander, nieco szerszy u g&oacute;ry. Końcowy fragment meandra skręca ku S i&nbsp;obrywa się tzw. I Progiem Szaleńca. Jest to system dw&oacute;ch bardzo stromych, niemal pionowych pochylni, biegnących r&oacute;wnolegle nad sobą, o&nbsp;szerokości około 2 m i&nbsp;opadających około 10 m. Pochylnie wyprowadzają do prostopadłego meandra o&nbsp;przebiegu W&ndash;E.</span></p>
+<p><span>Ku zachodowi meander jest początkowo wysoki i&nbsp;wąski, doprowadza z&nbsp;powrotem pod Salkę Biwakową, łącząc się z&nbsp;nią poprzez niezwykle niebezpieczne zawalisko, w&nbsp;kt&oacute;re wejście znajduje się bezpośrednio poniżej wlotu do Ciasnego Meandra. Jest to tzw. Obejście Ciasnego Meandra.</span></p>
+<p><span>Ładnie myty, lity meander biegnący ku E poprzez niewielkie, 1-metrowe prożki, po około 25&nbsp;m doprowadza nad II Pr&oacute;g Szaleńca o&nbsp;głębokości około 6 m, a kilka metr&oacute;w dalej nad III Pr&oacute;g Szaleńca, będący w&nbsp;istocie stromą pochylnią. Spod III Progu Szaleńca idąc dnem meandra osiągamy zwężenie niemożliwe do przejścia &ndash; właściwa droga wiedzie kilka metr&oacute;w wyżej, pod stropem. Zapieraczką dochodzimy nad 9-metrowyą studzienkę sprowadzającą do niewielkiej salki. Tu meander znacznie stromieje i&nbsp;poprzez kolejną kaskadę 13 m głębokości i&nbsp;kolejne niewielkie prożki (3,5 m; 2,0 m; 1,5 m; 1,2 m) doprowadza nad krawędź 26 m głębokiej studni, nad kt&oacute;rą znajduje się ślepo zakończona, biegnąca w&nbsp;g&oacute;rę, stroma pochylnia około 10 m długości.</span></p>
+<p><span>Z dna tej studni bierze początek kolejna, obszerna Wielka Studnia o&nbsp;głębokości 53 m.</span></p>
+<p><span>Jej przekr&oacute;j w&nbsp;g&oacute;rnej części osiąga wymiary 6x10 m, ku dołowi studnia nieco się zwęża, przybierając charakter wielkiej, pionowej szczeliny. Z dna Wielkiej Studni bierze początek 26 m głębokości Ślepa Studnia oraz system Ciasnych Szczelin o&nbsp;generalnym przebiegu 65<sup>o</sup>-245<sup>o</sup>.</span></p>
+<p><span>Pierwsza z&nbsp;Ciasnych Szczelin, o&nbsp;głębokości 9 m, sprowadza nad kolejną, z&nbsp;lokalnym przewężeniem na głębokości 8 m. Wejścia do drugiej i&nbsp;trzeciej są bardzo ciasne. Dno trzeciej szczeliny znajduje się na poziomie -359,5 m. Przy dnie dalsze przejście jest niemożliwe &ndash; należy wspiąć się kilka metr&oacute;w na zaklinowane wanty, z&nbsp;kt&oacute;rych poprzez ciasny przełaz można wydostać się nad kolejną, 20 m głębokości studnię, sprowadzającą na dno jaskini na głębokości -376 m.</span></p>
+<p><span>Z zaklinowanych want nad ostatnią studnią można jeszcze przedostać się wąskimi, wysokimi szczelinami kilkadziesiąt metr&oacute;w w&nbsp;kierunku WSW lecz dalszą drogę zamykają zwężenia niemożliwe do przejścia.</span></p>
+<p><span>Wracamy do Wielkiej Studni. Około 10 m poniżej jej krawędzi, po lewej (or.) stronie, widnieje duże okno. Wiedzie ono do ciągu, prowadzącego do Błędnego Meandra. Z okna biegnie ku g&oacute;rze obszerny komin o&nbsp;znacznych trudnościach wspinaczkowych. Po 10 m osiąga się platformę zbudowaną z&nbsp;olbrzymich, zaklinowanych want. Kolejny odcinek to dwa r&oacute;wnoległe biegnące, obszerne kominy (droga wspinaczkowa wiodła prawym, węższym) &ndash; łączące się po 25 m w&nbsp;szczelinie. Jest to Dwoisty Komin. Kilka metr&oacute;w dalej znajduje się kolejna, 19-metrowej wysokości Kaskada Trzeciego Spita, o&nbsp;charakterze prawie pionowej, mytej rynny. Kaskada-komin kontynuuje się krętym i&nbsp;dość ciasnym meandrem. Po kilkunastu metrach zwiększa on znacznie swą wysokość, tworząc g&oacute;rne piętro &ndash;Wiszący Meander, kt&oacute;rym można obejść znajdujące się w&nbsp;dolnym piętrze dwie trudne (5 m i&nbsp;6,5 m wysokości) kaskady.</span></p>
+<p><span>Powyżej II kaskady meander staje się bardzo ciasny i&nbsp;poruszanie się w&nbsp;nim jest bardzo uciążliwe. Po około 50 m rozdwaja się, jednakże oba odgałęzienia po około 10-15 m zwężają się, uniemożliwiając dalszą drogę.</span></p>
+<p><span>Wracamy ponownie do Wielkiej Studni. Około 10 m ponad dnem studni, w&nbsp;zachodniej ścianie znajduje się kolejne, niewielkie, ciasne okienko, za kt&oacute;rym ku g&oacute;rze kontynuuje się 20 m wysokości Ciasny Komin, zakończony zwężeniem nie do przejścia.</span></p>
+<p><span>Wracamy do Kruchej Galerii, do miejsca gdzie odchodzi wcześniej wzmiankowany Ślepy Meander. Poprzez zaklinowane w&nbsp;meandrze wanty wydostajemy się nad dolną krawędź kaskady. Wykonujemy trawers szeroką zapieraczką nad 3,5-metrowej głębokości kaskadą i&nbsp;osiągamy wylot dość ciasnego meandra, kt&oacute;rym posuwamy się około 6 m do miejsca, w&nbsp;kt&oacute;rym skręca w&nbsp;prawo. Tu pojawia się woda, a sam meander przybiera charakter wąskiej, ukośnej szczeliny z&nbsp;wymytymi w&nbsp;spągu krętymi rynienkami z&nbsp;wodą. Szczelina o&nbsp;długości około 20 m jest bardzo uciążliwa w&nbsp;pokonywaniu. Kontynuuje się ona dwoma wariantami &ndash; dolny kończy się po około 15 m, natomiast lewy, g&oacute;rny poprzez zwężenie &bdquo;S&rdquo; (Z1) doprowadza do tr&oacute;jkątnego, niskiego korytarzyka wyprowadzającego po 8 m do skomplikowanego systemu salko-pochylni, kt&oacute;re po kolejnych około 15 m doprowadzają do obszernej sali (Cichy Kącik) &ndash; będącej zakończeniem obszernego ciągu sprowadzającego z&nbsp;rejonu drugiego otworu.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Z Cichego Kącika ku E wiedzie początkowo dość obszerny korytarz, kt&oacute;ry jednakże po około 10 m przechodzi w&nbsp;niski i&nbsp;ciasny przełaz pomiędzy stropem a rumoszem skalnym. Za przełazem bierze początek niezbyt obszerny meander, kt&oacute;ry po około 50 m doprowadza do kolejnego przełazu, tym razem pod dużą, niezbyt pewnie zastabilizowaną wantą. Dalej 2,5 m głębokości pr&oacute;g sprowadza poprzez duże, poklinowane wanty do kontynuacji meandra. Ten niebawem obrywa się 6-metrowej głębokości przewieszoną kaskadą. Z jej dna bierze początek bardzo skomplikowanej budowy Piętrowy Meander, wysoki do 10 m, z&nbsp;przepięknymi formami wymyć i&nbsp;licznymi p&oacute;łkami erozyjnymi. Meandrem tym należy się poruszać generalnie wyższymi piętrami, gdyż dolne są zwykle zbyt ciasne.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Po około 12 m po lewej (or.) stronie odchodzi tzw. Ciąg za &bdquo;Wielką Wodą&rdquo;. Jest to początkowo niezbyt obszerny meander, po około 16 m doprowadzający pod 3 m wysokości kaskadę. Po kolejnych około 15 m osiągamy następną, 9 m wysokości kaskadę (IV), powyżej kt&oacute;rej meander staje się już dość ciasny i&nbsp;poprzez kolejno po sobie następujące kaskadki 2,0 m, 1,5 m i&nbsp;1,0 m doprowadza do bardzo niskiego korytarzyka wypełnionego na swych końcach namuliskiem.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wracamy do Piętrowego Meandra. Klucząc w&nbsp;zakamarkach meandra po około 20 m osiągamy kolejne rozdroże: w&nbsp;prawo odchodzi ciąg dwu pięknie mytych salek o&nbsp;3-4-metrowej średnicy, będących dnem niewielkich kaskad (Boczne Kaskady).</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wracamy do rozdroża w&nbsp;Piętrowym Meandrze. Po przeciwległej stronie pod stropem widnieje niewielkie okienko-zacisk, za kt&oacute;rym korytarz rozszerza się, ale pozostaje dość niski. Po paru metrach przechodzi w&nbsp;okrągłą salkę (średnicy około 3 m), z&nbsp;kt&oacute;rej ciasny meanderek poprzez kolejny zacisk doprowadza nad skraj 2,5 m studzienki, dalej korytarz jest nieco obszerniejszy lecz po kilku metrach przechodzi w&nbsp;niedostępną szczelinę.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Ponownie wracamy do Piętrowego Meandra. Po kolejnych kilku metrach na wprost docieramy nad 5-metrową, przewieszoną kaskadę. Obchodzimy ją trawersem z&nbsp;lewej strony. Pod stropem po lewej stronie meandra widnieje wejście do tzw. Heliktytowego Meandra. Początkowo jest on szeroki na około 2 m lecz niski, po około 10 m rozdwaja się na dwie r&oacute;wnoległe gałęzie, kt&oacute;re po kolejnych 10 m się ponownie łączą. Występują tu pięknie wykształcone boczne p&oacute;łki erozyjne. Dalej p&oacute;łki zanikają, a meander staje się wąski przy wysokości około 4 m. Poprzez 3 m kaskadę, lokalne zwężenie i&nbsp;kilka ostrych zakręt&oacute;w, meander doprowadza do salki o&nbsp;wymiarach 4x5 m. Z salki obrywa się 4 m kaskada. Trawersując nad nią osiągamy g&oacute;rne piętro meandra, kt&oacute;re jednak po kilkunastu metrach się kończy. Poniżej kaskady meander staje się </span>niezwykle ciasny, choć początkowo dość wysoki (około 3-4 m), po kilku metrach obniża się do około 50-60 cm i&nbsp;wykonuje skręt w&nbsp;lewo o&nbsp;180&lt;span &gt;&deg;, tworząc niezwykle ciasny, trudny do przejścia zacisk Łamignat. Kilka następnych metr&oacute;w meandra jest r&oacute;wnież ciasne i&nbsp;kręte, poniżej <span>1 m kaskadki znajduje się kolejny, już nietrudny zacisk. Za nim szczelina na wprost zwęża się i&nbsp;widać za nią szerszą przestrzeń, nie można jednak tamtędy przejść. Przed zwężeniem w&nbsp;lewo odchodzi odnoga meandra doprowadzająca niebawem nad skraj 8 m głębokości Studni z&nbsp;Echem. Dno tej idealnie okrągłej studni o&nbsp;średnicy około 5-6 m pokryte jest rumoszem.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Z dna studni opadający w&nbsp;d&oacute;ł korytarz doprowadza po około 6 m do Sali pod Wantą, średnicy około 5 m i&nbsp;wysokości kilkunastu metr&oacute;w. Nad spągiem wisi tu zaklinowany, potężny blok skalny. Wyższe piętro korytarza pomiędzy Salą pod Wantą a Studnią z&nbsp;Echem wyprowadza w&nbsp;oknach w&nbsp;ścianach obu tych formacji.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Z Sali pod Wantą bardzo wąskim, wysokim meandrem wydostajemy się nad kolejną 7&nbsp;m studzienkę, z&nbsp;dna kt&oacute;rej kr&oacute;tki korytarzyk wyprowadza 1,5 m ponad dnem tzw. I Studni w&nbsp;gł&oacute;wnym ciągu wiodącym do Drugiego Dna.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wracamy do Piętrowego Meandra &ndash; z&nbsp;miejsca gdzie go ostatnio opuściliśmy schodzimy skośnie trawersem, jakby w&nbsp;tył, na owalne (4x3 m) dno kaskady. Stąd z&nbsp;biegiem wody schodzimy łagodnie opadającym korytem kilka metr&oacute;w i&nbsp;wytrawersowujemy nieco w&nbsp;prz&oacute;d, gdyż wprost w&nbsp;d&oacute;ł jest zbyt ciasno. Teraz zapieraczką schodzimy około 4,5 m na dno kolejnej kaskady. Niebawem meander głęboko wcina się w&nbsp;spąg, my jednak trawersujemy, zachowując stały poziom, by po kilkunastu metrach stanąć nad około 5-metrową studzienką. Ją też przetrawersowujemy i&nbsp;osiągamy wylot wysokiej, zwężającej się ku dołowi szczeliny. Zapieraczką pod jej stropem przemieszczamy się około 20 m, by osiągnąć początek Niskiej Galeryjki o&nbsp;długości około 40 m. Stanowi ją poziome, niskie rozmycie pod stropem meandra, o&nbsp;szerokości dochodzącej do 4 m i&nbsp;wciętym w&nbsp;spągu wąskim i&nbsp;krętym, niedostępnym meandrem.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Niska Galeryjka doprowadza nad skraj 11 m głębokości i&nbsp;Studni. Na wysokości wylotu Niskiej Galeryjki do studni, po przeciwległej jej stronie widać niewielkie okno, za kt&oacute;rym znajduje się bardzo ciasny korytarzyk łączący się z&nbsp;g&oacute;rną częścią studzienki P7 w&nbsp;ciągu z&nbsp;Heliktytowego Meandra.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Z dna i&nbsp;Studni kilkumetrowy korytarzyk doprowadza nad II Studnię 8 m głębokości, a nieomal w&nbsp;dnie tej otwiera się kolejna, okrągła, o&nbsp;średnicy dochodzącej do 7 m, III&nbsp;Studnia, głębokości 22 m. Ponad II i&nbsp;III Studnią istnieją systemy komin&oacute;w nie do końca wyeksplorowane.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;11 m nad dnem II Studni w&nbsp;jej E ścianie widnieje okno. Bierze tu początek stromo opadający korytarz-pochylnia, rozpoczynający się 4-metrowym progiem i&nbsp;podcięty kolejnym 3,5-metrowym progiem. Z dna ku W&nbsp;wiedzie kr&oacute;tka, ciasna rura, natomiast około 3 m nad dnem widnieje wylot ciasnego meanderka, kt&oacute;ry po około 20 m kończy się zwężeniem &ndash; za nim znajduje się jeszcze około 20 m meanderka.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wracamy na dno III Studni. Stąd 8-metrowy zjazd sprowadza na dno wysokiej szczeliny, kt&oacute;ra po około 20 m wyprowadza nad dwie kaskady 7 m i&nbsp;9 m głębokości. Spod kaskad kilkumetrowej długości, wysoki korytarz doprowadza do zawaliska ze sporych rozmiar&oacute;w blok&oacute;w skalnych. Po przejściu zawaliska stajemy nad krawędzią 16 m głębokości, stromej, szczelinowej pochylni z&nbsp;poklinowanymi blokami skalnymi. Poniżej niezbyt obszerny meander doprowadza po około 25 m do ciasnej szczeliny, w&nbsp;kt&oacute;rej znika woda. Jest to Drugie Dno leżące na poziomie -263,0 m.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wracamy do Sali Cichy Kącik. Stąd ku N biegnie bardzo obszerny, wznoszący się ku powierzchni Wielki Korytarz. Pierwszy odcinek Wielkiego Korytarza o&nbsp;długości około 75&nbsp;m ma charakter meandra wysokiego do 15-20 m, u g&oacute;ry ciasnego, przy spągu osiągającego szerokość do 3-4 metr&oacute;w.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Po 75 m korytarz tworzy rodzaj sali o&nbsp;wymiarach 8x8 m, z&nbsp;gwiaździście rozchodzącymi się korytarzami. Gł&oacute;wny ciąg, mający teraz charakter starej, częściowo zawalonej głazami, obszernej galerii, kontynuuje się jeszcze około 65 m, przy średniej szerokości około 5-6 m i&nbsp;wysokości do 10 m, by przejść w&nbsp;niską, szeroką na około 8 m szczelinę, wypełnioną po kilku metrach po strop gruzem skalnym (-25,6 m). Miejsce to leży bardzo blisko powierzchni, o&nbsp;czym świadczy naniesiony przez wodę humus.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wracamy do sali z&nbsp;gwiaździście rozchodzącymi się korytarzami. Najwyżej położony (ponad 3-metrowym progiem) wylot korytarza prowadzi do ciasnego meandra, kończącego się po kilkunastu metrach. Drugi korytarz, przypominający tunel metra, doprowadza po 8 m do Bocznego Korytarza. W lewo ku g&oacute;rze korytarz przecina 3 m wysokości pr&oacute;g, za kt&oacute;rym po około 4 m jest całkowicie zablokowany skalnym blokiem.</span></p>
+<p><span>Korytarz biegnący w&nbsp;prawo w&nbsp;d&oacute;ł po około 20 m przechodzi w&nbsp;niski i&nbsp;ciasny przełaz. Za nim znajduje się rozległa salka o&nbsp;zawaliskowym charakterze. Ku E opada 3-metrowym progiem sprowadzającym na jej niższy poziom, kt&oacute;ry w&nbsp;d&oacute;ł zablokowany jest rumoszem. P&oacute;łnocne ściany salki są niezwykle kruche, tworzą układankę luźnych blok&oacute;w. Tu też ponad 3-metrowym progiem istnieje ciasny przełaz wiodący w&nbsp;kierunku drugiego otworu jaskini. </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Zaraz za przełazem korytarz osiąga w&nbsp;przekroju wymiary 4x5 m i&nbsp;kontynuuje się ku N przez około 50 m. Po 40 m w&nbsp;lewo odchodzi boczny korytarz tworzący gałąź r&oacute;wnoległą do gł&oacute;wnego korytarza, kt&oacute;ra po około 40 m łączy się z&nbsp;nim ponownie. Po około 10 m rozszerza się w&nbsp;niewielką, boczną salkę, z&nbsp;kt&oacute;rej wznoszą się 10 m wysokości myte kaskadki. Po kolejnych około 15 m boczna gałąź łączy się z&nbsp;gł&oacute;wnym korytarzem odchodzącym w&nbsp;prawo ciasnym meanderkiem.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Gł&oacute;wny korytarz kontynuuje się niezbyt obszernym meandrem, wyprowadzającym po około 15 m na dnie kaskady-komina o&nbsp;wysokości około 8 m. W oknie kaskady, na wysokości około 4,5 m nad dnem w&nbsp;kierunku NE, znajduje się wejście do kilkunastometrowej długości korytarzyka, kończącego się ciasną szczeliną.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Z dna kaskady w&nbsp;kierunku WSW poprzez 4 m wysokości pr&oacute;g dostajemy się do korytarza-meandra doprowadzającego po 10 metrach do niskiej salki (4x3 m), z&nbsp;kt&oacute;rej poprzez mokry przełaz dochodzimy do rozgałęzienia korytarza. Do wcześniej wspomnianej salki można także dojść opisanym poprzednio r&oacute;wnoległym korytarzem, kt&oacute;ry łączy się z&nbsp;salką pomiędzy wantami zalegającymi jej spąg. W kierunku SSW wznoszący się korytarz doprowadza do salki, z&nbsp;kt&oacute;rej dalsza droga zablokowana jest osadami wyraźnie powierzchniowego pochodzenia. W kierunku NE opadający korytarz doprowadza niebawem do kolejnej, rozwiniętej w&nbsp;g&oacute;rę kaskady, o&nbsp;wysokości około 5 m. Ponad nią stromy i&nbsp;bardzo ciasny korytarzyk po około 8 m wyprowadza na powierzchnię drugim otworem jaskini. Otw&oacute;r jest mały, o&nbsp;wymiarach 0,8x0,5 m i&nbsp;znajduje się w&nbsp;kępie trawy, porastającej połogie tutaj skałki. Względem pierwszego otworu jaskini znajduje się około 2,8 m niżej.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Jaskinia powstała w&nbsp;wapieniach triasu środkowego serii wierchowej fałdu Czerwonych Wierch&oacute;w. Formowała się w&nbsp;plejstocenie, jako droga podziemnego odpływu w&oacute;d lodowcowych, a jej korytarze są wyraźnie uwarunkowane tektonicznie. </span></p>
+<p><span>Występują w&nbsp;niej osady klastyczne, chemiczne i&nbsp;organogeniczne.</span></p>
+<p><span>Osady klastyczne występują powszechnie w&nbsp;całej jaskini. Gł&oacute;wnie są to osady gruboklastyczne pochodzenia autochtonicznego, będące w&nbsp;przeważającej mierze gruzem skalnym bez ślad&oacute;w transportu; szczeg&oacute;lne jego nagromadzenie występuje na odcinku Sala ze Złot&oacute;wką &ndash; Sala Biwakowa oraz w&nbsp;ciągu Sala Cichy Kącik &ndash; Wielki Korytarz &ndash; drugi otw&oacute;r. W ciągu Sala Cichy Kącik &ndash; Drugie Dno powszechnie występują osady allochtoniczne, składające się gł&oacute;wnie z&nbsp;dobrze obtoczonych żwir&oacute;w skał krystalicznych i&nbsp;piask&oacute;w kwarcowych, pochodzących najprawdopodobniej z&nbsp;czapek krystalicznych Czerwonych Wierch&oacute;w. W rejonie Meandra Kruchych Polew i&nbsp;Ciągu Marianerii powszechnie występują większe fragmenty i&nbsp;gruz polew naciekowych, odpadłych zapewne w&nbsp;trakcie młodych ruch&oacute;w tektonicznych. W jaskini znajdują się r&oacute;wnież stosunkowo młode zawaliska występujące gł&oacute;wnie w&nbsp;trzech rejonach &ndash; są to g&oacute;rne części meandra w&nbsp;okolicy Salki Pata i&nbsp;Kruchej Galerii, okolice Bocznego Korytarza oraz Drugiego Dna (największe &ndash; wyglądające na wiekowo najstarsze).</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Szatę naciekową jaskini stanowią r&oacute;żnorodne nacieki &ndash; gł&oacute;wnie twarde &ndash; w&nbsp;postaci polew, draperii i&nbsp;stalagmit&oacute;w występujących w&nbsp;rejonach: Meander Kruchych Polew &ndash; Śnieżna Salka &ndash; Ciągi Marianerii i&nbsp;Czekoladowy Meander &ndash; Krucha Galeria oraz w&nbsp;formie nietypowych form zbliżonych do stalaktyt&oacute;w, występujących w&nbsp;Niskiej Galeryjce, a także polew i&nbsp;draperii w&nbsp;g&oacute;rnych fragmentach studni rejonu Drugiego Dna oraz pojedyncze egzemplarze naciek&oacute;w heliktytowych spotykanych w&nbsp;Galerii Heliktytowej. Znane są także nacieki cementacyjne-mułowe występujące w&nbsp;pobliżu Drugiego Dna.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Osady organogeniczne występują w&nbsp;znikomej ilości i&nbsp;stanowią je szczątki kostne nietoperzy i&nbsp;małych gryzoni, zaobserwowane w&nbsp;kilku miejscach na odcinku od otwor&oacute;w jaskini aż do poziomu około -140 m oraz niewielkie ilości guana nietoperzy &ndash; r&oacute;wnież w&nbsp;podobnym rejonie jaskini.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp; Światło dzienne sięga jedynie do Salki Śpiących Rycerzy, czyli zaledwie kilka metr&oacute;w w&nbsp;głąb jaskini od i&nbsp;otworu i&nbsp;do dna 5-metrowej kaskady w&nbsp;przypadku II otworu jaskini.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Mikroklimat jaskini charakteryzuje się dwoma strefami &ndash; statyczną i&nbsp;dynamiczną. Zasięg strefy mikroklimatu dynamicznego jest prawdopodobnie znaczny i&nbsp;związany jest z&nbsp;intensywnymi przepływami powietrza na odcinku pomiędzy otworami oraz zapewne istniejącymi, dotąd nie zlokalizowanymi połączeniami z&nbsp;powierzchnią gdzieś na odcinku Krucha Galeria &ndash; Salka na Rozdrożu &ndash; g&oacute;rne partie meandra wiodącego w&nbsp;kierunku Studni z&nbsp;Balkonem. Pozostałą część jaskini charakteryzują cechy mikroklimatu statycznego.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Woda w&nbsp;jaskini występuje w&nbsp;postaci wykropleń z&nbsp;kondensacji pary wodnej w&nbsp;rejonach przyotworowych, sporadycznych wystąpień deszczu podziemnego, niewielkich kałuż wodnych (z reguły w&nbsp;dnie kaskad lub w&nbsp;niewielkich marmitach) oraz kilku niezależnych, stałych ciek&oacute;w wodnych. Największy z&nbsp;nich to ciek pojawiający się w&nbsp;rejonie Mokrego Przełazu, biegnący przez Partie Marianerii &ndash; Salkę na Rozdrożu i&nbsp;ginący w&nbsp;szczelinie poniżej Czekoladowego Meandra (-140 m). Kolejny ciek pojawia się w&nbsp;Wielkim Korytarzu i&nbsp;dalej biegnie w&nbsp;kierunku Mokrej Salki w&nbsp;Kruchej Galerii i&nbsp;wraz z&nbsp;ciekiem spadającym ze stropu Mokrej Salki, ginie także w&nbsp;szczelinie na poziomie -140 m. Ostatni istotny ciek pojawia się w&nbsp;Ciągu za &bdquo;Wielką Wodą&rdquo; i&nbsp;poprzez Piętrowy Meander zmierza w&nbsp;kierunku Drugiego Dna, gdzie ginie i&nbsp;być może pojawia się w&nbsp;Ślepej Studni skąd spływa do dna jaskini -376 m. Ich wydajność jest ściśle uzależniona od warunk&oacute;w atmosferycznych na powierzchni i&nbsp;zapewne od intensywności topnienia śniegu wiosną (obserwacje wiosenne nie były prowadzone) i&nbsp;wynoszą od ilości minimalnych do kilkunastu litr&oacute;w na sekundę.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;Flora przyotworowa nie była obserwowana.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp; W jaskini zaobserwowano występowanie pojedynczych egzemplarzy nietoperzy z&nbsp;gatunku nocek wąsatek &ndash; <strong><em>Myotis mystacinus</em></strong>/<em></em><strong><em>brandtii</em></strong>, much&oacute;wek &ndash; Diptera<strong>,</strong> skoczogonk&oacute;w &ndash; Collembola, oraz motyli &ndash; <strong><em>Triphosa dubitata</em></strong>. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania geologiczne (m. in. tektoniczne i stratygraficzne) przeprowadzili w 1986 r. J. Grodzicki i R. M. Kardaś (1989). O genezie i ewolucji jaskini wypowiadali się Głazek i Grodzicki (1996). 24 maja 1986 r. wykonano barwienie, kt&oacute;re wykazało, że woda ginąca w szczelinie na dnie Ślepej Studni wypływa w Lodowym Źr&oacute;dle (Wiśniewski 1992a).<br />Uwagi o genezie podali M. Gradziński i in. (2009), a obserwacje hydrogeologiczne w kontekście badania systemu wywierzyskowego zamieścił Barczyk (2008).<br />O genezie jaskini pisał J. Szczygieł (2013c, 2015b), kt&oacute;ry przedstawił także przekroje geologiczne przez masyw Czerwonych Wierch&oacute;w obejmujące jego najważniejsze jaskinie (2015b). Om&oacute;wił też procesy neotektoniczne w Tatrach (Szczygieł J. 2015a).<br /> Bardziej szczeg&oacute;łowe badania związane z osadami, mikroklimatem, florą i fauną nie były prowadzone.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia Kozia jest jedyną z większych tatrzańskich jaskiń w całości wyeksplorowaną przez grotołaz&oacute;w z jednego ośrodka (z Krakowskiego Klubu Taternictwa Jaskiniowego).<br />Jej gł&oacute;wny otw&oacute;r musiał być znany już dawno, gdyż znajduje się w łatwo dostępnym terenie i jest doskonale widoczny z daleka. Otw&oacute;r i wstępną, niewielką część jaskini (kilka-kilkanaście m długości) poznano w 1964 r. (?) w trakcie powierzchniowych poszukiwań otwor&oacute;w jaskiń prowadzonych na terenie Koziego Grzbietu przez grupę grotołaz&oacute;w wrocławskich kierowanych przez Jerzego Masełkę (?). Jest możliwe, że w 1966 r. jaskinię tę uwzględnił w swojej pracy &bdquo;Geneza i wiek klastycznych osad&oacute;w jaskiń tatrzańskich&rdquo; Zbigniew W&oacute;jcik i zamieścił pod nazwą &bdquo;Szczelina w Kozim Grzbiecie&rdquo; (określając jej długość na 15 m). W 1976 r. Jaskinia Kozia została uwzględniona (jako pozycja 200) pod powyższą nazwą w zestawieniu &bdquo;Spis jaskiń zaznaczonych na mapie krasowo-speleologicznej Tatrzańskiego Parku Narodowego&rdquo; oraz zlokalizowana na mapie, kt&oacute;ra drukiem ukazała się w &bdquo;Atlasie Tatrzańskiego Parku Narodowego&rdquo; (Gradziński i in. 1985a,b,Wiśniewski 1988d).<br /> Latem 1983 r. (25 czerwca lub 23 lipca) na jej otw&oacute;r natrafili A. Ciszewski i E. W&oacute;jcik. Zwiedzili wtedy wstępną niewielką salkę, znaną już wcześniej.<br /> Od lipca 1985 r. w historii jej poznawania można wyr&oacute;żnić dwa okresy intensywnej eksploracji (lato-jesień 1985 r. i czerwiec 1988 r.) i cztery okresy eksploracji sporadycznej (lato 1986 r., lato 1987 r., czerwiec-październik 1989 r. i sierpień 1996 r.-czerwiec 1997 r.).<br /> Pierwszy okres intensywnej penetracji trwał niecałe 3,5 miesiąca &ndash; od rozpoczęcia eksploracji (24 lipca 1985 r.) do początku listopada 1985 r. &ndash; i przyni&oacute;sł poznanie całego gł&oacute;wnego ciągu jaskini (o długości około 800 m), aż do jej obecnego dna (-376 m) i korytarzy o łącznej długości ponad 1 km.<br /> Drugi okres penetracji, był już mniej owocny. Trwał niecałe trzy 3 miesiące &ndash; od maja 1986 r. do lipca 1986 r. i przyni&oacute;sł niewielkie odkrycia w bocznych ciągach o łącznej długości ponad 0,4 km oraz powiększenie znanej deniwelacji (3/4 maja 1986 r.) do wciąż aktualnych 389 m (-376 m,+13 m).<br /> Trzeci okres eksploracji (sporadycznej) jaskini trwał od czerwca 1987 r. do września 1987 r. i przyni&oacute;sł odkrycie ponad 150 m korytarzy. Znana długości jaskini przekroczyła w&oacute;wczas około 1,7 km długości.<br /> Drugi okres intensywnej eksploracji, trwał niecały miesiąc (czerwiec 1988 r.) i przyni&oacute;sł odkrycie Nowych Partii (Partii II Dna), niezależnego ciągu o deniwelacji 238 metr&oacute;w (rozciągającego się od -25 m do -263 m przy długości gł&oacute;wnego ciągu około 570 m), a sprowadzającego do II Dna jaskini (-263 m). W partiach tych odkryto w&oacute;wczas około 1 km korytarzy, co dało jaskini długość rzędu 2,7 km (w&oacute;wczas podawano, że ma 3 km długości).<br /> W ciągu następnego roku miały miejsce 3 okresy incydentalnej penetracji jaskini (w październiku 1988 r., czerwcu 1989 r. i od sierpnia do września 1989 r.), kt&oacute;re przyniosły odkrycie łącznie około 300 m korytarzy. Długość jaskini osiągnęła wtedy około 3 km i nie uległa zmianie przez niemal 7 następnych lat (podawano w&oacute;wczas, że ma 3,3 km długości).<br /> W ostatnim okresie eksploracji, od sierpnia 1996 r. do maja 1997 r. (kiedy to 17 maja 1997 r. odsłonięto II otw&oacute;r) i w październiku 1998 r., odkryto nowe partie o łącznej długości około 250 m, co powiększyło długość jaskini do około 3300 m (podawano już, że jaskinia ma długość 3520 m). W połowie listopada 1998 r. Jaskinia Kozia plasowała się na 5 pozycji pod względem głębokości w polskich Tatrach, a na 10 pod względem długości.<br /> Łącznie w eksploracji jaskini (do listopada 1998 r.) uczestniczyły 43 osoby. Największy udział w odkryciach mieli kolejno (układ wg ilości i wielkości odkryć): Krzysztof Kubaty, Stanisław Kotarba, Marek Filipczyk, Mariusz Zahel oraz (już nieco mniejszy, kolejno) Jacek W&oacute;jcicki, Piotr Pryczek, Marek Mżyk i Zbigniew Kowalczyk. W latach 1985-1987 sumarycznie największych odkryć dokonał M. Zahel, zaś w latach 1988-1989 &ndash; K. Kubaty.<br /> Pierwszy etap eksploracji jaskini miał miejsce w czasie letniego obozu Krakowskiego Klubu Taternictwa Jaskiniowego w lipcu 1985 r. i doprowadził do osiągnięcia w jaskini głębokości -122 m.<br />24 lipca 1985 r. M. Mżyk i M. Zahel odsłonili kilkunastometrowej długości boczny korytarzyk z lodem (być może też znany już wcześniej).<br />26 lipca 1985 r. M. Zahel i T. Drechsler po pokonaniu w gł&oacute;wnym ciągu wstępnych zacisk&oacute;w przedostali się w głąb jaskini i odkryli około 120 m korytarza, aż do Sali ze Złot&oacute;wką i do Mokrego Przełazu (do głębokości około -30 m). Jaskinia została wtedy nazwana &bdquo;Jaskinią Novą&rdquo;.<br />27 lipca 1985 r. M. Dylski, K. Kubaty, M. Mżyk, P. Pryczek doszli nad Studnię z Balkonem (na głębokość około -40 m) odkrywając około 40 m korytarzy.<br />28 lipca 1985 r. M. Zahel i K. Kubaty po pokonaniu 32 metrowej Studni z Balkonem oraz Kruchej Pochylni dotarli (M. Zahel) do Salki na Rozdrożu (do głębokości -122 m), odkrywając około 200 m korytarzy i pogłębiając jaskinię o około 80 m. Jaskinia Kozia znalazła się wtedy na 14 miejscu najgłębszych jaskiń Tatr.<br />17/18 sierpnia 1985 r. eksplorację prowadzili M. Jędrys, M. Mżyk, G. Śleziak, W. Uhl, M. Zahel. M. Mżyk i M. Zahel po pokonaniu w Salce na Rozdrożu 6 metrowego progu (V+) odkryli 7 metrową Kruchą Studzienkę i Czekoladowy Meander do dna (-140 m), kt&oacute;ry wcześniej osiągnięto wprost z Salki na Rozdrożu. Następnie odkryto wejście do Kruchej Galerii, za kt&oacute;rą, po pokonaniu 16-metrowej studni (Lita Dwudziestka), wyeksplorowano ciąg aż do Ciasnego Meandra, do głębokości około -160 m (dało to jaskini w&oacute;wczas 10 pozycję w Tatrach). Łącznie odkryto w&oacute;wczas około 210 m korytarzy.<br />24 sierpnia 1985 r. P. Dziadzio, M. Jędrys, Z. Kowalczyk, G. Śleziak pokonali wstępne 20 m Ciasnego Meandra i w rejonie Kruchej Galerii dokonali niewielkich odkryć (łącznie około 40 m).<br />8/9 września 1985 r. S. Kotarba, Z. Kowalczyk, J. Matysiak odkryli około 30 m w rejonie Kruchej Galerii (początek &bdquo;Ślepego&rdquo; Meanderka) i około 10 m nad Salką na Rozdrożu. Powstała w&oacute;wczas opinia &bdquo;o beznadziejności dalszej eksploracji, a więc o skończeniu się&rdquo; jaskini (Kotarba 1988).<br />22/23 września 1985 r. A. Chorabik, A. Madej, nie znający opinii poprzednik&oacute;w o problemie, pokonali Ciasny Meander, za kt&oacute;rym A. Madej zszedł klasycznie trzy Progi Szaleńca (10 m; 6,5 m i 6,5 m, o trudności IV-V+) i doszedł do zwężenia w meandrze na głębokości około -210 m (co wysunęło jaskinię na 8 miejsce w Polsce). Odkryto łącznie około 120 m korytarzy, a jaskinia została w&oacute;wczas przemianowana &ndash; od położenia w Kozim Grzbiecie &ndash; na Kozią.<br />28/29 września 1985 r. S. Kotarba, Z. Kowalczyk, P. Pryczek i A. Sadowska za Progami Szaleńca obeszli zwężenie w meandrze za kt&oacute;rym pokonali dwie studzienki (9 m i 13 m) i następnie zjechali &ndash; z braku lin &ndash; tylko około 15 m w 26 metrowej głębokości studni (P26), pogłębiając jaskinię o około 50 m. Dotarli do głębokości około -260 m. Odkryto wtedy około 70 m korytarzy.<br />3/4 października 1985 r. Z. Kowalczyk, K. Lasoń, A. Madej, M. Orłowska pokonali do dna studnię P26, a następnie poprzez 53-metrowej głębokości Wielką Studnię i 26-metrowej głębokości Ślepą Studnię dotarli do głębokości -357 m, pogłębiając tym samym jaskinię o około 100 m, co ją wysunęło na 5 miejsce pod tym względem w Polsce. Odkryto wtedy około 100 m korytarzy.<br />5/6 października 1985 r. M. Jędrys, M. Mżyk, R. Pitak, W. Radecki poniżej Wielkiej Studni zjechali dwie pierwsze Ciasne Szczeliny i osiągnęli głębokość -348 m, odkrywając łącznie około 30 m.<br />10/11 października 1985 r. S. Kotarba, A. Sadowska pokonali trzecią Ciasną Szczelinę do zwężenia na głębokości -359 m. Odkryli łącznie około 15 m. Znana długość jaskini przekraczała już 1 km.<br />1/2 listopada 1985 r. zesp&oacute;ł R. Hechsman, R. Pitak, H. Warchał, M. Zahel odkrył około 20 m i pogłębił jaskinię jeszcze o kilkanaście metr&oacute;w, osiągając obecne dno jaskini położone na głębokości -376 m, co dało wtedy Koziej 4 pozycję wśr&oacute;d najgłębszych jaskiń Polski.<br />1-4 maja 1986 r. zorganizowano w jaskini (na głębokości około 160 m) pierwszy biwak eksploracyjny. Uczestniczyli w nim M. Zahel, R. Hechsman, M. Mżyk, R. Pitak, H. Warchał. Po wspinaczce (V+, A0) w kominie w Sali z Balkonem wyeksplorowano wtedy (R. Pitak, H. Warchał) Partie Marianerii (ciąg od dna Studni z Balkonem do okolic Sali ze Złot&oacute;wką) o długości około 100 m. Zamykający je zacisk przeszedł następnie M. Mżyk.<br />3/4 maja 1986 r. S. Kotarba, Z. Kowalczyk wspięli się (10 m; V) do okna w Sali ze Złot&oacute;wką, odkrywając dwa kilkumetrowe korytarzyki wznoszące się do +13 m (S. Kotarba) ponad poziom otworu, co zwiększyło deniwelację jaskini do 389 m. Dokonali niewielkich odkryć w rejonie biwaku i w Meandrze Kruchych Polew (łącznie poznano w&oacute;wczas około 60 m).<br />7-9 maja 1986 r. W. Radecki rozpoczął trawersowanie do okna w Wielkiej Studni.<br />24 maja 1986 r. Z. Kowalczyk, H. Warchał w Ślepej Studni zabarwili ginącą w szczelinie wodę, kt&oacute;ra wypłynęła w Lodowym Źr&oacute;dle.<br />24/25 maja 1986 r. A. Ciszewski, E. W&oacute;jcik po dojściu do okna w Wielkiej Studni (A1), wspięli się 10 m (IV+) do podstawy Dwoistego Komina.<br />6-10 czerwca 1986 r. zorganizowano w jaskini drugi biwaki eksploracyjny (S. Kotarba, Z. Kowalczyk, P. Pryczek, R. Pitak) w czasie kt&oacute;rego odkryto łącznie około 210 m korytarzy.<br />7/8 czerwca 1986 r. Z. Kowalczyk i R. Pitak wspięli się około 10 m (III+) nad Studnią P26, a następnie pokonali Dwoisty Komin (25 m; V+) i doszli do podstawy Kaskady Trzeciego Spita.<br />8 czerwca 1986 r. S. Kotarba i P. Pryczek wspięli się około 20 m (IV+, 3e) Kaskadą Trzeciego Spita (z boku poznali korytarzyk około 10 m długości).<br />9 czerwca 1986 r. Z. Kowalczyk i R. Pitak wyszli nad 20 metrową Kaskadę Trzeciego Spita i odkryli 20 m Wiszącego Meandra do podstawy następnej kaskady.<br />9/10 czerwca 1986 r. S. Kotarba i P. Pryczek trawersując pod stropem Wiszącego Meandra przeszli nad I i II kaskadą do niewielkiego jeziorka (zwanego wtedy Łabędzim Jeziorkiem), za kt&oacute;rym poznali około 40 m Błędnego Meandra.<br />23/24 lipca 1986 R. Hechsman, M. Mżyk posunęli się w Błędnym Meandrze o dalsze około 30 metr&oacute;w, dochodząc do poziomu -168 m, tj. około 110 m ponad poziom miejsca rozpoczęcia wspinaczki w tym ciągu.<br />18-21 czerwca 1987 r. odbył się w jaskini trzeci biwak eksploracyjny (S. Kotarba, J. W&oacute;jcicki; G. Kleszyński, P. Pryczek). Odkryto około 20 m nad biwakiem oraz obejście i Progu Szaleńca (około 20 m) i dolną część p&oacute;źniejszego Obejścia Ciasnego Meandra (około 25 m).<br />21 lipca 1987 r. K. Marek. M. Mżyk, G. Śleziak na biwakiem odkryli około 25 m.<br />24 lipca 1987 r. T. Drechsler, M. Mżyk, M. Zahel po 20 m wspinaczce nad Salką na Rozdrożu odkryli Salkę Pata (łącznie około 30 m)<br />22 września 1987 r. M. Augustyn, P. Pryczek odkryli przed Studnią z Balkonem boczny korytarz długości około 20 m i około 10 m pochylnię na Balkonie.<br />26-27 września 1987 r. A. Ciszewski, S. Kotarba, E. W&oacute;jcik na końcu Błędnego Meandra odkryli około 15 m korytarza.<br />15 czerwca 1988 r. P. Pryczek, M. Filipczyk, po przejściu zwężenia w &bdquo;Ślepym&rdquo; Meanderku (zwanym wcześniej też Niedokończonym Meanderkiem) doszli do Sali Cichy Kącik i początku Wielkiego Korytarza. Łącznie odkryli oni około 100 m.<br />16 czerwca 1988 r. K. Kubaty, M. Filipczyk, M. Szczepaniak wyeksplorowali do końca mający 140 m długości i 70 m deniwelacji Wielki Korytarz oraz Boczny Korytarz (łącznie około 150 m).<br />17 czerwca 1988 r. S. Kotarba, M. Filipczyk po odgruzowaniu przejścia w Cichej Sali odkryli około 80 m długości meander (do 6 m prożka). Łącznie poznano około 100 m.<br />18 czerwca 1988 r. K. Kubaty, M. Szczepaniak pokonali ten prożek i odkryli Piętrowy Meander oraz dolne piętro meandra biegnącego poniżej Niskiej Galeryjki (aż do około -175 m). Łącznie poznano wtedy około 150 m.<br />26 czerwca 1988 r. P. Dziadzio rozpoczął eksplorację Ciągu za Wielką Wodą (odkrył wtedy około 40 m). Tego samego dnia A. Ciszewski, J. W&oacute;jcicki i K. Kubaty pokonali Niską Galeryjkę i wyeksplorowali za nią cały gł&oacute;wny ciąg, odkrywając około 250 m korytarzy, aż do II Dna leżącego na głębokości -263 m.<br />26/27 czerwca 1988 r. S. Kotarba, M. Filipczyk, odkryli wejście w Heliktytowy Meander i poznali tam około 60 m.<br />30 czerwca 1988 r. L. Jakubowski, G. Śleziak wyeksplorowali kontynuację Ciągu za Wielką Wodą (ok. 40 m), a M. Mżyk i M. Rachwał 30 m pochylnię koło Salki Biwakowej (Stare Partie).<br />3 lipca 1988 r. S. Kotarba, R. Rojek wspięli się do okien nad i Studnią (P11), gdzie dokonali niewielkich odkryć (około 25 m).<br />21/22 lipca 1988 r. K. Kubaty, J. W&oacute;jcicki odkryli około 10 m meanderka w rejonie zawaliska ponad II Dnem.<br />23/24 lipca 1988 r. K. Kubaty, J. W&oacute;jcicki w Partiach II Dna osiągnęli okno III studni (P22) i odkryli około 50 m korytarzy.<br />1/2 października 1988 r. S. Kotarba, M. Filipczyk, K. Kubaty odkryli nowe (około 30 m) dojście do Salki Pata.<br />14 października 1988 r. P. Dziadzio, B. Kołodziej, R. Marszałek eksplorowali okna nad Litą Dwudziestką.<br />15-18 października 1988 r. odbył się w jaskini IV biwak, tym razem w Sali Cichy Kącik, w kt&oacute;rym uczestniczyli S. Kotarba, M. Filipczyk, K. Kubaty, M. Augustyn. W Heliktytowym Meandrze odkryto około 50 m (S. Kotarba, M. Filipczyk), a w Wielkim Korytarzu boczne odnogi o długości około 40 m (K. Kubaty, M. Filipczyk).<br />17/18 czerwca 1989 r. M. Filipczyk, S. Kotarba, J. Guja, J. Zielant po odgruzowaniu przejścia w Bocznym Korytarzu odkryli około 50 m.<br />24/25 czerwiec 1989 r. M. Filipczyk, S. Kotarba pokonali zacisk w Meandrze Heliktytowym i połączyli go z partiami za Niską Galeryjką (łącznie około 80 m).<br />17-20 sierpnia 1989 r. W. Pitak, J. W&oacute;jcicki przekopali zawalisko pod wejściem do Ciasnego Meandra i odkryli szczelinę po około 30 m zamkniętą zawaliskiem.<br />14-17 września 1989 r. W. Pitak, J. W&oacute;jcicki przeszli to zawalisko i doszli do zacisku, jak się p&oacute;źniej okazało, poznanego wcześniej (w czerwcu 1987 r.) od strony Prog&oacute;w Szaleńca.<br />21 października 1989 r. W. Pitak, J. W&oacute;jcicki przeszli przez ten zacisk otwierając Obejście Ciasnego Meandra.<br />24 sierpnia 1996 r. P. Krawczyk, J. Kućmierz na końcu Bocznego Korytarza pokonali szczelinę, za kt&oacute;rą odkryli ciąg wznoszący się do poziomu -12 m.<br />12 października 1996 r. M. Czart, J. Kućmierz, J. Nowak, R. Suski, odkryli w tym ciągu boczne korytarze o długości kilkudziesięciu metr&oacute;w, a na ich końcu odgruzowali niewielki korytarzyk, kt&oacute;ry p&oacute;źniej doprowadził do II otworu. Łącznie w tych partiach odkryto około 220 m. Długość jaskini wzrosła do niespełna 3300 m. (podawano w&oacute;wczas, że jaskinia ma 3520 m).<br />23 listopada 1996 r. J. Kućmierz i B. Słobodzian rozpoczęli usuwanie humusu z rury znajdującej się w pobliżu przypuszczalnego, II otworu.<br />17 maja 1997 r. J. Nowak dokończył oczyszczanie wspomnianego korytarzyka na odcinku 2 m i odsłonił II otw&oacute;r leżący 2,8 m poniżej otworu I.<br />20 czerwca 1997 r. A. Przeniosło odkryła około 10 m odnogę w Piętrowym Meandrze.<br />23 sierpnia 1997 r. S. Kotarba otworzył łatwe przejście wprost z Salki na Rozdrożu pod Kruchą Studzienkę.<br />10/11 października 1998 r. J. Nowak za oknem w Wielkiej Studni wyeksplorował Ciasny Komin o wysokości około 20 m (łącznie około 30 m).<br />26-27.09.1998 r. W Czesak, J. Kućmierz, J. Nowak i R. Suski badali okna w Wielkiej Studni.<br />10/11.11 1998 r. J. Kućmierz, J. Nowak odkryli Ciasny Komin za jednym z trzech okien (30 m nowego).<br />6-7.11.1998 r. J. Nowak, A. Przniosło i P. Migala wyeksplorowali około 20 metr&oacute;w w meandrze w okolicy III Studni.<br />W listopadzie i grudniu 2002 r. J. Nowak, E. W&oacute;jcik, P. Nakoneczny, Z. Tabaczyński eksplorują nowy meander Tylko dla Karł&oacute;w w rejonie Drugiego Dna &ndash; ma on 70 m długości (Nowak, 2002). <br />W 2003 r. J. Nowak z J. Ślusarczyk odkryli 155 m nowych ciąg&oacute;w w rejonie meandra Tylko dla Karł&oacute;w, wykonali pomiary. Nowak (2003) zmieścił opis eksploracji, plan i przekr&oacute;j Sali z Myszka i Pochyłego Komina oraz plan z 1999 r. Bocznych Kaskad w Piętrowym Meandrze.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan jaskini został wykonany w 1985 r. i wtedy też opublikowano po raz pierwszy jej przekr&oacute;j autorstwa S. Kotarby wg stanu z 21 listopada 1985 r. (Ciszewski 1986). Nowe Partie (Partie II Dna) dokumentowano wraz z prowadzeniem w nich eksploracji. Nowy przekr&oacute;j jaskini (wg stanu z 28 października 1988 r.) opublikował S. Kotarba (1988). Dwa lata p&oacute;źniej został opublikowany szkic techniczny całości jaskini (Kotarba 1990a). Plan i przekr&oacute;j partii odkrytych w 1996 r. zamieścił J. Kućmierz (1996).<br />W 1998 r. został uaktualniony i opublikowany (wg stanu na 31 grudnia 1997) przekr&oacute;j jaskini (Kotarba 1998). Do 5 listopada 1998 r. skartowanych zostało 2624 m ciąg&oacute;w z około 3,3 km znanych w Jaskini Koziej. Łącznie w pracach pomiarowych, prowadzonych w latach 1985-1989 i 1996-1997, uczestniczyło 25 os&oacute;b. Największy udział w dokumentowaniu miał S. Kotarba, kt&oacute;ry sporządził plany około 1,3 km korytarzy (tj. około 50% pomierzonej wielkości). P. Pryczek skartował około 290 m, a M. Jędrys około 210 m. Udział pozostałych os&oacute;b w kartowaniu jaskini był już znacznie mniejszy.<br />Pomiary ciąg&oacute;w szkieletowych w większości przeprowadzono metodą ciągu azymutalno-taśmowego przy użyciu busoli Freiberga oraz taśmy parcianej.<br />Punkt &bdquo;0&rdquo; umieszczony został w i otworze jaskini i względem niego obliczono wsp&oacute;łrzędne pozostałych punkt&oacute;w. Na przekroju W-E jaskini podano wysokości prog&oacute;w (studni) tylko tam, gdzie istnieje potrzeba lub konieczność użycia liny. Dane zaktualizowała I. Luty (2009).</p>
+<p>Weryfikacja położenia jaskini w oparciu o mapę topograficzną Tatr publikowaną na portalu Gł&oacute;wnego Geodety Kraju <a href="http://maps.geoportal.gov.pl">http://maps.geoportal.gov.pl</a>&nbsp;wykazała, że według podanych przez autora opisu wsp&oacute;łrzędnych topograficznych otw&oacute;r jaskini znajduje się na wysokości 1875 m n.p.m. Dotychczas podawana wysokość otworu&nbsp;była określona na 1850 m n.p.m. - w rzeczywistości poziomica 1850 przebiega około 25 metr&oacute;w niżej i w żadnym punkcie nie przekracza Koziego Grzbietu powyżej Machaj&oacute;wki. Stosowna korekta wysokości n.p.m. dotyczy także 2 otworu jaskini. Jednocześnie&nbsp; podawane dotychczas wsp&oacute;łrzędne topograficzne w układzie 1942 przesuwały otw&oacute;r jaskini o około 150 na p&oacute;łnoc w stosunku do rzeczywistego położenia. Dane te zostały skorygowane&nbsp;w trakcie weryfikacji w 2013 r.&nbsp;(J. Grodzicki).&nbsp;J. Szczygieł wykonał zdjęcie otworu.&nbsp;<br />Plan i przekr&oacute;j opracował S. Kotarba (nie zawiera najnowszych odkryć).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik Z. 1966a (lokalizacja, z nazwą Szczelina w Kozim Grzbiecie); Borowiec W. i in. 1977 (dane morfometryczne z nazwą Szczelina w Kozim Grzbiecie); Borowiec W. i in. 1978 (dane morfometryczne jw.); Gradziński R. i in. 1985a (lokalizacja z nr 200, dane morfometryczne jw.); Ciszewski A. 1985 (błędna informacja o odkryciu jaskini w 1983 r., wiadomość o osiągnięciu głębokości -360 m); Kronika 1986b (informacje o odkryciach dokonanych w i okresie eksploracji: 27 lipca 1985 r.-2 listopada 1985 r.); Orłowski J. 1986 (zestawienie odkryć z okresu 27 lipca 1985 r.-2 listopada 1985 r.); Ciszewski A. 1986 (błędna wiadomość o odkryciu jaskini w 1983 r., kr&#243;tka charakterystyka jaskini, przekr&#243;j jaskini S. Kotarby); Mżyk M. 1986 (relacja z eksploracji w lipcu 1985 r.); Kronika 1986d (informacje o odkryciach dokonanych w maju i czerwcu 1986 r., o obserwacjach geologicznych, o barwieniu w&#243;d); Pryczek P. 1986 (przebieg odkryć na drugim biwaku w czerwcu 1986 r.); Kardaś R. 1986h (błędne dane morfometryczne, przekr&#243;j jaskini wg S. Kotarby); Kronika 1987c (informacje o niewielkich odkryciach dokonanych w 1987 r.); Pryczek P. 1988 (relacja z biwaku 18-21 czerwiec 1987 r.); Kotarba S. 1988 (opis i przekr&#243;j jaskini, historia eksploracji); Wiśniewski W.W. 1988d (informacja o dawniejszej znajomości jaskini i uwzględnieniu jej w materiałach do Atlasu TPN); Kardaś R. 1988d (dane morfometryczne); Kronika KKTJ 1988/1989, 1989 (informacja o odkryciach dokonanych w 1989 r.); Wiśniewski W.W. 1989b (dane morfometryczne); Grodzicki J., Kardaś R.M. 1989 (obserwacje geologiczne); Kotarba S. 1990a (historia odkryć w 1989 r., charakterystyka problem&#243;w, szkic techniczny całości); Kotarba S. 1990 (zestawienie odkryć z okresu maj 1986-czerwiec 1989); Kronika KKTJ 1989/1990, 1990 (informacje o niewielkich odkryciach dokonanych w 1989 r.); Wiśniewski W.W. 1990m (wzmianka o odkryciach 1989 r.); Wiśniewski W.W. 1991d,h,i,j,k,p. (dane morfometryczne); Wiśniewski W.W. 1992a (opis jaskini, historia odkryć i badań, m.in. rezultaty barwienia); Radwańska-Paryska Z., Paryski W.H. 1995 (pod nazwą Machajowa Jaskinia, błędne informacje o odkryciu w 1983 r.); Głazek J., Grodzicki J. 1996 (wzmianka o wieku, genezie i ewolucji); Wiśniewski W.W. 1996f,g (dane morfometryczne); Wiśniewski W.W. 1996e (pozycja Jaskini Koziej w świecie); Kućmierz J. 1997 (informacja o odkryciu II otworu i przekr&#243;j partii odkrytych w 1996 r.); Kardaś R.M. 1997 (wzmianka o odkryciach 1996 r.); Recielski K. 1997 (wiadomość o odkryciach 1996 r.); Kućmierz J. 1997 (informacja o odkryciach dokonanych w 1996 r., ich plan i przekr&#243;j); Kućmierz J. 1998, (o odkryciu drugiego otworu); Gradziński M. 1997b (o osiągnięciach eksploracyjnych); Kućmierz J. 1998 (informacja o odkryciu II otworu); Kotarba S. 1998 (przekr&#243;j jaskini); Nowak J. 1998 (eksploracja Ciasnego Komina i in., przekr&#243;j nowych partii); Jaskinie TPN 1999 (plan, przekr&#243;j i opis inwentarzowy); Gradziński M. 2001 (osiągnięcia eksploracyjne);  Nowak J. 2002 (odkrycie partii Tylko dla Karł&#243;w, plan, przekr&#243;j); Nowak J. 2003 (eksploracja, odkrycie 155 m ciąg&#243;w); Barczyk G. 2008 (obserwacje hydrogeologiczne, schematyczny przekr&#243;j jaskini, dane morfometryczne); Gradziński M. i in. 2009 (uwagi o genezie); Szczygieł J. 2013c (o genezie); Szczygieł J. 2015a (o procesach neotektonicznych); Szczygieł J. 2015b (przekr&#243;j geologiczny, o genezie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Kotarba S., (dzienniki pomiarowe własne i innych autor&#243;w oraz zestawienia pomiar&#243;w z lat 1985-1989 i 1996-1997, plan w skali 1:200); Wiśniewski W.W., (szereg dokument&#243;w r&#243;żnego autorstwa); Grodzicki J. i in. 1999 (zmiany antropogeniczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Stanisław Kotarba, Wojciech W. Wiśniewski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15119)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1 
+                    </a>
+                    <a onclick="showImageInfo(983)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(984)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

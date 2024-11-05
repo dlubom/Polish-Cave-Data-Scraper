@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2174">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2174;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "519053,8360".replace(',', '.') + "," + "322410,1104".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2174','System Jaskiń Towarnich'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                System Jaskiń Towarnich
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Jaskinie Towarnie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.I-02.05
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;16′13,00″, φ: 50&#176;46′06,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Olsztyn (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                częstochowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Jaskinia Dzwonnica) - ku N.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                339
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                8
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                11
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    183
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                68
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Wzg&#243;rza Olsztyńskie, pasmo G&#243;r Towarnich, Kusięta, G&#243;ra Towarnia Duża.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    System znajduje się w zachodnim zboczu Góry Towarniej Dużej, u podstawy skał.  Idąc od południa podnóżem skałek, dochodzi się do dużego otworu Jaskini Niedźwiedziej (Towarniej). Natomiast niewielki otwór Jaskini Dzwonnicy jest ukryty między skalnymi blokami, w odległości 20 m na NE. Najdogodniejsze drogi dojścia prowadzą tu:
+1. z Olsztyna należy udać się 2 km na północ, w kierunku wsi Kusięta, asfaltową drogą oznakowaną czerwonym szlakiem. Przed domami wsi należy skręcić w lewo, na północne wzniesienie Gór Towarnich.;
+2. z przystanku PKP w Kusiętach Nowych (linia Częstochowa - Kielce). Można wędrować czerwonym szlakiem turystycznym w kierunku Olsztyna, polną drogą między wzgórzem Lisicą a Górami Towarnimi, lub zwykłą drogą jezdną, także w kierunku Olsztyna, aż do granicy wsi.
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>System składa się z dwóch jaskiń. Otwór Jaskini Niedźwiedziej (Towarniej) został opisany przez Kowalskiego (1951): „ <em>niewielki, 1,5 m szeroki a 1,2 m wysoki wychodzi na równinkę nad połogim stokiem</em>.”. Otwór Jaskini Dzwonnicy jest niepozorny, w postaci ciasnej, łamanej szczeliny, dodatkowo przysłoniętej wantami. </span></p>  <p><span>Wg Szelerewicza i Górnego (1986): <em>„System Jaskini Towarnej </em>(Niedźwiedziej - J.Z.) <em>i Dzwonnicy tworzy trzy ciągi połączonych ze sobą korytarzy. Każdy z nich wyróżnia się odrębnym charakterem. Za otworem J. Towarnej, po kilku metrach odgałęzia się w prawo korytarz, przechodzący po 10 metrach w salkę. W jej dnie znajdują się ładne wymycia, w tym kilka marmitów. Ciąg ten zakończony jest krótkim, niskim korytarzykiem, usytuowanym na niższym poziomie.” </em></span></p>  <p><span>W ściance tego „niższego poziomu”, na przeciw 1,3-metrowego prożku, znajduje się studzienka, głęboka na 1,5 m. Nad nią, tuż pod stropem, jest ukryte bardzo ciasne (Z-II) przejście do pionowej szczeliny, schodzącej na głębokość 7,0 m. </span></p>  <p><em><span>„Główny ciąg J. Towarnej to początkowo wysoki, kręty korytarz zakończony obszerną salką, której dno pokrywają polewy z naciekami. W połowie głównego ciągu odgałęzia się w kierunku północnym niskie i ciasne połączenie z J. Dzwonnicą. Jaskinia Dzwonnica to meandrujący korytarz, w którego ścianach widoczne są rynny boczne i nisze zakolowe. Większość ścian pokrywają nacieki kożuchowe z miękkiego i częściowo stwardniałego mleka wapiennego.”</span></em> (Szelerewicz, Górny 1986).</p>  <p><span>Zachował się także stary (1938) opis Błaszczyka<em>: „Odgałęzienie drugie </em>(tzn. ciąg główny Jaskini Niedźwiedziej - J.Z.)<em> jest od pierwszego znacznie dłuższe. Dochodzi się nim najpierw do obszernej, gładkiej, suchej i mniej więcej okrągłej sali, średnicy ok. 7  m, o dnie, pokrytym miękką ziemią, skąd niskim, 13 metrów długim, tu i ówdzie przechodzącym w ciasną gardziel korytarzem dochodzi się najpierw do obszernej, niemal do samej powały zasypanej, niszy, a następnie do drugiej sali, w której dnie znajdują się szczątki niedźwiedzia jaskiniowego.” </em></span></p>  <p><span>Jaskinia Dzwonnica została opisana po raz pierwszy przez Radziejowskiego (1967<em>): „Korytarz za otworem wejściowym opada lekko w dół, po 3 metrach łączy się on (prawa ściana) przekopem z jaskinią Towarną. Dalej niski korytarz prowadzi do niewielkiej salki, której ściany i strop pokryte są naciekami z mleka wapiennego. Od tego miejsca cała jaskinia pokryta jest kożuchami mleka wapiennego. Po 35 m strop korytarza podnosi się, tworząc w rozszerzeniu sporą salę. Na jej stropie są liczne draperie. Z salki wychodzi dość wysoki korytarz, posiadający na ścianach charakterystyczne wymycia w postaci półek. Występują tutaj także misy martwicowe, w których często znajduje się woda. Korytarz dalej powoli się obniża i doprowadza do zakrętu z dużym blokiem skalnym. Stamtąd, po 10 m, jaskinia kończy się zwężeniem zasypanym gliną i zalanym polewą martwicową.”. </em></span></p>  <p><span>Jaskinia rozwinęła się w wapieniach jurajskich. <em>„...w J. Towarnej są widoczne, jako wyjątkowa rzadkość w jaskiniach jurajskich - denne kotły wirowe czyli marmity. Namulisko jest obfite, gliniasto-piaszczyste, miejscami na powierzchni osadów otoczaki i gruz wapienny. Zawiera liczne zabytki.”</em> (Szelerewicz, Górny 1986). </span></p>  <p><span>Nacieki z Jaskini Niedźwiedziej (Towarniej) były przedmiotem badań ich wieku. Wg oznaczeń metodą radiowęglową datowano je na około 2500 lat (Pazdur i in. 94). W latach 1970-71 (Kopacz, Skalski 1976) prowadzono tutaj badania archeologiczne, w trakcie których znaleziono dowody obecności człowieka od środkowego paleolitu. W naciekach znajdujących się na końcu głównego ciągu Jaskini Towarnej, po wykonaniu przekrojów, stwierdzono występowanie węglistych warstewek, które można łączyć z kolejnymi okresami bytności człowieka w jaskini.</span></p>  <div>&nbsp;</div>  <p><span>Światło dzienne w postaci rozproszonej sięga w Jaskini Niedźwiedziej do rozdroża, zaś w Dzwonnicy tylko bezpośredniego sąsiedztwa otworu. Ściany jaskiń są wilgotne, z niektórych nacieków kapie woda. W misie martwicowej Dzwonnicy woda utrzymuje się stale.</span></p>  <p><span>Mikroklimat tych jaskiń był badany przez Łęskiego (1971). W partiach przyotworowych należy on do typu dynamicznego, w związku ze stałym przepływem powietrza między otworami jaskiń. Średnia temperatura końcowych części waha się w granicach 7,5º - 9,6º C w Jaskini Niedźwiedziej i 6,5º - 11º C w Jaskini Dzwonnicy.</span></p>  <p><span>W Jaskini Niedźwiedziej sporadycznie zimują nietoperze. W latach 70-tych obserwowano nocki duże <strong><em>Myotis myotis</em></strong> (2-7 os.) i nocki natterera <strong><em>Myotis nattereri</em></strong> (2-3 os.). W dniu 1 kwietnia 2000 r. hibernowało 6 nocków dużych i jeden nocek Brandta <strong><em>Myotis brandtii</em></strong>, w dniu 20 marca 2005 r. – 8 nocków dużych i 1 nocek natterera.</span></p>  <p><span>W Jaskiniach Towarnich żyją dwa gatunki rodzimych troglobiontów: skoczogonek <strong><em>Arrhopalites pygmaeus</em></strong> i pająk <strong><em>Porrhomma moravicum</em></strong>. Jaskinia Dzwonnica jest miejscem udanej introdukcji troglobiontycznych chrząszczy z rodziny <em>Catopidae </em>(Skalski 1994). A.W. Skalski, znany badacz podziemnej fauny, w roku 1982 przywiózł 100 osobników <strong><em>Speonomus hydrophilus</em></strong> - gatunku endemicznego dla masywu l´Arize w Pirenejach francuskich - pozyskanych w jaskini Bastardech, po czym eksperymentalnie ulokował je w jaskini. Po 12 latach stwierdzono powodzenie tej akcji, a faunie polskich jaskiń przybył nowy gatunek. Obecnie owady te występują dość pospolicie. Zasiedliły także Jaskinię Cabanową.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Nacieki z Jaskini Niedźwiedziej (Towarniej) były przedmiotem badań ich wieku (Pazdur i in. 94). W latach 1970-71 (Kopacz, Skalski 1976) prowadzono tutaj badania archeologiczne. Mikroklimat badał Łęski (1971).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                      <p><span>Z racji dużego i łatwo osiągalnego otworu Jaskinia Niedźwiedzia (Towarnia) znana była miejscowej ludności od dawna. Pierwsza wzmianka ukazała się w 1856 roku w Księdze Świata A. Wiślickiego: „ ...<em>jak również grota we wsi Kusięta leżąca</em>.” Następnie wydany w 1909 r. „Przewodnik po Częstochowie i okolicy” stwierdzał, że <em>„... w Górach Towarnych znajduje się grota o niewygodnym wejściu i wskutek tego mało zniszczona</em>”. Informację tę, prawie dosłownie, powtórzył Maślankiewicz w 1937 roku. W 1938 r. Błaszczyk zamieścił w drugim tomie rocznika Ziemi Częstochowskiej obszerny opis jaskini, jej orientacyjny plan, zdjęcie otworu i Gór Towarnych oraz opis stanowiska paleontologicznego z kośćmi niedźwiedzia jaskiniowego, hieny jaskiniowej i konia kopalnego. W podpisie pod fotografiami określił jaskinię jako „grotę niedźwiedzią”. Wg tego autora nazwa Gór Towarnych (na współczesnych mapach nazywanych Górami Towarnimi) pochodzi od nazwy ulicy Towarowej, prowadzącej od Olsztyna lub od kształtów skał, ułożonych jedne na drugich, jak wałki materiału - towaru. Wzgórze północne zwane było Górą Towarnią Dużą a wzgórze południowe - Górą Towarnią Małą.</span></p>  Jaskinia Dzwonnica została odkryta 26 sierpnia 1961 r. przez Wiesława Miecha, członka Speleoklubu PTTK Częstochowa. Jej opis (wraz z pierwszym planem, wykonanym 12 stycznia 1964 r. przez K. Kościeleckiego, S. Ukuś i H. Kaniut) opublikował J. Radziejowski w 1967 r. Nazwa jaskini pochodzi od pseudonimu, jaki nosiła przyjaciółka i późniejsza żona odkrywcy groty - Anna Kiedrzynek.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinię Niedźwiedzią zinwentaryzował w 1949 roku Kowalski (1951) pod nr 497 jako „Jaskinię w Górach Towarzych”. Podał on także informację, że na końcu prawego korytarza, w czasie okupacji niemieckiej, była urządzona kryjówka lub schron.<br />  <p style="margin-bottom: 0.0001pt;  text-indent: 27pt; ">Plan systemu „Jaskini Towarnej i Dzwonnicy”, jaki umieszczono w opracowaniu Górnego i Szelerewicza (1986), został wykonany przez M. Czepiela, na podstawie pomiarów D. Czepiel, H. Szczęsnego i M. Czepiela w dniu 24 sierpnia 1975 r. Ciasne partie w bocznym korytarzu Jaskini Niedźwiedziej zostały zmierzone 1 kwietnia 2000 r. przez S. Matysiaka, Z. Karlaka i J. Zygmunta. Aktualizację planu wykonał J. Zygmunt. Wobec spornych i nieprecyzyjnych kwestii nazewnictwa zaproponowano dla całego systemu nazwę „System Jaskiń Towarnich”, w skład którego wchodzi Jaskinia Niedźwiedzia i Jaskinia Dzwonnica. Nazwę Jaskini Niedźwiedziej przyjęto za Błaszczykiem, który pierwszy opublikował jej plan i opis. Z dwóch wariantów nazwy wzgórz: Towarne i Towarnie, przyjęto tę ostatnią, jako częściej występującą w piśmiennictwie. Dane zaktualizował J. Zygmunt w 2009 r.</p>  Plan opracowali M. Czepiel i J. Zygmunt
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wiślicki A., 1856 (wzmianka); Przewodnik po Częstochowie i okolicy, 1909 (informacja o Jaskini Niedźwiedziej); Maślankiewicz K. 1937 (informacja o Jaskini Niedźwiedziej); Błaszczyk H. 1938 (opis i plan Jaskini Niedźwiedziej); Kowalski K. 1951 (plan, opis); Radziejowski J. 1967a,b (opis i plan Jaskini Dzwonnicy, om&#243;wienie systemu jaskiniowego G&#243;r Towarnich); Łęski Z. 1971 (badania nad termiką); Kopacz J., Skalski A.W. 1976 (informacja o wykopaliskach archeologicznych); Szelerewicz M., G&#243;rny A. 1986 (plan i opis); Pazdur A. i in. 1994 (wiek naciek&#243;w); Skalski A.W. 1994 (informacja o introdukcji chrząszczy); Zygmunt J. 2003  (wykaz jaskiń); Cyrek K. 2009 (wyniki badań archeologicznych, pn. Jaskinia Towarna);  Stefaniak K. i in. 2009a (fauna subfosylna, pn. Jaskinia Towarna i Dzwonnica);Stefaniak K. i in. 2009d (dane morfometryczne, kr&#243;tka charakterystyka, zakres badań, Schronisko w Srocku koło Częstochowy I jako osobny obiekt); Tyc A. 2009a (wzmiankuje w aspekcie genezy, jako Dzwonnica); Jaskinie Wyżyny Częstochowskiej 2011a  (plan i opis inwentarzowy).; Zygmunt J. 2013 (replika planu - zmniejszony - i opisu (nieco zmienionego) z t.1 Jaskinie Wyżyny Częstochowskiej, fot. otworu i wnętrza jaskini, pod nr inwentarzowym wg własnego podziału autora)..
+ 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Zygmunt J. i in. 2000 (dokumentacja).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Zygmunt
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1955)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=711" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2031">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2031;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "555266,39".replace(',', '.') + "," + "258816,95".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2031','Jaskinia Nietoperzowa - Zygmunta'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Nietoperzowa - Zygmunta
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Jerzmanowicka, Jaskinia Biała, Jaskinia Księżna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-07.47
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;46′28,24″, φ: 50&#176;11′38,33″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Nr 3 Woj. Krakowskiego z dn. 30.01.1997r.; Dz. Urz. Woj. Krak. Nr 5, poz. 13. [wg http://crfop.gdos.gov.pl]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW, 447,8 m n.p.m., 3 - ku SW, 440,4 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                439,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                40,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                11,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                52
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    891
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jerzmanowice, Dolina Będkowska, Wyżyna Olkuska, Obszar Natura 2000 - Dolinki Jurajskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od szosy Kraków-Olkusz skręcamy w Jerzmanowicach przy drogowskazie do Jaskini Nietoperzowej i drogą biegnącą górnym fragmentem doliny Będkowskiej pokonujemy około 1 km po czym skręcamy w prawo w kierunku Jaskini Nietoperzowej.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r gł&oacute;wny widoczny z daleka ma wysokość 7 m i szerokość 4.4 m, w jego stropie znajduje się wyraźna pionowa szczelina SW-NE przechodząca na wysokości 7,5 m w salkę o dnie skalnym i wymiarach 1,5 x 1,7 m i wysokość 1,8 m. W salce 1,1 m pr&oacute;g doprowadza do okna skalnego o wymiarach 0,9 x 0,7 m (najwyższy otw&oacute;r jaskini(II)).<br />Bezpośrednio za otworem wbudowana jest żelazna, ażurowa krata z drzwiami, całkowicie wypełniająca profil korytarza. W otworze gł&oacute;wnym (I), w ścianie SE otwiera się na wysokości 1,0 m, wylot ciągu ciasnych kilkunastometrowych korytarzy &ndash; Kalesony. Otw&oacute;r ten ma 0,7 x 0,5 m. Aktualnie jest niedostępny, zamknięty klapą. System ciasnych korytarz jest r&oacute;wnież dostępny oknem skalnym 1,1 x 0,4 m otwierającym się w SW ścianie korytarza gł&oacute;wnego w odległości 3,6 m od kraty w otworze gł&oacute;wnym na wysokości 1,0 m nad dnem korytarza. Obok tego wejścia na ścianie umieszczony jest telefon. Z wejścia przy telefonie w kierunku SW biegnie ciasny korytarz 6 m doprowadza do rozszerzenia, w kt&oacute;rym otwiera się Studnia Za Telefonem. Ma ona głębokość 4,0 m, szerokość do 1,5 m i długość na dnie 4 m. Ściany jej pokryte są polewami z naciekiem wełnistym i mlekiem wapiennym. W stropie i ścianach licznie występują kotły wirowe. W dnie studni ściany są silnie skorodowane. Jest tu wyczulany silny przepływ powietrza. Materiał zapełniający dno studni to fragmenty strzaskanych naciek&oacute;w oraz osady pylasto-ilaste z dużymi bryłami żwirowc&oacute;w pedogenicznych (do kilkudziesięciu cm średnicy).<br />Za otworem gł&oacute;wnym, w kierunku NE znajduje się obszerny korytarz przechodzący w Salę Archeolog&oacute;w o wymiarach 12,5 x 8,5 m i wysokości około 7 m. Jest to kopulasta sala a w jej stropie znajdują się dwa kotły wirowe. Na ścianach są polewy naciekowe, na kt&oacute;rych występują kaskadowo opadające stalagmity tworzące p&oacute;łki oraz żebra naciekowe. W jej dnie znajdował się głęboki wykop archeologiczny. Z Sali w kierunku NE jaskinia kontynuuje się na odcinku 20 m. Bezpośrednio za Salą Archeolog&oacute;w wchodzimy do Sali Niedźwiedziej. Sala ta ma wymiary 7 x 15m i wysokość ok. 7 m. W stropie sali są trzy kotły wirowe z bogatą szatą naciekową. Na stropie liczne żywe, kilkucentymetrowe stalaktyty, na N ścianie znajdują się kaskadowo opadające polewy naciekowe ze stalagmitami. Dwa z nich są bardzo charakterystyczne, mają pod sobą żebra naciekowe i przypominają meduzy. Są one pokryte naciekiem wełnistym z ciemnym osadem (kopeć). Na dnie na 0,7 m prożku występuje polewa naciekowa ze stalagmitami. Ma ona 7,5 m szerokości i kończy się pod N ścianą sali. Pod przeciwległą ścianą (W), na 0,4m prożku występuje polewa naciekowa z masywnym stalagmitem o wymiarach 0,7 x 0,5 m i 0,4 m wysokości. Na niej ustawiona jest naturalnych rozmiar&oacute;w makieta niedźwiedzia jaskiniowego wykonana przez Zygmunta i Piotra Ferdk&oacute;w. Środkiem Sali przebiega wykop wysypany żwirem. Sala ta przechodzi w salę Ser Szwajcarski. Ma ona wymiary 10,5 x 15 m i wysokość do 12 m. W stropie Sali znajduje się duży kocioł wirowy z kilkoma mniejszymi wewnątrz. Strop i ściany są silnie rozżarte i występują w nich kanały, żebra oraz niewielkie kotły wirowe tworzące oryginalne formy nazywane Wielką Stopą i Kręgosłupem Dinozaura. W kierunku W za 1,5 m prożkiem jest rozszerzenie 4 x 4 m. Nad nim zwężający się ku g&oacute;rze komin o wysokości 11,5 m. Z N końca sali Ser Szwajcarski w kierunku NE biegnie szczelinowy korytarz o długości 6 m, maksymalnej szerokości 0,4 m i wysokości do 4 m. Ściany na początku tego korytarza są silnie skorodowane, pokryte grzybkami naciekowymi. Dno korytarza początkowo podnosi się, w dnie są pola ryżowe, za zwężeniem korytarz jest poziomy a na jego dnie są duże, suche misy naciekowe o głębokości 10 cm. Przed wejściem do opisywanego korytarza na wysokości na 4,5 m jest most skalny o długości 2 m. Z sali Ser Szwajcarski w kierunku E biegnie 15 m Korytarz Naciekowy. Na wysokości 5,2 m znajduje się 3 m długości most skalny pomiędzy salą Ser Szwajcarski a Korytarzem Naciekowym. Korytarz Naciekowy ma szerokość na początku 7 m i zwęża się do 3 m na końcu wyprowadzając w gł&oacute;wnym korytarzu jaskini. W połowie jego długości na N odchodzi stromo w g&oacute;rę korytarz przechodzący w ślepo zakończony komin osiągający wysokość +11,8 m. Jest to jeden z najwyższych punkt&oacute;w w jaskini. Ściany w tym miejscu są silnie rozżarte z kanałami kilkunastocentymetrowej średnicy. W stropowej części komina, na stropie i ścianach występuje szata naciekowa. Są to niewielki stalaktyty do 10 cm, zakończone kilkucentymetrowymi, białymi rurkami (makarony). Występują r&oacute;wnież polewy naciekowe i stalagmity do 10 cm wysokości. W dnie Korytarza Naciekowego znajduje się polewa naciekowa, na niej liczne masywne stalagmity o średnicy do 70 cm i wysokości do 60 cm, misy barierowe (okresowo wypełnione wodą) o głębokości do 15 cm i powierzchni do ok. 1 m2. Przy N ścinanie jest 0,5 m kaskadowa polewa naciekowa z żebrami łącząca się z masywnym stalagmitem (2 x 1 m) z misami barierowymi z wodą. Przy wylocie do Korytarza Gł&oacute;wnego w rozszerzeniu z kotłem, na N ścianie znajdują się oryginalne formy naciekowe utworzone z masywnej polewy i kilku oblanych nią stalagmit&oacute;w. Jeden z nich połączony jest w kolumnę ze stalaktytem. Na polewie występują żebra naciekowe. Nacieki te mają barwę szarą. W dnie na polewie występują duże misy martwicowe- Kropielnica.<br />Z Sali Archeolog&oacute;w odchodzi obszerny korytarz początkowo w kierunku E p&oacute;źniej ku NE. Na jego początku przy N ścianie występuje polewa naciekowa widoczna na odcinku 2 m. Pod S ścianą na 0,5 m prożku znajduje się masywna polewa naciekowa widoczna na odcinku 3 m- Naciek Zbożowy. Dno korytarza w tym miejscu podnosi się do poziomu polewy naciekowej. Na 10 m w dnie korytarza przy E ścianie znajduje się klapa (wejście do 3 m studni) prowadzącej do Jaskini Zygmunta. Korytarz po 12 m doprowadza do rozszerzenia o wymiarach 14 x 10 m. W SE ścianie, przed rozszerzeniem na dnie odsłonięta na powierzchni 3,5 x 2 m jest polewa naciekowa z dwoma masywnymi stalagmitami o wysokości 0,7 m i 0,5 m. W rozszerzeniu w NW ścianie łączy się ono z Korytarzem Naciekowym a w kierunku SE odchodzi Korytarz Hieny. Pod W ścianą, przy połączeniu z Korytarzem Naciekowym w dnie znajduje się masywna polewa naciekowa w największym w jaskini stalagmitem (kopuła stalagmitowa o długości 3 m, szerokości 2 m i wysokości 0,6 m). Polewa naciekowa w tym miejscu ciągnie się na odcinku 8 m. Występuje na niej stalagmit o wymiarach 1,6 x 1,2 m i wysokości 0,6 m. Na polewie są misy barierowe do 10 cm głębokości i wymiarach 0,8 x 0,5 m. Pod SE ścianą, przed wejściem do Korytarza Hieny znajduje się polewa naciekowa o powierzchni 3 x 3,5 m. W jej centralnej części występuje masywny stalagmit o wysokości 0,5 m. Korytarz Hieny początkowo jest wysoki na 4 m po 6 m doprowadza do rozszerzenia na krzyżującej się szczelinie z 6,3 m kominem w stropie. W kierunku N i S możliwa jest tutaj kontynuacja tego ciągu. Z rozszerzenia w kierunku E w dnie znajduje się ciasna (ZII) szczelinowa studzienka (-2,5 m). Z jej dna w kierunku SE odchodzi rozdwajający się 7 m, ślepo zakończony korytarz. W rozszerzeniu i korytarzu do niego doprowadzającym na NE ścianie występują nacieki. Są to kaskadowe polewy naciekowa. Na nich jest jeden bulwiasty stalagmit z żebrami naciekowymi od spodu (przypominający meduzę). W rozszerzeniu na dnie znajduje się polewa naciekowa ze stalagmitem o wymiarach 1 x 1 m. SW ściana w tym ciągu jest silnie rozżarta. Korytarz Gł&oacute;wny kontynuuje się na NE i lekko opada w głąb jaskini, na ścianach widoczny jest pierwotny poziom namuliska. Po 15 m dochodzimy do Sali Balowej. Po drodze w E ścianie mijamy zakratowane wejście do 6 m korytarza gdzie na dnie znajduje się duża ilość szczątk&oacute;w kostnych pozostałych po wykopaliskach prowadzonych w Jaskini. Jego koniec r&oacute;wnież doprowadza do Sali Balowej, w jej obniżeniu z wykopem (E koniec Sali).<br />Sala Balowa jest jedną z największych na Wyżynie Krakowsko-Wieluńskiej, ma wymiary 35 x 18 m i wysokość do 10 m. Dno jest nier&oacute;wne z dużymi głazami, gruzem wapiennym i masywnymi stalagmitami będącymi pozostałością po bogatej niegdyś szacie naciekowej. Przy SE ścianie, na odcinku kilkunastu metr&oacute;w znajdują się resztki osad&oacute;w, gruzu wapiennego, dużych stalagmit&oacute;w (do 1 m wysokości) scementowanych masywną polewą naciekową. Na W i N ścianach są polewy naciekowe pokryte kożuchami z białego mleka wapiennego. Na stropie występują licznie niewielkie (przyrastające obecnie) stalaktyty. Z Sali Balowej w kierunku NE prowadzi obszerny korytarz, w kt&oacute;rym na całej długości widoczny jest na ścianach stary poziom osad&oacute;w usuniętych z większej części jaskini - w tym miejscu usunięta warstwa osad&oacute;w miała około 2 m miąższości. Korytarz ciągnie się na odcinku 80 m, wysokość jest zmienna, w stropie znajdują się duże kotły wirowe. Początkowa część jest nazywana Koryatrzem Horpyny. W nim znajduje się filar skalny, przed kt&oacute;rym w stropie jest nawis skalny nazywany Gilotyną. Na 13 m jest duży kocioł wirowy o wysokości 9 m. Po 18,5 m od Sali Balowej pod SE ścianą znajduje się wejście do 2 m studzienki, doprowadzającej do małej salki o silnie skorodowanych ścianach gdzie kontynuacja jej jest całkowicie wypełniona osadami pylasto-ilastymi ze żwirami. Dalej korytarz gł&oacute;wny rozszerza się (Sala Koralowa). W gł&oacute;wnym korytarzu w odległości 25 m na W ścianie znajdują się scementowane kalcytem osady, w kt&oacute;rych wyr&oacute;żniają się otoczaki wapienne i fragmenty kości. W odległości 48 m od Sali Balowej w stropie jest duży regularny kocioł wirowy o wysokości 9,5 m (Duży Kocioł). Na 54 m znajduje się 8 m komin, w kt&oacute;rego g&oacute;rnej części znajduje się pochylnia zablokowana gruzem wapiennym. Ściany zbudowane z gruzłowatych wapieni są tutaj silnie skorodowane. Maksymalna wysokość w tym ciągu to + 12,9 m. Jest to odcinek bardzo niebezpieczny w zwiedzaniu ze względu na kruchość ścian. Na 78 m w kierunku SE otwiera się 3 m pochylnia z 1,4 m prożkiem wprowadzająca do niewielkiej salki o silnie skorodowanych ścianach z licznymi drobnymi kanałami i kotłami wirowymi. Dno salki znajduje się 3 m poniżej poziomu korytarza gł&oacute;wnego. Dno salki wypełnione jest osadami pylasto-ilastymi ze żwirami i otoczakami wapiennymi. W dalszej kontynuacji gł&oacute;wnego korytarza dochodzimy do Sali Mamuta o wysokości 6,5 i szerokości 7 m. W Sali Mamuta w kierunku NE i SW widoczna jest dalsza kontynuacja. Za Salą Mamuta dno korytarz gwałtownie podnosi się tworząc stromą pochylnię (4 m wysokości) zbudowana z dużych blok&oacute;w wapiennych, licznych otoczak&oacute;w wapienia i obtoczonych fragment&oacute;w naciek&oacute;w zmieszanych z ilastym osadem. Pochylnia wyprowadza do niskiej, poziomej kontynuacji gł&oacute;wnego korytarza mającej 12 m. Po 3 m od szczytu pochylni w SE ścianie znajduje się niskie wejście do 5 m korytarza z 3,5 m kominem. Korytarz ten kontynuuje się w d&oacute;ł w kierunku E (wyczuwalny przewiew). Po 7 metrach od wspomnianego korytarza w SE ścianie znajduje się niskie wejście do 8 metrowej Pochylni z Widłami. Jest ona niezwykle stroma, ma 1,5 m szerokości i wysokość do 2 m. Na jej końcu jest 1,5 metrowy prożek, z osad&oacute;w, za kt&oacute;rym mieści się mała salka (2 x 3 m). W jej stropie 5 m komin jest zablokowany dużymi głazami z gliniastymi osadami. Dalszą kontynuacją gł&oacute;wnego korytarza jest Sala z Niedźwiedzimi Szlifami o wymiarach 6,5 x 4 m z 6 m ciasnym kominem w stropie. Dno w niej opada stromo w kierunku NE. Ściany Sali są wygładzone przed przebywające w niej zwierzęta (niedźwiedzie jaskiniowe) miejscami na wysokość 1,5 m. Dalszą kontynuacją jaskini jest kręty, poziomy korytarz. Po 9 m doprowadza do małej salki ( 2 x 2 m) z 4 m kominkiem. Dalej stroma pochylnia wyprowadza w Salce pod Kominami. Ma ona wymiary 2 x 1,5 m i 5,5 m wysokości. Na N ścianie występuje brązowa, nerkowata polewa naciekowa a pod stropem niewielkie kilkunastocentymetrowe stalaktyty. Dalsza kontynuacją na NE to 1 m korytarz na szczelinie przechodzący w 3 m kominek za kt&oacute;rym system prożk&oacute;w i komink&oacute;w (7 m w kierunku NW) do wysokości 12 m nad dnem Salki pod Kominami. Jest to najwyższy punkt w jaskini + 14,5 m. W g&oacute;rnej części na ścianach liczne drobne grzybki naciekowe i cienka warstwa brązowej polewy naciekowej. Na stropie niewielkie, żywe stalaktyty. Pod stropem komina jest szczelina w kierunku E z silnym przewiewem powietrza. Końcowy odcinek jaskini ( od salki z 4 m kominkiem) wypełniają ilasto-pylaste osady (do 1 m miąższości) na kt&oacute;rych tworzyły się jeziorka uniemożliwiające wcześniej dalszą eksplorację jaskini. Pod nimi są osady ilaste z dużą ilością otoczak&oacute;w wapiennych. Korytarz ten wydaje się być stropową częścią profilu dużego korytarza. Wyczuwalny jest tutaj silny przewiew.<br />W 2008 roku w najbliższym sąsiedztwie Jaskini Nietoperzowej został odsłonięty przez Z. Ferdka otw&oacute;r Jaskini Zygmunta. Początkowo miała ona 17 m długości. Od tego czasu prowadzone były w niej prace eksploracyjne, dzięki kt&oacute;rym długość i głębokość jaskini rosła. Przeprowadzone pomiary pokazały, że koniec g&oacute;rnego ciągu Jaskini Zygmunta znajduje się bezpośrednio pod gł&oacute;wnym korytarzem Jaskini Nietoperzowej. 27 lipca 2019 roku zostało dokonane połączenie tych dw&oacute;ch jaskiń w jeden system. Na 10 m, za Salą Archeolog&oacute;w, w dnie korytarza przy E ścianie znajduje się zamknięte klapą wejście prowadzącej do Jaskini Zygmunta. W wejściu zamontowano rurę z tworzywa ze szczeblami o średnicy 0,55 m i długości 1,45 m. Pod nią znajduje się rozszerzenie 1,5 x 1,0 m i wysokości 1,8 m. Przy dnie w SW ścianie okno skalne (0,8 x 0,5 m) a za nim 0,7 m prożek skalny sprowadzający do Salki Żwirowc&oacute;w. Z Salki w kierunki SW odchodzi stroma 8,5 m Pochylnia. Początkiem jest kolista rura o średnicy 1 m opadająca po 1 m stromo w d&oacute;ł. Na ścianach pochylni widoczny jest stary poziom namuliska (polewa naciekowa odstaje na kilka cm od ściany). Na 2,5 m jest kominek o średnicy na dole 1 m. Na 4 m znajduje się zwężenie o wymiarach 0,5 x 0,5 m. Za nim korytarz rozszerza się do wymiar&oacute;w 1,8 x 2 m i wysokości 1,7 m. W rozszerzeniu występują polewy i niewielkie stalaktyty pokryte emulsją wodną. Na 8,5 m jest 1 m pr&oacute;g. Nad nim kocioł 2 x 1,5 m. Na dnie rozszerzenie ma wysokość 2,5 m. Z dna w kierunku SW korytarz kontynuuje się 2 m, ma szerokość 1 m i jest zamknięty osadami. W NW ścianie rozszerzenia jest oryginalne koliste okno skalne o wymiarach 0,7 x 0,6 m. Za nim niewielkie rozszerzenie (1,5 x 0,7 m i wysokość 1,6 m) z ciasnymi kanałami w stropie gdzie wyczuwalny jest ruch powierza.<br />W Salce Żwirowc&oacute;w w dnie od strony E odsłonięty jest profil osad&oacute;w o wymiarach 2 x 3 m. Sala ta ma wymiary 4 x 5 m, w N końcu znajduje się komin o wysokości 5 m. W nim na ścianach są polewy, zasłony, oryginalne grzybki naciekowe i niewielkie masywne stalagmity. Od okna w kierunku E jest pr&oacute;g o wymiarach 2 x 3 m (w nim profil osad&oacute;w ze żwirowcami). Za progiem rozszerzenie z kotłem wirowym 2,5 m (wymiary 3 x 2 m) gdzie na ścianach są częściowo strzaskane polewy naciekowe i mleko wapienne. W stropie na końcu jest kocioł 3 m wysokości. W nim młode polewy naciekowe (białe) i niewielkie przyrastające stalaktyty. Ze szczelin wiszą pęki czarnych nitkowatych korzeni, kt&oacute;re miejscami są okalcytowane, tworząc oryginalne formy. Z salki w kierunku SE odchodzi 2,5 m poziomy korytarz o szerokości do 1,3 m i wysokości do 2,5 m przechodzący na końcu w rurę skalną o wymiarach 0,7 x 0,4 m, biegnącą stromo w g&oacute;rę na długości 1,5 m. Wyprowadza ona w oknie skalnym o wymiarach 0,5 x 2 m, w Studni Złotego Deszczu, w kt&oacute;rej w odległości 4,5 m ku S znajduje się III otw&oacute;r wejściowy do systemu (+1,2 m) będący wcześniej otworem wejściowym do Jaskini Zygmunta. Nad otworem znajduje się otwarty, kilkumetrowy komin o pionowych i przewieszonych ścianach. Bezpośrednio za otworem studnia rozpoczyna się przewieszonym progiem. Studnia jest owalna i ma szerokość do 5 m. Na głębokości 7 m NE ściana studni jest bardzo stroma (80&deg;) aż do głębokości 16 m. Dalsza kontynuacja do głębokości 22 m jest pionowa. Studnia Złotego Deszczu jest rozwinięta na pęknięciu NW &ndash; SE. Składa się z części centralnej oraz ciąg&oacute;w bocznych. Studnia początkowo była eksplorowana ciągiem tzw. I Studni, zaczynającym się w oknie położonym w SE ścianie 3 m pod otworem. Ciąg ten początkowo kończył się na głębokości 19 m. Następnie eksplorowany był ciąg II Studni rozpoczynający się pod ścianą NW. Podczas prowadzonych prac eksploracyjnych I i II Studnia zostały połączone w wielu miejscach z centralną częścią Studni Złotego Deszczu. Charakterystyczne dla tych studni jest szereg doskonale zachowanych form erozyjnych takich jak: kotły wirowe i freatyczne rury. Dodatkowo występują tu pozostałości bogatej szaty naciekowej w postaci masywnych polew naciekowych o miąższości kilkudziesięciu cm, żeber naciekowych i masywnych stalagmit&oacute;w. Znaczna część szaty naciekowej uległa zniszczeniu przez spękanie spowodowane młodymi ruchami tektonicznymi. Znaczna część naciek&oacute;w odpadła od ścian blokując studnię. Na poziomie od -20 m do -22 m w Studni Złotego Deszczu znajduje się rozszerzenie gdzie dno i ściany są niezwykle mocno rozżarte. Studnia tutaj (Rozdroże) dzieli się na kilka ciąg&oacute;w. Przy SW ścianie i centralnie w dnie znajdują się pionowe wejścia do dw&oacute;ch łączących się studni nazywanych Osiemnastką. Na dnie, kt&oacute;rych jest salka a z niej stromy 5 m korytarz biegnący w kierunku SW sprowadza na dno jaskini (-37,4 m). Ściany w dolnym fragmencie Osiemnastki są mocno rozżarte, miejscami strzaskane, dno salki i korytarza pokrywa gruz i bloki odpadłe od ścian. Wyczuwalny jest tutaj bardzo silny przewiew. Z Rozdroża w części NW jest Piaskowa Studnia (6 m) w niej na głębokości 3 m w kierunku E odchodzi 2 m korytarz wprowadzający do Sali Niedowiark&oacute;w . W stropie jest komin wyprowadzający w korytarzu doprowadzającym do Rozdroża. Z Sali Niedowiark&oacute;w w SW ścianie znajduje się okno skalne doprowadzające do Osiemnastki. Salę Niedowiark&oacute;w od Osiemnastki oddziela ściana o grubości od 0,5 m. Natomiast w kierunku NE odchodzi stromo w d&oacute;ł 3 m korytarz doprowadzająca do rozszerzenia w gąbczastej, najniższej części jaskini. W rozszerzeniu za rurą jest korytarz gdzie na odcinku 3 m znajdują się wejścia do 4 studni. Znajduje się tutaj labirynt sal (Sala z Maluchem, Sala z Kryształkami, Kolektor i Sala Oberwanych Naciek&oacute;w), korytarzy, komin&oacute;w i studni łączących się ze sobą na wielu poziomach. Do labiryntu tego można wejść r&oacute;wnież z dna Piaskowej Studni wychodząc w Sali z Maluchem. Najniższą częścią tego fragmentu jaskini jest Kolektor, kt&oacute;ry jest salą o wymiarach 6 x 4 m i wysokości do 9 m. Dostęp do Kolektora jest możliwy kilkoma drogami. Z Sali z Maluchem schodzimy w d&oacute;ł pokonując ciasne studzienki (2 drogi), z Sali z Kryształkami schodzimy przez ciasną studzienkę z wantami lub przez okno skalne znajdujące się nad 2 m progiem. Z okna do Kolektora prowadzi 6 m pr&oacute;g. Do Kolektora można r&oacute;wnież dotrzeć z rozszerzenia za rurą wychodząc w oknie skalnym 6 m nad dnem w NW ścianie. W NE ścianie Kolektora na wysokości 6 m znajduje się kolejne okno a za nim 2 m korytarz wprowadzający do Sali Oberwanych Naciek&oacute;w. Sala ta ma wymiary 9 x 4,5 m i wysokość do 6 m. Znajduje się w niej bogata szata naciekowa, kt&oacute;ra częściowo uległa zniszczeniu. Na dnie znajdują się obalone stalagmity oraz fragmenty kolumny naciekowej o łącznej długości 3 m. Na ścianach polewy naciekowe, stalagmity i nieliczne heliktyty. Sala z Kryształkami jest dużą pochylnią o dnie wznoszącym się ku N i długości 10 m i szerokości 4 m. W stropie są tutaj 2 kominy sięgające 9 m wysokości. Na ścianach występują licznie polewy naciekowe miejscami pokryte naskorupieniami tlenk&oacute;w manganu. Na g&oacute;rze pochylni na dnie Sali leży ukośnie obalony stalagmit o wysokości 1,2 m i średnicy 15 cm. Charakterystyczne dla tej Sali są grzybkopodobne krystaliczne utwory występujące na gruzie wapiennym. Ściany w tej części jaskini są silnie rozżarte i mają charakter gąbki. Na dnie korytarzy i sal znajdują się duże bloki wapienia, gruz wapienny i strzaskane nacieki pokryte cienką warstwą szarego ilastego osadu. Wyjątek stanowi metrowa warstwa piaszczystych osad&oacute;w na dnie Piaskowej Studni.<br />Jaskinia powstała w wapieniach g&oacute;rnej jury (oksford). W jaskini można obserwować ponad 50 m profil wapieni g&oacute;rnojurajskich w kt&oacute;rym wyr&oacute;żnić można r&oacute;żne sekwencje sedymentacyjne. Część korytarzy rozwinięta jest w masywnych wapieniach skalistych, miejscami w wapieniach gruzłowatych. Gł&oacute;wne korytarze i sale mają wyraźny związek z pionowymi spękaniami ciosowymi o przebiegu ENE-WSW i NNW-SSE. Duże sale i obszerne korytarze tworzyły się w warunkach freatycznych, widoczne w nich są liczne kotły wirowe, niekt&oacute;re znacznych rozmiar&oacute;w, na ścianach znajdują się liczne koliste jamy, wżery i drobne kanały krasowe. Jaskinia Nietoperzowa jest rozwinięta poziomo. Odmienny charakter ma Jaskinia Zygmunta. W znacznej mierze budują ją formacje pionowe (studnie, kominy) łączące się ze sobą na wielu poziomach. W części dolnej Jaskinia Zygmunta, gdzie występują większe pr&oacute;żnie, ma charakter gąbczasty. Ściany są silnie rozżarte tworząc kawerny osiągające niekiedy znaczne rozmiary (Sala Oberwanych Naciek&oacute;w 9x 4,5 m). Wiele form występujących w Jaskini Zygmunta ma charakter typowy dla krasu termalnego. W jaskini brak jest wyraźnych ślad&oacute;w modelowania jej przez wody swobodnie płynące, jedynie w dnie korytarza przy wejściu podczas prowadzonych badań archeologicznych odsłonięto wadyczną rynnę denną.<br />Szata naciekowa jest bogata, zachowało się kilka jej generacji. Nacieki starszej generacji spotykamy w całej jaskini. Na ścianach kom&oacute;r i korytarzy zachowały się masywne polewy naciekowe, kt&oacute;re opadając kaskadowo tworzą wodospady naciekowy, na kt&oacute;rych występują oryginalne kuliste utwory pokryte żebrami naciekowymi mające kilkadziesiąt cm wysokości (nazywane meduzami). Takie polewy pokrywają ściany korytarzy w wielu miejscach jaskini. Występują one w: Sali Archeolog&oacute;w, Sali Niedźwiedziej, Korytarzu Naciekowym i salce w Korytarzu Hieny. Starszymi generacjami polew naciekowych pokryte są ściany Sali Balowej, Korytarza Naciekowego. W wielu miejscach polewy pokryte są języczkami nacieku wełnistego. Największe ich skupienie jest na ścianie Studni za Telefonem. Polewy pokrywają znaczną część ścian w Sali Żwirowc&oacute;w i Pochylni. Ściany Studni Złotego Deszczu w Jaskini Zygmunta pokryte były polewą naciekową, kt&oacute;ra zachowała się jedynie fragmentarycznie. Znaczna jej część uległa spękaniu i odpadła na skutek młodych ruch&oacute;w tektonicznych, blokując dno studni. W dolnej części jaskini, w Sali Oberwanych Naciek&oacute;w oraz g&oacute;rnej części Sali z Kryształami polewy naciekowe pokrywają znaczną powierzchnię stropu i ścian. Miejscami są one spękane. Dno Jaskini Nietoperzowej na odcinku od otworu do Sali Balowej pierwotnie było pokryte polewami naciekowymi. Znaczna ich część została usunięta w XIX wieku podczas eksploatacji namuliska na cele nawozowe. Największy nienaruszony fragment o znacznej powierzchni znajduje się w Korytarzu Naciekowym. Dodatkowo duże fragmenty zachowały się w Sali Niedźwiedziej i Korytarzu Gł&oacute;wnym na odcinku od Sali Archeolog&oacute;w do Sali Balowej. W obrębie eksploatowanych namulisk wyr&oacute;żniono kilka poziom&oacute;w polew naciekowych. Na polewach w Jaskini Nietoperzowej zachowały się masywne, kopulaste stalagmity. Największy z nich ma 3 m długości, 2 m szerokości i 0,6 m wysokości. Na dnie i przy SE ścianie Sali Balowej występują pozostałości polew naciekowych ze stalagmitani, z kt&oacute;rych największy osiąga 1 m wysokości. W Jaskini Zygmunta w odgałęzieniu Studni Złotego Deszczu na głębokości 10 m zaklinowany jest obalony stalagmit palmowy o wysokości 0,8 m i średnicy 0,4 m. W Sali Oberwanych Naciek&oacute;w na dnie znajdują się masywne, obalone stalagmity częściowo zakryte ilastym osadem. W g&oacute;rnej części Sali z Kryształkami ukośnie oparty o ścianę znajduje się duży stalagmit (1,2 m wysokości) z ubitym czubkiem. Na polewach naciekowe pokrywających dno Korytarza Naciekowego nagromadzone są misy barierowe, o krawędziach do 10 cm wysokości, okresowo wypełnione wodą. Misy barierowe występują r&oacute;wnież w korytarzu biegnącym na NE z Sali z Kotłami Wirowymi i w wejściu do Korytarza za Hieną. Ponadto w Pochylni i na ścianie Studni Złotego Deszczu znajdują się kilku centymetrowe nagromadzenia kier kalcytowych (<em>calcite rafts</em>), kt&oacute;rych powstawanie związane jest ze stagnującą wodą o wysokim nasyceniu względem węglanu wapnia. Większość tych naciek&oacute;w zakryta była osadami, dopiero po zamknięciu jaskini i przystosowaniu jej do zwiedzania właściciele odczyścili je i odgrodzili uniemożliwiając ich niszczenie. Formy stalaktytowe występujące w całej jaskini. Liczne niewielkie stalaktyty znajdują się na stropie Sali Archeolog&oacute;w, Sali Niedźwiedziej, Korytarza Naciekowego, Sali Balowej. Na niekt&oacute;rych stalaktytach obserwowane jest aktywne wytrącanie węglanu wapnia - kilkucentymetrowe białe tzw. makarony. Na uwagę zasługują 2 nacieki tworzące rodzaj kolumn naciekowych występujące w Korytarzu Naciekowym. Przy N ścinanie jest 0,5 m kaskadowa polewa naciekowa z żebrami łącząca się z masywnym stalagmitem (2 x 1 m) z misami barierowymi z wodą. Przy wylocie do Korytarza Gł&oacute;wnego w rozszerzeniu z kotłem, na N ścianie znajdują się oryginalne formy naciekowe utworzone z masywnej polewy i kilku oblanych nią stalagmit&oacute;w. Jeden z nich połączony jest w kolumnę ze stalaktytem. Na dnie Sali Oberwanych Naciek&oacute;w leżą fragmenty masywnej kolumny naciekowej o łącznej długości 3 m i średnicy 0,8 m. W kotle wirowym w Sali Oberwanych Naciek&oacute;w znajduje się nagromadzenie kilkucentymetrowych wyrostk&oacute;w heliktytowych. Na dnie Sali z Kryształkami na gruzie wapiennym występują kalcytowe, grzybkopodobne, krystaliczne wyrostki. W jaskini występuje naciek grzybkowy licznie pokrywający ściany korytarza biegnącego na NE z Sali z Kotłami Wirowymi oraz ściany w g&oacute;rnej części komina nad Salką pod Kominami. Oryginalne, talerzowe formy grzybkowe znajdują się w g&oacute;rnej części komina w stropie Sali Żwirowc&oacute;w. Oryginalne formy, jakimi są okalcytowane korzenie znajdują się na ścianach Sali Żwirowc&oacute;w. Większość form naciekowych występujących w jaskini to nacieki starszych generacji. Część polew naciekowych ze Studni Złotego Deszcznu jest zrekrystalizowana. Niekt&oacute;re zbudowane z droknokrystalicznego kalcytu wyr&oacute;żniającego się kolorystyką lamin. W stalagmitach i polewach znalezionych podczas prac archeologicznych stwierdzono występowanie warstw węglistych będących śladami bytności człowieka. Specyficzne dla Jaskini Zygmunta są nagromadzenia krystalicznego, brunatnego kalcytu z wrostkami minarał&oacute;w manganu i żelaza. Tworzą one naskorupienia na polewach naciekowych w Sali z Kryształkami. Szata naciekowa w znacznej części Jaskini Nietoperzowej należy do jej starszej generacji, powierzchnię naciek&oacute;w pokrywa warstwa kopcia. Część naciek&oacute;w pokryta jest kożuchami, tworzącego się wsp&oacute;łcześnie, mleka wapiennego.<br />W okresie zimowym w partiach przyotworowych tworzy się bogata szata z naciek&oacute;w lodowych, przeważają w nich stalagmity lodowe osiągające do 2 m wysokości.<br />Osady namuliska były i są nadal bogate. Znaczna część osad&oacute;w usunięta została w XIX wieku na cele nawozowe, wykopy prowadzone w&oacute;wczas sięgnęły 9 m głębokości nie osiągając dna skalnego. Zniszczono w&oacute;wczas bezpowrotnie osady o ogromnej wartości dla poznania prehistorii człowieka i zmian środowiska naturalnego. Pozostały osady, dzięki kt&oacute;rym możliwe było przeprowadzenie nowoczesnych, interdyscyplinarnych badań mających bogatą literaturę. Prace prowadzone przez Chmielewskiego pozwoliły poznać profil osad&oacute;w o miąższości sięgającej 11 metr&oacute;w, znaleziono w nich ogromną ilość materiał&oacute;w archeologicznych, paleozoologicznych, botanicznych, dzięki kt&oacute;rym poznano m. in. Nową kulturę jerzmanowicką rozwijającą się w środkowym vistulianie. W serii osad&oacute;w, kt&oacute;rych profil poznano w okolicy otworu gł&oacute;wnego wyr&oacute;żniono 17 warstw. Osady w spągowej części profilu (warstwa 17) wypełniające wadyczną rynnę denną to żwiry, piaski, muły i iły w dnie profilu czerwone, typu &bdquo;terra rosa&rdquo;, warstwowane, osadzone przez wodę płynącą. W tej części profilu brak kości zwierząt i ślad&oacute;w bytności człowieka &ndash; stwierdzono tutaj 9 paleolitycznych warstw kulturowych. O ogromnej ilości znajdującego się w osadach materiału kostnego świadczy fakt znalezienia podczas badań prowadzonych przez Chmielewskiego w jednej warstwie na powierzchni 125 m2 1000 kł&oacute;w niedźwiedzia jaskiniowego. Najstarsze osady wypełniające rynnę denną pochodzą z neogenu lub starszego czwartorzędu, a młodsze od schyłku przedostatniego zlodowacenia po holocen. Aktualnie osady namuliska wypełniają znaczną część profilu w końcowej części jaskini. Opisany profil osad&oacute;w dotyczy gł&oacute;wnego ciągu Jaskini Nietoperzowej. Osady wypełniające Jaskinię Zygmunta są innego typu. Jaskinia wypełniona była osadami klastycznymi, w g&oacute;rnej części profilu przemytymi lessami, materiałem ilastym, piaszczystym zmieszanym z gruzem wapiennym. Poniżej znajduje się 2,5 m profil zawierający naprzemianlegle występujące warstwy żwirowc&oacute;w pedogenicznych z materiałem piaszczysto-ilastym.<br />Jaskinia jest wilgotna, przyotworowa część pozostaje pod wpływem zewnętrznych warunk&oacute;w atmosferycznych. Panuje w niej mikroklimat dynamiczny. W wielu korytarzach wyczuwalny jest przewiew ukierunkowany w zależności od temperatury panującej na zewnątrz. Szczeg&oacute;lnie silny przewiew wyczuwalny jest w studni łączącej Jaskinie Zygmunta z Jaskinią Nietoperzową. Obecnie zamknięty klapą. Wyraźny przewiew wyczuwalny jest r&oacute;wnież w Studni Wejściowej w Jaskini Zygmunta.<br />Światło sięga kilkanaście metr&oacute;w w głąb od otworu gł&oacute;wnego i otworu III.<br />W otworach i w zasięgu światła na ścianach występują glony.<br />Wsp&oacute;łczesną faunę reprezentują liczne pajęczaki, m. in. <em>Meta menardi i Porrhomma moravicum</em> oraz liczne nietoperze.</p>
+<p>Jaskinia przez tysiące lat była i jest siedliskiem nietoperzy. Pozostały po nich znaczne pokłady guana będącego przedmiotem eksploatacji w poprzednich wiekach. W 1854 roku Władysław Taczanowski pisze: Przed sześcią laty hr. Wodzicki odwiedzając tę miejscowość, znalazł niezliczone massy niedoperz&oacute;w przyczepionych do sklepień. Latem w Jaskini tworzyły się kolonie przejściowe nocka dużego <em>Myotis myotis</em>. W okresie zimowym hibernuje w Jaskini 11 gatunk&oacute;w nietoperzy. W Jaskini prowadzone są zimowe spisy nietoperzy. W XXI wieku stwierdzono przykładowo: w 2003 roku w Jaskini hibernowało 89 osobnik&oacute;w w tym 32 podkowce małe <em>Rhinolophus hipposideros</em>, 43 nocki duże <em>Myotis myotis</em>. W 2013 roku w Jaskini hibernowało 155 osobnik&oacute;w w tym 88 podkowc&oacute;w małych <em>Rhinolophus hipposideros</em> i 33 nocki duże <em>Myoti myotis</em>. W roku 2016 w jaskini hibernowało 216 osobnik&oacute;w w tym 135 podkowc&oacute;w małych <em>Rhinoliphus hipposidero</em>s i 46 nock&oacute;w dużych<em> Myotis myotis</em>. W ostatnich latach w 2016 roku w Jaskini hibernowało 28 osobnik&oacute;w nock&oacute;w orzęsionych <em>Myotis emarginatus</em>. Z pozostale 8 gatunk&oacute;w hibernujących w Jaskini obserwowano pojedyncze osobniki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsze badania archeologiczne mające poznawczy charakter przeprowadził w niej J. Zawisza w 1871 r. W latach 1872-79 w jaskini prowadzono wydobywanie namuliska na cele nawozowe, na podstawie koncesji udzielonej przez władze rosyjskie Pruskiemu Urzędowi G&oacute;rniczemu, nadzorował je O. Grube. Znaleziono w&oacute;wczas wiele narzędzi krzemiennych i kości. Znaleziskami zainteresował się F. R&ouml;mer, kt&oacute;ry w latach 1878 i 1879 prowadził badania w jaskini, a zebrany materiał przekazał do wrocławskiego muzeum. W roku 1918 badania archeologiczne w pobliżu otworu jaskini prowadził L. Kozłowski, kt&oacute;ry znajduje duże palenisko paleolityczne i znaczną ilość wyrob&oacute;w krzemiennych w tym liściowate ostrza. W latach 1956-62 prowadzone są w jaskini prace przez W. Chmielewskiego, z ramienia Instytutu Historii Kultury Materialnej PAN, Zakładu Archeologii Polski w Łodzi. Wykonano w&oacute;wczas wykop w miejscu prac L. Kozłowskiego, w korytarzu wstępnym.<br />Badania dostarczyły ogromną ilość materiał&oacute;w archeologicznych, materiału kostnego i najdłuższy, w miarę pełny profil od zlodowacenia Warty, będący wzorcem do por&oacute;wnywania z innymi z Jury Polskiej i kraj&oacute;w sąsiednich. Wyodrębniona została nowa jednostka taksonomiczna &ndash; kultura jerzmanowicka z charakterystycznymi dla niej ostrzami wi&oacute;rowymi, kształtu liściowatego, najstarszy zesp&oacute;ł kultury jerzmanowickiej datowany jest metodą radiowęglową C14 na 36550 &plusmn; 140 BC. Wyniki prowadzonych prac mają duże znaczenie dla historii badań paleolitu Polski w XX wieku. Prowadzone badania miały charakter interdyscyplinarny, materiały z badań posłużyły do powstania dużej ilości prac z innych dziedzin.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia była znana od dawna, pierwszy jej opis znajduje się we &bdquo;Wspomnieniach z podr&oacute;ży&hellip;&rdquo; W. Jastrzębowskiego z 1854 roku, p&oacute;źniej opisują ją lub wzmiankują: W. Taczanowski w 1854 r., R.P. w 1854 r., Flatt O. w 1855 r., A. Waga w 1855 r. i A. Grabowski w 1866 r.</p>
+<p>Dwukrotnie jaskinia stanowiła scenografię dla film&oacute;w fabularnych, w 1995 roku kręcono tutaj sceny do &bdquo;Legendy o Św. Mikołaju&rdquo;, a 5 listopada 1997 do filmu &bdquo;Ogniem i Mieczem&rdquo;. Jaskinia od pokoleń jest własnością rodziny Ferdk&oacute;w, dzięki ich staraniom ciekawsze fragmenty wyeksponowano punktami świetlnymi, odsłonięte zostały fragmenty z bogatą szatą naciekową.</p>
+<p>Otw&oacute;r Jaskini Zygmunta odsłonięty został przez Zygmunta Ferdka w 2008 roku podczas prac polegających na oczyszczeniu z gruzu i pokrywy lessowej skrasowiałej powierzchni zbocza skalnego. Eksplorację jaskini pod kierownictwem M. Pawlikowskiego prowadzono w dniach 16, 19 i 22 kwietnia 2009 roku. Udział w miej wzięli M. Krzywda, J. Kwapień i M. Romański. 30 kwietnia 2016 roku jaskinia zainteresowało się Przedsiębiorstwo Budowy Jaskiń, kt&oacute;re jest nieformalną grupą os&oacute;b, kt&oacute;rych jednoczy pasja okrywania, działająca w jaskiniach jurajskich. PBJ prowadzi prace ekploracyjne w systemie Jaskiń Nietoperzowej &ndash; Zygmunta do chwili obecnej. Prace polegały na odgruzowywaniu Studni Wejściowej oraz licznych korytarzy łączących kolejne pr&oacute;żnie w Jaskinia Zygmunta. W trakcie prowadzonych prac miało miejsce kilka ważnych wydarzeń. W dniu 16 marca 2019 roku odsłonięto przejście do Sali Niedowiark&oacute;w i rozległego dolnego piętra w systemie. Pod koniec maja 2019 roku po ulewnych deszczach nastąpiło osunięcie materiału lessowego (nasączonego wodą) z gruzem wapiennym. Osuwisko to zablokowało wejście do Sali Niedowiark&oacute;w. Ponowne odkopanie wejścia do dolnego piętra nastąpiło 9 listopada 2019 roku. Po wykonaniu dokładnych pomiar&oacute;w ustalono położenie względem siebie jaskiń (Jaskini Nietoperzowej i Jaskini Zygmunta) i określono miejsce ich ewentualnego połączenia. Połączenie jaskiń nastąpiło 27 lipca 2019 roku. W listopadzie 2019 roku odsłonięto wejście (na poziomie -22 m) do dw&oacute;ch r&oacute;wnoległych, łączących się studni sprowadzających na aktualne dno systemu. 14 marca 2020 roku podjęto prace na końcu Jaskini Nietoperzowej, kt&oacute;re doprowadziły do odkrycia Salki pod Kominami (21.03.2020) gdzie znajduje się najwyższy punkt systemu. W okresie od 30.04.2016 zorganizowano wiele wyjazd&oacute;w w kt&oacute;rych udział wzięła znaczna ilość os&oacute;b. Największy udział w pracach miały osoby stnowiące trzon PBJ. Są to: J. Bajorek, R. Bugdalski, K. Gędoś, A. G&oacute;rny, K. Kleszyński, M. Kleszyńska, P. Kopytko, J. Kubiniok, P. Malina, O. Paul, Z. Rabenda, D. Sarnowski, A. Sojka, P. Sojka, T. Siwecki, J. Tołysz, A. Tyrpa, P. Żurek. W pracach wzięli udział r&oacute;wnież: K. Abramowicz, W, Bednarczyk, P. Ducki, G. Fus, A. Kopeć, A. Kurek, Ł. Kuśnierz P. Parafiniuk, M. Podlewska, T. Rosiek, M. Sęk, M. Sęk, D. Twardak, P. Kwapień, J. Węgrzynowicz, A. Zabdyr.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis inwentarzowy po raz pierwszy opublikował Ciętak (1935): za nim Kowalski (1951); Szelerewicz, G&oacute;rny (1986); G&oacute;rny (2010).<br />Aktualną dokumentację sporządzili:<br />Pomiary (11.2019 - 05.2020): M. Ciszewski, T. Snopkiewicz, O. Paul, A Ochałek<br />Szkice: M. Ciszewski, T. Snopkiewicz<br />Rysunek i opracowanie graficzne (04 -05.2020): M. Ciszewski<br />Pomiary wykonano przy użyciu przyrząd&oacute;w Leica DistoX2 + PDA zgodnie z BCRA grade 5d</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Jastrzębowski W. 1853 (opis jaskini); Taczanowski W. 1854 (opis jaskini, nietoperzy); R. P. 1854 (wymienia); Flatt O. 1855 (inf., że jaskinia znana jest od 1848 roku); Waga A. 1855 (opis jaskini, nietoperzy i ich pasożyt&#243;w); Przewodnik po Ojcowskiej dolinie, 1860 (opis wg Jastrzębowskiego); Grabowski A. 1860 (wzmianka); Zawisza J. 1871 (wzmianka o znalezieniu narzędzi i skorup naczyń); Zawisza J. 1874 (o zalezieniu kości niedźwiedzia jaskiniowego); Kohn A. 1876 (wzmianka wg Zawiszy); H&#246;hlen mit Knochen (inf. O znajdywaniu kości kopalnych przy pracach Grubego); R&#246;mer F. 1877 (o prawie kompletnej czaszce niedźwiedzia jaskiniowego z jaskini); Gruszecki A. 1878 (wzmianka); Ściborowski W. 1878 (kr&#243;tki opis jaskini); Kohn A. i Mehlis C. 1879 (wzmianka wg Zawiszy); R&#246;mer F. 1879 (opis przemysłowej eksploatacji jaskini, inf. o znajdywanych kościach); Ossowski G. 1882a (wzmianka); Ossowski G. 1882b (dtto); R&#246;mer F. 1883 (opis poszukiwań i znalezionych zabytk&#243;w, rysunki wyrob&#243;w i kości); Ossowski G. 1884b (wzmianka); Stanisław z Warszawy 1888 (literacki opis jaskini); Czarnowski S. J. 1899 (wzmianka); Czarnowski S. J. 1903 (wzmianka); Hoernes M. 1903 (o paleolicie z jaskini; Czarnowski S. J. 1905 (wzmianka); Wr&#243;blewski K. 1907 (opis jaskini); Przesmycki P. 1908 (wzmianka); Diest H. von 1909 (inf. o zakupie od przewodnika zęb&#243;w niedźwiedzia, skorup i narzędzi krzemiennych); Czarnowski S. J. 1910 (tłumaczenie opisu R&#246;mera, fot. kilku własnych znalezisk, fot. otworu); Czarnowski S. J. 1911a (wzmianka); Obermaier H. 1912 (o paleolicie); Talko-Hryncewicz J. 1913 (wzmianka); Kiernik E. 1913 (o znalezieniu przez R&#246;mera szczątk&#243;w wilka); Demel K. 1918 (mikroklimat jaskini, jej wsp&#243;łczesna fauna i rys. jej przedstawicieli); Stach J. 1918 (opis skoczogonk&#243;w zebranych przez Demela, w tym nowego gatunku Mesogastrura ojcoviensis); Stach J. 1919a (streszczenia poprzedniej); Stach J. 1919b (tłumaczenie za [1918]); Orłowicz M. 1919 (wzmianka); Kozłowska A. 1921b (opis węgla z ognisk paleolitycznych); Kozłowski L. 1921 (paleolit z jaskini); Kozłowski L. 1922 (opis wykopalisk autora, opisy i rys. wyrob&#243;w paleolitycznych); Krukowski S. 1922 (recenzja poprzedniej pracy); Demetrykiewicz W. 1922 (wzmianka); Dzwonkowski W. [około 1922] (wymienia); Szafer W. 1923 (wzmianka o węglach kopalnych); Hoyer H. 1937 (wzmianka o faunie plejstoceńskiej); Stach J. 1924 (wsp&#243;łczesna fauna jaskini); Kozłowski L. 1924a (tłumaczenia pracy z 1922); Kozłowski L. 1924b (ślady neolitu); Niezabitowski E.L. 1925 (szczątki lwa jaskiniowego z jaskini); Sawicki L. 1926 (opis paleolitu, rys. wyrob&#243;w); Antoniewicz W. 1927 (wzmianka o paleolicie); Antoniewicz W. 1928 (opis paleolitu); Stączek S. 1928 (wzmianka); Żurowski J. 1929 (o paleolicie); Gadomski A. 1929 (wzmianki); Lilpop J. 1929 (wzmianka o węgielkach kopalnych); Handschin E. 1929 (wzmianka o owadzie bezskrzydłym Mesogastruru ojcoviensns); Żurowski J. 1931a (wzmianka o paleolicie); Zawadzki J. 1932 (wzmianka); Danysz-Fleszarowa R. 1933 (w spisie jaskiń krajowych poz. 282); K. B. 1935 (wzmianka); Ciętak Z. 1935 (inwentarzowy opis jaskini, w spisie jaskiń południowej części Wyżyny Małopolskiej poz. 24, na mapie rozmieszczenia jaskiń, plan, fot, naciek&#243;w); Wolf B. 1934-38 (w bibliografii fauny jaskiń świata podana fauna z jaskini); Loth E. 1938 (wzmianka o faunie plejstoceńskiej i paleolicie); Jura A. 1938 (rys. ostrza soluteryjskiego); Jura A. 1939 (fot. otworu); Krukowski S. 1939 (charakterystyka stanowiska i paleolitu, rys. narzędzi); Kowalski K. 1946 (wzmianka); Demel K. 1947 (wsp&#243;łczesna fauna w jaskini); Żabiński W. 1947 (wzmianka); Stach J. 1947 (wzmianka o owadzie bezskrzydłym Folsomia candida); Kowalski K. 1948 (wzmianka o paleolicie); Jura A. 1949 (wzmianka o znalezieniu ślad&#243;w kultury łowc&#243;w niedźwiedzia jaskiniowego); Kostrzewski J. 1949a (wzmianka o paleolicie); Kostrzewski J. 1949b (wzmianka o badaniach); Kowalski K. 1949 (popularny opis, zdjęcia wg Ciętaka); Stach J. 1949 (opis i rysunek Mesogastrura ojcoviensis); Gotkiewicz M., Szafer W. 1950 (fot. naciek&#243;w wg Ciętaka); Kowalski K. 1951 (opis inwentarzowy poz. 153 [26.X.1950 r.], plan wg Ciętaka, plan otoczenia otworu i profile wg Kozłowskiego, fot. skupienia kału nietoperzu, rys. endemicznego owada bezskrzydłego Mesogastrura ojcoviensis); Kowalski K. 1953a (podkowiec mały Rhinolophus hipposideros i nocek duży Myotis myotis hibernujące w jaskini); Chmielewski W. 1958a (dane o zachowaniu kości); Kowalski K. 1959 (w katalogu kopalnych ssak&#243;w Polski); Kubasiewicz M. 1959 (niedźwiedź jaskiniowy Ursus spelaeus); Chmielewski W. 1961 (szczeg&#243;łowy opis badań w jaskini, wyodrębnienie nowe jednostki taksonomicznej paleolitu – kultury jerzmanowickiej); Chmielewski W. i in. 1961 (opis jaskini, osady, paleolit, kopalna flora i fauna); Kowalski K. 1961a (kopalne szczątki kreta Talpa fossilis, ryj&#243;wkowatych Sorex minutissimus, nocka dużego Myotis myotis, zajęczak&#243;w Ochtona pusilla i Lepus timidus, wilka Canis lupus, tura Bos primigenius); Gradziński R. 1962 (rynna denna w jaskini, przekr&#243;j); Bigaj J. 1963 (kopalne szczątki wilka Canis lupus); Harmata W., Wojtusiak J. 1963 (podkowiec duży Rhinolophus ferrumequinum hibernujący w jaskini); Kowalski K. 1964a (plejstoceńskie gryzonie); Chmielewski W. 1965 (stratygrafia osad&#243;w, paleolit – kultura jerzmanowicka, narzędzia); Kowalski K. 1965 (opis jaskini, osady, kopalna fauna, paleolit); Bordes F. 1968 (kultura jerzmanowicka); Madeyska-Niklewska T. 1969 (opis jaskini, osad&#243;w, plan z zaznaczonymi wykopami, profile osad&#243;w i korytarzy, w tabeli proces&#243;w korelacyjnych w jaskiniach, 6 fot.); Wysoczański-Minkowicz T. 1969a (datowanie fluoro-chloro-apatytowe kolagenowe[14 dat]); Wysoczański-Minkowicz T. 1969b (detto);  W&#243;jcik M. 1971 (niedźwiedź jaskiniowy Ursus Spelaeus); Gradziński R. 1972 (opis jaskini, osad&#243;w i form erozyjnych, 2 fot.); Harmata W. 1973b (nocek duży Myotis myotis, nocek orzęsiony Myotis emarginatus, nocek wąsatek Myotis mystacinus, nocek Brandta Myotis brandtii, gacek brunatny Plecotus auritus hibernujące w jaskini); Black C. C., Kowalski K. 1974 (kopalne wiewi&#243;rkowate Sciuridae); Bocheński Z. 1974a (kopalne ptaki holocenu); W&#243;jcik M. 1974 (kopalne szczątki łasicowatych Mustelidae); Chmielewski W. 1975 (paleolit); Wysoczański-Minkowicz T. 1975 (daty w tabeli chronologii czwartorzędu); Usnarska-Talerzak K. 1978 (kopalne szczątki renifera Rangifer tarandus); Czepiel M. 1980 (opis jaskini, dane morfometryczne, plan); Rook E. 1980 (w katalogu stanowisk z kr&#243;tkim opisem i opisem badań, w rycinach fragm. ceramiki grupy pleszewskiej kultury lendzielskiej i kultury ceramiki promienistej, wyroby krzemienne i kamienne); Harmata W. 1981 (podkowiec mały Rhinolophus hipposideros, nocek duży Myotis myotis hibernujące w jaskini); Madeyska T. 1981 (kopalne szczątki fauny, osady); Sanocka-Wołoszynowa E. 1981 (opisuje z jaskini 2 gatunki kosarzy i 12 pająk&#243;w); Wołoszyn B. W. 1981 (podkowiec mały Rhinolophus hipposideros, nocek duży Myotis myotis hibernujące w jaskini); Madeyska T. 1982 (w historii badań archeologicznych jaskiń, w schematycznym profilu stratygraficznym, w osady z jaskini w środkowym pleniglacjale Vistulanu, narzędzia krzemienne kultury jerzmanowickiej ryc.); Nadachowski A. 1982 (kopalne gryzonie); Szelerewicz M., G&#243;rny A. 1986 (opis inwentarzowy jaskini poz. 13 (II.F.38), plan wg M. Czepiela [1978]); Madeyska T. 1987 (wydzielanie jednostek stratygraficznych czwartorzędu na podstawie kręgowc&#243;w); Pradel A. 1988 (kopalne szczątki chomik&#243;w Critecinae); Bocheński Z. 1989 (kopalne ptaki p&#243;źnego plejstocenu i holocenu); Czyżewska T. 1989 (kopalne szczątki renifera Rangifer tarandus, żubra pierwotnego Bison priscus i tura Bos primigenius); Kowalski K., [red.] 1989 (fauna kopalna z jaskini); Młynarski M., Szyndlar Z. 1989 (kopalne zaskrońcowate Natrix natrix, żmija Viperas berus); Nadachowski A. 1989 (kopalne szczątki susł&#243;w Spermophillus citelloides, Spermophillus superciliosus, chomikowatych Cricetulus migratorius, Cricetus ceicerus, Arvicola terestris, lemingi Dicrostonyx guliemi i Lemmus lemmus, nornikowatych Microtus (Microtus) cf. agrestis, Microtus (Microtus) cf. arvalis, Microtus (Stenocranius) cf. gregalis , Microtus (Microtus) cf. oeconomus, myszowatych Apodemus cf. sylvaticus); Nadachowski A., Pawłowski J., Stworzewicz E. 1989 (w tabeli korelacji faun lądowych czwartorzędu w Polsce); Godawa J., Rzebik-Kowalska B. 1989b (kopalne szczątki kostne kreta europejskiego Talapa euroraea, ryj&#243;wkowatych Sorex minutissimus i Sorex araneus, rzęsorka Neomys fodiens); Wolsan M. 1989 (kopalne szczątki hieny jaskiniowej Crocuta spelaea, żbika Felix silvestris, rysia Lynx lynx, wilka Canis lupus, pieśca Alopex lagopus, lisa Vulpes vulpes, niedźwiedzia jaskiniowego i brunatnego Ursus spelaeus i Ursus arctos, kuny leśnej Martes martes, gronostaja Mustela erminea, łasicy Musteka nivalis i wydry Mutra mutra); Wolsan M. 1989a (kopalne szczątki zajęczak&#243;w Ochtona pusilla, Lepus timidus); Wołoszyn B. W. 1989 (kopalne szczątki podkowca małego Rhinolophus hipposideros, nocka Bechsteina Myotis bechsteini, nocka dużego Myotis myotis); Godawa J, Wołoszyn B. W. 1990 (podkowiec mały Rhinolophus hipposideros, nocek orzęsiony Myotis emarginatus, nocek wąsatek Myotis mystacinus, nocek łydkowłosy Myotis dasycneme, gacek brunatny Plecotus auritus hibernujące w jaskini); Labocha M., Wołoszyn B. W. 1994 (podkowiec mały Rhinolophus hipposideros, nocek duży Myoti myotis, nocek Brandta Myotis brandtii, nocek rudy Myotis daubentonii, mopek Bardastella bardastellus hibernujące w jaskini); Godawa J. 1995 (podkowiec mały Rhinolophus hipposideros, nocek duży Myoti myotis, nocek wąsatek Myotis mystacinus, nocek Brandta Myotis brandtii, gacek brunatny Plecotus auritus hibernujące w jaskini); Kozakiewicz K., Strzałka M. 1996 (nocek duży Myoti myotis, nocek Nattera Myotis nattereri, nocek rudy Myotis daubentonii, nocek łydkowłosy Myotis dasycneme); Madeyska T. 1997 (opis osad&#243;w wypełniających jaskinię, materiały archeologiczne, materiały florystyczne, materiały faunistyczne, plan części przyotworowej jaskini z zaznaczonymi wykopami archeologicznymi W. Chmielewskiego, przekr&#243;j poprzeczny i fragment przekroju poprzecznego przez osady, zestawienie danych florystycznych, archeologicznych i faunistycznych); Gradziński M. 1999 (opis występowania żwirowc&#243;w w jaskiniach okolic Krakowa); Pazdur A. i inni 1999 (5 pr&#243;bek w zestawieniu wynik&#243;w datowania naciek&#243;w z ciemno zabarwionymi laminami); Goc P. i in. 2000 (w tabeli stężenia azotan&#243;w w jaskiniach południowej części Wyżyny Krakowskiej); Hercman H. 2000 (wiek naciek&#243;w);  Madeyska T. 2000 (interpretacja danych z osad&#243;w jaskiniowych); Nowak J., Kozakiewicz K. 2000 (nocek duży Myoti myotis, nocek wąsatek Myotis mystacinus, nocek rudy Myotis daubentonii, nocek łydkowłosy Myotis dasycneme, gacek brunatny Plecotus auritus, mopek Bardastella bardastellus); Madeyska T. 2001 (materiały z jaskini datowane na schyłek zlodowacenia Warty i ostatni interglacjał, są zaliczane do kultury lewaluasko-mustierskiej, 2 fot. wejścia); Polowy K., Kozakiewicz K. 2001 (podkowiec mały Rhinolophus hipposideros, nocek Nattera Myotis nattereri, nocek orzęsiony Myotis emarginatus, nocek wąsatek Myotis mystacinus, nocek Brandta Myotis brandtii, nocek rudy Myotis daubentonii, gacek brunatny Plecotus auritus, mopek Bardastella bardastellus hibernujące w jaskini); Nowak J., Grzywiński W., Wieczorek M.2002 (podkowiec mały Rhinolophus hipposideros, nocek duży Myoti myotis, nocek Nattera Myotis nattereri, nocek orzęsiony Myotis emarginatus, nocek wąsatek/Brandta Myotis mystacinus/brandtii, nocek rudy Myotis daubentonii, mroczek p&#243;źny Eptesicus serotinus, gacek brunatny Plecotus auritus); Madeyska T., Cyrek K. 2002 (osady jaskiń, vistulian, paleolit, przykłady krzemiennych narzędzi kultury jerzmanowickiej); Budrukiewicz J. M. 2006 (badania W. Chmielewskiego w jaskini ich wyniki); Cyrek K. 2006 (stratygrafia jaskini, zabytki fauna); Chmielewski W. 2006 (fot. otworu, fot. ostrza liściowatego kultury jerzmanowickiej, przekr&#243;j poprzeczny osad&#243;w, inf. o osadach w jaskini); Chochorowska E. 2006 (wyroby z krzemienia, siekierka kamienna, ceramika w Zbiorach Muz. Arch. w Krakowie); Kadrow S. 2006 (ceramika kultury trzcinieckiej); Lech J. 2006 (sylwetka prof. W. Chmielewskiego, jego badania w jaskini, 4 fot. osad&#243;w i otworu jaskini, profil osad&#243;w); Lech J., Partyka J. 2006 (wzmianki o badaniach w jaskini); Lech J., piotrowska D. 2006 (fot. otworu, badania L. Kozłowskiego w jaskini); Madeyska T. 2006 (fot. profilu osad&#243;w prezentowanego na VI Kongresie INQUA w 1961 r., z jaskini osady datowane na koniec zlodowacenia Warty OIS 6, interglacjał eemski OIS 5, starszy plenivistulian OIS 4, interplenivistulian OIS 3 i młodszy plenivistulian OIS 2); Zastawny A. 2006 (ceramika promienista z badeńskiego kręgu kulturowego); Lorenc W. 2007 (w tabeli jaskiń z osadami vistulianu zawierających kości ptak&#243;w, w tabeli średnich temperatur lipca w vistulianie); Nowak J., Grzywiński W. 2007 (podkowiec mały Rhinolophus hipposideros, nocek duży Myoti myotis, nocek Nattera Myotis nattereri, nocek orzęsiony Myotis emarginatus, nocek wąsatek/Brandta Myotis mystacinus/brandtii, nocek łydkowłosy Myotis dasycneme, nocek rudy Myotis daubentonii, mroczek p&#243;źny Eptesicus serotinus, gacek brunatny Plecotus auritus,  mopek Bardastella bardastellus); Wysocka M. 2007 (w tabeli wynik&#243;w pomiar&#243;w radonu w wybranych jaskiniach jurajskich); Lorenc W. 2001, 2008 (średnie temperatury vistulianu na podstawie szczątk&#243;w ptak&#243;w); G&#243;rny A. 2010 (opis i plan Jaskini Nietoperzowej); G&#243;rny A. 2010 (opis i plan Jaskini Zygmunta); Krajcarz M.T. i inni 2017 (nowe dane radiowęglowe z jaskini); Nowak J., Grzywiński W. 2017 (podkowiec mały Rhinolophus hipposideros, nocek duży Myoti myotis, nocek Nattera Myotis nattereri, nocek orzęsiony Myotis emarginatus, nocek wąsatek/Brandta Myotis mystacinus/brandtii, nocek rudy Myotis daubentonii, gacek brunatny Plecotus auritus, mopek Bardastella bardastellus) Sala P. i inni 2018 (opis osad&#243;w i naciek&#243;w Jaskini Zygmunta).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Stach B. 1964 (kopalne szczątki kreta Talpa fossilis, ryj&#243;wkowatych Sorex araneus i Sorex minutissimus, rzęsorka Neomys fodiens).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej G&#243;rny, Tomasz Siwecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(14962)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1 i 2 
+                    </a>
+                    <a onclick="showImageInfo(14963)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 3
+                    </a>
+                    <a onclick="showImageInfo(14964)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 3 od wewnątrz
+                    </a>
+                    <a onclick="showImageInfo(14960)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(14961)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

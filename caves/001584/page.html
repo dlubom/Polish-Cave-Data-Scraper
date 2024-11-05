@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1584">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1584;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "567577,15".replace(',', '.') + "," + "153604,31".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1584','Chuda Mnichowa Studnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Chuda Mnichowa Studnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Szczelina Mnichowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-13.06
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′43,61″, φ: 49&#176;14′46,36″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1648,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                18
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                22
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    50
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Małej Łąki, w prawym orograficznie zboczu Doliny Małej Łąki, w p&#243;łnocnym zboczu Mnichowych Turni, w lewym (or.) stoku Głazistego Żlebu. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego - dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Żółto znakowanym szlakiem podchodzimy Doliną Małej Łąki w kierunku Przełęczy Kondrackiej. Kilkaset metrów za odejściem perci do Niżniej Świstówki, z miejsca gdzie za zakosami szlak dąży ku S podchodząc maksymalnie blisko do północnych zboczy Mnichowych Turni, opuszczamy go i idziemy do góry zygzakami, zboczem na lewo od stromego, trawiastego żlebku ograniczającego od wschodu ściany tych turni. Tuż przed osiągnięciem trawiastej przełączki zwanej Mnichowym Siodłem trawersujemy zbocze trawiastą półeczką na prawo (ku W) około 20 m, do małej niszy pod skałą, widocznej również ze szlaku, omijając otwór Jaskini Pomarańczarnia T.E-13.05. Stąd schodzimy lub bezpieczniej -  zjeżdżamy prawie pionowymi trawami 7 m do widocznej ze szlaku, pionowej szczeliny, przecinającej górne partie stromego, trawiastego zbocza. Ma ona około 5 m wysokości i 0,15-0,25 m szerokości, częściowo zablokowana jest wantami i glebą. Do jaskini można przedostać się w górnej części szczeliny (o szerokości 0,19 m) lecz wygodniejszy otwór znajduje się 4 m niżej. Dojście łatwe, w górnej części eksponowane, zwiedzanie wymaga użycia sprzętu jaskiniowego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r o szerokości 0,25 m i wysokości 0,6&nbsp;m uchodzi oknem w ścianie szczelinowej kom&oacute;rki, 3,6 m nad jej dnem Kom&oacute;rka ma około 10 m wysokości i&nbsp;ponad 3 m szerokości. Zjeżdżamy na jej dno pokryte zwykle płatem śnieżno-lodowym. Ku SE, nad 2,5-metrowym progiem odchodzi stąd ciasne, 5-metrowe odgałęzienie, ku W zaś kierujemy się do wysokiego korytarza. Za 1-metrowym prożkiem w g&oacute;rę następuje zwężenie korytarza, a&nbsp;zaraz za nim 2,8-metrowy pr&oacute;g wiedzie w d&oacute;ł, na duży płat lodu zajmujący prawie całe dno. Kilka metr&oacute;w dalej korytarz kończy się ślepo. Przy jego południowej ścianie, nad 1-metrowym prożkiem widać okrągły, ciasny otw&oacute;r, kt&oacute;ry prowadzi do 12-metrowej Chudej Studni. Na początku studnia jest ciasna, nieco pochylona, dalej staje się pionowa, a w przekroju ma kształt spłaszczonej &oacute;semki. Z dna studni ku E, stromo do g&oacute;ry, przez niski przełaz wchodzimy do wysokiej na około 6 m Komory Końcowej. W stropie komory widać komin prowadzący prawdopodobnie w kierunku szczeliny otworu oraz Jaskini Pomarańczarnia, a&nbsp;ku E odchodzi kr&oacute;tkie odgałęzienie zamknięte zawaliskiem </span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach urgonu wierchowej jednostki Organ&oacute;w (fałd Czerwonych Wierch&oacute;w), na systemie krzyżujących się szczelin. Jest w znacznym stopniu myta, strop i dno tworzy częściowo zawalisko. Grota stanowi prawdopodobnie jeden system z leżącą w bliskim sąsiedztwie Jaskinią Pomarańczarnia. Namulisko buduje rumosz wapienny (miejscami materiał nieco obtoczony) oraz glina piaszczysta z domieszką drobnego materiału pochodzącego ze skał krystalicznych, a przy otworze z domieszką gleby. W osadach znaleziono kości nietoperzy.</span></p>
+<p><span>Jaskinia jest wilgotna i zimna. Pod otworem zalega płat zlodowaciałego śniegu, a nieco dalej - lodu. Prawdopodobnie l&oacute;d występuje tu stale i nie topi się nawet p&oacute;źną jesienią (zaobserwowano to kilkakrotnie). Wyczuwa się silny przewiew. Światło sięga do kilkunastu metr&oacute;w od otworu. </span></p>
+<p><span>W strefie okołootworowej rozwijają się rośliny kwiatowe (gł&oacute;wnie trawy), nieco głębiej - mchy, glony i porosty. </span></p>
+<p><span>Faunę reprezentują nietoperze, owady (m.in. komary, pająki, muchy), a przy otworze - ślimaki.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta w dniu 21 września 1962 r. przez M. Lewandowskiego (STJ KW Krak&oacute;w) oraz B. Koisara i H. Gorszczyńskiego (STJ KW Katowice). Odkrywcy pozostawili w Komorze Końcowej kopczyk z kartką zawierającą datę pierwszego zwiedzania, ich nazwiska i przynależność klubową. W&oacute;jcik (1963b) opublikował wzmiankę o eksploracji 30-metrowego awenu - może ona dotyczyć tej jaskini lub Pomarańczarni. P&oacute;źniej jaskinia została prawdopodobnie zapomniana przez grotołaz&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dopiero podczas prac nad inwentaryzacją jaskiń tatrzańskich OW PTPNoZ, po wielu nieudanych pr&oacute;bach odnalezienia otworu, dokumentację groty sporządziła w dniu 24 lipca 1981 r. I. Luty przy wsp&oacute;łpracy A. Skarżyńskiego. Znaleziono w&oacute;wczas kopczyk i kartkę odkrywc&oacute;w. Pomiary wykonano busolą geologiczną Meridian i taśmą parcianą. Dane sytuacyjno-wysokościowe położenia otworu podano na podstawie pomiar&oacute;w przeprowadzonych w dniu 24 września 1982 r. przez Zesp&oacute;ł Koła Naukowego Geodet&oacute;w G&oacute;rniczych AGH pod kierownictwem W. Borowca. Dane zaktualizowała I. Luty (2009). W listopadzie 2017 r. F. Filar skorygował wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, Z. 1963b (informacja o eksploracji w 1962 r., bez nazwy, może dotyczyć opisywanej jaskini); Lewandowski, M. 1966 (wzmianka o eksploracji, bez nazwy, może dotyczyć opisywanej jaskini); W&#243;jcik, Z. 1966a (wysokość położenia otworu, lokalizacja na mapkach, w tym geologicznej); W&#243;jcik, Z. 1968 (lokalizacja na mapce); Kozik, A. 1972, (wymienia, podaje głębokość); Borowiec, W. i in. 1977, 1878 (dane morfometryczne pod błędną nazwą Szczelina Mnichowa, jednocześnie wymieniają jako synonim Jaskini Pomarańczarnia); Luty, I. 1982a (wzmianka o odnalezieniu i skartowaniu); Luty, I. 1982b (informacja o pomiarach sytuacyjno-wysokościowych położenia otworu); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10000); Gradziński, R. i in. 1985a (dane morfometryczne pod błędną nazwą Szczelina Mnichowa, jednocześnie wymieniają jako synonim Jaskini Pomarańczarnia, orientacyjna lokalizacja na mapie); Luty, I. 1989b (plan i przekr&#243;j, nowe dane morfometryczne, lokalizacja na mapie i rysunku ścian Mnichowych Turni, dane historyczne); Cywiński, W. 1995 (wzmianka dotycząca położenia); Jaskinie TPN 2000 (plan, przekr&#243;j i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1129)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11290">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11290;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "557589,67".replace(',', '.') + "," + "256728,51".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11290','Jaskinia Wierzchowska G&#243;rna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Wierzchowska G&#243;rna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-04.83
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′24,30″, φ: 50&#176;10′29,90″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wielka Wieś (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku N (wys. otworu 388, m n.p.m.); 3 - ku NW (wys. otworu - 399,0 m n.p.m.).
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                390,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                16
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                16
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    975
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Wierzchowie, Dolina Kluczwody; Park krajobrazowy Dolinki Krakowskie, Obszar Natura 2000 - Dolinki Jurajskie.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jadąc drogą krajową nr 94 w miejscowości Biały Kościół skręcamy na SW kierując się drogowskazami do Jaskini Wierzchowskiej. Po ok. 500 m dojeżdżamy do skrzyżowania i skręcamy w prawo do Wierzchowia. Po kolejnych 900 m dojeżdżamy do parkingu w Wierzchowiu. Z parkingu idziemy ul. Spacerową około 800 m za drogowskazem w kierunku Jaskini Wierzchowskiej Górnej (na północ). W miejscu gdzie wąska dolina zaczyna się rozszerzać, po prawej (wschodniej) stronie widać wielką grupę skalną z charakterystycznymi otworami kilka metrów nad dnem doliny.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokładny i aktualny do dziś opis topografii jaskini przedstawili Szelerewicz i G&oacute;rny (1986). Opis ten był zgodny z przebiegiem &oacute;wczesnej trasy turystycznej. Wspomniani autorzy piszą: <em>&bdquo;Zwiedzanie rozpoczynamy od otworu największego (gł&oacute;wnego), najbardziej wysuniętego na p&oacute;łnoc. Z tarasu przed wejściem do jaskini, usypanego w czasie badań wykopaliskowych, doskonale widać kształt otworu przypominający odwr&oacute;coną gruszkę. Strop sali przyotworowej posiada charakterystyczne wgłębienia, tzw. kotły wirowe, rozmyte przez wodę wypełniającą niegdyś cały profil korytarza. Dno rozcina głęboka rynna denna, rozmyta przez wodę, kt&oacute;ra swobodnie wypływała z jaskini </em>(p&oacute;źniejszy etap rozwoju jaskini - dop. autora)<em>. Na ścianach występują paprocie, zanokcica skalna i murowa.</em><br /><em>Z końcowej części sali przyotworowej dwa otwory zamykane kratami prowadzą do Hali Wielkiej Dolnej. Jej długość przekracza 40 m, a szerokość waha się od 4 do 10 m, przy średniej wysokości 5 m. Wytyczona ścieżka przebiega lewą częścią Sali, oddzielona od komory metrowym prożkiem. Ma to na celu zabezpieczenie miejsca, gdzie zimą tworzy się duże skupisko naciek&oacute;w lodowych. Wzdłuż ścian sali, na wysokości ok. 1 m, wyraźnie widoczny jest ciemny pas znaczący dawny poziom namuliska.</em><br /><em>Ścieżka za filarem schodzi na dno Sali. Po kilkunastu metrach osiągamy położone po lewej stronie wejście do korytarza zwanego Niedźwiedzie Jamy. Przed wejściem tym zwraca uwagę ładny wodospad naciekowy. U jego podn&oacute;ża znajduje się wielki stalagmit, na kt&oacute;rego szczycie utworzyła się oryginalna forma przypominająca kropielnicę, często wypełniona wodą. ...</em><br /><em>... Nazwa Niedźwiedzie Jamy pochodzi od poziomo biegnących wygładzeń na ścianach, wytartych przez ocierające się o skałę niedźwiedzie (tzw. szlify niedźwiedzie).</em><br /><em>Po kilku stopniach wchodzimy do obszernego korytarza o kilkumetrowej wysokości, rozdzielonego mostem skalnym. W najwyższych częściach zachowało się sporo stalaktyt&oacute;w i stalagmit&oacute;w. Korytarz zamykają okrągło wymyte zagłębienia pokryte grubą warstwą kalcytu, nazywane przez Ossowskiego Niedźwiedzimi Tronami.</em><br /><em>Wracamy do Hali Wielkiej Dolnej. Przedłużeniem jej jest Jama Hieny, nazwana tak od znalezionych w namulisku zęb&oacute;w tego zwierzęcia. Wejście do tego korytarza przegradza stalagmit z narastającym od g&oacute;ry stalaktytem, mającym postać dużego nawisu. (W głębi za nim Jama Hieny przechodzi w system niewielkich i ciasnych korytarzyk&oacute;w i studzienek; w najdalszym korytarzyku stwierdzono możliwość połączenia z partiami jaskini w sąsiedztwie Hoteliku.)</em><br /><em>Z końca Hali Wielkiej Dolnej skręcamy pod ostrym kątem w prawo, prostym 35-metrowym Korytarzem Gotyckim, powstałym na wysokiej szczelinie. Na samym jego początku, po lewej stronie, na cienkiej warstwie kalcytu sącząca się woda osadza cienkie, warkoczowate nacieki, aktualnie przyrastające. Korytarzem tym dochodzimy do drugiego otworu jaskini. Są tu właściwie trzy otwory: drugi tworzy r&oacute;wnoległa szczelina, zamknięta obecnie kamiennym murkiem, a trzeci zaczyna się zaczyna się wysoko pod stropem i wyprowadza na zewnątrz pod wielkim skalnym okapem.</em><br /><em>Z rozszerzenia przy drugim otworze skręcamy w lewo krętym tunelem, tzw. Przesmykiem Długim. Wypełniały go dawniej osady scementowane polewą naciekową, usunięte w czasie badań w końcu XIX wieku. Na ścianach zachowały się ślady dawnego poziomu namuliska w postaci poziomo wyrastających p&oacute;łek.</em><br /><em>W środkowej części tego korytarza odkryto po jego prawej (zachodniej) stronie nowe partie, niedostępne dla zwiedzających, nazwane Przesmykiem R&oacute;wnoległym; jest to system korytarzy o łącznej długości przekraczającej 100 m, rozwinięty na kilku poziomach. Zachowało się tam duże bogactwo form naciekowych: draperie, zasłony oraz makarony i stalaktyty o długości dochodzącej do 40 cm. Część naciek&oacute;w w tych partiach jest &bdquo;żywa&rdquo;, białego koloru. Najniżej położone korytarze tej części jaskini tworzą ciągi biegnące kilka metr&oacute;w poniżej Przesmyku Długiego.</em><br /><em>W części końcowej Przesmyku Długiego, przy jego lewej ścianie, odkryto kilkumetrowej głębokości szczelinę prowadzącą do niższych korytarzy. Jej małe wymiary uniemożliwiają jednak osiągnięcie dna.</em><br /><em>Wchodzimy do korytarza przebiegającego pod kątem prostym w stosunku do Przesmyku Długiego. Wysokość przekracza 8 m. Na poziomie 6 m nad dnem zachowały się - w postaci odcink&oacute;w korytarzy i bocznych p&oacute;łek - fragmenty najwyższego piętra jaskini. Od tego miejsca sale i korytarze, wzajemnie się krzyżujące i rozmieszczone na r&oacute;żnych poziomach, tworzą prawdziwy labirynt.</em><br /><em>Kierujemy się w lewo (w prawo prowadzi korytarz do trzeciego, g&oacute;rnego otworu jaskini). Po kilku stopniach wchodzimy do Sali z Kotłami. Nieco poniżej, na środku, sterczy wysoki blok skalny, zwany od dziury w jego wnętrzu Śmietnikiem. Na ścianach, na wysokości 4 m, zaznacza się głębokim wcięciem najwyższy poziom jaskini. Od niego ściany stromo opadają w d&oacute;ł, pokrywa je gruba warstwa nacieku. W stropie wymyte zostały duże kotły wirowe. Na ich powierzchni utworzyło się wiele stalaktyt&oacute;w. We wschodniej ścianie, oddzielony pochylnią od dna, odchodzi korytarz najwyższego piętra jaskini - &bdquo;rura&rdquo; metrowej średnicy, prowadząca przez Hotelik do Kostnicy.</em><br /><em>Za schodkami w Sali z Kotłami kierujemy się w prawo i zaraz w lewo. Dochodzimy do schodk&oacute;w z poręczą.</em><br /><em>W lewo prowadzi obszerny korytarz, z kt&oacute;rego można dojść do g&oacute;rnego piętra. Nad korytarzem widać okno prowadzące do niewielkiej p&oacute;łki, nazwanej Hotelikiem. W przedłużeniu odkryto kilkumetrowy korytarz z białymi makaronami 30-centymetrowej długości. Na jego dnie znaleziono pięć prawie kompletnych czaszek niedźwiedzia jaskiniowego.</em><br /><em>Po schodkach wchodzimy na najwyższy poziom. Dawne wejście, obecnie zasypane, znajdowało się na poziomie dna sali pod niskim okapem. Z prawej strony za barierką znajduje się wejście do Czterdziestki (Tunel Speleolog&oacute;w).</em><br /><em>Jest to długi korytarz z niewielkimi odgałęzieniami, początkowo ciasny, posiadający dawniej ładną szatę naciekową. W końcowej części przechodzi on w niewielką salkę zamkniętą zawaliskiem. Długość tego ciągu wynosi 75 m.</em><br /><em>Skręcamy w lewo i wchodzimy do Sali Tronowej (Hala Wielka G&oacute;rna). Długość sali wynosi 40 m, wysokość w kopulastym rozszerzeniu dochodzi do 6 m. W stropie widoczne są rozmyte szczeliny i kotły wirowe, z kt&oacute;rych jeden tworzy komin prawie 10 m wysokości. Koniec sali przechodzi w ciasny tunel zamknięty namuliskiem. Grubość osad&oacute;w w tej komorze sięga 5 m. W części środkowej Sali Tronowej uruchomiono w 1985 roku ekspozycję poświęconą jaskini. Kierując się w lewo dochodzimy po kilku metrach do Kostnicy, kt&oacute;rej dno położone jest 4 m poniżej Sali Tronowej.</em><br /><em>Dookoła Kostnicy biegnie p&oacute;łka znacząca poziom najwyższego piętra jaskini. Na stropie narastają w dużej ilości makarony. Ściany pokrywa gruba warstwa nacieku, tworząc formy kaskad. Pierwotnie, przed badaniami, dno Kostnicy pokrywała gruba warstwa nacieku ze stalagmitami. Pod nią znajdowała się ok. 1 m grubości warstwa gliny z dużą ilością kości zwierzęcych (stąd nazwa sali). Głębiej pod tym poziomem natrafiono na kolejne warstwy polewy, przedzielonej warstwami namuliska. W czasie badań odsłonięto dno Kostnicy do poziomu ok. 7 m poniżej Sali Tronowej. Odkryto w&oacute;wczas ciasne korytarze biegnące z dna, kt&oacute;re po zakończeniu badań zasypano. W roku 1967 usunięto gruz z Kostnicy, odsłaniając ponownie system korytarzy o łącznej długości 50 m.</em><br /><em>Następnym odgałęzieniem za Kostnicą są Czapki. W początkowej części korytarza, na p&oacute;łce po lewej stronie, znajduje się częściowo zniszczony stalagmit pagodowy znacznych rozmiar&oacute;w, zwany R&oacute;żą. Na namulisku, w środkowej części, widać narastające stalagmity. Koniec zamykają wirowe wymycia, od kt&oacute;rych korytarz nosi swoją nazwę. Na ścianach zachowały się podpisy turyst&oacute;w; najstarsza możliwa do odcyfrowania inskrypcja pochodzi z 1903 roku.</em><br /><em>Z Sali Tronowej wracamy z powrotem schodkami. Po zejściu idziemy prosto wzdłuż lewej ściany (przyszliśmy z prawej strony). Po kilkunastu metrach przechodzimy obok ładnie uformowanych mis naciekowych, zajmujących znaczną część korytarza. W okresie tworzenia się nacieku, kiedy jest on formą żywą, wszystkie zgłębienia wypełnia woda, tworząc szeregi małych jeziorek rozmieszczonych na r&oacute;żnych poziomach. Korytarz doprowadza do rozszerzenia.</em><br /><em>W przedłużeniu prowadzi korytarz rozwinięty na dw&oacute;ch r&oacute;wnoległych szczelinach, co wyraźnie zaznacza się w przekroju. W głębi dzieli się on na dwie odnogi, stąd nazywany jest Widłami. Prawa odnoga kończy się poniżej dna Sali Człowieka Pierwotnego. Odkryto tu kilka bardzo ciasnych odgałęzień.</em><br /><em>Skręcamy w prawo i po schodkach wchodzimy do obszernego korytarza. Jest to ciąg prowadzący do otworu trzeciego (zwiedziliśmy już część tego korytarza po wyjściu z Przesmyku Długiego, zaczynającego się stąd kilka metr&oacute;w w prawo). Idziemy w lewo, w g&oacute;rę i po schodkach wchodzimy do Sali Człowieka Pierwotnego. Sala ta posiadała zapewne bezpośredni wylot do powierzchni, a tym samym stanowić mogła szczeg&oacute;lnie dogodne schronienie dla ludzi. Potwierdzają te przypuszczenia znaleziska zabytk&oacute;w neolitycznych. Barierka oddziela trasę turystyczną od sali. Skręcamy stąd w prawo do niewielkiej komory. Zwiedzając te partie latem, odczuwamy wyraźny przepływ ciepłego powietrza. Ściany są tu suche. Można na nich dostrzec występującego tu licznie pająka<strong> Meta menardi</strong>.</em><br /><em>Za ostatnią komorą osiągamy koniec trasy turystycznej i wychodzimy na zewnątrz niewielkim otworem w g&oacute;rnych partiach skałek.&rdquo;</em><br />Jaskinia powstała w wapieniach skalistych g&oacute;rnej jury (oksford), a układ korytarzy jest ściśle uwarunkowany dominującymi kierunkami tektonicznymi. Jeśli spojrzeć na plan to wyraźnie widać, że korytarze układają się wzdłuż linii o kierunkach SW-NE oraz NW-SE. Są to dwa krzyżujące się systemy spękań ciosowych, kt&oacute;re zostały bardzo silnie rozmyte przez wody podziemne. Sądząc z element&oacute;w morfologii wnętrza jaskini, w jej rozwoju udział miały zar&oacute;wno przepływy ascenzyjne jak i freatyczne oraz wadyczne.<br />Jak już wspomniano wyżej opis rozkładu korytarzy jaskiniowych jest nadal aktualny. Natomiast lekkiej zmianie uległ przebieg trasy turystycznej. Spowodowane to zostało niezwykłym, jak na warunki jurajskie, zjawiskiem. Ot&oacute;ż w lipcu 1997 roku nastąpił obryw wielkiego filara skalnego przed gł&oacute;wnym wejściem do jaskini. Wielkie bloki skalne zatarasowały otw&oacute;r wejściowy jaskini. Od tego czasu zwiedzający wchodzą drugim otworem leżącym nieco na południe od gł&oacute;wnego. Zjawisko to, tyleż ciekawe co niebezpieczne, opisał M. Szelerewicz w informatorze Jaskinie Wyżyny w 1997 roku. Przyczyna tego zjawiska nie została ustalona w jednoznaczny spos&oacute;b. M. Szelerewicz domyślał się, że m&oacute;gł to być cały szereg przyczyn. I tak po pierwsze, od g&oacute;ry w skałę wrastały korzenie dużego drzewa powodując jej rozsadzanie, po drugie, w tym dniu padał intensywny deszcz, kt&oacute;ry migrując w skałę powodował jej osłabienie na szczelinach, po trzecie, w momencie katastrofy nad skałami przelatywał helikopter wywołując wibracje przenoszone na skałę, po czwarte, skałę w znacznym stopniu osłabiało zjawisko wietrzenia mrozowego. Do tych czynnik&oacute;w można dodać jeszcze jeden. Ot&oacute;ż z obserwacji niżej podpisanego wynika, że filar skalny odspoił się wzdłuż płaszczyzny o przebiegu SW-NE, czyli jest to kierunek tektoniczny, kt&oacute;ry dominuje w rozkładzie korytarzy jaskiniowych. Jednocześnie na wielu powierzchniach blok&oacute;w skalnych powstałych po rozkruszeniu filara, można obserwować dużą ilość stylolit&oacute;w. Oczywiście w tym momencie trudno określić pierwotną pozycję powierzchni ze stylolitami. Jednak nie ulega wątpliwości, że w skale występowały duże powierzchnie osłabień wynikające z tektoniki masywu. Tak więc z dużą dozą prawdopodobieństwa można przyjąć, że wszystkie te czynniki razem wzięte przyczyniły się w czasach historycznych do największego (jak się wydaje) obrywu skalnego na Wyżynie Krakowsko-Wieluńskiej.<br />Wg Kowalskiego (1951):<em> &bdquo;...Większość naciek&oacute;w pokrywających ściany znanych od dawna korytarzy jaskini jest martwa. Tylko pod stropami wyższych kom&oacute;r i w rzadko odwiedzanych korytarzach znajdujemy nacieki żywe, ciągle rosnące. Wśr&oacute;d szaty naciekowej Jaskini Wierzchowskiej możemy wyr&oacute;żnić kilka generacji, przy czym większa część naciek&oacute;w jest stara, powstała przed tysiącami lat...</em><br /><em>... Obecnie namulisko składa się w częściach dolnych jaskini z gliny z pr&oacute;chnicą i kamieniami. W Przesmyku Długim zachowane są doskonale na ścianach resztki dawnej skorupy naciekowej z licznymi otoczakami.</em><br /><em>Temperatura w częściach głębokich niska, wg Ciętaka wynosi 7,5oC przy zewnętrznej ciepłocie 27 oC. Między obu otworami zaznacza się silny prąd powietrza. Cała jaskinia dość sucha, kałuże wody bardzo nieliczne i okresowo wysychające.</em><br /><em>Flora jaskini, zwłaszcza przy gł&oacute;wnym otworze, jest obfita, panuje tu na ścianach paproć <strong>Asplenium trichomanes</strong>.</em><br /><em>Fauna uboga: spotyka się much&oacute;wki i pajęczaki, zimują tu nietoperze podkowce i nocki orzęsione (<strong>Myotis emarginatus</strong> Geoffroy).&rdquo;</em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia Wierzchowska G&oacute;rna przedstawia się jako wyjątkowo ciekawy poligon badawczy. Historię poznania i przeprowadzone w jaskini badania do 1950 roku przedstawia - wspomagając się kompilacją planu Ossowskiego i Ciętaka oraz częściowo opisami Ciętaka - K. Kowalski (1951):<br />&bdquo;<em>... Namulisko jaskini zostało naruszone przez Zawiszę w pobliżu otworu gł&oacute;wnego. Dokonywał on tu bowiem, począwszy od 1871, rozkopywań pr&oacute;bnych. Potem było ono eksploatowane w kilku miejscach w celach gospodarczych. W 1884-1886 badał jaskinię Ossowski, kt&oacute;ry rozkopał całą komorę wstępną, g&oacute;rną warstwę namuliska Hali Wielkiej Dolnej, otoczenie otworu drugiego. Przesmyk Długi i korytarze pomiędzy nim a Halą Wielką G&oacute;rną, powierzchowne warstwy namuliska tej ostatniej i wreszcie Kostnicę.</em><br /><em>W komorze wstępnej namulisko 4,6 m głębokie zawierało 2 m grubą warstwę ze spaleniskami i wyrobami neolitycznymi, a pod nią warstwę gliniastą, poprzerywaną warstewkami iłu i piasku, w kt&oacute;rej znajdowano kości zwierząt plejstoceńskich. W Hali Wielkiej Dolnej warstwa czarnoziemu 0,5-0,25 m gruba, cieniejąca ku głębi jaskini, zawierająca wyroby neolityczne i p&oacute;źniejsze, nakrywała zbadaną do 1-1,5 m głębokości warstwę gliniastą z kośćmi plejstoceńskimi. W chodniku do Niedźwiedzia, do Hieny i Bezimiennym namulisko, podobnie jak w Hali Wielkiej Dolnej, nie dało żadnych zabytk&oacute;w.</em><br /><em>W komorze wejściowej przy drugim otworze na powierzchni leżała warstwa luźnych głaz&oacute;w, pod nimi cienka warstewka ziemista, dalej zaś bruk kamienny 60 cm grubości z dziurami zapełnionymi piaskiem z ziemią wapnistą. Wśr&oacute;d kamieni bruku znajdowano skorupy naczyń, wyroby żelazne. Poniżej leżała warstwa czarnoziemno-gliniasta z nielicznymi kośćmi kopalnymi. W Hali Małej Dolnej warstwa czarnoziemu miała 25 cm grubości i zawierała nieliczne kości i odłupki, pod nią leżący pokład gliniasty do 50 cm gruby, spoczywający na zwietrzałym dnie skalnym, dał nieliczne tylko zabytki.</em><br /><em>W Przesmyku Długim namuł, pokryty skorupą naciekową do 0,5 m, na kt&oacute;rej leżała jeszcze cienka warstwa pr&oacute;chnicy, składał się z gliny przechodzącej w ił. Znaleziono tu na tym samym poziomie kości zwierząt plejstoceńskich i domowych (zapewne w skutek niestarannego prowadzenia rob&oacute;t). W komorze za przesmykiem Długim namuł składał się, od g&oacute;ry idąc, z cienkiej warstwy napływowej, warstwy nacieku i warstwy gliniastej, zn&oacute;w z kośćmi zwierząt zaginionych i ułamkami naczyń. W Hali Wielkiej G&oacute;rnej pod zwałami głaz&oacute;w luźnych były głazy spojone naciekiem, a wśr&oacute;d nich wiele kości kopalnych.</em><br /><em>Kostnica zbadana została przez Ossowskiego tylko w części zachodniej (czy nie południowej?) i dna skalnego w niej nie osiągnięto. Warstwy namuliska opisano powyżej. Według Ossowskiego kości znajdowane w poszczeg&oacute;lnych warstwach gliny pomiędzy pokładami nacieku przedstawiały jeden zesp&oacute;ł, w r&oacute;żnych warstwach znajdowało się kości tego samego osobnika. W najniższej warstwie gliniastej znaleziono podobno 2 siekacze niedźwiedzia jaskiniowego ze śladami nacięcia.</em><br /><em>Zbadał też Ossowski zagłębienie skalne położone obok gł&oacute;wnego otworu jaskini. Namulisko, rozkopane tu do 2 m głębokości, zawierało nieco ułamk&oacute;w naczyń i zbutwiały szkielet ludzki.</em><br /><em>Obecnie namulisko składa się w częściach dolnych jaskini z gliny z pr&oacute;chnicą i kamieniami. W Przesmyku Długim zachowane są doskonale na ścianach resztki dawnej skorupy naciekowej z licznymi otoczakami...&rdquo;.</em><br /><em>&bdquo;...Znalezione kości zwierzęce posłużyły za materiał do wielu publikacji. I tak Niezabitowski pisał o szczątkach niedźwiedzia jaskiniowego, lwa i renifera, Kiernik o szczątkach wilka i suhaka, Berezowski - konia. Szczątki ludzkie z badań Zawiszy opracował Virchow. Materiały archeologiczne zostały częściowo opisane przez Krukowskiego (ślady paleolitu starszego), Żurowskiego (neolit), Noska (kultura grob&oacute;w skrzynkowych), Jakimowicza (ceramika wczesnohistoryczna) oraz Nasza (żarna). W 1935 Ciętak opublikował opis jaskini i uzupełnił plan sporządzony przez Ossowskiego profilami.</em><br /><em>Materiał kości plejstoceńskich z badań Ossowskiego znajduje się w Muzeum Przyrodniczym P.A.U., gdzie wystawiono m.in. szkielet niedźwiedzia jaskiniowego, zmontowany z kości znalezionych w tej jaskini. Materiały archeologiczne z poszukiwań Ossowskiego znajdują się w Muzeum Archeologicznym P.A.U. pod nr inw. 841, 842, 846-851, 856-857, 868, 882-892, 906, 1070, 1300-1320, 2546-2654, 2556, 2617, 2639, 3214, 3443, 4267, 4699. Fragmenty kości znajdują się też w P.M.A. (zbiory Muzeum Przem. i Roln. nr 623), skrobacz krzemienny ze zbior&oacute;w R&ouml;mera w Muzeum Państwowym we Wrocławiu pod nr inw. 196a/94. Wreszcie w Dziale Prehistorycznym Muzeum Wielkopolskiego w Poznaniu pod nr inw. 1934:238 znajdują się skorupy, polepa i kości zwierzęce. ...&rdquo;</em><br />W latach 1970 i 1974 wznowiono wykopaliska archeologiczne. Prace prowadziły M. Mączyńska i E. Rook (1972) oraz R. Mycielska (1975). W 1980 roku E. Rook, na podstawie badań m.in. w tej jaskini, omawia problemy osadnictwa neolitycznego w jaskiniach Wyżyny Krakowsko-Częstochowskiej. W 1986 roku E. Foltyn wymienia jaskinię, jako paleolityczne stanowisko jaskiniowe. <br />Badaniami fauny jaskiniowej zajmowała się E. Sanocka-Wołoszynowa w 1981 roku badając pajęczaki zamieszkujące jaskinię.<br />Temat chronologii powstawania naciek&oacute;w jaskiniowych na podstawie badań izotopowych podjął w 1994 roku zesp&oacute;ł: A. Pazdur, M., F. Pazdur, H. Hercman, A. G&oacute;rny i M. Olszewski, a zesp&oacute;ł w składzie A. Pazdur, T. Goslar, M. Gradziński, H. Hercman zajął się w 1999 roku, problemem zmian hydrologicznych i klimatycznych na podstawie badań izotopowych w jaskiniach. W 1998 r. M. Gradziński, A. G&oacute;rny, A. Pazdur, M.F. Pazdur zajęli się się tematem geologicznego zapisu osadnictwa prehistorycznego w jaskiniach. Natomiast M. Gradziński omawia w 1999 r. zagadnienie wieku i pozycji żwirowc&oacute;w w jaskiniach.</p>
+<p>T. Madeyska w 2000 roku w popularny spos&oacute;b przedstawia historię zapisaną w osadach jaskiniowych.</p>
+<p>W jaskini prowadzone były badania nad chemizmem w&oacute;d jaskiniowych. Tematem tym zajmowali się P. Goc, A.G&oacute;rny, B. Klojzy-Karczmarczyk i J. Motyka w 2000 roku oraz J. R&oacute;żkowski w 2006 roku.</p>
+<p>Badaniami liczebności nietoperzy zajmowali się J. Nowak i W. Grzywiński (2007 i 2012).</p>
+<p>W 2012 roku M. Wojenka zajmuje się artefaktami średniowiecznymi w jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Kowalski (1951) pisał:<em> &bdquo;...Pierwszą wzmiankę o Jaskini Wierzchowskiej spotykamy u Jastrzębowskiego (1853). Pisze on, że w Wierzchowiu są dwie jaskinie, niewielkie, lecz białe i czyste, o ścianach pokrytych kroplami wody. Tę wzmiankę Jastrzębowskiego powtarza Przewodnik po Ojcowskiej Dolinie (1860). &ldquo;</em> <br />Ponieważ pierwsze wzmianki na temat jaskini pojawiły się w połowie XIX w, pod koniec tego wieku rozpoczął się w miarę zorganizowany ruch turystyczny z wykorzystaniem przewodnika. W latach 30. XX wieku pojawiła się idea aby jaskinię objąć ochroną. Wg Kowalskiego (1951)<em> &bdquo;... W czasach przedwojennych była zamknięta, a właściciel pobierał wstęp od zwiedzających. Na zasadzie rozporządzenia wojewody kieleckiego polecono opiekę nad nią staroście olkuskiemu.&rdquo;</em> Prace w tym kierunku zostały rozpoczęte lecz przerwał je wybuch wojny. W pierwszych tygodniach II Wojny Światowej jaskinia była schronieniem dla kilkuset os&oacute;b wraz z inwentarzem żywym.<br />Po wojnie otwory jaskini długi czas były nie zabezpieczone co sprzyjało zanieczyszczeniu i dewastacji. Dopiero w 1966 powr&oacute;cono do idei objęcia obiektu ochroną. W tym roku decyzją Wojew&oacute;dzkiej Rady Narodowej jaskinię uznano za pomnik przyrody nieożywionej, jednocześnie rozpoczęto przygotowania do wznowienia zorganizowanego ruchu turystycznego. W 1967 roku w otworach założono kraty, a w 1970 r rozpoczęto szereg prac mających na celu udostępnienie a jednocześnie zabezpieczenie jaskini przed kolejnymi zniszczeniami. Historię poznania i udostępnienia jaskini przedstawia Krzemień i Partyka w 1987roku. Wzmianki na temat objęcia ochroną jaskini pojawiają się w publikacji Alexandrowicz, Drzał, Kozłowski (1975). Natomiast informacje na temat udostępnienia ukazują się w materiałach z okazji 80-lecia Oddziału Krakowskiego PTTK w 1999 r. oraz u Pawlusińskiego w 2007 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>K. Kowalski (1951), kt&oacute;ry opisuje jaskinię pod numerem 94, określa jej długość na 640 metr&oacute;w. Powojenna eksploracja korytarzy jaskiniowych doprowadziła do przedłużenia jaskini do 950 m. Prace te prowadzone były w latach 1967-1969 oraz w 1980 roku. Informacje na ten temat można znaleźć u G&oacute;rnego (1970) oraz u Szelerewicza i G&oacute;rnego (1986).<br />Pomiary wykonali w 1983 roku M. Szelerewicz i A. G&oacute;rny.<br />Plan opracował M. Szelerewicz.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Jastrzębowski W. 1853 (wzmianka o dw&#243;ch jaskiniach w Wierzchowiu); Przewodnik po Ojcowskiej Dolinie 1860 (przedruk poprz.); Zawisza J. 1871 (opis jaskini i poszukiwań); Virchow R. 1873 (opis 2 czaszek ludzkich znalezionych przez Zawiszę); Zawisza J. 1874 (kr&#243;tki opis poszukiwań, plan jaskini, rys. znalezisk); Kohn 1876 (wzmianki wg Zawiszy); Gruszecki A. 1878 (ditto); Kohn A. und Mehlis C. 1879 (tłumaczenie prac Zawiszy); Hellwald  F.1879 (wzm. wg pracy poprz.); Ossowski G. 1882a (wzmianka o badaniach Zawiszy); Ossowski G. 1882b (ditto); R&#246;mer F. 1883 (o oszukiwaniach Zawiszy); Ossowski G. 1884b, (wzmianka); 1885a Ossowski G. (opis jaskini i wykopalisk, plan); Ossowski G. 1886a (opis poszukiwań, widoki otwor&#243;w, plan i profile Kostnicy); Ossowski G. 1886b (opis jaskini i plan, wyniki dotychczasowych badań); Ossowski G. 1887a (opis ostatnich poszukiwań, rys. znalezisk); Ossowski G. 1887b (kr&#243;tkie tlumaczenie opisu jaskini i poszukiwań, rys. wykopalisk); Ossowski G. 1887c (streszczenie opisu ostatnich badań); Stanisław z Warszawy 1888 (wzmianka); Niezabitowski E.L. 1898 (streszczenie pracy następnej); Niezabitowski  E.L. 1899 (o wyrastaniu ostatniego zęba trzonowego u niedźwiedzia jaskiniowego na zasadzie materiału z J. Wierzchowskiej G&#243;rnej); Czarnowski S.J. 1899 (wzmianka); Czarnowski S.J. 1903 (wzm. o czaszkach znalezionych przez Zawiszę); Czermak W. 1905 [1935] (fot. otwor&#243;w); Czarnowski S.J. 1905 (wzmianka); Wr&#243;blewski K. 1907 (opis i plan); Czarnowski S.J. 1907 (wzmianka, fot. otworu); Przesmycki P. 1908 (wzmianki); Berezowski  A. 1909 (wzm. o znalezieniu szczątk&#243;w konia); Diest  H. 1909 (fot. otworu, wiadomość o zwiedzenia); Czarnowski S.J 1911 (opis wg Ossowskiego); Kiernik E. 1913 (opis i fot. czaszki wilka dyluwialnego); Kiernik E. 1913a (streszczenie poprz.); Obermeier H. 1913 (wymienia); Talko-Hryncewicz J. 1913 (wiadomość o znalezieniu szczątk&#243;w ludzkich, fot. otworu); Niezabitowski E.L. 1914 (wzm. o szczątkach renifera); Demetrykiewicz W. i Kuźniar W. 1914 (wzm. o grzebieniu wczesnohistorycznym, podano błędnie, że pochodzi z Wierzchowskiej Dolnej); Orłowicz M. 1919 (wzmianka); Demetrykiewicz W. 1922 (wzmianka); Żurowski J. 1923a (wzm. o neolicie i fibuli rzymskiej); Niezabitowski E.L. 1925 (opis i fot. żuchwy lwa jaskiniowego); Dzwonkowski W. [1922?] (fot. otworu); Krukowski S. 1927 (o znalezieniu ślad&#243;w paleolitu starszego w materiale Ossowskiego); Stączek S. 1928 (opis); Jakimowicz R. 1930 (opis ciekawego okazu ceramiki wczesnohistorycznej); Zawadzki 1932 (Wzmianki turystyczne); Ochrona Groty Wierzchowskiej 1933 (wiadomość o piśmie wojewody kieleckiego); Danysz-Fleszarowa R. 1933 (wymienia); Ciętak Z.1935 (opis i plan, 2 fot.); K. B. 1935 (wzmianka); Kostrzewski J. 1939-1945 (wzm. o neolicie, rys. neolitycznego posążka kobiecego); Nosek S. 1946 (wzm.  o śladach kultury grob&#243;w skrzynkowych); Żabiński 1947 (wzm.); Kostrzewski J. 1948 (wzm. o badaniach); Durczewski Z. 1948 (wzm. o zabytkach w Muzeum w Poznaniu); Kostrzewski J. 1949b (o badaniach Zawiszy i Ossowskiego); Sawicki L. 1949 (o badaniach Zawiszy); Nasz A. 1950 (o żarnach przedhistorycznych); Kowalski K. 1951 (plan i opis pod nr 94); G&#243;rny A. 1970a (informacje o jaskini); Szelerewicz M., G&#243;rny A. 1986 (opis i plan); Mączyńska M., Rook E. 1972 (o zbiorach z jaskini i ich lokalizacji); Alexandrowicz Z. i in. 1975 (wymieniają w katalogu); Mycielska R. 1975 (wzmiankuje w kontekście archeologicznym); Rook E. 1980 (omawia znaleziska neolityczne); Sanocka-Wołoszynowa E. 1981 (fauna pajęczak&#243;w); Foltyn E. 1986 (wymienia wśr&#243;d stanowisk archeologicznych); Krzemień M.P., Partyka J. 1987 (informacje o jaskini); Pazdur A., Pazdur M., F., Hercman H., G&#243;rny A., Olszewski M. 1994 (datowania naciek&#243;w); Szelerewicz M. 1997a (o obrywie skalnym w otworze); Gradziński M., G&#243;rny A., Pazdur A., Pazdur M.F. 1998 ( osadnictwie prehistorycznym); Gradziński M., 1999 (o żwirowcach w jaskini); 80 lat Oddziału Krakowskiego PTTK 1999 (o zabiegach objęcia ochroną jaskini); Madeyska T. 2000 (o dziejach zapisanych w osadach); Goc P., G&#243;rny A., Klojzy-Karczmarczyk B., Motyka J. 2000 (chemizm w&#243;d jaskiniowych); R&#243;żkowski J. 2006 (wody krasowe i ich ochrona); Pawlusiński R. 2007 (historia turystyki w kontekście udostępnienia jaskini); Nowak J., Grzywiński W. 2007 (spisy hibernujących nietoperzy); Wojenka M. 2012 (jaskinie w średniowieczu); Nowak J., Grzywiński W.  2012 (spisy hibernujących nietoperzy); Jaskinie Wyżyny Olkuskiej 2018a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius, Kazimierz Kowalski, Mariusz Szelerewicz, Andrzej G&#243;rny
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2018
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12842)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11796">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11796;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "558432,12".replace(',', '.') + "," + "259724,97".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11796','Schronisko Boczne przy Jaskini Łokietka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Schronisko Boczne przy Jaskini Łokietka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko przy Jaskini Łokietka, Schronisko boczne przy Jaskini Łokietkowej, Schronisko boczne, Schronisko podskalne przy wejściu do jaskini Łokietka na G&#243;rze Chełmowej pod Ojcowem, schronisko przy grocie Łokietka, Schronisko boczne przy Jaskini Łokietka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02b.124
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;49′08,44″, φ: 50&#176;12′06,64″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                450
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                123
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    14
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Chełmowa G&#243;ra, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od parkingu w Czajowicach idziemy wyraźną, utwardzoną drogą w kierunku północno-wschodnim (niebieski szlak) ok. 200 m, aż do rozgałęzienia, skąd dalej wyraźną drogą prowadzącą po poziomicy w lewo (szlak czarny do Jaskini Łokietka J.Olk.I-02b.125). Po ok. 500 m mijamy otwór Jaskini Łokietka. Otwór Schroniska Bocznego przy Jaskini Łokietka znajduje się w skałach na lewo od otworu Jaskini Łokietka.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r schroniska ma wysokość 3 m i szerokość 11 m. Schronisko tworzy wnęka skalna z trzema odgałęzieniami. Dwa z nich są płytkie, natomiast najbardziej p&oacute;łnocne tworzy korytarz wysokości 1 m o lekko wznoszącym się dnie.</p>
+<p>Schronisko powstało w wapieniu skalistym jury g&oacute;rnej wzdłuż pionowych szczelin ciosowych. Schronisko ma genezę krasową, rozwinięte w stropie kotły wirowe o średnicy do 30 cm świadczą o modelowaniu go przez wodę w warunkach freatycznych. Jest fragmentem większej pr&oacute;żni zniszczonej przez erozję. Przedczwartorzędowy wiek tej pr&oacute;żni dokumentują szczątki plioceńskich gryzoni <em>Mimomys</em> sp. znalezione w spągowej części osad&oacute;w schroniska (G. Lipecki i in. 2000, 2001).</p>
+<p>Namulisko ma miąższość 4,5 m (Sobczyk i Sitlivy, 2001b). Zewnętrzna warstwa jest humusowa z gruzem wapiennym, pokryte dużą ilością liści. Poniżej namulisko stanowi less podścielony i ż&oacute;łto-r&oacute;żową gliną (S.J. Czarnowski, 1911d, 1914a; K. Sobczyk i V. Sitlivy, 2001a, 2001b). W namulisku (zapewne w jego g&oacute;rnej części) znaleziono ślady trzech ognisk, bogaty inwentarz materiał&oacute;w archeologicznych (m.in. ceramikę), kości zwierzęce i fragmenty czaszek ludzkich (S.J. Czarnowski, 1911d, 1914a). P&oacute;źniejsze badania wykazały obecność w osadach licznych kości r&oacute;żnorakich plejstoceńskich ssak&oacute;w (G. Lipecki i in. 2000, 2001; P. Wojtal, 2007; K. Stefaniak i in. 2012, 2014; A. Nadachowski, 2015; K. Stefaniak, 2015). Ponadto stwierdzono tam krzemienne znaleziska paleolityczne, ceramikę neolityczną i p&oacute;źniejszą (K. Sobczyk i V. Sitlivy, 2001a, 2001b). Trzeba jednak brać pod uwagę, że część z tych znalezisk może pochodzić z Jaskini Łokietka, ponieważ większość publikacji traktuje oba obiekty łącznie jako jedno stanowisko. W schronisku występują skonsolidowane nacieki z mleka wapiennego.</p>
+<p>Schronisko suche, widne, jedynie p&oacute;łnocne odgałęzienie zacienione. Światło sięga do końca.</p>
+<p>Na ścianach występują glony i mchy.</p>
+<p>W trakcie inwentaryzacji nie stwierdzono przedstawicieli fauny. E. Sanocka-Wołoszynowa (1981) podaje ze schroniska siedem gatunk&oacute;w pająk&oacute;w i dwa gatunki kosarzy.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania namuliska rozpoczął S.J. Czarnowski w latach 1899, 1910 i 1911. Efektem tych prac było znalezienie ślad&oacute;w ognisk, licznych materiał&oacute;w archeologicznych, kości zwierzęcych i fragment&oacute;w kości ludzkich (S.J. Czarnowski 1911, 1911b,1911c,1911d, 1914a). Ceramikę pochodzącą z tych wykopalisk omawiali A. Gardawski (1958, 1959) i E. Rook (1980), znaleziska z czas&oacute;w rzymskich M. Tempelmann-Mączyńska (1985), a znaleziska średniowieczne M. Wojenka (2018b). W latach 1999&ndash;2000 badania wykopaliskowe prowadził zesp&oacute;ł z Instytutu Archeologii UJ kierowany przez K. Sobczyka i V. Sitlivego (2001a, 2001b) we wsp&oacute;łpracy z paleontologami &ndash; G. Lipeckim, B. Miękiną i P. Wojtalem. Wsp&oacute;łczesną faunę pajęczak&oacute;w opracowała E. Sanocka-Wołoszynowa (1981). Obecnie schronisko figuruje w rejestrze zabytk&oacute;w nieruchomych pod numerem 1852 (D. Jaskanis, 1998).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Schronisko znane od dawna, obecnie jest zaśmiecone. Zapewne pierwszą publikowaną informację o nim zawiera karta pocztowa przedstawiająca fotografię otworu wydana w 1908 r. (G. Kreczmański, 2008). Kolejne pisemne informacje o nim dotyczą badań S.J. Czarnowskiego (Kronika, 1910; S.J. Czarnowski 1911, 1911b,d).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan sporządził S.J. Czarnowski prawdopodobnie w latach 1910&ndash;1911. Zostało zinwentaryzowane 06.08.1946 r. przez K. Kowalskiego, wymienione przez M. Szelerewicza i A. G&oacute;rnego (1986). Zinwentaryzowane 03.05.1996 r. przez K. Biska, B. Michalską i M. Wawrykę z pomocą D. Rupp. Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego. Obserwacje uzupełniające przeprowadził M. Wawryka-Drohobycki 23.11.2019 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Wawryka.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kronika 1910 (wzmianka o rozpoczęciu prac wykopaliskowych); Czarnowski S.J. 1911 (położenie, opis); Czarnowski S.J. 1911b (wzmianka o pracach wykopaliskowych i znaleziskach archeologicznych); Czarnowski S.J. 1911c (wzmianka); Czarnowski S.J. 1911d (położenie, opis, schematyczny plan i rysunek otworu, opis badań prowadzonych w 1899 r., informacja o znalezieniu ślad&#243;w ognisk, fragment&#243;w ceramiki, narzędzi krzemiennych i kości zwierzęcych); Czarnowski S.J. 1914a (położenie, opis, plan i rys. otworu, opis osad&#243;w, informacja o badaniach i znalezieniu ślad&#243;w trzech ognisk, a także licznych wyrob&#243;w krzemiennych, kamiennych,. kościanych i rogowych, metalowych oraz paciorka szklanego i wisiorka z muszli małża a ponadto licznych kości zwierzęcych, wykaz gatunk&#243;w); Dzwonkowski W. ok. 1922 (schematyczny plan łącznie z Jaskinią Łokietka); Kowalski K. 1951 (plan i opis inwentarzowy, lokalizacja na mapie); Gardawski A. 1958 (wzmianka o ceramice neolitycznej); Gardawski A 1959 (charakterystyka naczynia kultury trzcinieckiej); Kowalski K. 1959 (informacja o występowaniu szczątk&#243;w Bos primigenius); Gąssowski J., Kempisty A. 1973 (położenie i kr&#243;tki opis, wzmianka o znaleziskach neolitycznych i wczesnośredniowiecznych); Rook E. 1980 (charakterystyka, wzmianka o badaniach Czarnowskiego oraz o znalezieniu ceramiki grupy malickiej i grupy pleszowskiej kultury lendzielskiej, kultury puchar&#243;w lejkowatych, wyrob&#243;w krzemiennych, kamiennych, kościanych oraz wisiorka z muszli); Sanocka-Wołoszynowa E. 1981 (wymienione gatunki pająk&#243;w i kosarzy); Tempelmann-Mączyńska M. 1985 (informacja o znalezieniu paciorka szklanego z czas&#243;w rzymskich); Szelerewicz M., G&#243;rny A. 1986 (wymienione w wykazie, lokalizacja na mapie); Gradziński M. i in. 1996a (plan i opis inwentarzowy, lokalizacja na mapie); Jaskanis D. 1998 (wymienione jako zabytek archeologiczny); Lipecki G. i in. 2000 (opis osad&#243;w, informacje o kopalnej faunie, wyniki analiz osad&#243;w, schroniska, jest traktowane jako część Jaskini Łokietka); Lipecki G. i in. 2001 (analiza szczątk&#243;w fauny kopalnej wydobytych podczas badań wykopaliskowych w latach 1998–2000, schronisko jest traktowane jako część Jaskini Łokietka, wykaz takson&#243;w, sugestia przedczwartorzędowego wieku najstarszych osad&#243;w na podstawie znalezienia szczątk&#243;w gryzoni); Rodzińska-Nowak J. i in. 2000–2001 (wzmianka o znalezieniu wisiorka szklanego); Sobczyk K., Sitlivy V. 2001a (historia badań, wyniki badań wykopaliskowych prowadzonych w latach 1998–2000, lokalizacja szurf&#243;w, profil osad&#243;w wraz z interpretacją paleoklimatyczną, om&#243;wienie wynik&#243;w, informacja o krzemiennych znaleziskach paleolitycznych, [m.in. kultury mikocko-prądnicka, lewaluasko-mustierska, jerzmanowicka i być może inne kultury g&#243;rnopaleolityczne, w tym r&#243;wnież narzędzia posiadające tzw. retusz dupicki], ceramice [średniowieczna i kultur przeworskiej, łużyckiej, trzcinieckiej, ceramiki promienistej i ceramiki wstęgowej rytej], holoceńskich i plejstoceńskich zwierzęcych szczątkach kostnych; Sobczyk K., Sitlivy V. 2001b (ditto); Dobrzańska H. 2006 (wzmianka o znaleziskach z czas&#243;w rzymskich, wymienione w wykazie stanowisk z okresu rzymskiego i wczesnej fazy wędr&#243;wek lud&#243;w); Kadrow S. 2006 (wzmianka o znaleziskach kultury trzcinieckiej, lokalizacja na schematycznej mapie); Sobczyk K. i in. 2006 (wyniki badań wykopaliskowych prowadzonych w latach 1998–2000, informacja o krzemiennych znaleziskach środkowo- i g&#243;rnopaleolitycznych, znaleziskach neolitycznych, średniowiecznych i p&#243;źniejszych, kopalnych kościach ssak&#243;w i o plioceńskim wieku spągu profilu); Wojtal P. 2007 (charakterystyka szczątk&#243;w kopalnych dużych ssak&#243;w, wykaz gatunk&#243;w); Kreczmański R. 2008 (reprodukcja karty pocztowej przedstawiającej otw&#243;r wydanej przez F. Sekułę w 1908 r.); Bijak U., Rutkowski M. 2012a,b (uwagi dotyczące nazewnictwa); Stefaniak K. i in. 2012 (charakterystyka zęb&#243;w i kości Rangifer tarandus z czasu MIS 5a-e i MIS 1 z Jaskini Łokietka, część omawianych szczątk&#243;w może pochodzić ze Schroniska Bocznego przy Jaskini Łokietka); Wojenka M. 2012 (wzmianka o badaniach i znalezieniu żelaznego grotu wł&#243;czni), Wojenka M. 2013 (wzmianki o znaleziskach średniowiecznych grot&#243;w); Stefaniak K. i in. 2014 (charakterystyka zęba Alces alces najprawdopodobniej znalezionego w Schronisku Bocznym przy Jaskini Łokietka, stratygrafia osad&#243;w); Wiśniewski A. 2016 (informacja o znaleziskach paleolitu środkowego [Keilmessergruppe-kultura mikocka] w tej Jaskini Łokietka, w rzeczywistości część znalezisk pochodzi ze Schroniska Bocznego przy Jaskini Łokietka); Wojenka M. 2017 (lokalizacja na schematycznej mapie, wzmianka o znalezieniu średniowiecznego, żelaznego grotu wł&#243;czni); Wojenka M. 2018b (lokalizacja na schematycznej mapie rozmieszczenia stanowisk archeologicznych, wzmianka o znalezieniu żelaznego grotu wł&#243;czni); Gradziński M. i in. 2020 (plan i opis inwentarzowy, lokalizacja na mapie, pełna bibliografia).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Beata Michalska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13556)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(14572)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

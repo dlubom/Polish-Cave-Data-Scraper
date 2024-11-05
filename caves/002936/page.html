@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2936">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2936;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "498959,40".replace(',', '.') + "," + "207298,04".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2936','Jaskinia w Trzech Kopcach'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia w Trzech Kopcach
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Grota Klimczoka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-04.10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;59′08,00″, φ: 49&#176;43′59,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Brenna (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                cieszyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Uchw. Nr  XXXIII/371/14 Rady Gm. Brenna z dn.11.09.2014 r. w spr. wprow. ochrony w drodze uznania za pomnik przyrody &quot;Jaskini w Trzech Kopcach&quot;; Dz. Urz. Woj. Śląsk. z 2014 r. poz. 4722. [wg http://crfop.gdos.gov.pl]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                972
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                32,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1244
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Śląski, Brenna, w S stoku Trzech Kopc&#243;w (1080 m n.p.m.). 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Ze szczytu Trzech Kopców od szlaku żółtego biegnącego z Klimczoka na Błatnią, kierujemy się na S. Schodzimy ginącą miejscami ścieżką, dalej wielką wycinką z drogą maszyn leśnych, około 520 m, prosto w dół. Następnie kierujemy się na SW na skraj wyrębu. Tu w lesie świerkowym, w lejowatym zagłębieniu, znajduje się ogrodzony metalową barierą otwór jaskini. Dojście nieskomplikowane, otwór łatwy do znalezienia. Zwiedzanie głównego ciągu łatwe, choć miejscami ciasno. Osoby nie obeznane z jaskiniami mogą mieć tu jednak trudności orientacyjne.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r wejściowy o&nbsp;wymiarach 1 x 0,6&nbsp;m prowadzi do prostokątnej studni (głębokości 4,3 m), z&nbsp;dna kt&oacute;rej odchodzą dwa nachylone korytarze. W&nbsp;kierunku SW stromo pochylony korytarz (ciąg boczny) doprowadza do niewielkiej studzienki (1,5&nbsp;m) nieopodal kt&oacute;rej znajduje się zaciskowe przejście do Sali Przedpok&oacute;j (wysokości 3 m, szerokości do 1 m, długości około 3 m) i&nbsp;dalej do gł&oacute;wnego ciągu. Trzy metry za studzienką dochodzimy do kilku prowadzących pod g&oacute;rę prog&oacute;w (rodzaj komin&oacute;w). Tu ciąg boczny przechodzi w&nbsp;biegnące na r&oacute;żnych poziomach ciasne szczeliny o&nbsp;generalnym przebiegu N-S o&nbsp;łącznej długości około 21&nbsp;m. W&nbsp;tych partiach przed kilkunastoma laty odgruzowano II otw&oacute;r jaskini. Obecnie jest on ponownie zasypany.</p>
+<p>&nbsp;W kierunku NW (od studni wejściowej) biegnie korytarz, kt&oacute;ry po 3&nbsp;m doprowadza do zawalonej (niebezpieczny zawał w g&oacute;rnej części) Studni z&nbsp;Zaciskiem o&nbsp;głębokości 6&nbsp;m. Nad g&oacute;rną częścią studni (na N) znajduje się nieregularne rozszerzenie (długość 3,5 m, szerokość 3 m) udokumentowane w 1998 r. (Pukowski 1998).</p>
+<p>&nbsp;Nie schodząc do dna studni wydostajemy się w kierunku N do Sali z&nbsp;Obeliskiem (Zb&oacute;jc&oacute;w) o&nbsp;wysokości około 3 m, szerokości 1,8 m, długości 6&nbsp;m. W lutym 2005 r. M. Rachwaniec odkrył we wschodnim krańcu sali, nad stropem 5 m niszę - (Rachwaniec 2005). Dalej ku E (następnie ku SE) odchodzi ciąg boczny, łączący się także ze Studnią z&nbsp;Zaciskiem bardzo wąskim przesmykiem. Ciąg ten w og&oacute;lnym zarysie, to ciasna, wysoka szczelina z dwoma łączącymi się odnogami. W 2003 r. na końcu ciągu- znaleziono zwężenie, za kt&oacute;rym istniała możliwość dalszej eksploracji. Po rozkuciu zacisku przebyto fragment szczeliny (5,6 m), niestety zwężającej się nie do przejścia. Za samym zaciskiem istnieje możliwość przejścia do nieznanego korytarza, lecz w chwili obecnej drogę zagradza głaz. Drugi z odkrytych korytarzy znajduje się przed zaciskiem na wysokości 2 m nad spągiem. Został on odgruzowany, jest to kr&oacute;tka (2,6 m) szczelina biegnąca wyższym piętrem gł&oacute;wnego korytarza - (Szura 2003). W lutym 2005 r. M. Rachwaniec poza niewielkimi uzupełnieniami odkrył w pierwszej ze wspomnianych odn&oacute;g ciągu 1,8 m długości ciasny korytarzyk (do dalszej eksploracji), biegnący pod znanymi wcześniej szczelinami odnogi oraz za przewężeniem 6,5 m długości szczelinę, z kałużą, biegnącą ku S - (Rachwaniec 2005). Po opisanych odkryciach łączna długość ciągu bocznego wzrosła do 58,2 m.</p>
+<p>W stropie Sali z Obeliskiem - znaleziono też nieznany wcześniej korytarz. Wejście do niego trudną wspinaczką (3 m przewieszony pr&oacute;g), dalej po przeciśnięciu się przez kr&oacute;tkie kominkowate zwężenie docieramy do kolejnego korytarza biegnącego do g&oacute;ry. Wcześniej w kominku znajdziemy odgałęzienie biegnące nad Salą z Obeliskiem w kierunku SE do gł&oacute;wnego ciągu (prożek). Po drodze napotykamy ciasne i bardzo uciążliwe połączenie z Salą Kruchą (w stropie). Długość poznanych ciąg&oacute;w 10,5 m - (Szura 2003).</p>
+<p>&nbsp;Obok dużego obelisku (stąd nazwa sali) znajduje się wylot (okno) komina łączącego się z&nbsp;niżej położoną Jadalnią, do kt&oacute;rej z&nbsp;tej strony można też zejść nieco dalej po śliskich prożkach. Na N biegnie korytarz i&nbsp;po przejściu 3&nbsp;m prożka (istnieje strome obejście z&nbsp;lewej strony) wydostajemy się przez zawalisko głaz&oacute;w do Sali Nietoperzy (na planie bez nazwy), kt&oacute;ra wychodzi w g&oacute;rnych partiach Wysokiej Komory.</p>
+<p>&nbsp;Do komory można też się dostać niższym piętrem jaskini, schodząc do dna Studni z&nbsp;Zaciskiem. Kierując się ciasną szczeliną na SW po 3&nbsp;m dochodzimy do Rozdroża. Ku SE jest przejście do Sali Przedpok&oacute;j, w przeciwnym kierunku do Jadalni (długości 4 m, szerokości 2 m, wysokości 4 m) z&nbsp;ogromnym głazem pośrodku. Przez wąską szczelinę dostać się można do podługowatej, bocznej Sali Gabinet (długości 9 m).</p>
+<p>&nbsp;Do Wysokiej Komory dojść można niskimi korytarzykami (długości 8 m), kt&oacute;re wychodzą w jej dnie. Komora ta jest jednym z&nbsp;kluczowych punkt&oacute;w - najokazalsza w całej jaskini o&nbsp;kształcie nieregularnym, wydłużonym o&nbsp;wysokości około 10 m, poprzedzielana ogromnymi, zaklinowanymi głazami, z&nbsp;licznymi balkonami, p&oacute;łkami.</p>
+<p>&nbsp;Do dalszych partii jaskini prowadzą zasadniczo dwie drogi: I&nbsp;- z&nbsp;najwyższego piętra komory, II - z&nbsp;okolic jej dna. Pomiędzy tymi punktami znajduje się kilka bocznych odgałęzień. Niekt&oacute;re z&nbsp;nich też łączą się z&nbsp;dalszymi partiami jaskini. Przechodząc do g&oacute;rnego piętra komory, po lewej stronie mijamy biegnący za 2,5&nbsp;m progiem (w g&oacute;rę) 5&nbsp;m korytarzyk. Wyżej kr&oacute;tkim dwu zaciskowym przejściem przedostać się można do niższego piętra i&nbsp;w okolice Sali Koziołk&oacute;w. Tu też odchodzi większy, ale ciasny ciąg boczny o&nbsp;przebiegu W-SE (łączący się przez studzienkę z&nbsp;Salą Koziołk&oacute;w) o&nbsp;długości około 20&nbsp;m.</p>
+<p>&nbsp;I - od najwyższego punktu komory w kierunku NW, po pokonaniu 4&nbsp;m komina, przechodzimy do wyższego piętra jaskini. Z&nbsp;korytarza (o&nbsp;przebiegu W - E) na E przedostać się można po listwach skalnych przez Strych (sala o&nbsp;pochyłym, płaskim stropie i&nbsp;dnie, wysokości 4 m, szerokości do 1,3&nbsp;m) - odkryto tu w stropie 5 m długości korytarz- (Szura 2003), do Gołębnika, na kt&oacute;rym przez lata kończyło się w tym rejonie g&oacute;rne piętro. Jednak za ciasnym, 2&nbsp;m przełazem odkryto (bliższe dane nieznane) dalsze partie na tym poziomie. Rozpoczynają się one od Komnaty Chrystusa (szerokości 2,5 m, długości 3,5 m), od kt&oacute;rej przez 1,5&nbsp;m prożek (w g&oacute;rę)- nieopodal udokumentowano kr&oacute;tką (2 m) szczelinę- (Szura 2003), można przejść do prostokątnej, zawalonej głazami Sali Ewy. Ku S za pochylonym, 2&nbsp;m korytarzem, dochodzimy do rozdroża. W&nbsp;kierunku SW odchodzi 4&nbsp;m długości, wąska szczelina, prowadząca przez 4&nbsp;m pr&oacute;g (w d&oacute;ł) do Wysokiej Komory, na SE prostokątny (wysokości 1,5 m) 6&nbsp;m korytarz przez zacisk i&nbsp;zawalisko doprowadza do Kruchej Sali - długości około 7 m, szerokości przeciętnie 1,6&nbsp;m i&nbsp;wysokości 2&nbsp;m. U wylotu sali za zakrętem i przewężeniem na SW odchodzi do Wysokiej Komory ok. 7m długości Korytarz Grzegrzułki, znany od wielu lat niekt&oacute;rym członkom bielskiego klubu, a udokumentowany w sierpniu 2000 r. (Pukowski, Ganszer 2000). W maju 2003 r. U. Tebin, Cz. Szura - odkryli nowe korytarze w Kruchej Sali. Wejście do pierwszego znajduje się przed końcem sali, zaraz obok zaciskowej studzienki prowadzącej do Sali z Obeliskiem. Przez pr&oacute;g (2,2 m) przedostajemy się do niewielkiej salki, a następnie innym korytarzem na powr&oacute;t do Kruchej Sali. Długość tego ciągu wynosi 10 m. Drugi korytarz to ciasna szczelina w p&oacute;łnocnej części Kruchej Sali znajdująca się pomiędzy wantami (zawalisko). Długość korytarza wynosi 3 m. - (Szura 2003).</p>
+<p>Wracamy do Komnaty Chrystusa, w kt&oacute;rej członkowie Speleoklubu Bielsko-Biała odkryli przejście do najwyższego piętra jaskini:</p>
+<p>- marzec 2003 r. U. Kr&oacute;l, L. Rybarska, U. Tebin, S. Zięć, Cz. Szura - partie za Komnatą Chrystusa,</p>
+<p>- kwiecień 2003 r. Cz. Szura, A. Żera - partie Za 3 Zaciskami,</p>
+<p>- maj 2003 r. U. Tebin, Cz. Szura - Partie Uli.</p>
+<p>Na szczycie Komnaty Chrystusa wchodzimy w ciasną, pionową szczelinę. Szczelina po kilku metrach rozdwaja się. Lewa odnoga idąca na wprost zwęża się i łączy się z nowymi partiami szczeliną nie do przejścia. Druga skręca w prawo i dochodzi do progu (2 m), na kt&oacute;rego szczycie znajduje się zaciskowe wejście (rozkute) do partii za Komnatą Chrystusa. Wchodzimy do Sali Złodziejskiej (po prawej nie przebyta, skrajnie ciasna szczelina łącząca się z Partiami za Zaciskiem). Idziemy gł&oacute;wnym ciągiem Sali Złodziejskiej (wysokość do 2 m, szerokość 1,2 m) po kilku metrach natrafiamy na pęknięcie przecinające spąg. Jest to najłatwiejsze wejście do Rozdroża, drugie trudniejsze znajduje się nad pęknięciem (prożek 1,5 m). Idąc dalej Salą Złodziejską natrafiamy na pr&oacute;g (1,8 m) przecinający spąg. Za progiem na wprost znajdziemy zawalisko z dużych want, natomiast po zejściu progiem w d&oacute;ł natrafiamy na (wysokość do 2 m i szerokość do 1,5 m). W lewo wygodny korytarz doprowadza do wspomnianej wcześniej szczeliny nie do przejścia, w prawo zaś idziemy najpierw wysokim, a następnie bardzo niskim przełazem (czołganie najpierw w d&oacute;ł, a następnie do g&oacute;ry). Bezpośrednio przed wejściem w przełaz możemy wejść do kr&oacute;tkiej i ciasnej odnogi w stropie (przez pr&oacute;g 1,9 m) kończącej się zawaliskiem (widać następną szczelinę, lecz dalszą drogę zagradza głaz). Za przełazem znajduje się niewielka komora (2 m x 2 m) skąd prowadzą dwie odnogi. Prawa na końcu komory po kilku metrach wyprowadza do kominka będącego jedynym korytarzem prowadzącym do nowego przewyższenia. Na wprost bezpośrednio po wyjściu z ciasnego przełazu znajdziemy kontynuację tego samego pęknięcia, kt&oacute;rym docieramy do następnej salki. W salce, w prawo zaciskową szczeliną przedostajemy się do kolejnego pęknięcia. W lewo ciasne połączenie za korytarzem przed Salą Wilczą, w prawo wchodzimy do wspomnianego kominka wyprowadzającego do najwyżej położonych części jaskini. Kominkiem pionowo do g&oacute;ry (mijamy po drodze boczne, ale ślepe odgałęzienie) do obszernej sali. Po prawej zawalisko w stropie (wiszące głazy), idziemy w lewo kilka metr&oacute;w, następnie przez niewielki prożek do następnej sali (spąg wypełniony gruzem). Przy końcu salki przez pr&oacute;g (2 m) dostajemy się do najwyżej położonej ciasnej szczeliny (+ 4,60).</p>
+<p>Wracamy do szczeliny przecinającej spąg w Sali Złodziejskiej. Schodzimy na dno szczeliny, a następnie na bardzo niewygodny prożek (1,6 m) nad kt&oacute;rym jest niewielka salka. Z salki ciasną, pionową szczeliną wciskamy się do Rozdroża. Tutaj spotyka się pięć korytarzy. W lewo niską szczeliną z bardzo ciasnym zaciskiem (ZIII) powr&oacute;cimy do Sali Złodziejskiej, na wprost prowadzi kr&oacute;tki, ślepo kończący się korytarz. Idziemy najpierw do g&oacute;ry, przez szczelinę w stropie (pr&oacute;g 2,5 m) przechodzimy do pięknego, litego korytarza (Partie Uli). Korytarz o wysokości do 2,5 m po kilku metrach rozdwaja się, lewa odnoga kończy się ślepo, natomiast prawa prowadzi do kolejnej r&oacute;wnolegle biegnącej szczeliny. Ostatnie wejście w Rozdrożu znajduje się w dnie salki i prowadzi do partii zwanych Matrix.</p>
+<p>Przez niski i ciasny przekop zsuwamy się do pięknej, litej szczeliny (wysokość do 2 m, szerokość do 1 m). Szczelina najpierw nieco wąska, a następnie za załamaniem wygodna, kontynuuje się przez kilkanaście metr&oacute;w (za każdym załomem odchodzi w prawo niski korytarzyk- dla koneser&oacute;w - błoto, ciasno i bez sensu). Po drugim załamaniu przez okno w stropie wejdziemy do kilkumetrowej ślepej odnogi, natomiast nieco dalej natrafiamy na niewielką komorę o nachylonym spągu, na kt&oacute;rej szczycie przez zacisk (ZIII?) można przejść do kolejnej salki. Kierujemy się dalej gł&oacute;wnym ciągiem, mijając trzecie załamanie szczeliny dochodzimy do miejsca gdzie szczelina zmienia sw&oacute;j charakter i staje się niska, o mocna potrzaskanym stropie i gruzem na dnie. Stąd albo kilka metr&oacute;w prosto do kończ szczeliny, albo do g&oacute;ry do wyższego piętra, kt&oacute;rym można powr&oacute;cić w rejon trzeciego załamania.</p>
+<p>Na wejście do tych partii natrafiono podczas pierwszej akcji, wejście udrożniono po ok. 1 godz. kucia (szczelina niemożliwa do przejścia). Dopiero podczas kolejnych wyjazd&oacute;w znaleziono obejście zacisku wejściowego (z korytarz przed Salą Wilczą). Partie rozwinięte na jednym pęknięciu, z mocno potrzaskanym stropem. Miejscami krucho, spąg zasłany gruzem i gliną. Niekt&oacute;re partie, szczeg&oacute;lnie okolice nowego przewyższenia o mocno zaburzonej r&oacute;wnowadze (niestabilne zawalisko). Partie odkryte podczas jednej z ostatnich akcji (Partie Uli) są najdalej na N wysuniętym fragmentem jaskini. Tzw. Matrix jest najładniejszą częścią nowo odkrytych partii, jednak dojście do niego dla wielu os&oacute;b może być bardzo &bdquo;wirtualne&rdquo; (3 zaciski i niewygodny pr&oacute;g). Całkowita długość nowych partii: 184 m - (Szura 2003).</p>
+<p>Wracamy do Komnaty Chrystusa. Rozwiązano tu jeszcze jeden problem eksploracyjny- Kruchy Komin. Dostrzeżono go podczas akcji pomiarowej, jednak sporej wielkości głaz zasłaniał otw&oacute;r. Wejście znajduje się we wschodniej części Komnaty Chrystusa, przez pr&oacute;g (2,2 m) dostajemy się do niewielkiej sali, będącej dnem komina (4 m wysokości). W dolnej części przez zacisk (ZI) dostajemy się do niskiego i kr&oacute;tkiego korytarza. Długość partii: 9 m - (Szura 2003). &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;Cofamy się przez Gołębnik, Strych do wylotu komina, kt&oacute;rym przyszliśmy z Wysokiej Komory. Kierujemy się teraz korytarzem na W. Jest on przez 5&nbsp;m r&oacute;wny, wygodny, na dalszych 8&nbsp;m ma charakter zawaliskowy (wysokości 1,7 m). Na wstępie tej drugiej części korytarza, w dnie obok dużego bloku przy ścianie S, odchodzi stromo w d&oacute;ł bardzo ciasna szczelina, kt&oacute;ra po 5,5&nbsp;m przez 3,5&nbsp;m pr&oacute;g (w d&oacute;ł) wychodzi w okolice Sali Odkrywc&oacute;w.</p>
+<p>&nbsp;Do dalszych partii (na tym poziomie) należy kierować się na N przez zacisk ZII (pęknięcie w ścianie) lub odchodzącym 3,5&nbsp;m wcześniej, ciasnym (czołganie) przejściem z&nbsp;kałużą.</p>
+<p>&nbsp;Po 12&nbsp;m przez 1,4&nbsp;m pr&oacute;g (w d&oacute;ł) wygodnym, w końcowej części pochylonym korytarzem (wysokości 2 m) schodzimy do Sali Wilczej (długości 4 m, szerokości przeciętnie 2 m). Od sali na W odchodzi dwoma większymi korytarzami i&nbsp;jednym ciasnym za 3&nbsp;m progiem (w g&oacute;rę), ciąg boczny. Te trzy korytarze po około 6&nbsp;m łączą się i&nbsp;5&nbsp;m długości korytarz przegrodzony głazami wyprowadza do rozszerzenia o&nbsp;nieregularnych kształtach, z&nbsp;kałużą u wejścia, zawalonego dużymi blokami. Za rozszerzeniem ciąg boczny kontynuuje się jeszcze przez około 12&nbsp;m. W kwietniu 1996 r. A. Michalska i M. Smoter (Speleoklub Bielsko-Biała)- odkryli, na W od Sali Wilczej, pomiędzy dolnymi i g&oacute;rnymi partiami, nowy korytarz (długości 13 m) o rozwinięciu E- W. Wchodzi się do niego pokonując mały prożek. Idąc nim w stronę W, po kilku metrach dochodzi się do korytarza biegnącego poniżej, tuż przed zaciskiem, kt&oacute;rym eksploratorzy przedostali się do opisanego korytarza. Wejście do nowych partii (od strony W) jest mało widoczne i można go łatwo przeoczyć- (Michalska 1998). W maju 2003 r. Cz. Szura - inwentaryzuje, nad Salą Wilczą system zawaliskowych korytarzy (niebezpiecznie ?). Partie mocna zabłocone, miejscami kruche i ciasne. Do chwili obecnej skartowano 42,8 m korytarzy - (Szura 2003).</p>
+<p>&nbsp;Z Sali Wilczej do gł&oacute;wnego ciągu droga prowadzi przez niewielką studnię (znajdującą się w jej środkowej części) stromy korytarzyk z&nbsp;progiem do Sali Rycerzy (długości 4 m, szerokości około 1&nbsp;m zakończonej dwoma odnogami o&nbsp;długości 5,5&nbsp;m), a&nbsp;dalej na SE przez zawalisko ze studnią do niższych partii do Sali Odkrywc&oacute;w. Można też się tam dostać przez korytarz odchodzący za prostokątnym głazem ku SE o&nbsp;długości 5 m, omijając Salę Rycerzy.</p>
+<p>&nbsp;II - przy dnie Wysokiej Komory, przez mały przełaz wydostajemy się do niskiego korytarza odchodzącego ku SW (gł&oacute;wny ciąg jaskini). Po kilku metrach na prawo w g&oacute;rę przedostać się można do bocznego korytarza (długości około 5 m) biegnącego na W do Sali Koziołk&oacute;w. Metr dalej na lewo odchodzi ku E obejście (z boczną podw&oacute;jną szczeliną) powracające przez 2&nbsp;m pr&oacute;g (w g&oacute;rę) do Wysokiej Komory o&nbsp;łącznej długości około 15&nbsp;m. Dalej korytarz gł&oacute;wny (już wyższy) przegradza kr&oacute;tkie zawalisko, za kt&oacute;rym rozdroże. Ku NW dalej W odchodzi obejście pod Salą Koziołk&oacute;w (długości 6 m). My idziemy na wprost (ponad prostokątnym głazem). Po 3&nbsp;m korytarz skręca na NW i&nbsp;biegnie prosto 5&nbsp;m do 2,1&nbsp;m progu (w g&oacute;rę). Na tym odcinku z&nbsp;lewej strony odchodzą trzy ciasne połączenia z&nbsp;bardzo pogmatwanym ciągiem bocznym (łączącym się z&nbsp;dalszymi partiami jaskini), z&nbsp;prawej stromo w g&oacute;rę Sala Koziołk&oacute;w (długości około 3 m, przeciętna szerokości 1 m, zwężająca się ku E) oraz wspomniane wyżej obejście. Po około 2&nbsp;m za progiem w g&oacute;rę ku NW korytarz wyprowadza do przestronnej Sali Odkrywc&oacute;w z&nbsp;okazałym prostokątnym blokiem pośrodku (długości 4 m, szerokości około 3 m). Jest to drugi kluczowy punkt jaskini.</p>
+<p>&nbsp;Aby dostać się do najniższych partii jaskini, należy wejść w wąską lecz wysoką szczelinę, kt&oacute;rej wylot znajduje się w SE krańcu sali (poniżej napisu). Szczelina rozwinięta na kierunku NE-SW czterema ciasnymi przejściami od strony SE łączy się z&nbsp;zagmatwanym (wspomnianym wcześniej) ciągiem bocznym. Natomiast od strony NW odchodzą dwa boczne korytarze. Pierwszy z nich 2&nbsp;m od wejścia do szczeliny o&nbsp;długości około 12&nbsp;m łączący się z&nbsp;zawaliskową studnią (wspomnianą wcześniej) w Sali Rycerzy. Drugi w jej końcowej części, za zaciskiem i&nbsp;3&nbsp;m progiem w d&oacute;ł o&nbsp;długości około 6&nbsp;m. Po 9&nbsp;m przez zacisk (Z1) szczelina wyprowadza do dużego korytarza z&nbsp;brzytwą o&nbsp;przebiegu W-E. Ku E korytarz łączy się ze wspomnianym już dwukrotnie ciągiem bocznym. Jest to zesp&oacute;ł ciasnych szczelin z&nbsp;licznymi zaciskami (łączących się na r&oacute;żnych poziomach o&nbsp;łącznej długości około 57 m).</p>
+<p>Ku zachodowi (dalej ku SW) korytarz nadal okazały, o&nbsp;prostokątnym kształcie (wysokości około 5 m, szerokości od 1 do 2 m), po 6&nbsp;m biegnąc w d&oacute;ł skręca i&nbsp;wyprowadza do Sali Rycerskiej (długości około 6 m, szerokości około 2 m). Za korytarzem z&nbsp;lewej strony przechodzi do sali r&oacute;wnoległe, bardzo ciasne obejście (długości 7 m) odkryte przez członk&oacute;w bielskiego klubu. Można tu r&oacute;wnież dojść obejściem z&nbsp;prawej strony o&nbsp;długości 7 m, kończącym się schodowatym prożkiem o&nbsp;wysokości 2,8&nbsp;m prowadzącym w d&oacute;ł.</p>
+<p>Pomiędzy wylotami korytarzy (od strony sali) za 5&nbsp;m progiem (w g&oacute;rę) odchodzi ku NE na długości 3,5&nbsp;m korytarzyk - odnaleziony przez członk&oacute;w bielskiego klubu. W g&oacute;rnych partiach (nad korytarzem wprowadzającym do sali) udokumentowano też w 1998 r. korytarz (ponad 5 m długości) z rozszerzeniem do 2 m, rozwinięty na kierunku W- E, w kt&oacute;rym osadzono spit (Pukowski 1998).</p>
+<p>&nbsp;Z Sali Rycerskiej (trzeci kluczowy punkt jaskini) do końcowych partii dojść można dwoma drogami: a&nbsp;(gł&oacute;wnym i&nbsp;wygodnym ciągiem), B (ciasnym, uciążliwym ciągiem bocznym, do kt&oacute;rego dostać się można przez zesp&oacute;ł bardzo zawiłych, ciasnych szczelin).</p>
+<p>&nbsp;A - od Sali Rycerskiej na SW przez mały prożek schodzimy do korytarza o&nbsp;przesuniętych symetrycznie ścianach z&nbsp;zaklinowanym w połowie głazem i&nbsp;zwężającym się dnie (wysokości około 6 m, szerokości w części środkowej 1,6 m). Następnie mijamy małą lecz wysoką salkę. Tu z&nbsp;prawej strony jedno z&nbsp;wejść do zespołu zagmatwanych szczelin. W&nbsp;przeciwnym kierunku ciasne obejście do Sali Rycerskiej (długości 6 m). Dalej odchodzą w prawo dwa boczne odgałęzienia.</p>
+<p>Jedno biegnące ku NW, a&nbsp;dalej ku p&oacute;łnocy, też prowadzi do wspomnianego zawiłego ciągu.</p>
+<p>Drugie ku NW, a&nbsp;następnie SW, jest obejściem końcowej części korytarza gł&oacute;wnego i&nbsp;po 7&nbsp;m przez dwa małe progi wychodzi w okolicy dużego zawaliska.</p>
+<p>Korytarz gł&oacute;wny na odcinku około 8&nbsp;m zrazu schodzi w d&oacute;ł, zwęża się i&nbsp;skręca na NW. Tu z&nbsp;lewej strony odchodzi 2,5&nbsp;m ślepy, zaciskowy korytarzyk. Za progiem nad opisanym korytarzem gł&oacute;wnym udokumentowano w 1998 r. ślepy korytarzyk (długość 5,5 m) o przebiegu NE &ndash;SW (Pukowski 1998). Kilka metr&oacute;w dalej ciąg gł&oacute;wny zagradza duże zawalisko, przez kt&oacute;re nieprzyjemnym zaciskiem też można zejść do niżej leżącej Sali Smoczej. W kwietniu 2002 r. M. Kruczalak i J. Ganszer w g&oacute;rnej części zawaliska, przez wiszący zacisk, przedostają się do ciasnego korytarza o przebiegu NW- SE, kt&oacute;ry w końcowej części przechodzi w porzeczne rozszerzenie - całość 5,5 m długości- (Ganszer 2002). Za zawaliskiem około8&nbsp;m od gł&oacute;wnego korytarza odchodzą w g&oacute;rę, odkryte w lutym 1994&nbsp;r. przez&nbsp;M. Rachwańca (z bielskiego klubu) boczne dwupiętrowe partie. Dostać się do nich można przez 4,8&nbsp;m komin (niebezpieczny - krucho). Z&nbsp;komina po 3&nbsp;m ku SW odchodzi ciasny korytarz, od kt&oacute;rego w prawo wąskim przejściem zakończonym zaciskiem Z3 przedostać się można do ślepej, poprzecznej szczeliny (długości 5 m), a&nbsp;na wprost 3&nbsp;m dalej do pochyłej Sali Samob&oacute;jc&oacute;w (wysokości 3,5 m, długości około 4 m, szerokości do 2 m). Z&nbsp;sali odchodzą w r&oacute;żnych kierunkach kilkumetrowe szczeliny, łączące się z&nbsp;wyższym piętrem, do kt&oacute;rego wydostać się też można z&nbsp;g&oacute;rnych partii komina wprowadzającego do bocznego ciągu. Tu za niedużym rozszerzeniem, przez prożek (1,5 m) w d&oacute;ł wychodzimy w poprzecznym wąskim korytarzu, biegnącym stromo w g&oacute;rę (dalej r&oacute;wnym) ku SW. Po 7&nbsp;m doprowadza on do dw&oacute;ch sal: mniejszej za 1,2&nbsp;m prożkiem (w g&oacute;rę) i&nbsp;większej za 1,1&nbsp;m prożkiem (w d&oacute;ł). Sala większa (długości 2,5 m, szerokości 3 m) z&nbsp;trzema wnękami łączy się wspomnianym kominem z&nbsp;niższym piętrem. Łączna długość Partii Rachwańca wynosi 50&nbsp;m.</p>
+<p>W odległości 1,5&nbsp;m od komina w dnie korytarza gł&oacute;wnego, kt&oacute;ry 2&nbsp;m dalej na tym poziomie się kończy, znajduje się ciasna, pionowa (3,4 m) szczelina (w d&oacute;ł) wychodząca w Sali Smoczej.</p>
+<p>&nbsp;B - od Sali Rycerskiej na N dalej NW odchodzi w g&oacute;rę dwoma progami (3,5 m) jeden z&nbsp;korytarzy ze wspomnianego wcześniej zagmatwanego ciągu bocznego. W&nbsp;dalszej części zawalony dużymi blokami, po 7 m, sprowadza w d&oacute;ł 3,8&nbsp;m progiem do większego, poprzecznego korytarza o&nbsp;długości około 26&nbsp;m i&nbsp;rozwiniętego na kierunku SW-NE-SE. Dostać się tu też można dwoma innymi (chyba nawet wygodniejszymi) korytarzykami odchodzącymi od korytarza gł&oacute;wnego za Salą Rycerską, zaznaczonymi w opisie drogi A. Krzyżują się one z&nbsp;innymi szczelinami ciągu bocznego, biegnącymi na r&oacute;żnych poziomach. Cały ten zesp&oacute;ł zagmatwanych szczelin, uciążliwych w penetracji (liczne progi, zaciski) tworzy siatkę o&nbsp;łącznej długości około 40&nbsp;m.</p>
+<p>Z okolic wejścia do poprzecznego, większego korytarza trzech wspomnianych wcześniej korytarzyk&oacute;w z&nbsp;ciągu bocznego, obok dużego głazu na SW odchodzi wąska 5,5&nbsp;m szczelina, kt&oacute;ra czterema poprzecznymi przełazami łączy się z&nbsp;r&oacute;wnoległym korytarzem o&nbsp;długości 9&nbsp;m. W&nbsp;jego NW ścianie znajduje się wąska szczelina, kt&oacute;rą- w styczniu 1998 r. ekipa w składzie: B. Michalska, P. Wojtas, K. Kucia, M. Grupka (Speleoklub Bielsko-Biała) oraz K. Piekarczyk (KKS), po zastosowaniu tzw. &bdquo;technik specjalnych&rdquo;, poszerzyła i przedostała się do Salki z Jeziorkiem (długość 3 m, szerokość 2,5 m, wysokość 1,5 m) o kształcie nieregularnego prostokąta, z mini jeziorkiem, przy SW ścianie - (Pukowski 1998). Tuż obok wejścia do opisanej salki, przez małe pęknięcie korytarz łączy się z&nbsp;bardzo ciasną szczeliną o&nbsp;r&oacute;wnoległym przebiegu odkrytą przez grotołaz&oacute;w bielskich. Ku SW korytarz rozszerza się do 1,5 m, z&nbsp;prawej strony dochodzi wspomniana szczelina. Prostokątnym przełazem w g&oacute;rę wydostajemy się do Sali Kaśki - długości 12 m, wysokości 1,6&nbsp;m i&nbsp;szerokości przeciętnie 1&nbsp;m. Krętymi, bocznymi korytarzykami o&nbsp;łącznej długości około 16&nbsp;m łączy się ona od strony NW z&nbsp;Salą Smoczą - czwartym kluczowym punktem jaskini. Sala o&nbsp;przekroju tr&oacute;jkąta, ścianach litych, dnie płaskim, zawalonym odłamami skalnymi, gdzieniegdzie większymi głazami, rozwinięta jest na kierunku NE-SW i&nbsp;liczy 12&nbsp;m długości, wysokości 3 m, przy przeciętnej szerokości 1,5&nbsp;m. Na NE 3&nbsp;m za dużymi blokami zwęża się i&nbsp;już w rejonie dużego (wspomnianego wcześniej) zawaliska przechodzi w korytarz o&nbsp;długości 7&nbsp;m. Natomiast z&nbsp;SW rejonu sali poza korytarzykami doprowadzającymi do Sali Kaśki, odchodzą jeszcze inne ciągi boczne.</p>
+<p>Ku NW, za niedużymi progami (w g&oacute;rę) znajduje się zesp&oacute;ł dw&oacute;ch ciasnych szczelin (ostatnia z&nbsp;2&nbsp;m liniowym zaciskiem odkryta przez grotołaz&oacute;w bielskich) połączonych od strony SW korytarzem z&nbsp;3,1&nbsp;m studnią, a&nbsp;od NE łączących się (niemożliwą do przejścia szczeliną) z&nbsp;partiami od Sali Kaśki. Łączna długość tych szczelin wynosi około 20&nbsp;m. W kwietniu 2003 r. U. Tebin i Cz. Szura - odkryli, w stropie (1,3 m kominek) obok wspomnianej 3,1 m studni, nowy korytarz o długości 9,3 m. Pod szczytem korytarza istnieje możliwość dalszej eksploracji (za zawaliskiem widać następny korytarz) - (Szura 2003).</p>
+<p>Ku W biegnie szeroki na 1,2&nbsp;m korytarz, od kt&oacute;rego lewej strony odchodzą:</p>
+<p>- za 1,8&nbsp;m progiem (w g&oacute;rę) obejście do Sali Smoczej o&nbsp;długości około 6 m, dalej</p>
+<p>- za 1,5&nbsp;m progiem (w g&oacute;rę) rozwidlony korytarz o&nbsp;długości 7&nbsp;m.</p>
+<p>Po 5&nbsp;m korytarz zwęża się znacznie i&nbsp;po dalszych 6&nbsp;m schodząc stromo w d&oacute;ł wychodzi w&nbsp;Sali Kazik&oacute;w, kt&oacute;ra jest obecnie najniższym punktem jaskini (-20,59&nbsp;m). Partie te odkryli jeszcze pod koniec lat 60-tych grotołazi bielscy.</p>
+<p>Za Salą Kazik&oacute;w na SE ciąg boczny zawalony głazami, miejscami bardzo ciasny (zaciski) kontynuuje się jeszcze około 23&nbsp;m i&nbsp;kończy szczeliną (z dużym zaciskiem liniowym) niezbadaną do końca.</p>
+<p>&nbsp;Jaskinia osuwiskowa, powstała w piaskowcach warstw godulskich środkowych, najbardziej zaawansowana w rozwoju ze znanych obecnie form podziemnych tego typu. Jak wykazały badania W.&nbsp;Puchejdy (1978, 1989) rozw&oacute;j jaskini przebiegał w czterech zasadniczych etapach. Część korytarzy tworzył zsuw, część rotacja w płaszczyźnie horyzontalnej. Niekiedy bloki ulegają odkształceniom i&nbsp;ześlizgom w r&oacute;żnych kierunkach. Dodać można, że tu upad części pakietu skalnego nie jest jednolity, lecz zmienny. Stąd też zaznacza się podział na piętra z&nbsp;siecią poprzecznych korytarzy, co powoduje, że jaskinia ma postać labiryntu.</p>
+<p>&nbsp;Dno jest pokryte rumoszem, gruzem i&nbsp;blokami, niekiedy dużych rozmiar&oacute;w, miejscami gliną. W&nbsp;partiach wstępnych można znaleźć resztki drewna, gdzieniegdzie występuje gleba.</p>
+<p>&nbsp;Jaskinia w wielu partiach jest wilgotna, szczeg&oacute;lnie w porze roztop&oacute;w, czy po długotrwałych opadach deszczu. W&nbsp;kilku miejscach (zaznaczonych na planie) występuje deszcz podziemny. Tak jak wykazał w 1950&nbsp;r. K. Kowalski i&nbsp;obecnie temperatura w jaskini utrzymuje się w granicach +6&deg;C. Silny przewiew powietrza jest wyczuwalny w studni wejściowej, mniejszy, niekiedy w g&oacute;rnym piętrze.</p>
+<p>&nbsp;Światło sięga do wstępnych partii korytarzy pod studnią wejściową. Na ścianach studni wejściowej występują gdzieniegdzie porosty.</p>
+<p>&nbsp;W pracy z&nbsp;1954&nbsp;r. K. Kowalski zaznacza występowanie w jaskini (zimą) obfitego zespołu owad&oacute;w trogloksenicznych, podaje trzy gatunki zimujących nietoperzy - w ujęciu og&oacute;lnym: podkowce, gacki, nocki. Jak wynika ze spis&oacute;w hibernujących nietoperzy w latach 1996- 2008 r. w jaskini występują: podkowiec mały (<strong><em>Rhinolophus</em></strong> <strong><em>hipposideros</em></strong>), nocek duży (<strong><em>Myotis myotis</em></strong>), nocek orzęsiony (<strong><em>Myotis emarginatus</em></strong>), nocek wąsatek / nocek Brandta (<strong><em>Myotis mystacinus/brandtii </em></strong>), gacek brunatny (<strong><em>Plecotus auritus</em></strong>). Jednorazowo w jaskini obserwowano maksymalnie 31 nietoperzy (Mysłajek 1998a, 2000a, 2008). Z grupy trogloksen&oacute;w zaobserwowano też pająki (Mysłajek 1999b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinię odnalazł w 1946 r. A. Jasiewicz, kt&oacute;ry sporządził pierwszy opis i szkicowy plan niekt&oacute;rych partii (opublikowany w 1949 r.), określił też szacunkową jej długość - do 1000 m. W 1954 r. K. Kowalski publikuje opis inwentarzowy wraz z planem oceniając długość korytarzy na 260 m. Z tego okresu pochodzi jeszcze jeden plan jaskini (prawdopodobnie autorstwa pierwszych eksplorator&oacute;w), kt&oacute;ry obejmował w zarysie większość gł&oacute;wnych partii. Szczeg&oacute;łowe dane o postępach eksploracji w ostatnich latach są podane w opise jaskini. Jaskinia jest często odwiedzana i zaśmiecana. W partiach bardziej uczęszczanych "ozdobiona" napisami.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń beskidzkich członkowie Speleoklubu z Bielska-Białej planowali jaskinię dwukrotnie:<br />- w 1971 r. Z. Ładygin opracował plan obejmujący około 400 m korytarzy, kt&oacute;ry,uzupełniony w marcu 1978 r. o przekroje poprzeczne przez J. Pawełka i G. Klasska (kt&oacute;ry sporządził też opis), został opublikowany w 1978 r. <br />- do prezentowanego obecnie planu w wersji szczeg&oacute;łowej podstawowy materiał dokumentacyjny zebrali w okresie od 21 grudnia1986 r. do 26 września 1987 r. (łącznie 13 dni) J. Ganszer i J. Pukowski oraz J. Kupras, M. Krajewski, K. Krajewski , B. Michalska, K. Jasionek;<br />- uzupełnienia (obejmujące nowe partie) materiał&oacute;w dokumentacyjnych zostały zebrane przez następujące osoby:<br />dnia 26 kwietnia 1992 r. M. Krajewski, M. Kruczalak,<br />dnia 9 października 1993 r. M. Konior, J. Ganszer,<br />dnia 30 sierpnia 1995 r. J. Ganszer, P. Gawłowski (oznaczenie deniwelacji),<br />dnia 22 września 1995 r. E. Chylaszek, J. Ganszer J. Pukowski,<br />dnia 8 lutego 1996 r. M. Rachwaniec, J. Skrzypiec, <br />dnia 4 sierpnia 1996 r. A. Michalska, M. Smoter,<br />dnia 4 października 1997 r. J. Pukowski J. Ganszer (korekta planu),<br />dnia 14 marca 1998 r. R. Mysłajek, J. Ganszer,<br />dnia 14 sierpnia 2000 r. J. Pukowski J. Ganszer,<br />dnia 6 kwietnia 2002 r. M. Kruczalak, J. Ganszer,<br />dnia 8 marca 2003 r. U. Kr&oacute;l, L. Rybarska, U. Tebin, S. Zięć, Cz. Szura,<br />dnia 11 marca 2003 r. Cz. Szura (m in. pomiary nowego przewyższenia),<br />dnia 9 kwietnia 2003 r. U. Tebin, Cz. Szura (min. pomiar głębokości),<br />dnia 15- 16 kwietnia 2003 Cz. Szura, A. Żera (min. pomiary powierzchniowe),<br />dnia 26 kwietnia 2003 r. Cz. Szura,<br />dnia 10 maja 2003 r. Cz. Szura,<br />dnia 7 czerwca 2003 r. U. Tebin, Cz. Szura,<br />dnia 17 listopada 2005 M. Rachwaniec. <br />Pomiary wykonywano busolą geologiczną Freiberg i taśmą parcianą oraz laserem Leica. Wsp&oacute;łrzędne geograficzne GPS w 2002 r. pomierzył J. Ganszer, wysokość n.p.m. w 2003 r. P. Beczała (Speleoklub Bielsko-Biała). Dane zostały zaktualizowane w 2009 r.<br />Plan opracowali J. Ganszer i J. Pukowski, uzupełnił w dużej części i skorygował Cz. Szura.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Jasiewicz A. 1949 (szkicowy plan niekt&#243;rych partii i opis); Kowalski K. 1951 (fot. wnętrza jaskini); Przybyłowicz T. 1951 (wzmianka o jaskini); Kowalski K. 1953a (wzmianka o występowaniu podkowca); Kowalski K. 1953b (wzmianki o występowaniu nietoperzy); Kowalski K. 1954 (plan i opis inwentarzowy); Mikuszewski J. Sz&#233;kely K. 1974 (wzmianka o najdłuższej jaskini w Beskidach); Mikuszewski J. 1975 (wzmianka o długości jaskini); Puchejda W. 1978 (szczeg&#243;łowe dane genetyczno-morfologiczne); Ganszer J. 1987 (wzmianki o wyjazdach inwentaryzacyjnych); Klassek G. 1987 (uwagi dot. planowania jaskini); Grebl Z. 1987 (wzmianka o wypadku w jaskini);  Ganszer J. 1988a (wzmianka o wyjazdach inwentaryzacyjnych); Klassek G. 1989 (wzmiankowana jako najdłuższa jaskinia w Beskidzie Śląskim); Gawłowski P. 1989 (umiejscowienie jaskini w jednostkach litostratygraficznych); Puchejda W. 1989 (szczeg&#243;łowe dane genetyczno-morfologiczne - powt&#243;rzenie); Wiśniewski W.W. 1989 (ujęta w wykazie jaskiń Karpat); Klassek G. 1990 (ujęta na liście najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G. 1990 (uwagi dotyczące dw&#243;ch wersji planu jaskini); Klassek G. 1990 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Wiśniewski W.W. 1991a,b (ujęta w wykazie jaskiń Karpat); Alexandrowicz Z. i in. 1992 (ujęta w wykazie pomnik&#243;w przyrody nieożywionej); Alexandrowicz Z., Kućmierz A., Urban J., Otęska-Budzyn J. 1993 (uznana za pomnik przyrody nieożywionej); Wiśniewski W.W. 1993a (o długości jaskini); Wiśniewski W.W. 1993b (ujęta w wykazie jaskiń Karpat); Klassek G. 1994 (wzmiankowana w zarysie typologii jaskiń fliszowych, ujęta na liście najdłuższych jaskiń polskich Karpat Fliszowych); Wiśniewski W.W. 1994 (ujęta na liście najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G. 1995 (wzmianka o inwentaryzacji nowo odkrytych partii jaskini); Wiśniewski W.W. 1996a,b (ujęta w wykazie jaskiń Karpat); Jaskinie Polskich Karpat fliszowych 1997a (wzmianka w typologii jaskiń pseudokrasowych, opisach jaskiń, plan i opis inwentarzowy obejmujący 913 m długości); Klassek G., Mleczek T. 1997 (wzmianka o zwiększeniu długości jaskini); Michalska A. 1998 (wzmianka o odkryciu nowego korytarza); Pukowski J. 1998a (wzmianka o zwiększeniu długości jaskini, uzupełnienia do planu); Mysłajek R. W. 1998 a (wzmianka o nietoperzach); Ganszer J. 1999a (statystyka wejść do jaskini); Michalska B., Wojtas P. 1999 (wymieniona wśr&#243;d jaskiń okolic Bielska-Białej); Mysłajek R.W. 1999 b, 2000a (wzmianki o faunie jaskini); Ganszer J. 2000 (uwagi eksploracyjne, plan nowego odcinka korytarza); Klassek G., Mleczek T. 2000 (wzmianka o zwiększeniu długości jaskini); Pukowski J., Ganszer J. 2000a (uzupełnienia inwentaryzacyjne); Alexandrowicz Z., Poprawa D. (red.) 2000 (pomnik przyrody- lokalizacja, opis og&#243;lny jaskini); Motyka J., Zawierucha L. 2001 (uwagi z zakresu chemizmu w&#243;d); Wiśniewski W.W. 2001 (wzmianka w ikonografii jaskiń beskidzkich); Ganszer J. 2002 s / 2 (udokumentowanie nowego korytarza); Ganszer J., Nikiel B. 2002 (uwagi dot. zwiedzania i ochrony jaskini); Jasiewicz A. 2002 (uwagi do nazewnictwa jaskini); Klassek G., Mleczek T. 2002 (wzmianka o zwiększeniu długości jaskini); Mysłajek R.W. 2002 (wzmianka o nietoperzach); Klassek G. 2003 (rys historyczny inwentaryzacji jaskini); Szura C. 2003 (odkrycia- plany uzupełniające, opisy nowych partii); Ganszer J. 2003 (wzmianka o podkowcu małym); Klassek G., Mleczek T. 2003 (informacje o nowych odkryciach, zwiększeniu długości jaskini); Wiśniewski W.W. 2003 (rys historyczny eksploracji jaskini); Szura C. 2004 (uwagi o eksploracji w okolicy jaskini); Rachwaniec M. 2005 s (dane uzupełniające); Klassek G., Mleczek T. 2005 (wzmianka o zwiększeniu długości jaskini); Kudłacz T. 2005 (wzmianka o drodze nad jaskinią); Mysłajek R.W., Nowak S., Kurek K. 2008 (wzmianka o ilości nietoperzy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12131)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(2458)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(2459)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=1387" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

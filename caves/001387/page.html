@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1387">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1387;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "562744,57".replace(',', '.') + "," + "152840,37".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1387','Jaskinia Raptawicka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Raptawicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Raptawicka Jama, Jaskinie Pawlikowskiego
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-08.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;51′44,10″, φ: 49&#176;14′23,47″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku S, 1151,9 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1146
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                116
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                22,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                27,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    560
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Kościeliska, na lewym orograficznie zboczu Doliny Kościeliskiej, u podn&#243;ża Raptawickiej Turni. 
+
+ 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Czarnym szlakiem, odchodzącym razem z czerwonym szlakiem za czwartym ku S mostkiem od Hali Pisanej, idziemy na prawo, aż do otworu. W końcowym fragmencie drogi pokonujemy ubezpieczony łańcuchami, łatwy próg skalny (około 15 m). Dojście i zwiedzanie łatwe.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Jaskinia stanowi&nbsp; część systemu powstałego z połączenia Jaskini Mylnej T.E-08.04., Jaskini Obłazkowej T.E-08.05. i Jaskini Raptawickiej T.E-08.03.<br />Otw&oacute;r Gł&oacute;wny ma średnicę około 3 m. Jest on dziurą wyrwaną w stropie położonego niżej korytarza, stanowiącą początek 5 m głębokości studni. Pokonujemy ją przy użyciu zamontowanej na stałe drabiny ze stali nierdzewnej i stajemy na dnie Lewego Korytarza. <br />Opada on stromo w kierunku SW. Jego dno pokrywają duże wanty, gruz oraz niewielka ilość szczątk&oacute;w organicznych, kt&oacute;re dostały się z powierzchni. Początkowo wysokość korytarza wynosi 5 m i stopniowo maleje, natomiast szerokość waha się od 5 do 3 m. Przed jego gwałtownym obniżeniem możemy wspiąć się po prawej stronie łatwym, 3 m progiem do szczeliny, kt&oacute;ra po 4 m urywa się 4 m progiem do dalszej części korytarza. Przechodzimy pod obniżeniem stropu i stajemy w znowu wysokim korytarzu. Z prawej strony, u g&oacute;ry, widać wylot opisanej wcześniej szczeliny.&nbsp; Na końcu Lewego Korytarza, po lewej stronie, znajduje się lejkowate zagłębienie prowadzące do połączenia z Jaskinią Mylną T.E-08.04. Przejście zostało zasypane trosce o bezpieczeństwo turyst&oacute;w. Po przeciwnej stronie połączenia z Jaskinią Mylną znajduje się wejście do ciasnej, kilkumetrowej szczeliny, kt&oacute;rą można dostać się przez zacisk (Z II) do dalszej części jaskini (opis w dalszej części tekstu). <br />Wracamy pod Otw&oacute;r Gł&oacute;wny. Na tym samym pęknięciu, co Lewy Korytarz, ciągnie się w przeciwnym kierunku Prawy Korytarz. Wkr&oacute;tce w lewo odchodzi od niego obszerny chodnik prowadzący do dalej opisanych partii. Wysokość Prawego Korytarza za rozgałęzieniem wynosi 16 m. Szerokość zawiera się w wartościach od 9 do 5 m. <br />Z prawej strony widać w stropie dwa okna, do kt&oacute;rych prowadzi około 5 m korytarz za Otworem G&oacute;rnym. Posiada on profil soczewki i skaliste dno. Studnie opadające z okien na dno Prawego korytarza mają kolejno 9,5 i 8 m. <br />Z lewej strony, u g&oacute;ry, widać okna do Partii Przystropowych o łącznej długości 71 m. Aby się do nich dostać trzeba się wspiąć 5,5 m zacięciem w ścianie (trudności V) na pierwszą p&oacute;łkę. Znajduje się na niej wejście do kr&oacute;tkiego, kilkumetrowego, ciasnego korytarzyka. Kolejna p&oacute;łka znajduje się 3 m wyżej. R&oacute;wnież tutaj bierze początek korytarzyk, kt&oacute;ry po paru metrach rozwidla się na dwie odnogi. Ich końce łączą się niedostępną szczeliną. Spąg opisanych wyżej korytarzyk&oacute;w pokrywa glina oraz gruz.Z wyżej położnej p&oacute;łki możemy strawersować w lewo (ku SW) do wylotu stromej, piarżystej pochylni, kt&oacute;ra kończy się ona ślepo. Z p&oacute;łki można także strawersować (IV) kilka metr&oacute;w w prawo (ku NE), do wylotu korytarza rozwiniętego na szczelinie. Zaraz za jego początkiem odchodzi w lewo ciasna, szczelinowata pochylnia prowadząca do najwyżej położonego punktu w systemie (+53,8 względem otworu Jaskini Mylnej). Korytarz posiada długość kilkunastu metr&oacute;w, jest wysoki na około metr i kończy się zawaliskiem, z kt&oacute;rego podczas wiatru halnego dało się wyczuć silny przewiew. Prawdopodobnie miejsce to znajduje się blisko powierzchni. Ściany korytarza pokrywa gruba warstwa z mleka wapiennego, natomiast spąg tworzy glina oraz gruz. <br />Wracamy do Prawego Korytarza. Kilka metr&oacute;w dalej, po prawej stronie, znajduje się wielka wanta odspojona od stropu. Wchodzimy za nią od lewej strony trawersując nad opisaną dalej 4 m studzienką. Za wantą znajduje się otw&oacute;r 4,5 m ciasnej studzienki. Schodzimy nią zapieraczką do Salki pod Zawaliskiem. Jej najniższy punkt znajduje się na poziomie +29,7 m (względem otworu Jaskini Mylnej). Z salki odchodzą trzy korytarzyki. Pierwszy, idący ku SW, kończy się wkr&oacute;tce w zawalisku tworzącym spąg Prawego Korytarza. Drugi korytarz biegnie do g&oacute;ry ku SE. Zamyka go zawalisko, z kt&oacute;rego podczas wiatru halnego można było wyczuć silny przewiew. Prawdopodobnie jest to zagruzowany dolny otw&oacute;r jaskini. Trzeci korytarzyk ciągnie się ku N i doprowadza pod 4 m studzienkę, nad kt&oacute;rą wcześniej trawersowaliśmy. <br />Wspomnianą wyżej 4 m studzienkę pokonujemy bez użycia liny. Z jej dna odchodzi szereg Korytarzy w Zawalisku. Ku N ciągną się dwie ślepe, kr&oacute;tkie odnogi. Ku S znajduje się wejście do kilkunastometrowego korytarza z dwoma kr&oacute;tkimi odnogami, kończącego się prawie pod Otworem Gł&oacute;wnym. <br />Wracamy ponownie do Prawego Korytarza. Dalsza droga prowadzi pomiędzy ogromnymi blokami skalnym odpadłymi od stropu. Po kilkunastu metrach korytarz opada i kończy się na poziomie +34,8 m (względem otworu Jaskini Mylnej). Z prawej strony można przejść jeszcze 3 m ciasnym, ślepym korytarzykiem. <br />Około 5 m przed końcem Prawego Korytarza, przy prawej ścianie, znajduje się 2 m głębokości studzienka. Prowadzi ona do drugiej części Korytarzy w Zawalisku. Za studzienką ciągnie się korytarz, początkowo ciasny, kt&oacute;ry po kilku metrach staje się wyższy. Dochodzimy do rozgałęzienia. Na wprost korytarz kontynuuje się jeszcze przez 4 m. W lewo, w d&oacute;ł schodzi kilkunastometrowy ciąg zawaliskowych korytarzyk&oacute;w sprowadzających w najniższym punkcie na poziomie +29,5 m(względem otworu Jaskini Mylnej). <br />Od początku Prawego Korytarza idziemy w kierunku NW obszernym korytarzem o szerokości 7 m i wysokości 5 m. Jego dno pokrywają głazy i drobny gruz. Po około 10 m stajemy nad Dolną Komorą. Jest to największa sala w jaskini. Posiada nieregularny kształt o wymiarach 15x20 m i wysokość miejscami do 10 m. Jej dno pokrywają r&oacute;żnych rozmiar&oacute;w wanty. <br />Od końca korytarza, kt&oacute;rym tu doszliśmy, odchodzi w lewo (ku SW) obszerny chodnik o prostokątnym profilu i wymiarach 6x6 m. Schodzimy opadającym dnem po wielkich głazach. Wkr&oacute;tce widzimy po lewej stronie wylot kilkumetrowego, ślepego korytarza o przekroju zbliżonym do &oacute;semki. Kilka metr&oacute;w dalej chodnik rozdziela się na dwie części. Lewa odnoga posiada tr&oacute;jkątny przekr&oacute;j o wysokości około 3 m. Po paru metrach odchodzi w prawo, do g&oacute;ry korytarz łączący się z prawą odnogą chodnika. Kilka metr&oacute;w dalej, na wprost korytarz kończy się ślepo, natomiast z lewej strony dochodzi wspomniana wcześniej w opisie ciasna szczelina rozpoczynająca się na końcu Lewego Korytarza. Wracamy do rozwidlenia chodnika i przez prożek o wysokości 1 m wchodzimy w prawą odnogę. Jest to korytarz rozwinięty na szczelinie pochylonej w lewo, początkowo wysoki na około 3 m. Jego wymiary na przestrzeni 20 m stopniowo maleją, aż staje się nie do przejścia. Spąg korytarza pokrywa gruz zmieszany z gliną.<br />Wracamy do Dolnej Komory. Jej dnem schodzimy w kierunku N. Rozpoczyna się tu wysoki z początku na 10 m, szczelinowaty korytarz o długości około 10 m. Pod koniec przechodzi w połogi pr&oacute;g, za kt&oacute;rym znajduje się szczelina nie do przejścia. Pięć metr&oacute;w powyżej tego korytarza znajduje się okno (trudności dojścia IV), za kt&oacute;rym biegnie 5 m korytarzyk.<br />W SW części komory znajdują się dwie ślepe odnogi o długości 5 m każda. Pomiędzy nimi można wejść, pokonując 3,5 m przewieszony pr&oacute;g, w kilkumetrowy korytarzyk łączący się zaraz kolejnym przebiciem z komorą. <br />W zachodniej ścianie komory znajduje się niskie (około 1 m) wejście do Partii Zachodnich. Dalej korytarz staje się wyższy i po 7 m docieramy do dużego głazu. Z lewej strony da się przejść jeszcze 4 m, aż dalsza droga kończy się szczeliną zbyt wąską do przejścia. Z prawej strony głazu znajduje się przekute przejście. Przeciskamy się przez nie i wchodzimy do wysokiego na 1,5 m korytarza. Po 10 m gł&oacute;wny ciąg zmienia kierunek z E&ndash;W na NE&ndash;SW. W prawo odbija ciasny korytarz idący w d&oacute;ł. Przeciskamy się przez przekopane przewężenie (Z I) i docieramy do niewielkiej salki. Ku N idzie kr&oacute;tki korytarzyk zakończony niedostępną szczeliną. W jego stropie znajduje się ślepy, 2 m kominek. Ku SW ciągną się zawaliskowe, ciasne korytarzyki. W całej tej odnodze wyczuwalny jest silny przewiew.<br />Wracamy do gł&oacute;wnego ciągu. Przeczołgujemy się przez obniżenie stropu i dostajemy się do wysokiego Korytarza z Kotłami Wirowymi.&nbsp;Po drodze mijamy po prawej stronie kilkumetrowy wykop. Korytarz do kt&oacute;rego się dostaliśmy posiada charakter odmienny od reszty jaskini. Ściany są tutaj myte, a w stropie wydrążone są kotły wirowe. Po kilkunastu metrach koniec korytarza zablokowany jest zawaliskiem, natomiast ku E odchodzi ślepa szczelina. Spąg Korytarza z Kotłami Wirowymi tworzy glina oraz kamienie. W środku korytarza na glinie stoi niewielka kałuża. <br /></span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmoneokomu autochtonicznej serii wierchowej. Gł&oacute;wna, obszerna jej część ma charakter zawaliskowy. Ściany są spękane, zwietrzałe, dno jest pokryte blokami oberwanymi ze stropu i autochtonicznym gruzem wapiennym . Według W&oacute;jcika (1966a) na gruzie można znaleźć allochtoniczne żwiry i głaziki wymyte z korytarzy i komink&oacute;w w stropie sali. Pod otworem utworzył się z gleby i gruzu stożek nasypowy. Dolna część jaskini (od korytarzyka z ciasnym przełazem) ma odmienny charakter. Ściany są ogładzone, a w stropie widać kociołki wirowe, świadczące o przepływie wody pod ciśnieniem. W namulisku występują otoczaki wapienne, a w końcowej części r&oacute;wnież piasek i żwir. W&oacute;jcik (1966a) podaje, że wśr&oacute;d żwir&oacute;w występują głaziki gnejs&oacute;w, piaskowc&oacute;w, wapieni piaszczystych, łupk&oacute;w i in. Materiał klastyczny jest tu wymieszany z kośćmi ssak&oacute;w plejstoceńskich (m. in. <strong><em>Ursus spelaeus</em></strong>). Pr&oacute;by osad&oacute;w są przechowywane w Muzeum Ziemi w Warszawie.</span></p>
+<p><span>Wilgotność jaskini zależy od warunk&oacute;w atmosferycznych na powierzchni. Światło sięga daleko w głąb.&nbsp;Partie Zachodnie i dalsze części bocznych odn&oacute;g są ciemne. Kowalski (1953a) podaje, że zwykle brak przewiewu, jednak 13.06.1948 r. obserwowano przepływ powietrza między otworami, a częścią końcową i szczelinami pod ścianami sali wejściowej. Temperatura zmierzona w dniu 7.02.1951 r. wynosiła w korytarzu końcowym 3&deg;C. Według Rajwy (1971) temperatury we wnętrzu wahają się od 1,4&deg;C do 6,3&deg;C, a roczna amplituda wynosi 4,9&deg;C. Gł&oacute;wna część jaskini w zimie wymarza i tworzą się w niej nacieki lodowe. Ciepłe powietrze napływa do wnętrza od kwietnia do listopada, a zimą wypływa z korytarza końcowego. Taka cyrkulacja powietrza oraz rozkład temperatur stanowią podstawę przypuszczenia (potwierdzonego w 2015 r. połączeniem obu jaskiń) wyrażonego przez Rajwę (1971), że jaskinia stanowi g&oacute;rny otw&oacute;r &bdquo;systemu Jaskini Mylnej&rdquo;.<br /></span></p>
+<p><span>W jaskini obficie występuje roślinność zielona. Jej badania prowadził Żmuda (1912, 1915), kt&oacute;ry opisał stąd nowy gatunek mchu <strong><em>Oxyrrhynchium</em></strong><em> <strong>speciosum </strong></em>T. Bielska 20.07.1978 r. zebrała następujące gatunki (mszaki oznaczyła J. Mickiewicz):</span></p>
+<p><span>kwiatowe &ndash; <strong><em>Bellidiastrum micheli </em></strong>Cass., <strong><em>Saxifraga aizoon</em></strong> Jacq., <strong><em>Phyteuma orbiculare </em></strong>L., <strong><em>Pimpinella maior </em></strong>Huds., <strong><em>Primula auricula </em></strong>L., <strong><em>Primula elatior </em></strong>Grufb., <strong><em>Galium anisophyllum </em></strong>Vill., <strong><em>Arabis halleri </em></strong>L., <strong><em>Poa alpina </em></strong>L., <strong><em>Gypsophila repens </em></strong>L., <strong><em>Dinathus praecox </em></strong>W.K., <strong><em>Carduus glaucus </em></strong>Bmq., <strong><em>Delphinium oxysepalum </em></strong>Borb. et Pax, <strong><em>Draba aizoides </em></strong>L., <strong><em>Myosotis alpestris</em></strong> Schm, <strong><em>Helianthemum grandiflorum </em></strong>Lam et D.C., <strong><em>Ranunculus alpestris </em></strong>L., <strong><em>Heliosperma</em></strong><em> <strong>quadridentatum </strong></em>Sch. et Thell.<strong>, <em>Thymus pulcherrimus </em></strong>Schur., <strong><em>Sempervivum soboliferum </em></strong>Sims.;</span></p>
+<p><span>paprocie &ndash;<em> <strong>Cystopteris fragilis</strong> </em>Bernh., <strong><em>Cystopteris regia</em></strong> Desv., <strong><em>Asplenium ruta-muraria</em></strong>;</span></p>
+<p><span>mszaki &ndash;<em> <strong>Neckera crispa</strong> </em>/L./B.eur., <strong><em>Encalypta contorta</em></strong> Lindb., <strong><em>Ctenidium molluscum</em></strong> Mitt., <strong><em>Distichium montanum</em></strong> Hag., <strong>Eurhynchium swartzii</strong> Hobkirk., <strong><em>Thamnobryum </em><em>alopecurum</em></strong> /L./B.eur., <strong><em>Barbula convoluta</em></strong> Hedw., <strong><em>Encalypta extinctoria</em></strong> Sw., <strong><em>Bryum capillare </em></strong>L. var. flaccidum Br.eur.</span></p>
+<p><span>Faunę reprezentują owady oraz nietoperze. Kowalski (1953a) wymienia zimujące tu gacki (<strong><em>Plecotus auritus </em></strong>L.) i mroczki pozłociste (<strong><em>Eptesicus nilssonii </em></strong>Keyserling), a w innej pracy (Kowalski 1955a) ponadto podaje gatunki owad&oacute;w: <strong><em>Scoliopteryx libatrix </em></strong>L. i <strong><em>Triphosa dubitata </em></strong>L. </span></p>
+<p><span>Piksa (1998) wymienia następujące gatunki nietoperzy: </span><strong><em>Eptesicus nilssonii</em></strong> /Keyserling/, <strong><em><span>Barbastella barbastellus, Plecotus auritus</span></em></strong>/L.,<strong><em>&nbsp; Myotis nattereri; </em></strong><span>Nowak i in. (2001) &ndash; <strong><em>Myotis dasycneme</em></strong>; Piksa i Nowak (2001) &ndash; wymieniają jaskinię w opracowaniu o </span><strong><em>Barbastella barbastellus.</em></strong></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Namulisko jaskini badał W&oacute;jcik (1960a,b, 1966a); uwagi o genezie przedstawili m.in. Zwoliński (1955a, 1961,1993) i W&oacute;jcik (1966a). [Baryła] (1966h) podaje, że jaskinia była kartowana w 1965 r. przez Koło Naukowe Geodet&oacute;w WSR z Krakowa. W 1967 r. zesp&oacute;ł speleolog&oacute;w polskich i belgijskich sporządził analizy wody i powietrza (Kobyłecki 1968). Rajwa (1971) w latach 1964&ndash;65 badał mikroklimat. W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ okazy flory zebrała w 1978 r. T. Bielska; wykonano też fotografie otworu i jego okolicy. Kowalski (1953b, 1955a) przeprowadził badania fauny .</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia była znana już w XIX wieku. Pierwszy jej opis i schematyczny plan przedstawił Pawlikowski (1887). Od czasu wykonania pierwszej ścieżki do Jaskini Mylnej (w 1886 r.), jest często zwiedzana, a drogę do niej opisują wszystkie tatrzańskie przewodniki turystyczne. Badania flory przyotworowej prowadził Żmuda (1915), a jego oznaczenia rewidowali Gy&ouml;ffry (1924) i Wiśniewski (1935).<br />W 1938 r. dentysta z Zakopanego usiłując popełnić samob&oacute;jstwo zamurował się w końcowym korytarzyku; zrezygnował jednak z tego zamiaru i na pamiątkę wmurował w ścianę obraz Matki Boskiej, wykuł napis i pozostawił lichtarz ze świeczką. 5.09.1943 r. S. Zwoliński wraz z E. Winiarskim sporządzili plan jaskini załączony do dokumentacji. Znacznie wcześniej poszerzyli oni ciasny przełaz przy wancie w dolnej części jaskini (Zwoliński 1993). Według [W&oacute;jcika] (1959c) 1.12.1957 r. grotołazi z Zakopanego w składzie K. Stecki (jun.), Z. Stecka, E. Korzeniowska, L. Kastory i J. Korbel po przekopaniu namuliska odkryli 14-metrowej długości korytarz, w kt&oacute;rym znaleźli kły Ursus spelaeus oraz kości innych ssak&oacute;w. Opis tego stanowiska podał W&oacute;jcik (1958). W latach 2013-2014 F. Filar wraz z M. Parczewskim w trakcie wykonywanych na potrzeby TPN pomiar&oacute;w jaskini odkrywają i dokumentują nowe partie jaskini. Część z nich prawdopodobnie była znana wcześniej, lecz nie była udokumentowana. W wyniku tych odkryć i pomiar&oacute;w długość jaskini została określona na 536 m.</p>
+<p>8 czerwca 2014 r. &ndash; B. Chlipała, F. Filar i M. Parczewski wspinają się do okna w NE części Dolnej Komory Jaskini Raptawickiej i eksplorują 5 m korytarzyk. 7 lutego 2015 r. &ndash; F. Filar i M. Parczewski łączą końc&oacute;wkę Lewego Korytarza z korytarzykiem nad Kominem Połączeniowym w Jaskini Mylnej.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W 1887 r. J. G. Pawlikowski opublikował pierwszy, schematyczny plan jaskini wraz z opisem. <br />W 1943 r. S. Zwoliński sporządził plan jaskini. <br />26.05.1952 r. Kowalski (1953a) wykonał plan i opis inwentarzowy.</p>
+<p>W 1993 r I. Luty publikuje na podstawie planu S.Zwolińskiego plan i opis inwentarzowy.<br />W 2014 r. F. Filar i M. Parczewski sporządzają plan oraz przekr&oacute;j W-E na podstawie pomiar&oacute;w przeprowadzonych w okresie 22.12.2013 r. &ndash; 19.01.2014 r. korygują długość jaskini ze 150 m na 536 m oraz deniwelację z 15 m na 27,2 m. Na tej podstawie F. Filar zaktualizował opis jaskini. Za zgodą Dyrektora Tatrzańskiego Parku Narodowego nowy plan jaskini został załączony do dokumentacji jaskini w niniejszej bazie danych. W czerwcu 2015 r. F.Filar z zespołem dokonuje pomiar&oacute;w połączenia Jaskini Mylnej z Jaskinią Raptawicką i zestawia plan całego systemu z datą&nbsp; 15.06.2015 r.</p>
+<p>Plan i przekr&oacute;j całego systemu zostałał zamieszczony przy opisie systemu połączonych jaskiń Mylnej, Obłazkowej i Raptawickiej, nazwanego przez autor&oacute;w połączenia "Jaskinie Pawlikowskiego".<br />Zamieszczony przy tym opisie plan i przekr&oacute;j opracowali F. Filar i M. Parczewski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pawlikowski J. G. 1987 (opis, szkicowy plan); Chmielowski J. 1907 (opis); Żmuda A. 1912 (opis nowej odmiany mchu); Żmuda, A. 1915 (opis jaskini i jej flory); Zwolińscy, T. i S. 1923 (opis drogi dojścia i jaskini); Gy&#246;rffy J. 1924, Wiśniewski P. 1935 (rewizja oznaczeń Żmudy); Tatrzański Park Narodowy [Mapa w skali 1:20.000] 1938 (lokalizacja); Zwoliński S. 1951a (wiadomość o umieszczeniu nowej drabiny w otworze); Gradziński R., Rudnicki J. 1953 (fot. ); Kowalski K. 1953a (plan i opis); Kowalski K. 1953b (nietoperze); Kowalski K. 1955a (fauna); Zwoliński, S. 1955b (uwagi o genezie); W&#243;jcik, Z. 1958 (opis stanowiska niedźwiedzia jaskiniowego); [W&#243;jcik, Z.] 1959c (informacja o odkryciu nowego korytarza); W&#243;jcik, Z. 1960a,b (osady); Zwoliński S. 1961 (geneza, historia poznania, 2 fotografie); [Baryła, J.] 1966h (informacja o kartowaniu); W&#243;jcik,Z. 1966a (osady, geneza); Kobyłecki A. 1967 (o pomiarach jaskini); Kobyłecki A. 1968 ( o analizach wody i powietrza oraz obserwacjach fauny); Rajwa A. 1971 (badania mikroklimatu); Kardaś,R. M, 1984f (informacja o wypadku); TATRY POLSKIE 1984 (lokalizacja na mapie); Gradziński R. i in. 1985a (dane morfometryczne, lokalizacja); Sałyga-Dąbkowska K. 1988 (informacja o wypadku); Jaskinie TPN 1993a (plan i opis inwentarzowy); Zwoliński S. 1993 (uwagi o genezie i historii, opis akcji planowania jaskini);  Piksa K.1998 (nietoperze); Bielska T., Mickiewicz J. 2000 (flora); Nowak i in. 2001 (nietoperze); Piksa K., Nowak J. 2001  (nietoperze); Filar F. 2014a (wzmianka o nowych pomiarach w jaskiniach turystycznych TPN); Filar F. 2014c (aktualne dane morfometryczne); Filar F. 2014d (Informacja o nowych pomiarach, nowy plan i przekr&#243;j, dane morfometryczne); Filar F. 2015d (informacja o połączeniu J. Mylnej z J. Raptawicką, plan, przekr&#243;j, dane morfometryczne systemu); Filar F. 2016g (informacja o połączeniu J. Mylnej z J. Raptawicką, przekr&#243;j, dane morfometryczne systemu).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    [Siarzewski W., Zwolińska Z.] 1984 (plan Zwolińskiego 1:200); Grodzicki J. i in. 1999 (zmiany antropogeniczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Filip Filar, Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3703)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(907)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(5103)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

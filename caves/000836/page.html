@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F836">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 836;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "605556,41".replace(',', '.') + "," + "329776,28".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('836','Raj'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Raj
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-2.17
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;29′57,00″, φ: 50&#176;49′31,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Chęciny (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kielecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Jaskinia Raj
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Zarz. MLiPD z dn. 5.10.1968r. w spr. uznania za rezerwat przyrody. M.P. nr  44 z dnia 28.10.1968r., poz 316.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Wejście Odkrywc&#243;w) - ku NW, 256 m n.p.m.; 3 - ku g&#243;rze, 259 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                250
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                4
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                9,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    240
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                55
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dobrzączka. Jaskinia położona jest na prawym orograficznie brzegu doliny okresowo płynącego strumienia Bobrzyczka, wciętej w p&#243;łnocne zbocze wzniesienia Malik w Grzbiecie Bolechowickim. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od parkingu samochodowego przy zajeździe "Jaskinia Raj" (połączonego drogą asfaltową o długości około 700 m z drogą Kielce-Kraków) idziemy wybetonowaną ścieżką 350 m w kierunku północno-zachodnim do pawilonu przy jaskini. W pawilonie znajduje się ekspozycja muzealna połączona z jaskinią obudowaną sztolnią górniczą o długości 21 m. Obecnie wejście do jaskini dostępne jest tylko poprzez pawilon, salę muzealną i sztolnię wejściową, w systemie zorganizowanych grup turystycznych pod opieką uprawnionego przewodnika. Otwór 2 (sztuczny, szczelinowaty) jest obecnie niedostępny, natomiast otwór 3 stanowi wylot szybu wentylacyjnego i jest wyjściem awaryjnym. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia składa się z trzech ciąg&oacute;w prawie r&oacute;wnoległych korytarzy i sal połączonych w części p&oacute;łnocno-zachodniej Komorą Wstępną i Salą Student&oacute;w. Komora Wstępna ma około 20&nbsp;m długości i 3-5&nbsp;m szerokości.</p>
+<p>Ciąg południowo-zachodni rozwinięty jest w formie największej w całej jaskini sali - Komory Złomisk, mającej około 30&nbsp;m długości i 4-6&nbsp;m szerokości. Wysokość Komory sięga 4&nbsp;m. P&oacute;łnocna część Komory Złomisk wypełniona jest oderwanymi od stropu dużymi blokami skalnymi, kt&oacute;re tworzą g&oacute;rne piętro podniesione od 2 do 3&nbsp;m ponad dno komory. Komora Złomisk połączona jest obecnie chodnikiem g&oacute;rniczym (długości 40&nbsp;m) z Salą Kolumnową.</p>
+<p>Ciąg środkowy jaskini, biegnący w przedłużeniu sztolni i tunelowego korytarza wejściowego, poprzez Salę Wysoką, Salę Stalaktytową i Salę Kolumnową, kończy się systemem zwężających się stopniowo szczelin, z kt&oacute;rych jedna nosi nazwę Korytarza Mleka Wapiennego. Ten gł&oacute;wny ciąg jaskini ma około 58&nbsp;m i szerokość średnią 4-6&nbsp;m, rozszerzając się w salę o szerokości do 15&nbsp;m i wysokości do 8&nbsp;m (Sala Wysoka). Każda z sal ma mniejsze, kr&oacute;tkie boczne odgałęzienia, a sale: Stalaktytowa i Kolumnowa - dłuższe, ciasne korytarze szczelinowe o szerokości do około 0,5&nbsp;m.</p>
+<p>P&oacute;łnocno-wschodni ciąg jaskini stanowi część Salki Student&oacute;w i niski Korytarz Niedostępny, liczące łącznie około 32&nbsp;m długości oraz 1-3&nbsp;m szerokości. Ten ostatni fragment jaskini Raj leży poza zasięgiem udostępnionej trasy turystycznej i traktowany jest jako jej część podlegająca ochronie ścisłej.</p>
+<div>&nbsp;</div>
+<p>Jaskinia o typowym rozwinięciu poziomym, powstała w gruboławicowych wapieniach środkowodewońskich. Wapienie zapadające monoklinalnie na południe pod kątem 10-25&deg; wykazują stromo ustawione spękania ciosowe o dominujących kierunkach: 140&deg;, 112&deg;, 83&deg;, rzadziej 40&deg;, 5&deg;. Wzdłuż dwu pierwszych z wymienionych kierunk&oacute;w rozwinęły się ciągi korytarzy i sal jaskini.</p>
+<p>Kształt korytarzy jaskini w jej wlotowej, p&oacute;łnocno-zachodniej części ma na og&oacute;ł charakter tunelowy, natomiast w części południowo-wschodniej - szczelinowy, niekiedy o labiryntowym przebiegu. Tutaj też, w końcowej części jaskini stwierdzono istnienie trzech, bardzo ciasnych komink&oacute;w i czterech studni krasowych. Jeden z tych komink&oacute;w został w trakcie prac udostępniających poszerzony i pogłębiony od powierzchni jako szybik wentylacyjny i awaryjny.</p>
+<p>Niezwykle atrakcyjną wizualnie osobliwością jaskini Raj jest bogata i r&oacute;żnorodna szata naciekowa rozwinięta zar&oacute;wno na ścianach, stropie jak i dnie jaskini. Ze względu na bogactwo, r&oacute;żnorodność i rozmiary naciek&oacute;w Raj, obok Jaskini Niedźwiedziej w Sudetach, należy do unikatowych w kraju obiekt&oacute;w krasowych. Dokładniej charakterystyka i geneza szaty naciekowej została przedstawiona w publikacjach R. Gradzińskiego i T. Wr&oacute;blewskiego (1968, 1974). Aktualną inwentaryzację szaty naciekowej wykonali pracownicy i studenci Akademii Świętokrzyskiej pod kierownictwem M. J&oacute;źwiaka (Pater, Wacławik, Gubała 2003). <span>W całej jaskini występuje łącznie 47 518 form naciekowych i </span>wszystkie nacieki zbudowane są z kalcytu. Najliczniej reprezentowane są grawitacyjne formy naciek&oacute;w o rozwinięciu pionowym, wykształcone na stropie i ścianach prawie wszystkich pustek krasowych. Zdecydowanie dominują stalaktyty (soplowe, rurkowate, nieregularne) tworzące niekiedy niezwykłe zagęszczenie osobnik&oacute;w, osiągające np. w Sali Stalaktytowej rekordową w kraju liczbę 100-200 sztuk na 1&nbsp;m<sup>2 </sup>powierzchni stropu. Długość stalaktyt&oacute;w wynosi przeciętnie 20-40 cm, maksymalnie 80 cm. <span>Na stropie jaskini stwierdzono łącznie 47173 stalaktyt&oacute;w. Średnie ich zagęszczenie wynosi 82,5 szt/m<sup>2</sup>.</span> W przeciwieństwie do bogactwa stalaktyt&oacute;w znacznie mniej obserwuje się w jaskini form stalagmitowych na dnie jaskini. <span>Na spągu o powierzchni 572 m<sup>2</sup> znajduje się 345 form naciekowych. Średnie zagęszczenie w części spągowej jaskini wynosi 0,6 szt/m<sup>2</sup>. </span>Tworzą one formy stożkowe i laskowe, niekiedy maczugowate i pagodowe. Stosunkowo nieliczne, choć bardzo efektowne są w tej jaskini formy naciek&oacute;w słupowych (stalagnatowych). <span>Spośr&oacute;d wszystkich naciek&oacute;w na spągu jaskini największy obw&oacute;d podstawy posiada stalagmit znajdujący się w Sali Wysokiej &ndash; 6,27 m. Najwyższy stalagnat o wysokości 1,95 m znajduje się r&oacute;wnież w Sali Wysokiej. Natomiast najwyższy stalagmit osiąga wysokość 77 cm i znajduje się w Sali Kolumnowej </span>(Gradziński, Wr&oacute;blewski 1968,1974; Pater, Wacławik, Gubała 2003; G&oacute;rniak, J&oacute;źwiak, Kasza, Urban 2006).</p>
+<p><br />Na pochyłych stropach i ścianach jaskini występuje r&oacute;wnież duża r&oacute;żnorodność form naciek&oacute;w spływowych w formie żeber, draperii i zasłon. Są one zazwyczaj pokryte małymi, młodszymi naciekami wełnistymi i warkoczowymi. Rzadziej spotykane, ale bardzo atrakcyjne są charakterystyczne nacieki grupowe. Należy do nich na przykład dwumetrowa kolumna pokryta naciekiem wełnistym w Sali Kolumnowej, "Pagoda" w Sali Stalaktytowej oraz "Harfa" w Komorze Złomisk.</p>
+<p>inną interesującą formą naciek&oacute;w jest tak zwane twarde mleko wapienne, kt&oacute;re szczelną powłoką pokrywa strop i ściany Korytarza Mleka Wapiennego.</p>
+<p>Unikatowe w skali krajowej a nawet światowej są niekt&oacute;re nacieki wykształcone na dnie jaskini. Są to r&oacute;żne formy mis naciekowych, niekiedy kaskadowo ułożonych "p&oacute;l ryżowych", agrawitacyjne nacieki kalafiorowate, groniaste i grzybkowe, a przede wszystkim luźne, konkrecyjne formy kuliste zwane pizoidami jaskiniowymi (perły jaskiniowe). Pizoidy osiągają w jaskini średnicę od kilku milimetr&oacute;w do około 3 cm. Wypełniają misy naciekowe bądź też tworzą masowe nagromadzenia w formie p&oacute;l pizoid&oacute;w osiągających powierzchnię nawet do około 3&nbsp;m<sup>2</sup>. Takie unikatowe skupienia pizoid&oacute;w powstały między innymi w Komorze Wstępnej, Sali Wysokiej i Sali Stalaktytowej.</p>
+<p>Większość korytarzy i sal w jaskini wypełniona jest częściowo osadami gliniasto-gruzowo-mułkowymi i piaszczystymi, nagromadzonymi gł&oacute;wnie wskutek przepływu w&oacute;d. Miąższość tych osad&oacute;w osiąga w korytarzu wejściowym 3,5&nbsp;m, a w Komorze Wstępnej wypełniają one prawie połowę jej objętości. Wskutek tego poziom wsp&oacute;łczesnego dna jaskini osiąga wartości 250-252,5&nbsp;m n.p.m., w stosunku do właściwego skalnego spągu jaskini położonego na wysokości od około 248&nbsp;m do 251&nbsp;m n.p.m.</p>
+<div>&nbsp;</div>
+<p>Jaskinia cechuje się niewielką wymianą powietrza z atmosferą zewnętrzną. Zmiany temperatury są nieznaczne (w Komorze Wstępnej w latach 1965-1966 mieściły się w granicach 5,5-8&deg; C), wilgotność zaś - bardzo wysoka (Wr&oacute;blewski 1974, Wołoszyn 1977, Rubinowski 1977). Średnia roczna wartość temperatury z wielolecia 1996-2005 wyniosła 8,5&deg; C, natomiast średnia wilgotność powietrza 95,1% (J&oacute;źwiak, G&oacute;rniak 2006). Po opadach na dnie powstają okresowe jeziorka. Obecnie istnieje możliwość chwilowych zmian mikroklimatu na dynamiczny za pośrednictwem szybika. Możliwość ta jest wykorzystywana w celach przewietrzania jaskini.</p>
+<p>Flora jaskini ma obecnie charakter wt&oacute;rny, stanowią ją glony, sinice i mchy rosnące w zasięgu światła lamp oświetleniowych a także korzenie drzew miejscami (Sala Kolumnowa) wnikające do jaskini (Rubinowski 1977).</p>
+<p>Jaskinia była i jest środowiskiem życia wielu wsp&oacute;łczesnych zwierząt. Występują w niej nietoperze: nocek duży <strong><em>Myotis myotis </em></strong><em>(Borkhausen)</em>, nocek rudy <strong><em>Myotis daubentonii </em></strong>(Kuhl),nocek Natterera<em> <strong>Myotis nattereri </strong></em>(Kuhl) i gacek brunatny <strong><em>Plecotus auritus </em></strong>(L.). W latach 1988-1992 obserwowano w jaskini od kilku do ponad 50 osobnik&oacute;w tych zwierząt, lecz maksymalna liczba zimujących nietoperzy sięga około 200 szt. (A. Wąsikowski &ndash; mat. niepublik.). Kręgowce reprezentowane są r&oacute;wnież przez kunę domową <strong><em>Martes foina </em></strong>Erxl<em>.</em>, obserwowaną od 1995&nbsp;r. (Gubała 1996a). Ponadto spotyka się w niej liczne bezkręgowce: much&oacute;wki, chruściki z gatunku <strong><em>Stenophylax permistus </em></strong>McLach<em>.</em>, pająki reprezentowane przez gatunki <strong><em>Meta menardi </em></strong>(Latr.)<strong> i <em>Meta merianae </em></strong>(Scop.), a także ślimaki z rodzaju <strong><em>Oxychilus sp</em></strong><em>.</em> Interesujące są subfosylne szczątki nietoperzy, wśr&oacute;d kt&oacute;rych oznaczono 4 gatunki tych zwierząt (Wołoszyn 1965a, 1966, 1994a,b, Gubała 1996b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>&nbsp;</p>
+<p>Podczas rob&oacute;t udostępniających jaskinię do zwiedzania turystycznego prowadzone były badania geologiczne, paleontologiczne i archeologiczne osad&oacute;w jaskiniowych. Wyniki tych badań okazały się bardzo cenne dla nauki. Pozwoliły one odtworzyć zmiany warunk&oacute;w środowiska naturalnego i klimatu w okolicach jaskini w okresie młodszego plejstocenu (zlodowacenie p&oacute;łnocnopolskie) około 50.000 lat temu.</p>
+<p>Badania litologiczno-petrograficzne T. Madeyskiej (1972, 1974) umożliwiły wyr&oacute;żnienie w profilu osad&oacute;w jaskiniowych w korytarzu i w Komorze Wstępnej 11 zr&oacute;żnicowanych litologicznie warstw świadczących o zachodzących zmianach klimatycznych podczas ich sedymentacji. Badania kopalnych szcząt&oacute;w zwierzęcych zawartych w tych osadach, wykonane przez zesp&oacute;ł specjalist&oacute;w kierowany przez K. Kowalskiego (1972, 1974) w pełni potwierdziły zmiany klimatu oraz świata roślinnego i zwierzęcego w okolicach jaskini. W osadach jaskiniowych stwierdzono obecność kości i zęb&oacute;w dużych ssak&oacute;w, między innymi niedźwiedzia jaskiniowego i brunatnego, mamuta, hieny jaskiniowej, nosorożca włochatego, piżmowoła, żubra pierwotnego, renifera, konia, lisa polarnego, a także liczne szczątki małych kręgowc&oacute;w, gł&oacute;wnie gryzoni.</p>
+<p>Pozostałości dwukrotnego pobytu człowieka paleolitycznego w jaskini były przedmiotem szczeg&oacute;łowych badań archeologicznych prowadzonych przez J. K. Kozłowskiego (1972, 1974) i M. Kaczanowską (1974). Z dolnego poziomu kulturowego w obrębie 4-tej warstwy osad&oacute;w jaskiniowych zebrano 345 wyrob&oacute;w, z kt&oacute;rych 65 stanowiły narzędzia krzemienne. W g&oacute;rnym poziomie kulturowym w obrębie 6-tej warstwy osad&oacute;w jaskiniowych stwierdzono 288 wyrob&oacute;w kamiennych, w tym 62 narzędzia krzemienne. W przewadze są to zgrzebła, a także drapacze, rylce, przekłuwacze, p&oacute;łtylczaki, kamienne rozcieracze i tłuczki.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; W obydwu poziomach kulturowych technika obr&oacute;bki narzędzi nawiązuje do środkowopaleolitycznej kultury mustierskiej, grupy szarenckiej i znana jest z archeologicznych stanowisk jugosłowiańskich i węgierskich z dorzecza środkowego Dunaju. Znaleziska archeologiczne w jaskini Raj uznane zostały za najbardziej na p&oacute;łnoc wysunięte stanowisko jaskiniowe spośr&oacute;d znanych środkowoeuropejskich stanowisk kultury mustierskiej.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>Podczas użytkowania jaskini wykonywane były badania mikroklimatyczne, hydrochemiczne (Rzepa 1981, 1983) i dotyczące ruchu turystycznego (Winiarski 1971, Rubinowski 1974a,b, 1977).</p>
+<p>W 1994&nbsp;r. na obszarze rezerwatu z inicjatywy A. Kowalkowskiego (1993) rozpoczęła działalność Stacja Geoekologiczna Świętokrzyskiego Monitoringu Zintegrowanego "G&oacute;ra Malik" obsługiwana przez Instytut Geografii WSP w Kielcach (J&oacute;źwiak, Kozłowski 1999).</p>
+<p>W 1996&nbsp;r. w ramach jej działalności M. J&oacute;źwiak zapoczątkował badania monitoringowe mikroklimatu w oparciu o zainstalowane czujniki pozwalające na ciągłą, automatyczną rejestrację zmian temperatury i wilgotności powietrza we wnętrzu jaskini (J&oacute;źwiak 1998; J&oacute;źwiak, Kozłowski 1999; J&oacute;źwiak 2002; J&oacute;źwiak, G&oacute;rniak 2006). W latach 2003-2005 pracownicy i studenci Akademii Świętokrzyskiej pod kierownictwem M. J&oacute;źwiaka wykonali szczeg&oacute;łową inwentaryzację szaty naciekowej jaskini (Pater, Wacławik, Gubała 2003; G&oacute;rniak, J&oacute;źwiak, Kasza, Urban 2006).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wsp&oacute;łczesne odkrycie jaskini nastąpiło przypadkowo w jesieni 1963 r. podczas pozyskiwania kamienia budowlanego przez okolicznych mieszkańc&oacute;w (F. Wawrzeńczyka i J. Kopcia). We wrześniu 1964 r. nauczycielka M. Boczarowa i uczniowie B. Bałdun, Z. Bochajewski, W. Łucki, i W. Pucek z Technikum Geologicznego w Krakowie odszukali jaskinię, nadali jej nazwę i oficjalnie powiadomili o odkryciu (Boczarowa 1965). Niekt&oacute;re fragmenty jaskini odkrył T. Wr&oacute;blewski (Salka Student&oacute;w - grudzień 1965 r., Korytarz Niedostępny - kwiecień 1966 r.). Po ukazaniu się w czerwcu 1965 r. informacji o odkryciu w prasie lokalnej rozpoczęła się dewastacja jaskini. Kratę w Wejściu Odkrywc&oacute;w (otw&oacute;r 2) założono 10.07.1965 r. (Rubinowski 1974a, Rubinowski, Wr&oacute;blewski 1972, 1976, 1986). Od 1965 r. społeczną opiekę nad jaskinią, we wsp&oacute;łpracy z Wojew&oacute;dzkim Konserwatorem Przyrody w Kielcach, objęli pracownicy Świętokrzyskiego Oddziału IG - Z. Rubinowski i T. Wr&oacute;blewski, kt&oacute;rzy prowadzili jej dokumentowanie, badanie i popularyzację. Następnie wraz z S. Kozłowskim - reprezentującym Państwową Radę Ochrony Przyrody - rozpoczęli działania zmierzające do jej ochrony prawnej i udostępnienia dla zwiedzania turystycznego (stanowisko archeologiczne - 8.05.1967 r., rezerwat przyrody - 5.10.1968 r.). Pierwszą osnowę geodezyjną dla planu jaskini wykonali w 1965 r.członkowie Naukowego Koła Geodet&oacute;w przy AGH w Krakowie, a plan jaskini uwzględniający skartowanie szaty naciekowej na jej spągu wykonał w 1966 r. T. Wr&oacute;blewski. Pierwszy w kraju kompleksowy projekt adaptacji i udostępnienia turystycznego jaskini opracowany został przez zesp&oacute;ł pod kierownictwem Z. Rubinowskiego w 1966 r. Po jego zaakceptowaniu przez Komisję Ochrony Zasob&oacute;w Przyrody Nieożywionej PROP w 1967 r. przystąpiono do realizacji rob&oacute;t. Zostały one sfinansowane z funduszy centralnych inwestycji turystycznych GKKFiT. Inwestorem został Wojew&oacute;dzki Ośrodek Sportu, Rekreacji i Turystyki w Kielcach, kt&oacute;ry następnie w 1972 r. rozpoczął turystyczne użytkowanie tego rezerwatu.<br /> Prace urządzeniowo-adaptacyjne trwały 5 lat (1967-1972). Wraz z nimi trwały badania naukowe osad&oacute;w jaskiniowych. W tym czasie wykonano w jaskini sztolnię wejściową o długości 21 m, szybik g&oacute;rniczy o głębokości 12 m, chodnik g&oacute;rniczy o długości 40 m, wykopy w osadach jaskiniowych, mostek w Sali Kolumnowej oraz obudowanie i zabezpieczenie g&oacute;rnicze osłabionych fragment&oacute;w chodnik&oacute;w, sal i wykop&oacute;w, zainstalowano oświetlenie elektryczne, instalacje nawadniające i odwadniające jaskinię. W pobliżu wejścia do jaskini zbudowano pawilon gospodarczy zawierający salę z ekspozycją muzealną, drogę dojazdową z parkingiem samochodowym. Uroczyste otwarcie jaskini nastąpiło w dniu 9 czerwca 1972 r., w ramach obchod&oacute;w X Jubileuszowego Sympozjum Speleologicznego w G&oacute;rach Świętokrzyskich.<br /> Od otwarcia jaskini w 1972 r. rezerwat przyrody "Jaskinia Raj" jest użytkowany turystycznie pod nadzorem Regionalnego Konserwatora Przyrody w Kielcach, kt&oacute;rego wspomaga Naukowy Komitet Opiekuńczy Rezerwatu "Jaskinia Raj" powołany przez Prezydium PROP (od 1995 r. przewodniczy mu T. Wr&oacute;blewski). Spos&oacute;b użytkowania jaskini określa szczeg&oacute;łowy regulamin.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację jaskini sporządził w 1996 r. Z. Rubinowski. Lokalizację otworu jaskini wykonał 30.11.2008 r. A. Kasza przy pomocy odbiornika GPS Map60CSx. Zaktualizował A. Kasza w 2009 r.<br />Plan opracował (na podstawie osnowy geodezyjnej wykonanej przez Koło Naukowe Geodet&oacute;w Student&oacute;w AGH w Krakowie w 1965 r.) w 1971 r. i uzupełnił w 1996 r. <br />T. Wr&oacute;blewski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Boczarowa M. 1965 (odkrycie, opis); Fijałkowscy E. i J. 1965 (pierwsza wiadomość o odkryciu w prasie lokalnej); Kowalski K. 1965 (fauna); Wołoszyn B.W. 1965a (odkrycie, opis); Wołoszyn B.W., W&#243;jcik Z. 1965 (wzmianka o odkryciu); Majchert H. 1966 (odkrycie); Wołoszyn B.W. 1966 (odkrycie, opis, schematyczny plan, fauna); W&#243;jcik Z. 1966 (wartości, zniszczenie, ochrona); Wr&#243;blewski T. 1966 (opis, szata naciekowa); Gradziński R. 1967 (zniszczenie szaty naciekowej, ochrona); Kowalczewski S. 1967 (ochrona); Massalski E. 1967 (opis); Rubinowski Z., Wr&#243;blewski T. 1967 (opis); Wr&#243;blewski T. 1967 (badania naukowe); Gradziński R., Wr&#243;blewski T. 1968 (szata naciekowa); Rubinowski Z., Wr&#243;blewski T. 1968 (kr&#243;tki opis); Wr&#243;blewski T. 1968 (badania naukowe); Wr&#243;blewski T., Rubinowski Z. 1968 (badania naukowe, polemika); Kozłowski J. 1969 (badania archeologiczne); Winiarski T. 1971 (ochrona, udostępnienie); W&#243;dkowski A. 1871 (wzmianka - fauna kopalna); Gradziński 1972 (udostępnienie); Kowalski K. 1972 (fauna kopalna); Kowalski K., Kozłowski J., Madeyska T. 1972 (wyniki badań geologicznych, paleontologicznych i archeologicznych); Kozłowski J. 1972 (badania archeologiczne); Madeyska T. 1972 (badania geologiczne namuliska); Rubinowski Z., Wr&#243;blewski T. 1972 (odkrycie, badania, opis); Wr&#243;blewski T. 1972a (kr&#243;tki opis); Wr&#243;blewski T. 1972b (badania naukowe); Jankowski A., Sadowski W. 1973 (wzmianki, ochrona); Głazek J., Markowicz-Łohinowicz M. 1974 (hydrogeologia); Gradziński R., Wr&#243;blewski T. 1974 (geneza, opis, szata naciekowa); Kaczanowska M. 1974 (badania archeologiczne); Kowalski K. 1974 (fauna kopalna); Kozłowski J. 1974 (interpretacja badań archeologicznych); Kozłowski S. 1974 (ochrona); Lindner L., Braun J.J. 1974 (sytuacja geomorfologiczna i rozw&#243;j jaskini); Madeyska T. 1974 (badania geologiczne namuliska); Rubinowski Z. 1974a (otwarcie trasy turystycznej, sesja); Rubinowski Z. 1974b (odkrycie, ochrona, udostępnienie); Rubinowski Z. 1974c (udostępnienie turystyczne); Rubinowski Z. 1974d (dyskusja na sesji dotyczącej jaskini); Wr&#243;blewski T. 1974 (mikroklimat); Alexandrowicz Z. i in. 1975 (opis, plan, ochrona); Rubinowski Z. 1975 (ochrona, udostępnienie); Kowalski K. 1976 (fauna kopalna); Rubinowski Z. 1976 (wzmianka); Rubinowski Z., Wr&#243;blewski T. 1976 (popularny opis, wyniki badań); Siedlecka W., Micuła G. 1976 (opis, plan); W&#243;jcik Z. 1976a (ochrona); Rubinowski Z. 1977 (turystyka w jaskini, zniszczenia); Wołoszyn B.W. 1977 (mikroklimat); Wr&#243;blewski T. 1977 (kr&#243;tki opis, plan, wyniki badań); Rubinowski Z., W&#243;jcik Z. 1978 (ochrona); Pilichowie M. i P. 1979 (popularny opis); Rzepa C. 1981 (hydrogeologia, zanieczyszczenie w&#243;d); Mizerski W. 1982 (opis, plan); Ruprecht A. 1983 79 (nietoperze); Rzepa C. 1983 (hydrogeologia, zanieczyszczenie w&#243;d); Rubinowski Z., Wr&#243;blewski T. 1986 (popularny opis, wyniki badań); Wiśniewski W. 1989 (wielkość); Urban J. 1990 (wartości naukowe, ochrona); Alexandrowicz Z. i in. 1992 (waloryzacja, ochrona, muzeum); Wołoszyn B.W. 1992 (subfosylne szczątki nietoperzy); Kowalkowski A. 1993 (monitoring środowiska); Wołoszyn B.W. 1994a (nietoperze); Wołoszyn B.W. 1994b (nietoperze); Przyroda 1995 (rezerwat); Gubała J. 1996a (fauna); Gubała J. 1996b, 21-22 (nietoperze);  Gubała J.,  Kasza A., Urban J. 1996 (wielkość); Rubinowski Z., Wr&#243;blewski T. 1996a (ochrona, monitoring środowiska); Rubinowski Z., Wr&#243;blewski T. 1996b (wartości naukowe, ochrona); Jaskinie Regionu Świętokrzyskiego 1996 (dokumentacja, plan); Wr&#243;blewscy T. i E. 1996 (kr&#243;tki opis , lokalizacja na mapie); Gradziński M. 1997 (długość-wzmianka); J&#243;źwiak M.1997 (mikroklimat); J&#243;źwiak M., Skrzypczak A. 1997 (mikroklimat); Urban J.,  Gubała J., Kasza A. 1997a (wzmianki); Urban J., Gubała J., Kasza A. 1997b (ochrona wzmianka); Wiśniewski W.W. 1997 (wzmianka); J&#243;źwiak M.1998 (zmiany temperatury); J&#243;źwiak M., Kozłowski R. 1999 (monitoring środowiska); Pulina M. 1999 (wzmianki); Paszkowski M. 2000 wkładka (opis, plan, fotografie); Wr&#243;blewski T. 2000 (opis rezerwatu); Paszkowski M. 2001 wkładka (opis, plan, fotografie); J&#243;źwiak M. 2002 (zmiany temperatury); W.W.W. 2002 (nowa ekspozycja muzealna); Pater Ł., Wacławik Ł., Gubała J. 2003 (nowe badania szaty naciekowej); Urban J. 2004a (wzmianka); Urban J. 2004b (wzmianka);Urban J., Wr&#243;blewski T. 2004 (wzmianka); Gradziński M. 2005 (długość- wzmianka); Urban J. 2005c (wzmianka); Alexandrowicz Z. 2006 (znaczenie naukowe); G&#243;rniak M., J&#243;źwiak M., Kasza A., Urban J. 2006 (opis, nowe badania naukowe); J&#243;źwiak M., G&#243;rniak M. 2006 (mikroklimat); Urban J. 2006 (wzmianka); Urban J., Kasza A. 2006 (wzmianka); G&#243;rniak M., Hałka Ł., Pieńkowski Ł. 2007 (opis niedostępnych partii jaskini); G&#243;rniak M., Hałka Ł., Pieńkowski Ł., Wesołowski W. 2007 (wrażenia estetyczne); Obiekty przyrody nieożywionej w Kieleckim Obszarze Metropolitalnym 2007 (opis, wykorzystanie w geoturystyce); Nadachowski A., Lipecki G., Stefaniak K., Lorenc M., Wojtal P. 2008 (datowanie kości niedźwiedzia jaskiniowego); Urban J., Gągol J. 2008 (opis, fotografia).
+
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej Kasza, Jan Urban
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(337)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=960" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

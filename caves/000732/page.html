@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F732">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 732;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "618739,54".replace(',', '.') + "," + "284896,45".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('732','Jaskinia Skorocicka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Skorocicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                N-2.33
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Niecka Nidziańska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;40′19,00″, φ: 50&#176;25′09,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wiślica (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                buski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody Skorocice
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - SW, 200 m n.p.m.; 3 - WSW, 199 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                199
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    352
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                200
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia położona jest w zboczu g&#243;rnej i dolnej części Doliny Skorocickiej w obrębie odsłoniętych gipsowych ścian. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od głównej asfaltowej drogi w Skorocicach (w kierunku Buska) idziemy droga polną w kierunku północno-wschodnim w stronę rezerwatu. Po około 70 m droga ta przechodzi w naturalny rygiel skalny zwany Wysoką Drogą dzielący górną część Doliny Skorocickiej od dolnej. Po przejściu około 140 m (licząc od drogi asfaltowej) mijamy po lewej stronie furtkę i napotykamy na głębokie zagłębienie. Jego dnem płynie Potok Skorocicki wypływając z południowego otworu Jaskini Dzwonów i wpływając do północnego otworu Jaskini Skorocickiej, położonego w południowej części zagłębienia. Pozostałe otwory jaskini (2 i 3) zlokalizowane są na południe od otworu północnego w lewym zboczu Doliny Skorocickiej. Dojście bez trudności. Jedynie zejście na dno zagłębienia nieco trudne (ślisko po deszczu). Zwiedzanie głównego korytarza jaskini bez większych trudności. Penetrację utrudnia nieco Potok Skorocicki płynący dnem jaskini. Zwiedzanie bocznych ciasnych ciągów utrudnione. Dostęp do jaskini możliwy po uzyskaniu zezwolenia Regionalnego Konserwatora Przyrody w Kielcach.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span><span>Jaskinia posiada trzy naturalne otwory. Pierwszy jest bardzo obszerny, o szerokości 10 m i wysokości dochodzącej do 6 m. Drugi otw&oacute;r ma wymiary 5x5 m, natomiast trzeci otw&oacute;r ma szerokość 26 m i wysokość 4,5 m.</span></span></p>
+<p><span><span>Zaraz za pierwszym otworem rozciąga się obszerny korytarz o szerokości i wysokości dochodzącej do 5 m i gliniastym dnie. Po około 20 m korytarz rozszerza się do 10 m, spod wschodniej ściany wypływa Potok Skorocicki i dalej płynie dnem korytarza. Po dalszych 10 m korytarz zwęża się do około 4 m, a przy obu ścianach pojawiają się wyraźne p&oacute;łki skalne, ciągnące się aż do drugiego otworu. We wschodniej części tego fragmentu jaskini znajduje wejścia do bocznych, błotnistych korytarzyk&oacute;w, o łącznej długości kilkudziesięciu metr&oacute;w. Po kolejnych 30 m korytarz doprowadza do środkowego (drugiego) otworu.</span></span></p>
+<p><span><span>Dalszy odcinek jaskini, prowadzący do trzeciego otworu tworzy korytarz znacznie niższy od poprzedniego. Jego szerokość nie przekracza 5 m i dopiero po kilkudziesięciu metrach przechodzi w szerszy, zawaliskowy fragment o dnie pokrytym dużymi blokami skalnymi. Doprowadza on do obszernego, trzeciego otworu. Na całym tym odcinku dnem korytarza płynie, meandrując, Potok Skorocicki. W rejonie trzeciego otworu wcina się on w skalną ścianę, tworząc wyraźne podcięcie, następnie wypływa z otworu obok efektownego, gipsowego ostańca.</span></span></p>
+<p><span><span>Gł&oacute;wnym elementem jaskini jest obszerny tunel stanowiący podziemny przepływ cieku wodnego, z niezbyt licznymi, bocznymi korytarzami. Tunel podzielony jest otworami na dwa odcinki. Wyższy, p&oacute;łnocny odcinek tunelu (między otworami 1 i 2) rozwinięty jest w obrębie gips&oacute;w szkieletowych. W spągowej części tych gips&oacute;w występują soczewki drobnokrystalicznych gips&oacute;w alabastrowych i laminowanych pakietu tzw. "muraw selenitowych". Ten odcinek tunelu jest wysoki, zaznaczają się w nim wyraźnie dwa etapy wcinania się koryta potoku (por. Głazek 1993). Miejscami ma charakter zawaliskowy.</span></span></p>
+<p><span><span>Przy otworach 2 i 3 w dnie i ścianach jaskini pojawiają się niżej występujące gipsy szklicowe. Dolny, południowy odcinek tunelu rozwinięty jest częściowo w nich. Odchodzą od niego ciasne, boczne kanały krasowe. Fragmenty korytarza i kanał&oacute;w bocznych, utworzone w gipsach szklicowych są niższe i w zasadzie pozbawione zawalisk. Do ciekawszych element&oacute;w rzeźby krasowej ścian jaskini należą:</span></span></p>
+<div><span><span>-&nbsp;</span></span><span>myte kanały rurokształtne , rombowe i trapezowate,</span></div>
+<div><span><span>-&nbsp;</span></span><span>ślady koryta potoku na r&oacute;żnych poziomach,</span></div>
+<div><span><span>-&nbsp;</span></span><span>nieduże kominki krasowe w stropie,</span></div>
+<div><span><span>-&nbsp;</span></span><span>krasowa mikrorzeźba gips&oacute;w szklicowych.</span></div>
+<p><span><span>W wielu miejscach jaskini obserwuje się wt&oacute;rne formy gipsowe na ścianach. W części środkowej p&oacute;łnocnego odcinka tunelu i w obrębie rozwiniętych tu bocznych kanał&oacute;w a także w korytarzu przy południowym otworze jaskini skalne ściany pokryte są "krzaczkowatymi", rzadziej "graniastymi" naskorupieniami gipsowymi. Na ścianach zbudowanych z gips&oacute;w szklicowych dominują "paciorkowe" skupienia gipsowe, kt&oacute;re tworząsieć odwzorowującąpowierzchnie zrost&oacute;w krystalicznych (Kasprzyk, Urban 1996).</span></span></p>
+<p><span><span>Namulisko pokrywające w wielu miejscach dno tunelu tworzą czarne mułki (Kontkiewicz 1882). Poza tym dno pokrywa autochtoniczny gruz.</span></span></p>
+<p><span><span>Przez gł&oacute;wny korytarza jaskini przepływa Potok Skorocicki, jego szerokość i głębokość zależy od warunk&oacute;w atmosferycznych. Poza tym licznie występują stawki i kałuże stałe i okresowe, a w kilku miejscach skąpy deszcz podziemny. Przepływ powietrza pomiędzy otworami zależy od warunk&oacute;w atmosferycznych na powierzchni. Światło padające z otwor&oacute;w oświetla z r&oacute;żną intensywnością znaczną część gł&oacute;wnego korytarza jaskini, jedynie boczne korytarze i fragmenty gł&oacute;wnego ciągu są całkowicie ciemne.</span></span></p>
+<p><span><span>Kowalski (1954) wspomina o bujnej roślinności zielonej porastającej okolice otwor&oacute;w. Latem są one wręcz zasłonięte przez drzewa, krzewy i krzewinki. W głąb jaskini wnikają paprocie, mchy i glony. Stwierdzono r&oacute;wnież obecność wątrobowc&oacute;w, prawdopodobnie reprezentowanych przez stożkę ostrokrężną </span></span><span style="font-weight: bold; font-style: italic;">Conocephalum conicum</span><span><span> (Linnaeus). Dumnicka i Wojtan (1993) odnotowują występowanie glon&oacute;w okrzemkowych </span></span><span style="font-style: italic;">Bacillariophyta</span><span>.</span></p>
+<p><span><span>Fauna jest reprezentowana przez szereg grup organicznych. Wśr&oacute;d stygofauny Dumnicka i Wojtan podają dominujące tu skąposzczety </span></span><span style="font-style: italic;">Oligochaeta</span><span>, </span><span>wśr&oacute;d rurecznik&oacute;w </span><span>(</span><span style="font-style: italic;">Tubificidae</span><span>) </span><span><span>spotykane są głownie osobniki młodociane oraz </span></span><span style="font-weight: bold; font-style: italic;">Tubifex tubifex</span><span> (O.F. </span><span>Mull.) </span><span>i <span style="font-weight: bold; font-style: italic;">Tubifex ignotus</span></span><span style="font-weight: bold; font-style: italic;">&nbsp;</span><span><span>(Stole). </span></span><span>Naididae</span><span>reprezentują </span><span><strong><em><span>Nais </span></em></strong></span><span style="font-weight: bold; font-style: italic;">communis</span><span> Pig.,</span><span style="font-weight: bold; font-style: italic;"><span> Pristina menoni</span></span><span><span> (Aiyer), </span></span><span style="font-weight: bold; font-style: italic;">Chaetogaster diaphanus</span><span><span> (Gr.), </span></span><span style="font-weight: bold; font-style: italic;">Amphichaeta leydigii</span><span>, </span><span style="font-weight: bold; font-style: italic;"><span>Nais elinguis</span></span><span><span> O.F. </span></span><span>Mull.,</span><span style="font-weight: bold; font-style: italic;"><span> Nais variabilis </span></span><span>Pig. </span><span><span>W pobliżu otworu 3 stwierdzono obecność </span></span><span style="font-style: italic;">Aphanoneura</span><span> (</span><span style="font-weight: bold; font-style: italic;">Aeolosoma </span><span><span><span style="font-weight: bold;">sp.</span>), grupy wyjątkowo rzadko stwierdzanej w wodach podziemnych. Ponadto odnotowano obecność kiełży </span></span><span style="font-weight: bold; font-style: italic;">Gammarus</span><span><span style="font-weight: bold;"> sp.</span>, much&oacute;wek - kuczmanowate </span><span>(</span><span style="font-style: italic;">Ceratopogonidae</span><span>), </span><span><span>ochotkowate </span></span><span>(</span><span style="font-style: italic;">Chironomidae</span><span>), </span><span>a także małżoraczk&oacute;w </span><span>(</span><span style="font-style: italic;">Ostracoda</span><span>), </span><span><span>mięczak&oacute;w z rodziny </span></span><span style="font-style: italic;">Spheridae</span><span>, </span><span><span>nicieni </span></span><span style="font-style: italic;">(Nematoda</span><span>), </span><span>chruścik&oacute;w </span><span>(</span><span style="font-style: italic;">Trichoptera</span><span>), </span><span><span>r&oacute;wnonog&oacute;w </span></span><span>(</span><span style="font-style: italic;">Isopoda</span><span>), </span><span>wielkoskrzydłych </span><span>(</span><span style="font-style: italic;">Megaloptera</span><span>) </span><span><span>oraz bliżej nieoznaczone </span></span><span style="font-style: italic;">Diptera</span><span>. </span><span><span>Kowalski ( 1954,1965) wzmiankuje o występowaniu w strumieniu żab trawnych </span></span><span style="font-weight: bold; font-style: italic;">Rana temporaria</span><span><span> Linnaeus, oraz o ich zimowaniu w jaskini. Wzmiankuje też o prawdopodobnym występowaniu ciernik&oacute;w </span></span><span style="font-weight: bold; font-style: italic;">Gasterosteus aculeatus </span><span><span>Linnaeus. Ostatnio odnotowano obecność cierniczk&oacute;w </span></span><span style="font-weight: bold; font-style: italic;">Pungitius pungitius</span><span><span> Linnaeus, mających tu stanowisko najbardziej w Polsce wysunięte na południe (Kowalski i </span></span><span><span>in. </span></span><span>1997).</span></p>
+<p><span><span>Wśr&oacute;d troglofauny Kowalski (1954) podaje obecność zespołu owad&oacute;w trogloksenicznych i licznych pająk&oacute;w. W trakcie inwentaryzacji obserwowano ponadto much&oacute;wki, krocionogi piaskowe </span></span><span style="font-weight: bold; font-style: italic;">Schizophyllum sabulosum</span><span><span> (L.) oraz węzławca ogrodowego </span></span><span style="font-weight: bold; font-style: italic;">Polydesmus complanatus</span><span><span>&nbsp; Porat. Kowalski (1954, 1965) podaje o zimowaniu mopk&oacute;w </span></span><span style="font-weight: bold; font-style: italic;"><span>Barbastella </span>barbastellus</span><span><span> (Schreber), natomiast Wołoszyn ( 1990) wymienia gacki brunatne </span></span><span><span style="font-weight: bold; font-style: italic;">Plecotus auritus</span></span><span><span> ( L.) zimujące (1986/87) i odławiane latem 1987 r. przy otworach. Ostatnio stwierdzono tu (Bujna i </span></span><span>in. </span><span><span>1996-1998, mat. arch.) hibernujące mroczki </span></span><span>p&oacute;źne </span><strong><em><span>Eptesicus serotinus </span></em></strong><span>(Schreber) </span><span><span>i gacki brunatne. Ponadto Wołoszyn (1990) wspomina o występowaniu w zrzutkach s&oacute;w płomyk&oacute;wek</span></span><strong><em><span> Tyto alba</span></em></strong><span> szczątk&oacute;w kret&oacute;w</span><strong><em><span>Talpa europaea</span></em></strong>. <span><span>Podczas inwentaryzacji natrafiono na liczne szczątki ptak&oacute;w i gryzoni w pozostałościach posiłk&oacute;w s&oacute;w. W otworach gnieżdżą się ptaki, głębsze partie jaskini odwiedzają lisy </span></span><strong><em><span>Vulpes vulpes</span></em></strong><span>(L.).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W latach 1996-1998 prowadzono zimowe pomiary mikroklimatu w odniesieniu do możliwości zimowania nietoperzy (Bujna i in. 1996-1998, mat. arch.). W 1960 r. Dolina Skorocicka wraz z obiektami jaskiniowymi została objęta ochroną jako rezerwat stepowy (Alexandrowicz, Drżał, Kozłowski 1975).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinie Doliny Skorocickiej znane były już pierwszym geologom prowadzącym badania na terenie Niecki Nidziańskiej (Pusch 1836,1903,Zejszner 1861). W tym samym jednak czasie stały się r&oacute;wnież obiektem krajoznawczym odwiedzanym przez kuracjuszy buskiego zakładu leczniczego, kt&oacute;ry powstał w latach dwudziestych XIX wieku (Berends 1834, Busko... 1839, Kr&oacute;tkie opis... 1842, Opis Buska... 1849, Wacław D. 1849, Dymnicki 1860, Grabowski 1890). Liczne publikacje z drugiej połowy tego wieku i z początku naszego stulecia podkreślają zwłaszcza unikatowy charakter naturalnego tunelu z ciekiem wodnym, kt&oacute;rego długość szacowana była na 100-150 m (Gruszecki 1878, Kosiński 1884, Rugiević 1884, Siemiradzki, Dunikowski 1891, Siemiradzki 1909, Przesmycki 1912, Lencewicz 1913). Kontkiewicz (1882) przeprowadził w&oacute;wczas badania namulisk tej jaskini, kt&oacute;re jednak nie zostały uwieńczone ciekawymi rezultatami. Pierwszy opis i schematyczny plan Doliny Skorocickiej wraz z przebiegiem podziemnego tunelu (pozbawiony jednak istotnego elementu topograficznego - tzw. Wysokiej Drogi) opublikował Sawicki (1918-19). Pełniejszy opis jaskini zawdzięczamy jednak dopiero Malickiemu (1947). Kilka lat p&oacute;źniej Kowalski (1954) opublikował plan i opis jaskini, kt&oacute;rą nazwał Jaskinią Skorocicką. Wydany ponad 35 lat p&oacute;źniej inwentarz jaskiń gipsowych Ponidzia Wołoszyna (1990) powtarza plan i opis Kowalskiego (1954). Na początku lat osiemdziesiątych w jaskini działali kieleccy grotołazi (Sekcja Taternictwa Jaskiniowego i Alpinizmu), kartując (Bednarz 1980, mat. arch.) nieznane wcześniej korytarze w rejonie trzeciego otworu (Akademickie Partie). W lipcu 1999 r. J. Gubała i A. Kasza spenetrowali nieznany dotąd korytarz o długości około 50 m (Korytarz Zbyszka Rubinowskiego). <br />G&oacute;rną częścią doliny przebiega szlak turystyczny, jednak nie zbliża się on do otworu Jaskini Skorocickiej.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację jaskini sporządzili wiosną 1999 r. J. Gubała, A. Kasza i M. Niziołek. Lokalizację otworu jaskini wykonał 14.12.2008 r. A. Kasza przy pomocy odbiornika GPS Map60 CSx. Zaktualizował w 2009 r. A. Kasza.<br />Plan opracowali J. Gubała i A. Kasza.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Berends A. 1834 (wzmianka o jaskiniach w dolinie); Pusch G.G. 1836 (kr&#243;tki opis); Busko 1839 (wzmianka); Kr&#243;tkie opisanie... 1842 (walory estetyczne); Opis Buska... 1849 (wzmianka, woda w jaskiniach); Wacław D. 1849 (wzmianka); Dymnicki J. 1860 (wzmianka); Zejszner L. 1861 (wzmianka); Gruszecki A. 1878 (wzmianka); Kontkiewicz S. 1882 (kr&#243;tki opis, badania w namulisku); Kosiński W. 1884 (kr&#243;tki opis); Rugiević K. 1884 (kr&#243;tki opis); Słownik Geograficzny 1889 (wzmianka); Grabowski J. 1890 (wzmianka); Siemiradzki J., Dunikowski E. 1891 (wzmianka); Pusch J.B. 1903 (kr&#243;tki opis); Weyberg Z. 1907 (wzmianka); Siemiradzki J. 1909 (wzmianka, długość); Przesmycki P. 1912 (wzmianka, długość); Lencewicz S. 1913 (wzmianka, długość); Lencewicz S. 1916 (wzmianka); Sawicki L. 1918-19 (kr&#243;tki opis, lokalizacja na mapce, fotografie); Kreutz S. 1925 (wzmianka); K. 1951 (opis, plan) R. 1933 (wzmianka); Malicki A. 1947 (kr&#243;tki opis);Kronika 1951 (wzmianka); Starzecki W. 1951 (opis, fotografie); Flis J. 1952 (wzmianka); Flis J. 1954 (kr&#243;tki opis, lokalizacja i przebieg tunelu na planie wąwozu, fotografia); Kowalski K. 1954 (opis, plan); Flis J. 1956 (wzmianki, fotografia); Kowalski K. 1956 (klasyfikacja taternicka); Kunsk&#253; J. 1956 (wzmianka); Lencewicz S. 1957 (wzmianka); Kowalski K. 1965 (opis, schematyczny plan); Alexandrowicz Z. i in. 1975 (wzmianka o jaskiniach, ochrona); Rubinowski Z. 1975 (wzmianka, długość, fotografia); Pilichowie M. i P. 1985 (wzmianka); Wiraszka S., Wołoszyn K.P., Wołoszyn B.W. 1986 (wzmianka); Wołoszyn B.W., Wołoszyn K.P., Wiraszka S. 1986a (opis, lokalizacja); Wołoszyn B.W., Wołoszyn K.P., Wiraszka S. 1986b (opis, lokalizacja, historia poznania); Wiśniewski W. 1989 (długość skorygowana); Urban J. 1990 (ochrona); Wołoszyn B.W. 1990 (opis, plan - za Kowalskim); Wiśniewski W. 1991b (długość); Alexandrowicz Z. i in. 1992 (ochrona); Wiśniewski W. 1992 (wzmianka); Chmielarski W. 1993 (opis, fauna, fotografia); Dumnicka E., Wojtan K. 1993 (stygofauna, chemizm); Głazek J. 1993 (ślady kanał&#243;w freatycznych, fazy przepływ&#243;w wadycznych); Bujna E., Klauzińska M. 1997 (nietoperze); Chabert C., Courbon P. 1997 (długość); Gradziński M. 1997 (długość); Gubała J., Urban J. 1997 (wzmianka o waloryzacji); Kowalski M., Gwardian M., Klauzińska M., Ostrach-Kowalska A. 1997 (ryby); Turchinov I.I 1997 (morfologia korytarzy jaskini); Wiśniewski W. 1997a (wzmianka); Wiśniewski W. 1997b (wzmianka); Wiśniewski W. 1997c (notki bibliograficzne, kopia artykułu); Wiśniewski W. 1998a (tradycje krajoznawcze); Jaskinie Niecki Nidziańskiej 1998 (dokumentacja, plan); Gubała J., Kasza A., Urban J. 1999 (kr&#243;tki opis, plan); Urban J.1999 (kr&#243;tki opis); Urban J., Gągol J. 1999 (historia poznania); Wr&#243;blewski T. 2000 (wzmianka); Chwalik A., Głazek J., Gubała J., Kasza A., Urban J. 2002 (kr&#243;tki opis); Urban J., Gubała J., Kasza A. 2002 (długość); Wiśniewski W. 2002a (wzmianka); Wiśniewski W.W. 2002c (długość);  Urban J., Gubała J., Kasza A. 2003 (lokalizacja, długość); Wiśniewski W.W. 2003  (wzmianka); Gubała J., Kasza A. 2004b (wzmianka); Urban J. 2004 (długość); Gubała J., Kasza A. 2005 (wzmianka);  Gradziński M. 2005 (długość); J&#243;źwiak K. i in. 2008 (wzmianka); Urban J. 2008 (opis); Urban J. Andreychouk V., Gubała J., Kasza A. 2008 (wzmianka); Urban J., Gągol J. 2008 (wzmianka).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Bednarz J. 1980; Bujna E. i in.1996-1998; Wołoszyn B.W., Wołoszyn K.P. 1990; Urban J, Gubała J. 1996; Chwalik A. 2006.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jan Urban, Jacek Gubała, Andrzej Kasza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(244)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

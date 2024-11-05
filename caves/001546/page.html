@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1546">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1546;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566188,60".replace(',', '.') + "," + "153174,95".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1546','Dziurka w Trawce'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Dziurka w Trawce
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.65
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′34,66″, φ: 49&#176;14′33,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1762,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                400
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                27,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                27,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    179
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, na lewym orograficznie zboczu Szarego Żlebu, pod granią Ratuszowego Grzbietu. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Podchodzimy niebieskim szlakiem, powyżej progu zabezpieczonego łańcuchami skręcamy w prawo, kierując się w stronę Przechodu Litworowego. Po wyjściu na grań zaczynamy schodzić w stronę Wielkiej Świstówki. Wąska początkowo grań Ratuszowego Grzbietu po około 50 m rozszerza się. W tym miejscu skręcamy w prawo i wchodzimy w niewielki trawiasty żleb, który urywa się po 40 m ponad 100 m ścianą, wpadającą do Kobylarzowego Żlebu. Otwór jaskini znajduje się około 5 m przed krawędzią ściany, w trawiastym dnie żlebu. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r jest niewielki, wycięty w darni o kształcie czworokątnym. Jaskinia rozpoczyna się 4 metrowym progiem, kt&oacute;ry sprowadza nas do niewielkiej salki, jej spąg pokryty grubymi wantami opada stromo w kierunku W. W najniższym jego punkcie znajduje się szczelina o głębokości około 5 m. Schodzimy nią i stajemy nad 3 m progiem utworzonym z kilku wielkich want. Wanty te przedzielają Salkę z Ruchomym Spągiem. Ściany jej są myte, a strop i spąg utworzony jest z zaklinowanych między nimi want. W zachodniej części tej salki otwiera się szczelina wysoka na około 4 m. Po przeciwnej stronie, pod wyżej wspomnianym progiem znajduje się niewielki przełaz, prowadzący do niżej położonej części jaskini. </span></p>
+<p><span>Dalsza droga prowadzi przez szczelinowaty korytarz o wysokości około 2,5 m, kt&oacute;ry opada stromo do niżej położonej salki, kt&oacute;ra jest węzłem łączącym dwa ciągi prowadzące w dalej położone partie jaskini. Pierwszym ciągiem poruszaliśmy się do tej pory, natomiast drugi prowadzi do mytego kominka. Jednak, aby się tam dostać musimy cofnąć się do salki z ruchomym spągiem i wejść w uprzednio wspomnianą szczelinę wysokości 4 m. Na jej ścianach widoczne są wyraźne ślady przepływu wody. Odległość pomiędzy nimi wzrasta od 0,5 m do około 1,5 m na długości około 4,5 m. Początkowo spąg tworzą zaklinowane na odcinku około 1,5 m wanty, za kt&oacute;rymi otwiera się szczelina o głębokości 6 m, kt&oacute;ra kończy się w wyżej wspomnianej salce. Przechodzimy tą szczelinę i stajemy na skalnym rumowisku po drugiej stronie. Korytarz w tym miejscu skręca w prawo by po kilku metrach powr&oacute;cić do pierwotnego kierunku W&ndash;E już jako wąska szczelina wznosząca się w g&oacute;rę. Szczelina ta łączy się na głębokości -0,5 m z mytym kominkiem, kt&oacute;ry wznosi się ponad naszą głową około 11 m (III). Do miejsca połączenia możemy dostać się bez użycia liny oboma wariantami. </span></p>
+<p><span>Wracamy z powrotem do salki i zjeżdżamy w 6 m szczeliną. Salka ma charakter zawaliskowy, jej spąg pokrywają dużej wielkości wanty, pomiędzy kt&oacute;rymi znajduje się niewielki przełaz prowadzący do Sali Lustrzanej. Jest to druga co do wielkości sala w tej jaskini. Jej wymiary wynoszą około 10 m długości i 4 m wysokości, początkowo wąska, p&oacute;źniej rozszerza się do około 5 m. Spąg pokrywa gruba warstwa wieloletniego lodu, tworząca idealnie r&oacute;wną powierzchnię. Po lewej stronie znajduje się niewielki otw&oacute;r (strop jest tu obniżony do około 1 m), kt&oacute;ry prowadzi do wąskiego korytarzyka o długości 6 m. Korytarzyk kończy się w Salce z Pisuarem&nbsp;&ndash; jej długość nie przekracza 4 m przy wysokości około 2 m. Spąg pokryty jest częściowo warstwą lodu. Na pozostałej powierzchni zalega drobny rumosz skalny.</span></p>
+<p><span>Wracamy z powrotem do Sali Lustrzanej. Po prawej stronie w ścianie na wysokości około 1,5 m ponad taflą lodu znajduje się okno o wysokości 2 m i szerokości 0,8 m prowadzące do Sali Majowej. Wysoka na około 13 m i długa na około 18 m jest największą salą w całej jaskini. Najniższy punkt spągu tej sali jest najniższym punktem jaskini (&ndash;27,9 m). Sala ma charakter zawaliskowy, spąg pokrywa r&oacute;żnej wielkości rumosz skalny. Sala Majowa przedzielona jest 4 metrowym progiem, kt&oacute;ry w okresie wiosennym jest zalodzony. Zachodnia część sali zwęża się ku południowi do około 1 m, w stropie znajduje się ciasna szczelina, kt&oacute;ra kończy się po kilku metrach. Wschodnia część sali (za progiem), położona jest wyżej i kończy się 3 m stromą i ciasną pochylnią, kt&oacute;ra pokryta jest warstwą kwarcytowego piasku wysypującego się z niedostępnej szczeliny. W połowie drogi od progu do wyżej wspomnianej pochylni, po lewej stronie znajduje się 5-metrowa studzienka. Średnica jej wynosi około 1,5 m, spąg pokryty drobnymi wantami opada ku zachodowi. Studzienka posiada r&oacute;wnież przewyższenie w postaci kominka rozdzielonego mostem skalnym. Kominek kończy się na wysokości 8 m niedostępną szczeliną.</span></p>
+<p><span>Jaskinia powstała w wapieniach malmo-neokomu jednostki Organ&oacute;w (seria wierchowa, fałd Czerwonych Wierch&oacute;w), na szczelinie tektonicznej o przebiegu W&ndash;E. Ma charakter zawaliskowy, jedynie gdzieniegdzie spotykamy w pełni wymyte przekroje korytarzy, między innymi w rejonie komina oraz studzienki w Sali Majowej. Spąg pokrywa autochtoniczny rumosz, w końcowej pochylni&nbsp;&ndash; piasek kwarcowy. Brak szaty naciekowej.</span></p>
+<p><span>Jaskinia jest wilgotna. W Sali Lustrzanej oraz w Salce z Pisuarem występuje pokrywa lodowa. Temperatura zaobserwowana w czerwcu w Sali Lustrzanej wynosiła &ndash;3&deg;C. Dzięki specyficznym warunkom morfologicznym pozwalającym na całoroczne utrzymanie się znacznej objętości lodu należy ją zaliczyć do jaskiń lodowych. </span></p>
+<p><span>Przy otworze występuje roślinność zielona (nie badana dotychczas). W partiach przyotworowych występują owady gł&oacute;wnie muchy i pająki.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta 17 maja 2000 r. przez Z. Tabaczyńskiego (Speleoklub Tatrzański), kt&oacute;ry po udrożnieniu całkowicie zasypanego otworu, wyeksplorował jaskinię do Sali Lustrzanej. 24 maja 2000 r. P. Orawiec i Z. Tabaczyński odkrywają Salkę z Pisuarem i Salę Majową.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>6 i 30 czerwca 2000 r. P. Orawiec i Z. Tabaczyński zebrali materiały dokumentacyjne. Pomiary wykonano przyrządem Topo&nbsp;&ndash; Vulcan. Zaktualizował Z. Tabaczyński (2009 r.).<br />Plan opracował Z. Tabaczyński.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Tabaczyński, Z. 2000e (plan i opis); Jaskinie TPN 2004 (opis i plan inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Zbigniew Tabaczyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1064)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

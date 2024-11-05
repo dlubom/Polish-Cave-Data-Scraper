@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2636">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2636;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "547850,0685".replace(',', '.') + "," + "284858,6492".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2636','Jaskinia Zegar'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Zegar
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.IV-04.47
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;40′26,00″, φ: 50&#176;25′44,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wolbrom (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                olkuski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 i 3 - ku NW.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                426
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                6,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                6
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                12,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    155
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Pasmo Smoleńsko-Niegowonickie, Strzegowa, Wzg&#243;rze Zegarowe Skały
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Najprostsza droga do wzgórza wiedzie drogą dnem doliny aż do ostatniego zabudowania przysiółka Podlesie. W tym miejscu należy skręcić w lewo i zboczem wzgórza miedzą między polami podejść pod skały. Otwory jaskini znajdują u podstawy skałek leżących najniżej na północnym zboczu. Wszystkie otwory są zasłonięte młodymi drzewami i krzewami a przed otworem głównym leży hałda materiału pochodzącego z wykopów archeologicznych wewnątrz jaskini.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <span>    <p><span>&nbsp;&nbsp; Długi i&nbsp;dość wysoki (tylko raz trzeba się mocniej pochylić) korytarz prowadzi od głównego (zachodniego) otworu do bardzo obszernej komory w&nbsp;kształcie tunelu. W&nbsp;miejscu, w&nbsp;którym korytarz wejściowy łączy się z&nbsp;komorą znajduje się głęboki lej w&nbsp;namulisku. Korytarz wejściowy rozwinął się na pojedynczej szczelinie wyraźnie widocznej w&nbsp;stropie. Szczelina ta jest ustawiona prostopadle do komory, która rozwija się w&nbsp;prawą (zachodnią) stronę. W&nbsp;stropie komory widać dwa główne pęknięcia tektoniczne biegnące niemal równolegle do siebie przez całą długość komory. Obok głównych szczelin w&nbsp;komorze można jeszcze zaobserwować pęknięcia niższej rangi krzyżujące się z&nbsp;głównymi. Przebieg szczelin nie we wszystkich miejscach jest czytelny ze względu na nacieki pokrywające strop. W&nbsp;miejscach gdzie szczeliny się krzyżują strop komory jest wyraźnie wyższy. Największą wysokość osiąga komora w&nbsp;miejscu przecięcia szczeliny korytarza wejściowego ze szczelinami komory. W&nbsp;miejscu tym powstał skalny dzwon o&nbsp;wysokości około 8&nbsp;m. Aby przejść do końca komory trzeba z&nbsp;korytarza wejściowego skręcić w&nbsp;prawo i&nbsp;wejść na stromą, gliniastą skarpę o&nbsp;wysokości prawie 3&nbsp;m. Za skarpą dno opada łagodnie aż do miejsca gdzie zaczynają się dwa krótkie i&nbsp;ślepe, równoległe do siebie korytarzyki. Przed wejściem do lewego korytarzyka w&nbsp;stropie komory znajduje się komin o&nbsp;wysokości około 6&nbsp;m rozwinięty na tej samej szczelinie co korytarzyk. U podstawy południowej ściany komory znajduje się dość głęboka kieszeń w&nbsp;namulisku, prawdopodobnie pozostałość po poszukiwaczach skarbów. Skręcając z&nbsp;korytarza wejściowego w&nbsp;lewo natkniemy się na wschodnią ścianę komory, w&nbsp;której również znajdują się dwie szczeliny. Lewa, niedostępna jest widoczna na długości kilku metrów. Na prawej szczelinie rozwinął się niski (trzeba wchodzić na kolanach), lecz dosyć szeroki, meandrujący korytarz o&nbsp;długości kilkudziesięciu metrów, kończący się drugim, wschodnim otworem. Korytarz miejscami jest bardzo niski a&nbsp;miejscami na tyle wysoki, że można się wyprostować. W&nbsp;jego stropie pojawiają się nawet kominy. Korytarz powstał na kilku przecinających się pod różnym kątem szczelinach, które nie zawsze są widoczne w&nbsp;stropie. Kilka metrów od wejścia do korytarza (od strony komory) znajduje się rozszerzenie – rodzaj salki a&nbsp;w&nbsp;jej lewej ścianie szczelina z&nbsp;zaciskiem, za którym rozpoczyna się wyjątkowo ciasny i&nbsp;kręty korytarzyk kończący się trzecim, środkowym otworem. Otwór ten jest nazywany drzwiczkami od pieca. Korytarzyk ma długość niemal 60&nbsp;m. Środkowy otwór wychodzi w&nbsp;obszernej niszy o&nbsp;długości około 11m, która do czasu pierwszego przejścia korytarzyka, była opisywana jako osobne schronisko o&nbsp;nazwie Schronisko przy Jaskini Zegar. Po sforsowaniu ciasnego korytarzyka, schronisko stało się częścią Jaskini Zegar. </span></p>  <p><span>&nbsp;&nbsp; </span><span><span>&nbsp;&nbsp; Jaskinia powstała w wapieniach skalistych górnej jury. </span></span><span>Szata naciekowa jest bardzo mocno zniszczona tym nie mniej to co pozostało może jeszcze budzić podziw. W&nbsp;jaskini znajduje się bardzo duża ilość nacieków mleka wapiennego w&nbsp;postaci polew. Najpiękniejsze z&nbsp;nich znajdują się na wschodniej ścianie komory głównej w&nbsp;miejscu gdzie korytarz wejściowy łączy się z&nbsp;komorą (po lewej stronie). Polewa ta posiada intensywnie białą barwę, która niezwykle silnie kontrastuje z&nbsp;pozostałą częścią ścian jaskini. Ściany komory są bardzo ciemne, miejscami wręcz czarne od sadzy łuczyw używanych kiedyś do oświetlania wnętrza. Być może część ciemnego zabarwienia pochodzi z&nbsp;materiału humusowego namywanego przez szczeliny z&nbsp;powierzchni ale ta hipoteza wymaga jeszcze potwierdzenia. Niemal cała powierzchnia stropu i&nbsp;ścian jest pokryta naciekami w&nbsp;formie polew, żeber, bulastych zgrubień. Większość z&nbsp;nich jest kalcytowa lecz część to skrystalizowane mleko wapienne. Jednak ze względu na zabrudzenie trudno odróżnić co jest kalcytowe a&nbsp;co z&nbsp;mleka wapiennego. Korytarz do otworu wschodniego również posiada bogatą szatę naciekową w&nbsp;postaci polew. K.&nbsp;&nbsp;Kowalski pisze: „... <span style="font-style: italic;">w&nbsp;wąskim korytarzu wschodnim występują bardzo masywne nacieki skorupowe, które po części odbite ze ścian zaścielają grubą warstwą dno. Są one białe lub szare, miejscami zupełnie miękkie</span>”. Nacieki te można jeszcze dzisiaj oglądać w&nbsp;korytarzyku. Niestety w&nbsp;ostatnich latach, ktoś w&nbsp;szale niszczenia, poodbijał grube warstwy tych nacieków ze ścian. Kolor i&nbsp;konsystencja tych utworów może świadczyć, że jest to również mleko wapienne. Podobne z&nbsp;wyglądu polewy pokrywają namulisko w&nbsp;komorze (w tych miejscach gdzie jest ono nienaruszone). Niestety i&nbsp;tu postępuje proces dewastacji. Część tych pokryw jest porozbijana a&nbsp;pod nimi pojawiają się dzikie wykopy o&nbsp;różnej głębokości. Z&nbsp;zachowanych polew zostały pobrane próby z&nbsp;ciemnymi laminami w&nbsp;celu określenia wieku tychże lamin. Do badań zastosowano metodę <sup>14</sup>C. Otrzymany wiek zawierał się w&nbsp;granicach 6410-6500 lat BP. Na powierzchni namuliska można zauważyć dość liczne jamki egutacyjne. Kształt kilku z&nbsp;nich został utrwalony dzięki pokryciu cienką warstewką kalcytu. Sądząc z&nbsp;ilości polew, można przypuszczać, że szata naciekowa była kiedyś jeszcze bardziej bogata i&nbsp;występowały tu nacieki typu stalaktytów i&nbsp;stalagmitów. </span></p>  <p><span>Cechą charakterystyczną jaskini jest fakt, że proces narastania nacieków wciąż trwa. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Namulisko jaskini jest zróżnicowane. W&nbsp;korytarzu wejściowym leży dużo humusu wymieszanego z&nbsp;materiałem ilasto-lessowym, a&nbsp;pod ścianami leży ostrokrawędzisty, drobny gruz wapienny powstający pod wpływem procesów mrozowych. W&nbsp;zachodniej części komory namulisko jest gliniaste z&nbsp;dużą ilością porozbijanych polew. W&nbsp;korytarzu wschodnim namulisko jest gliniasto-kamieniste, a&nbsp;w&nbsp;niektórych miejscach zalega gruba warstwa gruzu skalnego z&nbsp;potłuczonych polew. W&nbsp;całej jaskini na powierzchni dna leży duża ilość patyków i&nbsp;bali drewnianych wniesionych przez turystów. Nie ulega wątpliwości, że wielki lej przy wlocie korytarza wejściowego do komory powstał w&nbsp;sposób sztuczny. Kowalski w&nbsp;„Jaskiniach Polski” pisze o&nbsp;artykule, który ukazał się w&nbsp;1846 r. i&nbsp;w którym autor, ukrywający się pod pseudonimem X. O. donosi, że „w jaskini w&nbsp;pobliżu Strzegowej odkrył dzierżawca pierwotną, tłustą i&nbsp;czarną ziemię, której kilkaset furmanek wywiózł na pola jako nawóz. Znaleziono przy tym kości zwierząt przedpotopowych, kości ludzkie, „urny” i&nbsp;krzemienie”. Ponieważ w&nbsp;tej okolicy jedynie Jaskinia Zegar nosi tak wyraźne ślady eksploatacji namuliska, należy przypuszczać, że ta wzmianka właśnie do niej się odnosi. Według notatki, na powierzchni namuliska można było znaleźć kości zwierzęce i&nbsp;skorupy naczyń. </span></p>  <p><span>&nbsp;&nbsp; Latem 1997&nbsp;r. rozpoczęto w&nbsp;jaskini archeologiczne prace wykopaliskowe. Pierwszy wykop zlokalizowano pod okapem schroniska, w&nbsp;którym znajduje się środkowy otwór. Drugi wykop znajdował się przed głównym wejściem do jaskini. Obydwa otwory zostały zasypane po zakończeniu prac. Trzeci wykop powstał w&nbsp;głównej komorze jaskini, przy wlocie korytarza do komory na dnie „leja”. W&nbsp;sezonie wykopaliskowym 1997&nbsp;r. wykop osiągnął głębokość około 3&nbsp;m. Prace kontynuowano w&nbsp;roku następnym osiągając głębokość ponad 4&nbsp;m. W&nbsp;1998&nbsp;r. otwarto następny wykop zlokalizowany w&nbsp;najszerszym miejscu korytarza wejściowego. Osiągnięto w&nbsp;nim głębokość około 4&nbsp;m nie docierając do skalnego dna. Przy okazji obserwacji archeologicznych prowadzono również obserwacje paleontologiczne i&nbsp;geologiczne. Materiał kostny znaleziony w&nbsp;jaskini w&nbsp;1997&nbsp;r. zawierał 2187 szczątków należących do 20 gatunków ssaków. Część kości ze śladami łupania lub cięć służyła prawdopodobnie do wyrobu narzędzi. Oprócz kości zwierząt dziko żyjących znaleziono tu również kości zwierząt udomowionych, takich jak bydło, owce lub koza. W&nbsp;trakcie prac wykopaliskowych znaleziono tylko pojedyncze egzemplarze wyrobów krzemiennych. Natomiast w&nbsp;powierzchniowej warstwie znajdowano dość liczne fragmenty ceramiki. Dzięki pracom archeologicznym stwierdzono, że wysoka skarpa przed wejściem do zachodniej części komory to hałda materiału pochodzącego z&nbsp;„leja” wysypana na „starą” powierzchnię namuliska. Po zmianach podziału administracyjnego kraju i&nbsp;przejściu tego terenu do województwa małopolskiego prace wykopaliskowe zostały przerwane. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W miejscu skrzyżowania korytarza wejściowego z&nbsp;komorą obserwuje się intensywne kapanie wody ze stropu oraz spływanie wody po ścianach. Proces ten trwa z&nbsp;różną intensywnością właściwie przez cały rok. Proces skapywania wody obserwuje się również w&nbsp;innych częściach jaskini ale są to „wykapy” okresowe, związane prawdopodobnie z&nbsp;wodami kondensacyjnymi, np. w&nbsp;zachodniej części komory. Wydaje się, że szczeliny w&nbsp;stropie tej części komory są „zalane” naciekami i&nbsp;w związku z&nbsp;tym niedrożne dla infiltrujących wód powierzchniowych. Od grudnia 1997&nbsp;r. przez ponad rok były prowadzone badania hydrochemiczne wód z&nbsp;Jaskini Zegar. We wnętrzu głównej komory wybrano 11 punktów, w&nbsp;których zauważono skapującą ze stropu wodę. Próby były zbierane do litrowych butelek. W&nbsp;jaskini wykonywano pomiary pH wody i&nbsp;jej temperatury. Oznaczenia podstawowego składu jonowego przeprowadzano w&nbsp;Laboratorium Hydrochemii Krasowej Uniwersytetu Śląskiego. Ze wstępnych analiz wynikało duże zróżnicowanie parametrów fizyko-chemicznych w&nbsp;zależności od miejsca pobrania próby. </span></p>  <p><span>&nbsp;&nbsp; Na początku 1998 r. (od połowy lutego do końca maja) w&nbsp;jaskini prowadzono obserwacje mikroklimatu przy pomocy dwóch kompletów przyrządów samopiszących (termograf, higrograf) i&nbsp;psychrometru aspiracyjnego. Warunki klimatyczne wnętrza są dosyć zróżnicowane. Pomiędzy otworami wyczuwa się wyraźny przepływ (czasami bardzo intensywny) powietrza. W&nbsp;tej części jaskini wahania wilgotności i&nbsp;temperatury są dosyć duże. W&nbsp;punkcie pomiarowym przy wlocie do korytarzyka wschodniego wilgotność wahała się, w&nbsp;zależności od warunków zewnętrznych, od około 80 do 98% a&nbsp;temperatura od niecałych 2<sup>0</sup>C do ponad 10<sup>0</sup>C. W&nbsp;punkcie pomiarowym w&nbsp;zachodnim końcu komory, na wysokości 2&nbsp;m nad powierzchnią namuliska, wahania były minimalne. Wilgotność 95-99%. Temperatura 5-6<sup>0</sup>C. W&nbsp;okresach znacznych spadków temperatury na zewnątrz, dochodzi do wymarzania korytarza wejściowego, aż do wlotu do komory. W&nbsp;tym okresie powstają liczne nacieki lodowe w&nbsp;postaci stalaktytów, stalagmitów, kurtyn lodowych i&nbsp;polew. Jednocześnie następuje przemarzanie namuliska. Dochodzi do jego wybrzuszania i&nbsp;powstawania zaczątków gleb poligonalnych. W&nbsp;korytarzu w&nbsp;tym okresie, powietrze z&nbsp;zewnątrz jest zasysane do środka. Zauważono jednak, że pod samym stropem tunelu, wąską strużką wypływa cieplejsze powietrze na zewnątrz (co wykorzystują hibernujące tu nietoperze). Niestety systematyczne obserwacje mikroklimatyczne i&nbsp;hydrochemiczne musiały zostać przerwane ze względu na powtarzające się kradzieże i&nbsp;niszczenie sprzętu. </span></p>  <p><span>&nbsp;&nbsp; Przez korytarz wejściowy wpada na tyle dużo światła, że sięga ono jeszcze do komory głównej. Co prawda jest ono bardzo silnie rozproszone ale nie jest to całkowita ciemność. Natomiast zachodni koniec komory i&nbsp;korytarze wschodnie toną w&nbsp;całkowitych ciemnościach. </span></p>&nbsp;&nbsp; <span>Ponieważ we wnętrzu znajduje się wiele szczątków organicznych w&nbsp;postaci butwiejących kawałków drewna w&nbsp;jaskini intensywnie rozwijają się różnokolorowe pleśnie. Natomiast w&nbsp;okresie prowadzenia prac wykopaliskowych, kiedy w&nbsp;jaskini były zainstalowane lampy halogenowe na gnijących pniakach zaczęły rosnąć grzyby kapeluszowe z&nbsp;gatunku Grzybówka. Podziemne środowisko zapewnia odpowiednie warunki życiowe wielu gatunkom fauny. Baranek i&nbsp;Powichrowski opisują kilka gatunków motyli i&nbsp;muchówek pojawiających się w&nbsp;jaskini. Poza tym można tu spotkać pająki <strong><em>Meta menardi</em></strong>, kosarze <strong><em>Opilionidae.</em></strong>Stałymi mieszkańcami Jaskini Zegar są skoczogonki <strong><em>Collembola</em></strong> i&nbsp;chrząszcze <strong><em>Staphylinidae</em></strong><em> i&nbsp;<strong>Catopidae</strong>. </em>Jaskinia Zegarowa stwarza również doskonałe warunki hibernującym nietoperzom. W&nbsp;trakcie zimowego liczenia tych latających ssaków, w&nbsp;końcu stycznia 1998&nbsp;r. znaleziono tu 42 sztuki należące do czterech gatunków.</span><br /></span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Z zachowanych polew zostały pobrane próby z ciemnymi laminami w celu określenia wieku tychże lamin. Do badań zastosowano metodę 14C. Otrzymany wiek zawierał się w granicach 6410-6500 lat BP. <br />Latem 1997 r. rozpoczęto w jaskini archeologiczne prace wykopaliskowe. Pierwszy wykop zlokalizowano pod okapem schroniska, w którym znajduje się środkowy otwór. Drugi wykop znajdował się przed głównym wejściem do jaskini. Obydwa otwory zostały zasypane po zakończeniu prac. Trzeci wykop powstał w głównej komorze jaskini, przy wlocie korytarza do komory na dnie „leja”. W sezonie wykopaliskowym 1997 r. wykop osiągnął głębokość około 3 m. Prace kontynuowano w roku następnym osiągając głębokość ponad 4 m. W 1998 r. otwarto następny wykop zlokalizowany w najszerszym miejscu korytarza wejściowego. Osiągnięto w nim głębokość około 4 m nie docierając do skalnego dna. Przy okazji obserwacji archeologicznych prowadzono również obserwacje paleontologiczne i geologiczne. Materiał kostny znaleziony w jaskini w 1997 r. zawierał 2187 szczątków należących do 20 gatunków ssaków. Część kości ze śladami łupania lub cięć służyła prawdopodobnie do wyrobu narzędzi. Oprócz kości zwierząt dziko żyjących znaleziono tu również kości zwierząt udomowionych, takich jak bydło, owce lub koza. W trakcie prac wykopaliskowych znaleziono tylko pojedyncze egzemplarze wyrobów krzemiennych. Natomiast w powierzchniowej warstwie znajdowano dość liczne fragmenty ceramiki. Dzięki pracom archeologicznym stwierdzono, że wysoka skarpa przed wejściem do zachodniej części komory to hałda materiału pochodzącego z „leja” wysypana na „starą” powierzchnię namuliska.<br />Od grudnia 1997 r. przez ponad rok były prowadzone badania hydrochemiczne wód z Jaskini Zegar. We wnętrzu głównej komory wybrano 11 punktów, w których zauważono skapującą ze stropu wodę. Próby były zbierane do litrowych butelek. W jaskini wykonywano pomiary pH wody i jej temperatury. Oznaczenia podstawowego składu jonowego przeprowadzano w Laboratorium Hydrochemii Krasowej Uniwersytetu Śląskiego. Ze wstępnych analiz wynikało duże zróżnicowanie parametrów fizyko-chemicznych w zależności od miejsca pobrania próby.<br />Na początku 1998 r. (od połowy lutego do końca maja) w jaskini prowadzono obserwacje mikroklimatu przy pomocy dwóch kompletów przyrządów samopiszących (termograf, higrograf) i psychrometru aspiracyjnego. Warunki klimatyczne wnętrza są dosyć zróżnicowane. Pomiędzy otworami wyczuwa się wyraźny przepływ (czasami bardzo intensywny) powietrza. W tej części jaskini wahania wilgotności i temperatury są dosyć duże. W punkcie pomiarowym przy wlocie do korytarzyka wschodniego wilgotność wahała się, w zależności od warunków zewnętrznych, od około 80 do 98% a temperatura od niecałych 20C do ponad 100C. W punkcie pomiarowym w zachodnim końcu komory, na wysokości 2 m nad powierzchnią namuliska, wahania były minimalne. Wilgotność 95-99%. Temperatura 5-60C. W okresach znacznych spadków temperatury na zewnątrz, dochodzi do wymarzania korytarza wejściowego, aż do wlotu do komory. W tym okresie powstają liczne nacieki lodowe w postaci stalaktytów, stalagmitów, kurtyn lodowych i polew. Jednocześnie następuje przemarzanie namuliska. Dochodzi do jego wybrzuszania i powstawania zaczątków gleb poligonalnych. W korytarzu w tym okresie, powietrze z zewnątrz jest zasysane do środka. Zauważono jednak, że pod samym stropem tunelu, wąską strużką wypływa cieplejsze powietrze na zewnątrz (co wykorzystują hibernujące tu nietoperze). Niestety systematyczne obserwacje mikroklimatyczne i hydrochemiczne musiały zostać przerwane ze względu na powtarzające się kradzieże i niszczenie sprzętu. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znana od dawna.     W swoim opisie K. Kowalski podaje że jaskinia była  już wymieniana w 1846 r przez autora ukrywającego się pod inicjałami X.O. Później wg Kowalskiego, obiekt pojawia się w opisach Jastrzębowskiego (1853), Gruszeckiego (1878), Przesmyckiego (1908 – pierwszy plan), Lencewicza  (1913), Fleszarowej-Danysz (1933) i Sosnowskiego (1949). W październiku 1997 r. jaskinia została zamknięta przez Zarządu Zespołu Jurajskich Parków Krajobrazowych woj. katowickiego. W wejściu wschodnim i środkowym wstawiono korki cementowe (pozostał prześwit) a wejście główne zamknięto kratą. Głównym celem zamknięcia jaskini była jej ochrona przed dalszą dewastacją. Poza tym zamknięcie miało chronić wykopy archeologiczne przed zniszczeniem a jednocześnie turystów przed wpadnięciem do wykopu. Oprócz tego w ten sposób mały zostać zabezpieczone punkty poboru wody oraz sprzęt pomiarowy do obserwacji klimatycznych. Niestety zamknięcie nie spełniło swego zadania i mimo usilnych starań nie dało się ograniczyć włamań do jaskini. W tym miejscu należy nadmienić, że Zegarowe Skały, znajdują się pod ochroną jako pomnik przyrody i w związku z tym jaskinia również jest obiektem prawnie chronionym. W chwili obecnej jaskinia jest praktycznie dostępna dla każdego kto ma ochotę przecisnąć się pomiędzy resztkami zamontowanych wcześniej krat.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    W 1951 roku K. Kowalski wykonuje pierwszy w miarę dokładny plan jaskini i opis, nadając jej numer inwentarzowy 386.  Ponowne pomiary jaskini zostały wykonane we wrześniu 1982 r. przez M. Szelerewicza, A. Tyrpę i E. Tyrpę. W 1986 r. ukazuje się jej plan i opis autorstwa M. Szelerewicza w „Jaskiniach Wyżyny Krakowsko-Wieluńskiej”. Nadano jej wtedy numer IV. C. 6. W lipcu 1990 r. Ł. Furdzik, S. Herod i M. Szelerewicz wykonują pomiary „nowych partii” i łączą Jaskinię Zegar ze Schroniskiem przy Jaskini Zegar - dochodzi do połączenia dwóch, opisywanych osobno obiektów (wg Kowalskiego nr inw. 386 i 387; wg Szelerewicza  i Górnego nr inw. IV.C.6  i  IV.C.7). W listopadzie 1991 pomiary w jaskini wykonali A. Polonius i S. Kornaś, a plan (jeszcze bez Schroniska przy Jaskini Zegar) i opis autorstwa A. Poloniusa został zamieszczony w dokumentacji wykonanej dla Zarządu Zespołu Jurajskich Parków Krajobrazowych woj. katowickiego. Opis i plan jaskiniznajduje się również w dokumentacji z roku 2000 wykonanej na zlecenie Ministerstwa Środowiska, jednak w tym opracowaniu znajduje się już uaktualniony plan autorstwa M. Szelerewicza. W 1998 roku pojawił się nowy plan autorstwa Mariusza Szelerewicza, który został wykorzystany w niniejszym opracowaniu. Dane zaktualizował A. Polonius (2009).<br />Plan opracował M. Szelerewicz.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kowalski K. 1951; Baranek W., Powichrowski L. 1975; Zinkow J. 1977 (wymienia); Otęska-Budzyn J. 1978 (wzmianka); Szelerewicz M., G&#243;rny A. 1986 (plan i opis); Marzec L., Mazurek K., Suchecki T. 1986 (wymieniają); Muzolf B. 1993b (omawia potencjalne wartości archeologiczne jaskini); Polonius A., Sławiński J., Tyc A. 1993 (wzmianka, plan); Polonius A. 1994 (wzmianka, lokalizacja); Bronisz S., Pucek K. J., Str&#243;żecki A. 1994 (wzmianka); Tyc A. 1994 (wzmianka); Kurek A. 1995 (wymienia, podaje wymiary); Czaja S., Zieliński T. 1996 (wymieniają); Bąk M. 1997c (wzmianka o pracach archeologicznych); Szelerewicz M. 1997 (informacja o zamknięciu jaskini); Gradziński M., G&#243;rny A., Pazdur A., Pazdur M.F. 1997 (wzmianka); Krawczyk W.E., Polonius A. 1998 (wzmianka o badaniach hydrochemicznych); Broda M. 1998 (wzmianka); Wiszniowska T. 1998 (informacja o pracach paleontologicznych w jaskini); Pazdur A., Goslar T., Gradziński M., Hercman H. 1999 (zmiany w środowisku krasowym na podstawie badań izotopowych); Cyrek K. 2009 (wyniki badań archeologicznych); Lewandowski J. 2009 (wzmiankuje, stanowiska archeologiczne); Madeyska T. 2009 (osady); Stefaniak K. i in. 2009a (fauna subfosylna); Stefaniak K. i in. 2009c (dane geologiczne paleozoologiczne i archeologiczne); Stefaniak K. i in. 2009d (błędne dane morfometryczne, kr&#243;tka charakterystyka, zakres badań); Tyc A. 2009b (w aspekcie ochrony przyrody); Jaskinie Wyżyny Częstochowskiej 2011c  (plan i opis inwentarzowy). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Polonius A. i in. 1991;  Muzolf B., Wiszniowska T. 1997 (omawiają wyniki badań archeologicznych i paleontologicznych); Polonius A. i in. 2000 (dokumentacja); Polonius A. 2003 (opisuje morfologię i genezę jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2161)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=650" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

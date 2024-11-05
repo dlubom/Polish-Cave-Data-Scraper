@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F12267">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 12267;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "553020,90".replace(',', '.') + "," + "256900,30".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('12267','Jaskinia Bezsenna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Bezsenna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-07.112
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;44′34,00″, φ: 50&#176;10′37,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku g&#243;rze, wys. 378 m n.p.m.;  3 - ku SE, wys. 376 m n.p.m.; 4 - ku g&#243;rze, wys. 376 m n.p.m.; 5 - ku W, wys. 374 m n.p.m.; 6 - ku NW, wys. 375 m n.p.m.; 7 - ku g&#243;rze, wys. 377 m n.p.m
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                372
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                11
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                11
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    130
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Łazy, Dolina Będkowska, boczna dolinka za Dupą Słonia, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Idąc od schroniska „Brandysówka” w górę doliny, po 300 m dochodzimy do skałki Iglica. Po lewej stronie potok z wodospadem Szum i grupa skał Zamczysko z Będkowską Basztą, potocznie zwaną Dupą Słonia. Idziemy przez dużą łąkę obchodząc grupę skał, mijamy Turnię Lipczyńskiego idąc w kierunku NWW, do ujścia zalesionego wąwozu, którego dnem prowadzi ścieżka do Łaz. Po 90 m dochodzimy do pierwszej skałki po prawej stronie, w której jest widoczny z daleka otwór I Jaskini Bezsennej.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini znajduje się u podstawy 10-metrowej wysokości skałki. Jest sztucznie odsłonięty. Ma wysokość 1,5 m i szerokość 1 m. Początkowo była to niewielka szczelina o wysokości 20 cm, z wydobywającym się z niej latem niezwykle silnym wywiewem chłodnego powietrza. Za otworem w kierunku NE 7-metrowej długości korytarz o dnie skalnym, osiągający w głębi 1,8 m wysokości i 2 m szerokości. W połowie jego długości i na odcinku 2 m w dnie znajduje się rynna denna o głębokości do 0,8 m i szerokości 0,5 m oraz rynny boczne w ścianach na wysokości 0,8 m. Korytarz doprowadza do rozszerzenia i skręca w lewo, na W tworząc Salkę z Brodami. W jego przedłużeniu ku NE, w dnie ciasna, 2-metrowa rura skalna zablokowana osadami, a w kierunku SE 2-metrowy ślepy korytarz. Salka z Brodami o długości 4 m i szerokości 1 m osiąga wysokość 5 m w kominie zablokowanym dużymi głazami. Ściany w salce pokryte są białym, częściowo skonsolidowanym mlekiem wapiennym i dużą ilością włosowatych korzeni, tworzących oryginalne nawisy. Docierają tutaj r&oacute;wnież grube korzenie drzew. Jaskinia kontynuuje się w kierunku NNW 5-metrowym korytarzem o szerokości od 0,8 do 1,7 m i wysokości do 0,6 m o dnie z humusowo-ilastymi osadami z gruzem wapiennym. Korytarz zakończony niewielką salką o wymiarach 2x2 i wysokości 1,5 m zmienia kierunek na W. Początek korytarza to syfonalne obniżenie, w dnie kt&oacute;rego są ilaste osady ze żwirami kwarcowymi i krzemiennymi. Dalej w kierunku NW korytarz jest obszerny &ndash; do 2 m szerokości &ndash; lecz niski (do 0,6 m), silnie zapełniony osadami. Po 11 m początkowo poziomy korytarz przechodzi w 3-metrową stromą, niską (do 0,3 m) pochylnię o skalnym dnie, wyprowadzającą do Salki Bajorka. Salka ma wymiary 3x2 m i wysokość 2 m. Odchodzą z niej korytarze w 4 kierunkach. Dno jest początkowo pokryte humusowymi osadami z dużą ilością świeżych borsuczych latryn z odsłoniętymi ilastymi osadami. Kontynuacją korytarza od otworu I jest początkowo niski (zacisk Z I), w przekroju ukośny korytarz o częściowo skalnym dnie o szerokości do 1,8 m. Dalej korytarz łączy się studzienkami z Labiryntem i wyprowadza z jaskini w otworze VI. Z Salki Bajorka w kierunku NE prowadzi stroma 10-metrowa pochylnia ze skalnymi prożkami i kominkami w stropie w stropie; na ściankach kotły wirowe i polewy naciekowe. W najwyższym miejscu spąg znajduje się 11 m nad poziomem otworu I i tutaj dno opada 0,5 m prożkiem, a korytarz kontynuuje się w głąb masywu, lecz zapełniony jest ilastymi osadami. Z salki w kierunku SW pochylnia kontynuuje się 4-metrowym korytarzem, osiągającym 1,5 m wysokości, doprowadzającym do komina 5 m wysokości (Studnia Wojtka), w kt&oacute;rym 3 m nad dnem znajduje się II otw&oacute;r jaskini. W korytarzu po 2 m w kierunku NW odchodzi kolejny, po 3 m sprowadzający 1 m studnią do Labiryntu do niskiego korytarza, gdzie w dnie są osady piaszczysto-żwirowe. Korytarz w kierunku otwor&oacute;w VI-VII po 7 metrach doprowadza do 3,5 m studni (okno w lewej ścianie) sprowadzającej na dno Salki w Labiryncie. Metr dalej w korytarzu 0,5 m skalny prożek, a pod nim szczelinowa studnia (2,3 m) do Salki w Labiryncie, a w kierunku NW widoczne światło w otworze VII (aktualnie nie do przejścia). Kolejne 3,5 m korytarza o skalnym dnie wyprowadza w VI otworze jaskini, w połowie jego długości w dnie studzienka 2,3 m do dolnego korytarza. Wejście do niej jest ciasne, niemożliwe do przejścia. Otw&oacute;r VI o częściowo skalnym dnie ma 1,5 m szerokości i 1 m wysokości. Otw&oacute;r VII znajduje się 3 metry na NW od otworu VI, jest to studzienka o głębokości 5 m, a za nią ciasny korytarz aktualnie niemożliwy do przejścia. Ściany w otworze wygładzone przez pokolenia borsuk&oacute;w przechodzących tędy. Zimą z otworu wydobywa się strumień ciepłego powietrza. W odległości 3 m na SW od otworu VI znajduje się otw&oacute;r V o 2,7 m szerokości i 1,3 m wysokości. W dnie osady humusowe z gruzem wapiennym. Z otworu po prawej stronie w kierunku SE odchodzi 2 metrowy korytarz o dnie zasłanym gruzem wapiennym, w kierunku E od otworu odchodzi obszerny korytarz po 2 m rozgałęziający się, w prawo na SE 3 metrowy, stromy korytarz na szczelinie wyprowadza w IV otworze. Obok II otworu, za kt&oacute;rym 3 m ciasny (Z I) korytarz doprowadza do 1,5 m progu W Salce w Labiryncie. Od rozgałęzienia korytarz z V otworu w lewo schodzi w d&oacute;ł i następnie poziomy o charakterze rury po 2 m doprowadza do Salki w Labiryncie przy jej dnie.<br />Salka o wymiarach 1,5x2 m i wysokości 5,5 m w kominie. W ścianach Salki kuliste wżery i kotły wirowe. Dno częściowo skalne lub z osadami ilastymi z gruzem wapiennym. W SW ścianie na wysokości 1,5 m wejście do ciasnego 3 m korytarza do III otworu. Z dna Salki w kierunku SSE niski (do 0,4 m) korytarz szerokości 1 m o skalnym dnie, po 2 m doprowadza do kominka metrowej wysokości, za kt&oacute;rym korytarz doprowadza do Salki Bajorka i II otworu.</p>
+<p>Jaskinia o krasowej genezie powstała w wapieniach gruboławicowych g&oacute;rnej jury. Wapienie te tworzą rozległe budowle węglanowe w okolicy i rozwinięte w nich zjawiska krasowe mają między innymi związek z poziomymi powierzchniami nieciągłości.<br />W sąsiednich skałkach Turni Lipczyńskiej i Dupie Słonia, na powierzchni, kt&oacute;ra odpowiada tej z Jaskinią Bezsenną są anastomatyczne rozmycia (Krajewski 2000). Formy erozyjne w jaskini świadczą o jej rozwoju w strefie freatycznej i wadycznej. Ciąg gł&oacute;wny jaskini pomiędzy I i VI otworem, czyli poziomy i częściowo nachylony korytarz to anastomatyczne rozmycie pomiędzy ławicami, z kotłami wirowymi i kulistymi wnękami. Był on modelowany przez swobodnie płynącą wodę, czego pozostałością jest rynna denna w korytarzu przy I otworze. Korytarze odchodzące z Salki Bajorka ku NE i SW mają charakter freatycznej rury z licznymi i drobnymi kulistymi zagłębieniami. R&oacute;wnież korytarze rozwinięte piętrowo w Labiryncie to częściowo rury i anastomatozy połączone pionowymi odcinkami mającymi związek z tektoniką. Większość korytarzy w czasie eksploracji była niska, przechodnia dla borsuk&oacute;w i stąd strop i częściowo ściany w prawie całej jaskini są przez nie wygładzone (!)</p>
+<p>Szata naciekowa w jaskini jest uboga. W Salce z Brodami znajduje się większe nagromadzenie polew z białego, częściowo skonsolidowanego mleka wapiennego, występuje ono r&oacute;wnież w wielu miejscach nie tworząc większych nagromadzeń. Niewielkie stalaktyty i brązowe kilkucentymetrowej grubości polewy naciekowe znajdują się w stromym korytarzu ku NE od Salki Bajorka.</p>
+<p>Osady namuliska są r&oacute;żnorodne, wypełniały początkowo większość przekroju korytarzy. Warstwę zewnętrzną tworzyły w prawie całej jaskini osady humusowe, liście i zmielona przez borsuki materia organiczna, tworząc miejscami warstwę metrowej miąższości. W całej jaskini znajdowaliśmy dużą ilość przedmiot&oacute;w takich jak buty, lalki, podkowę i dużą ilość plastikowych pojemnik&oacute;w, a szczeg&oacute;lnie &ndash; widocznie ulubionego przez borsuki &ndash; jogurtu (kilkadziesiąt sztuk). W opisywanych osadach znajduje się r&oacute;wnież sporo gruzu wapiennego, dużych głaz&oacute;w i żwiry kwarcowe oraz krzemienne, doskonale obtoczone. Niżej leżą ilaste osady ze żwirami kwarcowo-krzemiennymi, rzadziej z otoczakami r&oacute;żowego kwarcytu. Są one odsłonięte w dnie korytarza 6 m za Salą z Brodami, w obniżeniu syfonalnym na zakręcie. W niskim korytarzu w Labiryncie, przy studzience łączącej go z korytarzem do Sali Bajorka i II otworu, widoczny jest profil osad&oacute;w piaszczystych ze żwirami kwarcowymi. W dnie pochylni odchodzącej z Salki Bajorka w g&oacute;rę, brązowe, tłuste osady z gruzem wapiennym.</p>
+<p>Jaskinia ma mikroklimat dynamiczny. W jej wnętrzu, we wszystkich korytarzach występują silne przepływy powietrza. Związane to jest z dużą ilością otwor&oacute;w. Jedynie w stromej pochylni w g&oacute;rę od Salki Bajorka utrzymuje się stabilny mikroklimat ze stałą temperaturą ok. 8OC. W pozostałych korytarzach, w zależności od temperatury na zewnątrz, panują silne przewiewy. Zimą z otworu II i VII wydobywa się prąd ciepłego powietrza, pozostałe otwory zasysają zimne powietrze wymrażając częściowo jaskinię. W dniu 7 grudnia 2017 roku przy temperaturze -21OC wymrożona była Salka z Brodami i 5 m korytarz za nią, biegnący w głąb jaskini. Latem przy wysokich temperaturach z otworu I wydobywa się niezwykle silny strumień zimnego powietrza wyczuwalny na ścieżce pod otworem.<br />Jaskinia stosunkowo sucha, duża wilgotność panuje jedynie w pochylni w g&oacute;rę od Salki Bajorka.</p>
+<p>W jaskini występują pajęczaki m.in. <em>Meta menardi</em>, komary, ćmy i motyle &ndash; licznie paśnik jaskiniowiec <em>Triphosa dubitata</em>. Obserwowano kilkakrotnie jednego przemieszczającego się podkowca małego (obrączkowanego) <em>Rhinolophus hipposideros</em>. W styczniu 2017 r. stwierdzono mopka <em>Barbastella barbastellus</em>. Jaskinia od dawna była zamieszkiwana przez borsuki, ślady ich pobytu widoczne w całej jaskini; podczas eksploracji szczeg&oacute;lnie we znaki dawały się ich świeże latryny.</p>
+<p>Brak przedstawicieli flory.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otwory jaskini znane były miejscowej ludności od dawna. W częściowo zasypanych otworach znaleźliśmy linki stalowe i wnyki na borsuki, na kt&oacute;re polowano tutaj od dawna. Do momentu eksploracji nie wymieniana w literaturze.<br />Pierwszego świadomego odkrycia dokonał Jakub Bajorek, kt&oacute;ry w lecie przewidział istnienie sporej jaskini, sugerując się znacznym wywiewem zimnego powietrza z niewielkiego otworu I pod skałką. W dniu 17.09.2016 r. rozpoczęliśmy odsłanianie otworu, udało się wtedy zajrzeć 1 m do środka (Jakub Bajorek, Andrzej G&oacute;rny, Anna Kaznowska i Paweł Sojka), a w dniu 28.09 Andrzej G&oacute;rny i Andrzej Tyrpa po przekopaniu ciasnoty w wejściu, weszli do Salki z Brodami. Potem kolejne 14 wyjazd&oacute;w przynosiły nowe odkrycia, posuwaliśmy się każdorazowo o około 10 m. Korytarz cały czas miał prześwit, przeszkadzały tylko hałdy humusu ze śmieciami i latrynami borsuczymi. Niekt&oacute;re przejścia musieliśmy poszerzać lub usuwać duże głazy. Jaskinia zapewne jeszcze się nie skończyła.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary wykonał: A. G&oacute;rny i T. Siwecki.<br />Plan opracował Andrzej G&oacute;rny i T. Siwecki</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Krajewski M., 2000 (omawia budowę geologiczną i morfologię skał z jaskinią), G&#243;rny A., 2016 (plan i pełny opis jaskini)
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej G&#243;rny, Tomasz Siwecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15003)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otwory 4-7
+                    </a>
+                    <a onclick="showImageInfo(15001)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(15002)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 2
+                    </a>
+                    <a onclick="showImageInfo(15004)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10948">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10948;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "558237,46".replace(',', '.') + "," + "254070,67".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10948','Jaskinia Wielkowiejska'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Wielkowiejska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia nad Krawusiem, Schronisko Wielkowiejskie, Jaskinia Wielkowiejska, Korytarzyk do Wielkowiejskiej.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-04.15
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′55,50″, φ: 50&#176;09′03,60″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wielka Wieś (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 i 3 - ku NW.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                325
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                45
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                8,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                7,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                16,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    65
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Gacki, Dolina Kluczwody.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z Gacków idziemy dnem doliny ku NE. Na końcu asfaltu droga przechodzi na drugą stronę rzeki. Za mostkiem odchodzi droga wznosząca się do wąwozu przed Leśną Basztą. Z niej trawersujemy zbocze z powrotem w stronę wylotu doliny, ku prostopadle opadającej ściance skalnej z widocznym w jej dolnym końcu otworem Tuneliku przy Wielkowiejskiej J.Olk.I-04.16. Po jego minięciu, około 50 m dalej dochodzimy w pobliże hałdy namuliska wybranego z leżącej kilka metrów wyżej Jaskini Wielkowiejskiej, której otwór mimo iż duży, jest widoczny dopiero z tarasu przed nią.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obszerny i wysoki na 7 m otw&oacute;r prowadzi do gł&oacute;wnego korytarza rozwiniętego na styku skrzyżowaniu się dw&oacute;ch pęknięć: pionowego o przebiegu NW-SE, oraz zapadającej w głąb masywu granicy międzyławicowej, na kt&oacute;rej rozwinięte są najszersze partie jaskini: przy otworze (pochyła skalna p&oacute;łka po lewej stronie otworu), oraz odchodzące kilka metr&oacute;w dalej, u podn&oacute;ża prawej (SW) ściany (za G&oacute;rnym i Nowakiem 2015) <em>&bdquo; Korytarz środkowy miał prześwit z widoczną kontynuacją, lecz był wypełniony osadami starych latryn borsuk&oacute;w. Po ich usunięciu została osiągnięta niewielka salka z możliwością na dalszą eksplorację jaskini w kierunku SE.&rdquo;</em><br />Wracając do gł&oacute;wnego korytarza jaskini, po minięciu ww. wejść do niskich korytarzy udajemy się kilkumetrowej wysokości szczeliną ku SE, by na szczycie pochylni przejść w 4-metrowy pr&oacute;g. Nad nim znajduje się salka wysoka na ok. 4 m, kończąca ciąg ścianą litego gliniastego namuliska spajającego rumosz skalny. Wg G&oacute;rnego i Nowaka (2015) <em>&bdquo;Korytarz pod Progiem był całkowicie zapełniony lessowymi osadami, w kt&oacute;rych tkwiły duże wapienne bloki i znaczna ilość naciek&oacute;w odspojonch od skały przez zamr&oacute;z. Nacieki to masywne polewy, stalaktyty i stalagmity, często o masie kilkudziesięciu kilogram&oacute;w, wszystkie tkwiące w r&oacute;żnych pozycjach w drobnolaminowanych osadach lessowych. W spągowej części osad&oacute;w uwagę zwraca warstewka (ok. 10 cm) żwir&oacute;w z krzemieniami i lidytem. Korytarz początkowo poziomy, po 4 m kontynuuje się w d&oacute;ł progami do głębokości 5,9 m, gdzie zacieśnia się bez większych szans na kontynuację.&rdquo;</em><br />Wracamy do otworu. W jego zachodniej ścianie, za odspojonym blokiem skalnym wysokim na około 2 m znajduje się pr&oacute;g z otworem do bocznych partii jaskini. Zaraz za przejściem z ładnie mytą rynną zar&oacute;wno w spągu jak i w stropie wchodzimy do salki około metrowej wysokości. W jej wschodniej ścianie odchodzi niedostępne dla człowieka połączenie z niższymi ww. korytarzami na rozmyciu międzyławicowym. W kierunku południowym opada niski korytarz dochodzący do rozwidlenia, a ku NW otwiera się drugi otw&oacute;r jaskini, znajdujący się na p&oacute;łce opadającej ku NW kilkumetrowym progiem. Z p&oacute;łki tej odchodzi ku S kolejny korytarz, opadający pochylnią (z kominkiem ku powierzchni w zachodniej ścianie zaraz za otworem), kt&oacute;ra po paru metrach się rozdziela.<br />Na wprost kontynuuje się coraz ciaśniejszy korytarzyk z kominkiem we wstępnej części, (za: G&oacute;rny i Nowak 2015)<em> &bdquo;... po przekopaniu zwężenia na odcinku 2 m odkryto Partie Ani, początkowo wypełnione warstwą osad&oacute;w (do 1 m) z borsuczych latryn. Po ich usunięciu osiągnięto III otw&oacute;r jaskini w znanej szczelinie. Wcześniej otw&oacute;r ten był eksplorowany przez J. Nowaka i Michała Pawlikowskiego i zinwentaryzowany przez Norberta Sznobera jako Korytarzyk do Wielkowiejskiej J.Olk.I-04.16</em><em>. W przeciwnym kierunku ciąg ten kończy się metrową studzienką ze zbitymi osadami na dnie.&rdquo;</em><br />Ku E osiągamy rozwidlenie dostępne z wcześniej opisanej, r&oacute;wnoległej i ciaśniejszej pochylni z salki przy g&oacute;rnym otworze. Zaraz za rozwidleniem korytarz skręca ku SSE i wznosi się stromą pochylnią o skalnym spągu, kończąc ślepo tą część jaskini.<br />Jaskinia o krasowej genezie powstała w wapieniach skalistych g&oacute;rnej jury (oksford). Nacieki występują w postaci niewielkich stalagmit&oacute;w i stalaktyt&oacute;w, polew, grzybk&oacute;w, oraz mleka wapiennego. Spąg w sporej części skalny, w głębszej części r&oacute;wnież gliniasty z rumoszem wapiennym. W otworach gleba i humus z rumoszem. W paru miejscach przebijają się korzenie drzew. Namulisko w większości przekopane.<br />Odbite światło sięga większej części jaskinie, jedynie niskie i ciaśniejsze partie pozostają ciemne. Jaskinia sucha i przewiewna, wilgoć utrzymuje się w najgłębszych partiach zachodniej części.<br />W rejonie otworu wegetują glony, mchy i porosty, zanokcica skalna i murowa.<br />Z fauny stwierdzono pająki (w tym Meta sp.), much&oacute;wki, skoczogonki, wije, chruściki, motyle (Scoliopteryx libatrix, Triphosa dubitata, Inachis io), ślimaki i chrząszcze. Ślady bytności lis&oacute;w i borsuk&oacute;w. G&oacute;rny i Nowak (2015 podają iż &bdquo;W 2015 r. opr&oacute;cz nietoperzy, w jaskini obserwowano puszczyka (Strix aluco), kt&oacute;ry wykorzystuje ja jako dzienne schronienie, aż do komina w gł&oacute;wnej szczelinie.&rdquo;</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wg Kowalskiego (1951):&nbsp;<em>W pracy Berezowskiego (1909) o koniach kopalnych znajdujemy opis szczątk&oacute;w wykopanych przez Ossowskiego w Jaskini Wielkowiejskiej.</em> "<em>W Muzeum Archeologicznym P.A.U. znajdują się pod nr inw. 5608&mdash;5613 zabytki podpisane ręką Ossowskiego ,,Z Jaskini Wielkowiejskiej w wąwozie Żelkowskim&ldquo;. Są to krzemienie neolityczne, trochę skorup, kości i r&oacute;g renifera ze śladami cięcia." </em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Po raz pierwszy była wymieniana przez Ossowskiego (1884), kt&oacute;ry w p&oacute;źniejszych latach prowadził w niej wykopaliska. Potem wymienia ją Czarnowski (1911) i Danysz-Fleszarowa (1933). Wr&oacute;blewski (1907) mylnie umiejscowią je w dolinie Prądnika. Wg Kowalskiego (1951): "<em>Czarnowski pisze, że jaskinia nie była badana i że on dopiero ją odnalazł</em><em>."</em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W 1946 została zinwentaryzowana z długością 22 m przez Kowalskiego (1951). Następnie inwentaryzuje ją z długością 25 m Czepiel (1976). 17 grudnia 1996 P. Ostrowski i M. Mr&oacute;z odkrywają niski korytarz ku SW (odchodzący przed progiem w gł&oacute;wnym ciągu i kończący się zakrętem w lewo), oraz korytarz ku S odchodzący z salki przy g&oacute;rnym otworze - do końca ślepej, wznoszącej się pochylni, co dało długość 43 m (Ostrowski 1997).<br />Wg G&oacute;rnego i Nowaka (2015): &bdquo;<em>W okresie od 17 czerwca do 12 września 2015 roku grupa &bdquo;emerytowanych&rdquo; grotołaz&oacute;w i młodych pasjonat&oacute;w prowadziła prace eksploracyjne w Jaskini Wielkowiejskiej. W tym czasie miało miejsce 20 akcji, w kt&oacute;rych udział wzięli: J. Bajorek, A.j G&oacute;rny, W. Goroch, A. Kazanowska, H. Kurdiukow, A. Kurek, T. Siwecki, P. Sojka i A. Tyrpa. Wynikiem prowadzonych prac było odkrycie 34 m nowych korytarzy w trzech ciągach jaskini, co razem daje 97 m długości i 12,2 m deniwelacji (16,2 m z kominem). Prace prowadzono r&oacute;wnolegle w Korytarzu pod Progiem, Korytarzu Środkowym i korytarzu zachodnim (Partie Ani).</em>&rdquo;<br />Plan wg J. Nowaka.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                     Czarnowski S.J. 1899 (wzmianka); Ossowski S.J. 1884b (wzmianka); Wr&#243;blewski K. 1907 (mylnie podaje ją dla doliny Prądnika); Berezowski 1909 (opis kości stopy konia); Czarnowski S.J. 1911e (wzmianka); Danysz-Fleszarowa R. 1933 (wymienia); Kowalski K. 1951 (inwentarzowy opis jaskini poz. 66, „Schronisko (Jaskinia) Wielkowiejska (nad Krawusiem)”, plan); Czepiel M. 1976 (inwentarzowy opis jaskini poz. II B – 1. Jaskinia Wielkowiejska, plan); Szelerewicz M., G&#243;rny A. 1986 (w pełnym wykazie jaskiń i schronisk Wyżyny Krakowsko-Wieluńskiej, poz. II.C.6); Ostrowski P. 1997b (opis odkrytych partii, plan całej jaskini); Ostrowski P. 1997c (przedruk w/w); G&#243;rny A., Nowak J. 2015 (aktualizacja planu, opis nowo odkrytych partii, informacja o połączeniu z Tunelikiem ku Wielkowiejskiej J.Olk.I-04.16); Jaskinie Wyżyny Olkuskiej 2018a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Norbert Sznober
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12895)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r gł&#243;wny
+                    </a>
+                    <a onclick="showImageInfo(12770)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

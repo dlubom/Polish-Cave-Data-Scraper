@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1187">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1187;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565083,82".replace(',', '.') + "," + "153450,45".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1187','Jaskinia Miętusia Wyżnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Miętusia Wyżnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-10.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;53′40,17″, φ: 49&#176;14′42,35″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1393
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                108
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                37
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                145
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    810
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                185
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, w lewym orograficznie stoku Małej Świst&#243;wki. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Droga dojścia wiedzie dnem Doliny Miętusiej, starą ścieżką biegnącą lewą (orograficznie) stroną Wantul. Podchodzimy nią do żlebu opadającego z kotła Małej Świstówki i dalej starą percią do kotła. Po osiągnięciu jego krawędzi podchodzimy w prawo przez kosówki na trawiaste zbocze i trawersujemy kilkadziesiąt metrów u podnóża skałek pod widoczny w ścianie otwór (III).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r o wymiarach 5x2 m przedzielony w lewej części filarem skalnym znajduje się w ścianie około 4,5 m od jej podn&oacute;ża (III+). Dojście łatwe (poza prożkiem III+), zwiedzanie jaskini uciążliwe ze względu na liczne zaciski i ciasne korytarze, wymaga użycia sprzętu wspinaczkowego.</span></p>
+<p><span>Z komory przy otworze ciasnym przełazem w d&oacute;ł przedostajemy się do prostopadłego korytarza biegnącego w lewo (or.). Po kilku metrach korytarz skręca w prawo. Tu w lewo do tyłu odchodzi ciasny korytarzyk wracający do komory przy otworze. Dalej korytarz prowadzi ku N, następnie skręca w lewo (or.) i po 2 m znowu w prawo, wyraźnie się zwężając. Po około 20 m dochodzimy do małego prożka opadającego w d&oacute;ł, na kt&oacute;rym korytarz rozwidla się. W lewo, poprzez 1,5-metrowy prożek, biegnie ku zachodowi ciasny, rurowy korytarzyk (Mylna Rura) łączący się po ponad 20 m z gł&oacute;wnym ciągiem. </span></p>
+<p><span>Na wprost gł&oacute;wny ciąg prowadzi przez dwa kolejne progi w g&oacute;rę (1,5 i 3,0 m) ponad ciasną studzienką w dnie korytarza między progami. Idąc ciągle pod g&oacute;rę przechodzimy zakręt w prawo i w lewo (or.). Korytarz jest tu rozmyty na dw&oacute;ch poziomach, tworząc charakterystyczne, ciemne rury. Około 8 m dalej mijamy otwierającą się pod lewą (or.) ścianą ciasną studnię (6,5 m głębokości), a następnie otw&oacute;r studni 7 m głębokiej. Po dalszych 6 m dochodzimy do komory zwanej Salą Matki Boskiej.</span></p>
+<p><span>Sala Matki Boskiej stanowi system prog&oacute;w opadających w d&oacute;ł o łącznej deniwelacji około 12 m.&nbsp;W g&oacute;rnej części dochodzi do niej opisana uprzednio Mylna Rura, a w jej SE skraju otwiera się stromo nachylony komin (III-IV) wyklinowujący się ok. 34 m wyżej.</span></p>
+<p><span>Poniżej Sali Matki Boskiej w prawo odchodzi opadający w d&oacute;ł szczelinowy korytarzyk, gł&oacute;wny ciąg biegnie początkowo na wprost ku W, a następnie skręca w prawo i opada w d&oacute;ł (głębokość &ndash;18,1 m w stosunku do otworu). Dalej korytarz lekko się wznosi i po ok. 10 m skręca ku W. Szczelinowy, dość obszerny korytarz biegnie lekkim łukiem w lewo, a następnie skręca pod ostrym kątem w prawo. Tuż za zakrętem, w lewej ścianie otwiera się 4 m kominek. Nieco dalej korytarz ponownie skręca w lewo. Za zakrętem odchodzi w prawo ciasna szczelina. Korytarz skręca łagodnie w prawo i lekko opada doprowadzając do rozwidlenia. Gł&oacute;wny ciąg biegnie prosto ku W, natomiast w lewo, ku S odchodzi korytarz przechodzący po 12 m w studnie, sprowadzające około 30 m niżej.</span></p>
+<p><span>Kilka metr&oacute;w dalej, w prawej ścianie, otwiera się szczelinowy korytarzyk o długości prawie 20 m.&nbsp;Prowadzący dalej ku W korytarz gł&oacute;wny ciągu podnosi się stromo do g&oacute;ry i rozszerza się w niewielką kom&oacute;rkę. Ku zachodowi opada zablokowana rumoszem ciasna szczelina, natomiast dalsza droga prowadzi przez skalną barierę o wysokości 2,5 m ku SW. Niski, szczelinowy korytarz nieco opada i skręcając lekko w prawo doprowadza po kilkudziesięciu metrach do niewielkiego rozszerzenie. Tu rozszerza się on i zmienia charakter. Ma kształt rury, w stropie widoczne są wymyte przez wodę belemnity (Rura). Korytarz wznosi się ku zachodowi. Kilka metr&oacute;w za zakrętem w lewej (or.) ścianie otwiera się otw&oacute;r Studni Nad Syfonami. W tym miejscu gł&oacute;wny ciąg rozwidla się.</span></p>
+<p><span>Studnia Nad Syfonami poprzez dwa progi o łącznej wysokości ok. 10 m sprowadza nad mały, błotny syfonik, przez kt&oacute;ry można przejść na bezdechu. Za nim korytarz opada 4-metrowym progiem, za kt&oacute;rym w obniżeniu korytarza blokuje dostęp następny, mały syfon &ndash; Syfonik Paszczaka. Pokonujemy go na bezdechu (ciasno) i przedostajemy się do niskiego, lekko nachylonego korytarzyka, kt&oacute;rym po ok. 8 m dochodzimy do prożka ok. 1,5 m wysokości. Poniżej niego schodzimy I i II Pochylnią do syfoniku Salome. Dalej poprzez kruchy korytarzyk dochodzimy nad I studnię. Trawersując nad Studnią osiągamy zawaliskową platformę, za kt&oacute;rą 5-metrowy pionowy pr&oacute;g sprowadza nad następny, stromy pr&oacute;g o wysokości 8 m. Poniżej schodzimy po zawalisku w d&oacute;ł aż do miejsca, gdzie głazy blokują prześwit korytarza.</span></p>
+<p><span>Wracamy nad Studnię. Zjeżdżamy nią 30 m na pokrytą rumoszem platformę i z niej następne 13 m w d&oacute;ł II Studnią. stąd korytarz opada stromo do piaszczystego zagłębienia. Stąd prowadzi w g&oacute;rę ciasny przekop w zawalisku, ostatecznie blokującym drogę po ok. 4 m. </span></p>
+<p><span>Wracamy do rozwidlenia ciąg&oacute;w nad Studnią Nad Syfonami. Korytarz biegnie prosto ku SWW, dno jest pokryte mułem.&nbsp;Pod ścianą rozlewa się niewielkie jeziorko. Po skręcie w lewo korytarz podnosi się, a następnie skręca w prawo. Po ok. 40 m dochodzimy do zamulenia, zamykającego dalszą drogę.</span></p>
+<p><span>Jaskinia utworzyła się w utworach wapiennych triasu środkowego i malmu serii wierchowej fałdu Czerwonych Wierch&oacute;w, w obrębie antykliny Upłazu Miętusiego (Grodzicki 1978) &ndash; podrzędnego elementu tektonicznego jednostki Organ&oacute;w. Założenia tektoniczne korytarzy są bardzo wyraźne, liczne korytarze szczelinowe są tylko nieznacznie zmodyfikowane oddziaływaniem w&oacute;d przepływających pod ciśnieniem (Grodzicki 1969,1970). Wszyscy autorzy badający jaskinie tatrzańskie są zgodni co do trzeciorzędowego wieku Jaskini Miętusiej Wyżniej &ndash; J. Rudnicki (1958,1967), Z. W&oacute;jcik (1966a, 1968), J. Grodzicki (1969, 1970, 1978a). Występują w niej liczne, wsp&oacute;łczesne przesunięcia na szczelinach tworzących korytarze (W&oacute;jcik, Zwoliński &ndash; 1959, Grodzicki &ndash; 1969, 1970, 1979a) . Widoczny jest też kontakt tektoniczny wapieni malmu (bajos) z utworami triasu środkowego. Wzdłuż tego kontaktu rozwinęła się większość korytarzy jaskini &ndash; cały dolny ciąg oraz gł&oacute;wny od Sali Matki Boskiej do Studni Nad Syfonami. Na kontakcie woda w kilku miejscach wypreparowała ze skały belemnity (w Rurze oraz I Studni). </span></p>
+<p><span>Osady mulisto-ilaste występują w końcowym odcinku gł&oacute;wnego ciągu (Za Studnią Nad Syfonami). Dominują w całej jaskini zawaliska i gruz wapienny. Osady badał Z. W&oacute;jcik (1966a). Podaje on, że dominującym osadem są zwietrzałe mułowce, kt&oacute;re niekiedy przybierają charakter cementacyjnych konkrecji. Ponadto pospolity jest tu gruz wapienny oraz rezydualne iły zmieszane z mułem i piaskiem. </span></p>
+<p><span>Światło sięga do obniżenia w komorze przy otworze. Jaskinia jest wilgotna, woda kapie ze szczelin w stropie. Występują małe jeziorka, gł&oacute;wnie jako błotniste syfony w dolnym ciągu. Strefa wymarzania sięga aż do Sali Matki Boskiej. Wyczuwa się silny przewiew między otworem a 34-metrowym kominem.&nbsp;K. Kowalski (1953a) podaje, że temperatura mierzona 30 czerwca 1950 r. wynosiła w tej sali +3&deg;C, a przy końcu jaskini +3,7&deg;C w powietrzu, a +3,5&deg;C w wodzie.</span></p>
+<p><span>W przyotworowej komorze występują nieliczne rośliny kwiatowe oraz mchy i porosty. T. Bielska wymienia następujące gatunki roślin zebranych 12 lipca 1980 r.: </span></p>
+<p><span>kwiatowe &ndash; <strong><em>Leontopodium alpinum</em> </strong>Cass.,<strong><em>Primula auricula</em></strong> L.,<strong> <em>Festuca versicolor </em></strong>Tausch.,<strong> <em>Trisetum alpestre </em></strong>P.B.; </span></p>
+<p><span>paproć &ndash; <strong><em>Cystopteris fragilis</em></strong>Bernh. </span></p>
+<p><span>mszaki &ndash; <strong><em>Eurhynchium swartzii </em></strong>Hobkirk, <strong><em>Encalypta contorta </em></strong>Lindb., <strong><em>Cratoncurum filicinum</em></strong> Roth., <strong><em>Bryum ventricosum </em></strong>Dicks., <strong><em>Distichium Montanum </em></strong>Hag., <strong><em>Marchantia</em></strong> <strong><em>polymorpha </em></strong>L., <strong><em>Tortula montana </em></strong>Lindb.,<strong> <em>Barbula rigidula </em></strong>Mitt. (syn.<em> <strong>Didymodon rigidulus</strong></em>).</span></p>
+<p><span>W korytarzach za otworem skupia się bogaty zesp&oacute;ł trogloksen&oacute;w. Kowalski (1955a) wymienia troglofila <strong><em>Onychiurus armatus </em></strong>(Tullberg). Faunę nietoperzy i innych ssak&oacute;w zbadał K. Kowalski (1953a,c,1955a) oraz A. Skalski (1970). W namuliskach i zawalisku występują liczne kości nietoperzy, gryzoni i kuny. W końcowym korytarzu i w pobliżu otworu znaleziono całe szkielety kuny (<strong><em>Martes martes</em>), </strong>a w kominach czaszkę łasicy (<strong><em>Mustela nivalis</em></strong> &ndash; Kowalski 1953a). A. Skalski (1970) wymienia następujące gatunki: <strong><em>Myotis mystacinus, Myotis bechsteinii, Myotis</em></strong><em> <strong>myotis</strong>, <strong>Myotis nattereri, Myotis dasycneme, Myotis daubentonii, Plecotus auritus, Barbastella barbastellus, Eptesius nilssonii, Talpa europaea, Sorex alpinus, Pitymus tatricus, Sicista betulina</strong></em><strong>. </strong></span></p>
+<p><span>Piksa i Wołoszyn (2001) &ndash; </span><strong><em>Myotis myotis</em></strong>, <strong><em>Myotis bechsteinii,</em></strong><strong><em><span> Myotis nattereri</span></em></strong>, <strong><em>Myotis mystacinus</em></strong><span> /Leisler/,<strong><em> Myotis brandtii,</em></strong></span><strong><em> Myotis dasycneme,</em></strong><strong><em><span> Myotis daubentonii, Eptesicus nilssonii. </span></em></strong><span>Nowak i in. (2001) opisują </span><strong><em><span>Myotis dasycneme,</span></em></strong><span>&nbsp;a Piksa i Nowak (2001)notują występowanie<strong><em> Barbastella barbastellus.</em></strong></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania geologiczne prowadził J. Grodzicki (1969, 1970, 1978a) , wypowiadał się też o genezie i wieku jaskini. O trzeciorzędowym wieku Jaskini Miętusiej Wyżniej wypowiadali się także J. Rudnicki (1958,1967) i Z. W&oacute;jcik (1966a, 1968). Neotektoniczne przesunięcia opisali Z. W&oacute;jcik i S. Zwoliński (1959 ) i J. Grodzicki (1970, 1979a,1999) . W. Przybyszewski (1970) przeprowadził w jaskini badania medyczne (m. in. pomiary ciśnienia krwi), mające na celu określenie wpływu warunk&oacute;w jaskiniowych na organizm człowieka.<br />Florę przyotworową badała T. Bielska (1996). Faunę badali K. Kowalski (1953a, 1955a), A. Skalski (1970), K. Piksa i B.W. Wołoszyn 2001- nietoperze), K. Piksa i J.Nowak (2001) oraz J. Nowak i In. (2001 &ndash; nietoperze). W p&oacute;źniejszym okresie badania prowadzili: D. Kicińska (2000) zbadała kierunki paleocyrkulacji; T. Nowicki (2004) &ndash; ewolucja w świetle datowania naciek&oacute;w; D. Kicińska (2004a) &ndash; paleoprzepływy, uwagi o genezie; P. Fryś i in. (2004), P. Fryś i in. (2006) oraz P. Fryś (2008) om&oacute;wili genezę jaskini na podstawie scallops&oacute;w i minerał&oacute;w ciężkich; G. Barczyk (2008) &ndash; badania systemu wywierzyskowego Lodowego Źr&oacute;dła.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta i zbadana (gł&oacute;wny ciąg) w 1949 r. przez W. Szymczakowskiego. W dniach od 30 czerwca do 2 lipca 1950 r. W. Danowski, R. Gradziński, K. Kowalski, W. Starzecki i W. Szymczakowski odkryli dalsze korytarze, zbadali niekt&oacute;re studnie i kominy oraz wykonali pomiary i plan. Pierwszy opis i fotografie jaskini opublikował W. Szymczakowski (1951). <br /> W latach 1963-1965 grupa grotołaz&oacute;w ze Skawiny kierowana przez S. Kopcia przeszła przez syfony i odkryła obszerne partie za nimi. Doniesienia o tym odkryciu prawdopodobnie nie były publikowane. Podczas wyprawy Speleoklubu Warszawskiego PTTK, na przełomie 1969 i 1970 r. powt&oacute;rnie pokonano drugi syfon. Przeszedł go na bezdechu M. Rutkowski odkrywając, jak wtedy sądzono, 100 metrowy korytarz (Pochylnie). Następnie 4-osobowa grupa dotarła studniami do dna stromo opadającego korytarzyka, zasypanego piaskiem. Plan partii za syfonami wykonali J. Michalak i M. Sygowski. Podczas wyprawy wielkanocnej SW PTTK w 1970 r., działając z biwaku w jaskini, usiłowano przekopać zamulony syfon (korytarzyk zasypany piaskiem). Po 8 m potężna wanta w stropie udaremniła jednak to przedsięwzięcie. Wyczuwało się ze szczeliny słaby strumień powietrza. Zbadano też w&oacute;wczas szereg problem&oacute;w wymagających wspinaczek: M. Rutkowski doszedł do okna położonego 12 m nad dnem II Studni znajdując za nim tylko małe wymycie, a następnie pokonał 20 m ciasną rurę nad biwakiem (w okolicach I Studni). M. R&oacute;życzka wspiął się do stropu nad I Studnią, r&oacute;wnież rozwiązując problem negatywnie. W. Przybyszewski i A. Szabunio pokonali 34-metrowy komin odchodzący od Sali Matki Boskiej i stwierdzili, że kończy się on szeregiem wąskich szczelin. Zjechali też do 40-metrowej studni (przed Studnią Nad Syfonami), gdzie W. Przybyszewski po rozgrzebaniu zawaliska w szczelinie końcowej odkrył niewielką komorę i zamknięty zawaliskiem kr&oacute;tki korytarzyk. Dalsze 5 m tego korytarzyka wykopano we wrześniu 1970 r. (Rutkowski 1970a). A. Dzioba (1971) podaje, że w lutym 1971 r. grotołazi z KKTJ odnaleźli w zawalisku studnię o głębokości 10 m, kt&oacute;rą nazwali Studnią Krakowską. Dalsze pr&oacute;by eksploracji na dnie tej studni zostały podjęte 3 lutego 1993 r. Zesp&oacute;ł w składzie A. Turkowska, Ł. Jaroszewski, K. Krawiec (Speleoklub Warszawski oraz M. Karny po przekopaniu namuliska odkrywa 10 m długości Korytarz Błotnych Pączk&oacute;w, (nazwany tak od błotnych, kulistych konkrecji cementacyjnych, występujących na stropie), zamknięty na końcu zcementowanym namuliskiem. Podejmowane są też pr&oacute;by sforsowania zamulonego syfonu, zamykającego gł&oacute;wny ciąg &ndash; w dniach 5-7 marca 1993 r. oraz 12 grudnia 1995 r. i p&oacute;źniej &ndash; przez zespoły ze Speleoklubu Warszawskiego. Przedłużono korytarz o kilka, czy kilkanaście metr&oacute;w. Prace są kontynuowane.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i opis inwentarzowy datowany na 3 lipca 1950 r. zamieścił K. Kowalski (1953a). W 1979 r. T. Ostrowski wykonał fotografie otworu jaskini. Pomiary sytuacyjno-wysokościowe położenia otworu wykonał zesp&oacute;ł pod kierownictwem W. Borowca dnia 15 sierpnia 1981 r. Plan i przekr&oacute;j jaskini opracował J. Grodzicki na podstawie plan&oacute;w K. Kowalskiego (1953a), A. Michalaka (1970), własnych pomiar&oacute;w oraz szkic&oacute;w M. Rutkowskiego wykonanych z pamięci w 1984 r., a dotyczących partii eksplorowanych w 1970 r. W latach 1986, 1987 i 1990 członkowie KKTJ wykonali pomiary, według kt&oacute;rych najwyższy punkt jaskini ma przewyższenie 34 m (a nie 55, jak podawał K.Kowalski 1953a), natomiast najniższy punkt (prawdopodobnie osiągnięty w wyniku pr&oacute;b przekopania osad&oacute;w blokujących dalszą drogę w dnie najniższej studni, kt&oacute;re miały miejsce po 1970 r.) znajduje się na głębokości &ndash;108 m &ndash; niestety, dane dotyczące wspomnianych pomiar&oacute;w (o ile jeszcze istnieją) nie były dostępne autorowi.<br />Fryś (2008) opublikował nowy plan i przekr&oacute;j wykonany w latach 2003-2004 dla potrzeb pracy magisterskiej. Dane zaktualizowała I. Luty (2009). Lokalizacja została skorygowana w oparciu o mapę topograficzną Tatr (http://maps.geoportal.gov.pl) w 2013 r przez J. Grodzickiego.</p>
+<p>Plan opracował J. Grodzicki, przekr&oacute;j wg P. Frysia (2008).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kowalski K. 1950 (wzmiankuje); Kuczyński M. 1950b (fotografia wnętrza); Szymczakowski W. 1951 (opis, fotografia); Kowalski K. 1951h (wzmianka o odkryciu); Kowalski K. 1952c (fotografia korytarza); Kowalski K. 1953a (plan i opis inwentarzowy); Kowalski K. 1955a (fauna, dane morfometryczne); Rudnicki J. 1958b (lokalizacja na szkicu, geneza i rozw&#243;j jaskini); W&#243;jcik Z., Zwoliński S. 1959 (lokalizacja na szkicu, opis młodych przesunięć tektonicznych występujących w rejonie jaskini); Burchard P., Kowalski K. 1959 (wzmianka); W&#243;jcik Z.,1960b (uwagi o osadach); Gradziński R., W&#243;jcik Z.1961a (wzmianka o występowaniu nacieku grzybkowego); Zwoliński S. 1961 (lokalizacja na mapie, wzmianka dotycząca historii odkrycia); W&#243;jcik Z. 1966a (osady); Rudnicki J. 1967 (lokalizacja na szkicu – bez nazwy, geneza jaskiń Doliny Miętusiej); W&#243;jcik Z. 1968 (lokalizacja na szkicu, wzmianka o osadach i sytuacji jaskini w rozwoju geomorfologicznym doliny); Grodzicki J. 1970 (rola tektoniki w genezie jaskini); Michalak J. 1970 (opis ciąg&#243;w, plan tych partii); Przybyszewski W. 1970 (badania medyczne); Rutkowski M , 1970a (wzmianka o eksploracji); Rutkowski M. 1970b (opis eksploracji i odkryć, wzmianka o badaniach medycznych); Wołoszyn B. 1970 (fauna); Publikujemy poniżej dwa artykuły o dwutlenku węgla ... 1971 (wzmianka); Dzioba A. 1971 (wzmianka o eksploracji i odkryciu Krakowskiej Studni); Głazek J. i in. 1977 (wzmianka); Tatry Polskie [mapa zastępcza 1: 10 000] 1976 (lokalizacja); Borowiec W. i in. 1977, 1978 (dane morfometryczne); Grodzicki J. 1978 (budowa geologiczna, tektonika, lokalizacja na mapie strukturalnej 1: 10 000); Parma C., Rajwa A. 1978 (wzmianka dotycząca historii odkrycia); Głazek J. i in. 1979b (wzmianka); Kardaś R.M. 1980b (wymienia na liście największych jaskiń Polski); TATRY POLSKIE 1984 (lokalizacja na mapie); Gradziński R. i in. 1985a,b (lokalizacja, dane morfometryczne); Grodzicki J., Kardaś R.M. 1989 (budowa geologiczna); Wiśniewski W.W. 1990b (podaje wartość deniwelacji wg nowych pomiar&#243;w); Grodzicki J. 1991 (geneza); Wiśniewski W.W. 1991d (omawia nowe pomiary); Kronika 1994a, (o odkryciach); Kronika 1995 (o pr&#243;bie przejścia syfonu w gł&#243;wnym ciągu); Jaskinie TPN 1996 (plan i opis inwentarzowy); Nowak J. 1998c (o pomierzeniu rejoniu Sali Błotnych Pączk&#243;w, plan i przekr&#243;j Krakowskiej Studni); Bielska T., Mickiewicz J. 2000 (flora); Kicińska D. 2000 (o paleokierunkach cyrkulacji w&#243;d); Piksa K., Wołoszyn B. 2001 (nietoperze); Nowak J. i in. 2001 (nietoperze);  Piksa K.,  Nowak J. 2001 (nietoperze); Fryś P. i in. 2004 (geneza na podstawie scallops&#243;w i minerał&#243;w ciężkich); Kicińska D. 2004a (paleoprzepływy, geneza); Nowicki T. 2004 (ewolucja w świetle datowania naciek&#243;w); Kicińska D. 2005 (kierunki dawnych przepływ&#243;w, analiza osad&#243;w, wiek naciekow); Fryś P. i in. 2006 (geneza i budowa geologiczna jaskini); Fryś P. 2008 (nowy plan, przekr&#243;j, uwagi o genezie); Barczyk G. 2008 (badania systemu wywierzyskowego Lodowego Źr&#243;dła, schematyczny przekr&#243;j); Gradziński M. i in. 2009 (uwagi o genezie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Grodzicki, J. 1969 (geneza, tektonika, budowa geologiczna, mapa tektoniczna i strukturalna): Grodzicki, J. 1980 (związek genezy i ewolucji z morfologią).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(671)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(672)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1189">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1189;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565121,54".replace(',', '.') + "," + "153748,10".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1189','Jaskinia Niedźwiedzia Niżnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Niedźwiedzia Niżnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Niedźwiedzia Dolna, Niedźwiedzia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-10.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;53′42,21″, φ: 49&#176;14′51,98″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1294
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                2,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                1,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                4
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    24
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W lewym orograficznie zboczu Doliny Miętusiej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Wyżniej Równi Miętusiej idziemy prawym odgałęzieniem ścieżki ku południowi. Przed Wantulami skręcamy na zachód, do płytkiego, trawiastego żlebu (zwanego Wołowym Żlebem), wyżej zarośniętego malinami. Po około 150 m skręcamy na lewo, ku S, na perć trawersującą zbocze lekko do góry. Początkowo idziemy przez maliny, następnie lasem.  Perć doprowadza do pasa skał, widocznego po jej prawej stronie i łączy się w końcu ze żlebem, opadającym z kotła Małej Świstówki. W tym miejscu skały tworzą wyraźne zwężenie żlebu. Otwór jaskini położony jest pod tymi skałami, około 100 m ku NW od zwężenia żlebu, nad piarżystym zboczem. Jest on widoczny z perci, choć często zasłonięty bujną roślinnością. Można dojść do niego również mniej wygodną percią wiodącą osią żlebu. Dojście i zwiedzanie bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r ma kształt zbliżony do p&oacute;łokrągłego. Leżą w nim duże wanty zwężające przejście do kilkudziesięciu centymetr&oacute;w. Za otworem ciągnie się nieco w d&oacute;ł korytarz. Po kilku metrach opada on 1,4-metrowym prożkiem, dalej biegnie prawie poziomo. Przy prawej stronie widać p&oacute;łkę skalną. W tym miejscu korytarz ma przekr&oacute;j &oacute;semki o wysokości około 2,5 m i szerokości 0,5 m. Po dalszych kilku metrach na lewo odgałęzia się kr&oacute;tka, ślepa szczelina, a na prawo, nad 0,7-metrowym prożkiem, wiedzie stromo do g&oacute;ry korytarzyk o przekroju soczewki. Zakręca on zaraz r&oacute;wnolegle do ciągu gł&oacute;wnego. Często spływa nim woda. Na wprost, w gł&oacute;wnym korytarzu, pokonujemy płytkie jeziorko o długości kilku metr&oacute;w. Nie można go przebyć bez zamoczenia. Za jeziorkiem drogę zagradza duża wanta. Na lewo od niej, po 1,5 m korytarz jest całkowicie zamulony. Na prawo wznosi się rurkowaty (o średnicy 0,4 m), nieco pochylony, 3-metrowy kominek. Nad nim poprzecznie przebiega myta, ciasna szczelina, kt&oacute;ra na prawo zaraz się kończy. Na lewo zakręca do g&oacute;ry i za zwężeniem r&oacute;wnież kończy się&nbsp;&ndash; jest zaklinowana wantami. Szczelina ta ma prawdopodobnie połączenie z wcześniejszym odgałęzieniem. </span></p>
+<p><span>Jaskinia rozwinęła się w szarych wapieniach malmo-neokomu jednostki Organ&oacute;w (seria wierchowa fałdu Czerwonych Wierch&oacute;w). Jest myta na szczelinie o kierunku W&ndash;E. Na ścianach występują drobne nacieki grzybkowe. Są one lepiej rozwinięte tylko w końcowym kominku i bocznym korytarzyku.<span> Z. W&oacute;jcik (1966a, 1968) zamieścił uwagi o genezie. Zalicza jaskinię do V piętra według własnego podziału jaskiń tatrzańskich. <span>Wiąże on jej powstanie z lokalnymi ciekami Doliny Miętusiej.</span></span></span></p>
+<p><span>Namulisko przy otworze tworzy pr&oacute;chnica. Niegdyś głębiej występował rumosz z domieszką gliny. Podczas ostatnich akcji eksploracyjnych zasypano go warstwą gliny jaskiniowej pochodzącą z końca jaskini.</span></p>
+<p><span>Jaskinia jest wilgotna. Występuje w niej stały zbiornik wody. Nie zamarza on zimą. Zasilany jest strugami wody spływającymi okresowo z bocznych korytarzy. Przed pracami eksploracyjnymi prowadzonymi w latach 1992&ndash;94 występowały tam jedynie okresowe kałuże. Światło sięga do około 12 m.&nbsp;W jaskini nie wyczuwa się przewiewu.</span></p>
+<p><span>Przy otworze występuje bogata roślinność kwiatowa. Nieco głębiej sięgają mchy i porosty. Faunę reprezentują gł&oacute;wnie owady. Przy otworze zauważono też ślimaki.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinię odkrył przypuszczalnie S. Zwoliński w 1936 r., albo nieco wcześniej. Zwoliński (1993) opisując wycieczkę z 5 sierpnia 1936 r. używa w stosunku do tej groty określenia &bdquo;dawniej nam znana&rdquo; i odnosi je do siebie oraz Goryckiego. Jaskinię nazwał Niedźwiedzią lub Niedźwiedzią Dolną, ale dopiero po znalezieniu wyżej położonej jaskini, w kt&oacute;rej znajdowały się kości niedźwiedzi. Spodziewał się znaleźć je i tu. Wraz z Goryckim podjął też pr&oacute;bę przekopania gł&oacute;wnego korytarza w celu odkrycia dalszych ciąg&oacute;w. Zwoliński (1955b) pisze o znalezieniu przez siebie grot niedźwiedzich zwracając uwagę na celowość prowadzenia w nich badań paleontologicznych.<br />W 1992 r. członkowie Speleoklubu Warszawskiego podjęli eksplorację wybierając namulisko z gł&oacute;wnego korytarza. W akcjach przeprowadzonych w dniach 20 oraz 25&ndash;27 sierpnia 1992 r. udział wzięli: S. Stefański, M. Gala, A. Majkowski, L. Grzejszczak. Eksplorację kontynuowali w marcu i lipcu 1993 r. M. Gala i P. Krzeczyński. Wykopano prawie 5 m korytarza i odkryto kominek w jego prawej odnodze.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>K. Kowalski (1953a) zamieścił plan i opis inwentarzowy jaskini datowany na 29 września 1950 r. nazywając ją Niedźwiedzią Niżnią. Podał on błędną informację o odkryciu jaskini przez obu braci Zwolińskich za T. Zwolińskim (1948). Podczas inwentaryzacji jaskiń tatrzańskich OW PTPNoZ w dniu 7 lipca 1979 r. pomiary groty wykonał M. Kardaś przy wsp&oacute;łpracy E. Bednarek i T. Ostrowskiego, kt&oacute;ry sfotografował otw&oacute;r.<br />Dokumentację nowo odkrytych partii sporządziła w ramach prac OW PTPNoZ I. Luty przy wsp&oacute;łpracy W. Kuczoka i J. Pośpiech w dniu 1 sierpnia 1994 r. Wszystkie pomiary przeprowadzono busolą geologiczną Meridian i taśmą parcianą. Dane zaktualizowała I. Luty (2009).<br />Plan opracowany przez M. Kardasia w 1979 r. uzupełniła w 1994 r. I. Luty.<br /><br /></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zwoliński T. 1948 (wzmianka o odkryciu przez T. i S. Zwolińskich); Zwoliński T. 1951 (ditto); Kowalski K. 1953a (plan i opis inwentarzowy); Zwoliński S. 1955b (wzmianka o znalezieniu przez siebie Grot Niedźwiedzich); Kowalski K. 1955a (niekt&#243;re dane morfometryczne); Zwoliński T. 1958 (wzmianka o odnalezieniu jaskiń Niedźwiedzich z kośćmi niedźwiedzi jaskiniowych); W&#243;jcik Z. 1960b (wzmianka); Zwoliński S. 1961 (wzmianka); Szulczewski M. 1963 (lokalizacja na zdjęciu obrazującym budowę geologiczną okolicy); W&#243;jcik Z. 1966a (niekt&#243;re dane morfometryczne, lokalizacja na mapie geologicznej); W&#243;jcik Z. 1968 (wzmianka o genezie); Kardaś R.M. , 1980a (wzmianka o pracach dokumentacyjnych, bez nazwy); Gradziński R. i in. 1985a (dane morfometryczne, lokalizacja na mapie); Zwoliński S. 1993 (wzmianka); Kronika 1994a (informacja o eksploracji); Kronika 1994b (wzmianka o eksploracji); Kronika 1995 (informacja o weryfikacji i uzupełnieniu dokumentacji, bez nazwy); Jaskinie TPN 1996 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(674)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

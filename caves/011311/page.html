@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11311">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11311;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "551192,71".replace(',', '.') + "," + "256948,18".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11311','Szczelina z Komorą i Tunelem'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Szczelina z Komorą i Tunelem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Głęboki Komin w Brodle
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-08.129
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;43′01,83″, φ: 50&#176;10′39,13″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku NE; 3- ku g&#243;rze i NW; 4 - ku SW; 5 - ku N.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                415
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                65
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                7,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                7,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    20
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Szklary, Dolina Szklarki, Skała Brodło, Wyżyna Olkuska.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Spod kościoła w Szklarach idziemy kilkadziesiąt metrów drogą asfaltową na prawo do góry za znakami żółtego szlaku. Drogę tą przecinają dwie linie energetyczne. Pod drugą z nich skręcamy na lewo w ścieżkę, pokonujemy skarpę, a następnie podążamy lasem w stronę widocznych wapiennych skał Brodła - najwyższej skały doliny zwieńczonej krzyżem. Trawersujemy pod zachodnimi ścianami do miejsca, gdzie wysoko w górze widać charakterystyczny Schron z Matką Boską w Brodle J.Olk.I-08.51(z podświetlaną figurą). Stąd wspinamy się łatwo stromym żlebem ze zwalonymi drzewami do poszukiwanej, wielkiej szczeliny przecinającej skałę, położonej kilkanaście metrów na prawo (ku SW) od wspomnianego powyżej schronu; wejście jest około 7 m niżej niż on. Można też dotrzeć tu oraz do otworu 4. i 5. zjazdami z grani Brodła. Do otworu 4. prowadzi ponadto ubezpieczona droga wspinaczkowa (droga Gruchy IV+). Dojście w zależności od przyjętego wariantu łatwe lecz uciążliwe lub wymaga użycia sprzętu do zjazdu na linie, ewentualnie sprzętu wspinaczkowego; zwiedzanie miejscami bardzo trudne, są też zaciski.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r nieco rozmytej szczeliny w ścianie, pochylonej pod kątem średnio około 70 stopni, ku NW, długiej na około 10 m, wyznacza linia okapu. W dolnej części okap ma wysokość do 4,5 m, w g&oacute;rnej, rozziew szczeliny zmniejsza się stopniowo do 1 m.<br />Na końcu żlebu, pod prożkiem (1,3 m) można wcisnąć się w poziomą szczelinkę (otw&oacute;r o wymiarach 0,3x0,6 m jest nieco poza zasięgiem okapu), kt&oacute;ra zakręca nieco na lewo i staje się jeszcze węższa, miejscami niedostęp-na, lecz jej kontynuację widać na odcinku około 4 metr&oacute;w. Nieco na prawo od prożka, około 2,5 m wyżej jest w pionowej ścianie okrągły otw&oacute;r płytkiej niszy (otw&oacute;r 2), kt&oacute;ra zaraz przechodzi w kr&oacute;tki tunelik uchodzący w niszy gł&oacute;wnej, jaką tworzy dolna część szczeliny. Nad ww. prożkiem wznosi się stromo nisza gł&oacute;wna wysoka do 4,5 m, sięgająca w głąb skały do 1,5 m, szeroka na blisko 4 m. W pobliżu jej NW końca jest płytka myta nisza. Z niszy gł&oacute;wnej wspinamy się na przewieszony pr&oacute;g (2,5 m - IV), nad kt&oacute;rym otwiera się poziomy, kr&oacute;tki tunel przebijający grań na wylot. Jego pochylony otw&oacute;r ma wymiary 0,7x2 m.<br />W prawej ścianie tunelu, nad 1 m prożkiem wznosi się stromo skalna pochylnia, uchodząca na powierzchnię terenu ciasnym otworem 3. (około 0,4 m średnicy), a na prawo prowadzi do tuneliku-ucha skalnego (0,3 x0,7 m), kt&oacute;ry uchodzi w ścianie niszy tuż obok otworu tunelu. Następną, boczną pochylnię kończy niedostępny prześwit do powierzchni terenu.<br />Drugi otw&oacute;r tunelu (0,7x 3,0 m), nieco cofnięty do jego wnętrza, wyprowadza nad pionową ścianę.<br />Wracamy do niszy gł&oacute;wnej. W jej SE krańcu jest otw&oacute;r 0,3x 0,5 m, za kt&oacute;rym biegnie nieco do g&oacute;ry ciasny korytarzyk (2,3 m długości). Za zaciskiem przy prożku z dużej wanty wchodzimy do obszerniejszej komory. Ma ona 1,7 m długości, jest szeroka na około 1 m i wysoka na 7 m. Ku SE biegnie niedostępna szcze-lina. W znacznej części stropu komory widać wąskie przebicie do powierzchni, pod okap szczeliny, zablokowa-ne zaklinowanymi wantami. Nad wejściem do komory przebicie to rozszerza się na tyle, że tworzy otw&oacute;r 5. (około 0,4x1 m).</p>
+<p>Opisywany obiekt powstał na szczelinie przecinającej całe Brodło, w wapieniach skalistych g&oacute;rnej jury. Być może jest to ta sama szczelina, na kt&oacute;rej rozwinęła się po drugiej stronie g&oacute;ry Jaskinia Szklarska JOlk.I-8.113. Dolna szczelinka powstała na tym samym pęknięciu, i mimo że jej otw&oacute;r położony jest nieco poza zasięgiem okapu, stanowi integralną cześć systemu. Ściany są kruche, miejscami myte, w tunelu widać na nich jamki wirowe, występują dziurki.<br />Ubogą szatę naciekową tworzą w głębi drobne nacieki grzybkowe, skonsolidowane mleko wapienne, naciek wełnisty i mini p&oacute;lka ryżowe. Na ścianach niszy i tunelu widać czarne epigenetyczne naskorupienia krzemionkowe.<br />Namulisko w dolnej szczelince i w niszy tworzy gł&oacute;wnie gleba i gruz wapienny, w korytarzyku i komorze r&oacute;wnież glina; w tunelach dno jest skalne, z niewielką ilością rumoszu wapiennego. Na glebie są też liście, w tunelu znaleziono kości kręgowc&oacute;w.<br />Szczelina jest wilgotna (wilgotność zależy tu r&oacute;wnież od warunk&oacute;w atmosferycznych), światło odbite dociera do końca. Zaobserwowano niezwykle silny wywiew zar&oacute;wno z dolnej szczelinki jak i korytarzyka wiodącego do komory - zimny w kwietniu 2015 r., a gorący 10.11.2017 r.(po nocach z przymrozkami).<br />Roślinność kwiatowa występuje pod linią okapu (drzewo, krzewy, nieco roślin zielnych), jest też mech, gł&oacute;wnie jednak rozwijają się glony, sinice i porosty, kt&oacute;re sięgają do wnętrza komory.<br />Faunę reprezentują owady (gł&oacute;wnie pająki, m. in. <em>Meta menardi</em>, much&oacute;wki, motyle <em>Triphosa dubitata</em>, <em>Scoliopteryx libatrix</em>, widać też pajęczyny, liczne kokony i larwy oraz ślimaki. Bywają tu kręgowce, o czym świadczą kości na osadach, a w SW otworze tunelu znaleziono 3.07.2014 r. gniazdo os; widuje się nietoperze.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszą informację o opisywanym obiekcie zamieścił Nowak (2008), kt&oacute;ry wymienia w spisie jaskiń doliny Szklarki Głęboki Komin w Brodle, podaje długość 3,2 m i deniwelację -2,1 m oraz lokalizuje na mapce. Wg informacji tego autora, zjechał on z grani wprost do komory przez otw&oacute;r 5. R&oacute;żnica podawanych parametr&oacute;w wynika z pominięcia przez niego niszy, tuneli i dolnej szczelinki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W dniu 03.07.2014 r. dokumentację jaskini sporządziła I. Luty przy wsp&oacute;łpracy H. Namirskiego. Pomiary wykonała za pomocą busoli Suunto oraz dalmierza Disto X310, a położenie otworu określiła na mapie (http://mapy.geoportal.gov.pl), ponieważ GPS daje tu fałszywe wyniki; sfotografowała też otw&oacute;r i wnętrze. Obserwacje terenowe uzupełniła w kwietniu 2015 r. przy wsp&oacute;łpracy J. Skiby oraz 10.11.2017 r. przy wsp&oacute;łpracy H. Kolasińskiego.<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Nowak J. 2008 (wymienia w spisie jaskiń doliny Szklarki Głęboki Komin w Brodle, podaje długość 3,2 m, deniwelację -2,1 m i lokalizację na mapce).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12987)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(13139)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12988)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        w otworze tunelu
+                    </a>
+                    <a onclick="showImageInfo(12989)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        wejście do korytarza
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

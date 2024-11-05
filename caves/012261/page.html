@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F12261">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 12261;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "548387,55".replace(',', '.') + "," + "256082,37".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('12261','Jaskinia Dewońska'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Dewońska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-09.68
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;40′39,97″, φ: 50&#176;10′11,94″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Krzeszowice (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                380
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                37
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                4,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    31
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dębnik, Dolina Racławki, Rokiczany D&#243;ł, Wyżyna Olkuska, Obszar NATURA 2000 – Dolinki Jurajskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    W miejscowości Dębnik kierujemy się w stronę Łomu Karmelickiego. Stamtąd idziemy prosto, brukowaną ścieżką aż na dno kolejnego, większego kamieniołomu. Zaraz za ruinami widocznych zabudowań znajduje się zbocze głębokiej doliny. Jest to Rokiczany Dół, na którego dno schodzimy. Idąc w dół doliny, po około 350 metrach widzimy wyraźną grzędę skalną. Z prawej jej strony należy wspiąć się prawie na szczyt doliny, gdzie widoczny jest spory taras powstały z osadów wydobytych z jaskini. Otwór jaskini widoczny jest dopiero po wyjściu na niego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za niskim, lecz szerokim otworem znajduje się dwumetrowej długości przełaz, prowadzący do Sali Rokity, kt&oacute;ra jest centralnym punktem jaskini. Jest obszerna i wysoka komora z kilkoma bocznymi odnogami. W jej stropie znajdują się kotły wirowe, natomiast w ścianach widoczne są pochyłe p&oacute;łki, powstałe na rozmyciach międzyławicowych. Zar&oacute;wno w tej sali, jak i w pozostałych partiach jaskini licznie występują wnęki i wżery, przypominające gąbkę. W Sali Rokity w dużej ilości występują stare i zmatowiałe nacieki, na kt&oacute;re składają się stalaktyty, nacieki wełniste oraz grube, żebrowane polewy, w niekt&oacute;rych miejscach pokrywające ściany. Sala w kierunku na wprost, płynnie przechodzi w lekko opadający korytarz. W wielu jego miejscach wyczuwalne jest dno skalne. Na jego końcu znajdują się niedostępne korytarzyki prowadzące w masyw. Ściany w tym obszarze są widocznie wymodelowane przez wodę. Niezwykle liczne są boczne korytarzyki i wżery o przekroju zaledwie paru centymetr&oacute;w. Przepływ wody był tu bardzo rozproszony, co uniemożliwiało wytworzenie się gł&oacute;wnego ciągu jaskini.<br />W gł&oacute;wnej sali, za niewielkim progiem znajduje się &ndash; po prawej stronie &ndash; wejście do kr&oacute;tkiego i niskiego korytarzyka, kończącego się po paru metrach zawaliskiem. Za nim znajduje się powierzchnia. Strop pokrywają bardzo liczne, zwietrzałe grzybki naciekowe. Ewentualne rozkopanie prawej strony korytarzyka oraz rozebranie zawaliska wydatnie powiększyłoby otw&oacute;r wejściowy jaskini.<br />Po lewej stronie Sali Rokity, na wysokości 1,5 metra znajduje się małe, okrągłe okienko, kt&oacute;re jest wejściem do bocznych ciąg&oacute;w jaskini. Stanowią one pętlę z kr&oacute;tkimi odnogami. Wspomniane okienko to jednocześnie przełaz do niskiej salki, zakończonej 2-metrowej wysokości kominkiem &ndash; najwyższym punktem jaskini. Pod kominkiem znajduje się bardzo wąska wnęka, prowadząca do Salki Nadziei. Jest to opadająca pod dużym kątem salka z płytką studzienką w dnie &ndash; obecnie zasypaną; pozostał po niej metrowej wysokości pr&oacute;g, za kt&oacute;rym wchodzi się do poprzecznego korytarzyka. Na prawo, za kolejnym, niższym progiem znajduj się salka z widocznym przełazem prowadzącym do Sali Rokity. Na lewo prowadzi bardzo niski tunel o skalnym dnie, kt&oacute;ry blisko końca odbija pod kątem prostym w prawo, gdzie kończy się bez szans na kontynuację . W tym miejscu oraz metr wcześniej znajdują się prowadzące w masyw, niedostępne dla człowieka korytarzyki, będące jednak zamieszkałe przez lisy.</p>
+<p>Jaskinia powstała w warunkach freatycznych, na sporym rozmyciu międzyławicowym. Jest to obiekt ciasny, w kt&oacute;rym gdzieniegdzie tylko powstały większe pr&oacute;żnie, w tym największa, Sala Rokity. Wspomniane ławice są pochylone w prawą stronę, co widać w wielu miejscach jaskini. Przepływ wody w obiekcie był bardzo rozproszony, co uniemożliwiało powstanie gł&oacute;wnego ciągu. W zamian powstała zapętlająca się sieć korytarzyk&oacute;w, z kt&oacute;rych jedynie część jest dostępna dla człowieka. Wiele niedostępnych ciąg&oacute;w jest zamieszkałych prze r&oacute;żne gatunki zwierząt żyjących w norach, gł&oacute;wnie lis&oacute;w, kt&oacute;re przez całe pokolenia zapełniały jaskinię osadami.</p>
+<p>Ciekawostką jest występowanie w wielu miejscach jaskini zlityfikowanych piask&oacute;w batońskich, kt&oacute;rych duże złoże zalega ponad wapieniami, w kt&oacute;rych rozwinęła się jaskinia. Dostawały się one do środka przez liczne szczeliny w stropie.</p>
+<p>Szata naciekowa występuje jedynie w gł&oacute;wnej sali oraz w okolicach przyotworowych (opisana wcześniej). Przed rozpoczęciem eksploracji znaleziona została na hałdzie przed otworem, wygrzebana przez lisy &bdquo;czapka&rdquo; z mleka wapiennego, pasująca kształtem do średniej wielkości stalagmitu.</p>
+<p>W czasie prowadzonych prac, pomimo osiągnięcia w wielu miejscach skalnego dna, nie został znaleziony ani jeden fragment kalcytu. Może to świadczyć o istnieniu dalszych, nieodkrytych jeszcze ciąg&oacute;w.</p>
+<p>Jaskinia rozwinięta jest w wapieniach wieku dewońskiego, co biorąc pod uwagę zniszczenie Jaskini w Dubiu &ndash; czyni ją aktualnie jedyną istniejącą jaskinią krasową powstałą w wapieniach dewońskich na terenie całej Jury Krakowsko-Częstochowskiej.</p>
+<p>Z fauny widziane w jaskini były lisy, żaby, pajęczaki, zimujące kleszcze oraz gryzonie. Nietoperzy nie stwierdzono. W trakcie prac eksploracyjnych w okolicach otworu wielokrotnie grasowały stada dzik&oacute;w, kt&oacute;re niepokoiły odkrywc&oacute;w.</p>
+<p>Brak informacji o florze.</p>
+<p>Brak informacji o mikroklimacie.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Po raz pierwszy jaskinia opisana w 2019 roku przez Wojciecha Bednarczyka, Pawła Sojkę i Artura Zabdyra. Została odkryta przypadkiem przez Pawła Sojkę 20.02.2019 r. Dzień p&oacute;źniej udało się wejść do Sali Rokity. W sumie zorganizowano około dziesięciu wyjazd&oacute;w, w trakcie kt&oacute;rych usunięto wiele metr&oacute;w sześciennych osad&oacute;w, na kt&oacute;re składał się gł&oacute;wnie humus, naniesiony przez lisy.<br />W pracach eksploracyjnych brali udział: Artur Zabdyr, Wojtek Bednarczyk, Paweł Sojka oraz Anna Kaznowska-Sojka.</p>
+<p>Korekty wsp&oacute;łrzędnych otworu dokonał Łukasz Pająk dnia 01.04.2022 r</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację sporządzili: Artur Zabdyr, Wojtek Bednarczyk i Paweł Sojka.<br />Plan opracował A. Zabdyr, W. Bednarczyk i P. Sojka.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Bednarczyk W. i in. 2019 (plan i pełny opis jaskini)
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Wojciech Bednarczyk, Paweł Sojka, Artur Zabdyr
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15014)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(14974)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

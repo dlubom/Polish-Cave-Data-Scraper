@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F715">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 715;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "618757,1840".replace(',', '.') + "," + "284989,5173".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('715','Jaskinia Stara'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Stara
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Partyzant&#243;w
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                N-2.29
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Niecka Nidziańska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;40′20,00″, φ: 50&#176;25′12,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wiślica (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                buski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody Skorocice
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - N, 199 m n.p.m.; 3 - ku g&#243;rze, 202 m n.pm.; 4 - W, 199 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                199
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    86
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia znajduje się w g&#243;rnej części Doliny Skorocickiej na lewym zboczu w obrębie odsłoniętych gipsowych ścian. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Na teren rezerwatu wchodzimy niebieskim szlakiem turystycznym Wiślica-Pińczów. Po przejściu około 180 m (licząc od wejściowej bramki) osiągamy widoczne po prawej stronie gipsowe ściany. Otwory jaskini położone są u podnóża ściany. Dojście bez trudności. Zwiedzanie niektórych ciasnych korytarzy nieco trudne. Dostęp do jaskini możliwy jest po uzyskaniu zezwolenia Regionalnego Konserwatora Przyrody w Kielcach.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Wszystkie otwory jaskini są naturalne. Otwór pierwszy ma szerokość około 12 m i stanowi wejście do płytkiej wnęki podskalnej połączonej w kierunku południowym z dalszą jaskinią. Drugi otwór ma szerokość 1 m, wysokość 0,6 m i położony jest obok południowej części otworu pierwszego. Otwór trzeci stanowi wylot studzienki o średnicy 0,8 m. Czwarty otwór ma charakter wejścia do obszernej wnęki skalnej o szerokości 8 m. Jaskinia składa się z dwóch odmiennych części. </span></p>  <p><span>Pierwsza część rozwinięta jest wzdłuż ściany gipsowej i stanowi podcięcie skalne wykorzystywane dawniej i obecnie przez Potok Skorocicki. Do jaskini potok wpływa w rejonie otworu drugiego, a wypływa w rejonie czwartego otworu. </span></p>  <p><span>Druga część jaskini rozpoczyna się przy południowym krańcu otworu pierwszego ciasnym rurowatym korytarzykiem biegnącym w kierunku wschodnim. Po około 6 m korytarzyk ten wprowadza do obszerniejszego korytarza o rozciągłości generalnie południkowej. Długość jego wynosi 25 m, szerokość do 5 m a wysokość do 2&nbsp;m. Dno pokryte jest gipsowym gruzem, czarnymi mułkami oraz żółtymi glinami. W jego południowej części znajduje się lejek krasowy przechodzący w ciasną studzienkę o głębokości 1,3 m o dnie zalanym wodą. Również w tej części korytarza położone są dwa krótkie i ciasne korytarzyki tworzące boczne odnogi. W kierunku północnym główny korytarz przechodzi w wąską szczelinę o szerokości około 1 m, która następnie doprowadza do ciasnej studzienki o głębokości 2 m. Z dna studzienki odchodzi korytarzyk o długości 5 m podchodzący pod północny fragment pierwszego otworu jaskini.</span></p>  <p><span>Jaskinia rozwinięta jest w gipsach szkieletowych z wkładkami (soczewkami) gipsów laminowanych, drobnoziarnistych mioceńskiej serii osadów ewaporatowych. W ścianach i stropie korytarza obserwuje się ładne formy mikrorzeźby krasowej - niewielkie kominki i rozmycia, kanaliki krasowe. Miejscami na ścianach występują wtórne naskorupienia gipsowe (groniasto - krzaczkowe) i nacieki kalcytowe (małe stalaktyty i polewy). Dno jaskini pokryte jest miejscami czarnymi mułkami, w dalszych partiach żółtymi glinami oraz blokami i gruzem gipsowym. </span></p>  <p><span>Główny element jaskini kanał krasowy biegnący równolegle do rozciągłości doliny stanowi fragment dawnego podziemnego przepływu potoku. Kanał ten położony jest obecnie powyżej zwierciadła wód cieku, jednak studzienka w jego południowej części sięga prawie poziomu zwierciadła wód. W rejonie otworów oraz miejscami w głównym korytarzu jaskinia jest wilgotna (kapiąca woda i mokre ściany). Dnem jaskini w rejonie otworów wejściowych przepływa Potok Skorocicki. </span></p>  <p><span>Rozproszone światło sięga w rejon otworów oraz do początków korytarzyka doprowadzającego do głównego korytarza jaskini. </span></p>  <p><span>Obserwacji flory nie prowadzono. Faunę reprezentują liczne pająki, motyle z gatunku szczerbówka ksieni <strong><em>Scoliopteryx libatrix</em></strong> (L.). Stwierdzono tu występowanie pająka <strong><em>Porrhomma palidium</em></strong> Jackson oraz nietoperzy z gatunku gacek brunatny <strong><em>Plecotus auritus</em></strong> (L.). Widoczne są również ślady pobytu lisa <strong><em>Vulpes vulpes</em></strong> (L.).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znana była od dawna o czym świadczą liczne śmieci. W okresie okupacji wykorzystywali ją partyzanci jako schronienie (informacje ustne miejscowej ludności). Na początku lat osiemdziesiątych penetrowana była przez grotołazów z Sekcji Taternictwa Jaskiniowego i Alpinizmu przy Politechnice Świętokrzyskiej w Kielcach, którzy wykonali plan, nazywając ją Jaskinią Partyzantów (mat. arch. Bednarz 1980). Po raz pierwszy została zinwentaryzowana w sierpniu 1985 r. przez K.P. Wołoszyna i S. Wiraszkę (Wołoszyn 1990). Wykonany wówczas plan nie obejmuje wstępnych partii jaskini w rejonie przepływającego potoku.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Dokumentację jaskini  sporządzili wiosną 1999 r. J. Gubała i A. Kasza. Lokalizację otworu schroniska wykonał 14.12.2008 r. A. Kasza  przy pomocy odbiornika GPS Map60 CSx. Zaktualizował A. Kasza (2009 r.).<br />Plan opracowali J. Gubała i A.  Kasza.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wiraszka S., Wołoszyn K.P., Wołoszyn B.W. 1986 (kr&#243;tki opis); Wołoszyn B.W., Wołoszyn K.P., Wiraszka S. 1986a (opis, plan); Wołoszyn B.W., Wołoszyn K.P., Wiraszka S. 1986b (kr&#243;tki opis, lokalizacja); Wołoszyn B.W. 1990 (opis, fauna); Chmielarski W. 1993 (opis, fauna); Bujna E., Klauzińska M. 1997 (brak nietoperzy); Chabert C., Courbon P. 1997 (długość); Jaskinie Niecki Nidziańskiej 1998 (dokumentacja, plan); Gubała J., Kasza A., Urban J. 1999 (wzmianka); Chwalik A., Głazek J., Gubała J., Kasza A., Urban J. 2002 (wzmianka); Urban J., Gubała J., Kasza A. 2003 (wzmianka); Urban J. 2008 (opis, geneza); Urban J., Gągol J. 2008 (fotografia).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Bednarz J. 1980.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jacek Gubała, Andrzej Kasza, Jan Urban
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(226)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

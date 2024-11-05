@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1574">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1574;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "567643,46".replace(',', '.') + "," + "153274,76".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1574','Mnichowa Studnia Wyżnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Mnichowa Studnia Wyżnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Mnichowa Wyżnia, Jaskinia pod Zadnimi Mnichami, Jaskinia w Mnichach, Mnichowa, Wyżnia Mnichowa Studnia 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-13.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′46,69″, φ: 49&#176;14′35,66″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku E, 1705 m n.p.m. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1685
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                170
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                31,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                31,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    79
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Małej Łąki, w prawym orograficznie zboczu Doliny Małej Łąki (Niżniej Świst&#243;wki), w p&#243;łnocno-zachodnim stoku Zadnich Mnich&#243;w nazywanych ostatnio Koprowymi Mniszkami. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Żółto znakowanym szlakiem podchodzimy Doliną Małej Łąki w pobliże Przełęczy Kondrackiej, skręcamy na prawo przy ostatnim dużym zakręcie ścieżki i w dogodnym miejscu trawersujemy (bez ścieżki) ponad 300 m. trawiastym zboczem nad Mnichowymi Turniami, aż do południowej gałęzi Żlebu Między Mnichy, rozdzielającego Mnichowe Turnie. 
+Położenie górnego otworu: Otwór górny znajduje się po lewej or. stronie żlebu w górnej jego części ograniczonej pasem skał.
+Położenie otworu dolnego: Schodzimy żlebem Między Mnichy, kilkanaście metrów pod jego lewą (or.) (południową) ścianą. Około 30 m poniżej otworu górnego. Pod podstawą ściany odnajdujemy niewielki otwór poszukiwanej jaskini. Poniżej otworu widać długą, ciemną szczelinę. Inna droga wiedzie z górnej części Niżniej Świstówki: znad buli skręcamy na lewo, do Żlebu między Mnichy i wspinamy się nad łatwy próg w jego dolnej części. Dalej idziemy wprost do góry, do otworu. Dojście górnym wariantem bez trudności, dolnym – łatwe, zwiedzanie od górnego otworu wymaga użycia liny.
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Opis partii od g&oacute;rnego otworu: tr&oacute;jkątny otw&oacute;r prowadzi nad 4 m Prożek z Kamykiem. Pierwotnie spąg pod progiem był wymyty, jednak w wyniku obrywu pokrywa go rumosz skalny wymieszany z humusem. Korytarz w tym miejscu skręca lekko w lewo i przechodzi w wąską, lecz wysoką na około 4 m wymytą szczelinę, kt&oacute;rą schodzimy nad Studnię Jubileuszową o głębokości 20 m. Studnia powstała na szczelinie tektonicznej W&ndash;E. Szerokość jej wynosi od 1 do 2 m. Na przedłużeniu szczeliny w kierunku zachodnim utworzony jest meander o długości 10 m. Wejście do meandra znajduje się 1,5 m nad dnem studni. Rozpoczyna go płytka ślepa studzienka. Dalej korytarz biegnie stromo w g&oacute;rę kończąc się po kilku metrach niedostępną szczeliną. Wracamy z powrotem na dno Studni Jubileuszowej. Pokrywa ją gruby rumosz opadający stromo do wąskiego przełazu, położonego 4 m niżej. Po przejściu zwężenia stajemy na wielkich wantach w Beznadziejnej Salce. Stąd pomiędzy głazami możemy zejść jeszcze około 3 m do niedostępnej szczeliny, stanowiącej najniższy punkt jaskini. P&oacute;łnocna część salki przedzielona jest dwiema płytami skalnymi, kt&oacute;re uniemożliwiają przejście, jednak wsypujący się do wnętrza śnieg oraz pomiary wskazują na połączenie z Mnichową Studnią Wyżną. W zachodniej części Beznadziejnej Salki otwierają się dwa połączone ze sobą kominy. Pierwszy z nich kończy się po około 5 m. Do drugiego kominka dostajemy się poprzez 3 m pr&oacute;g zakończony osypującą się pochylnią. Kominek ma 15 m wysokości a szerokość zmniejsza się od około 1,5 do 0,5 m w g&oacute;rnej części i wznosi się ku wschodowi. W końcowym odcinku tworzy stromą zwężającą się pochylnie z zaklinowanymi wantami (III) .&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+<p><span>Opis partii od otworu dolnego: Tr&oacute;jkątny otw&oacute;r o r&oacute;wnych bokach długości 1,1 m prowadzi w d&oacute;ł, do płytkiej, 1,4-metrowej studzienki. Schodzimy nią do salki o kształcie trapezu, w przekroju&nbsp;&ndash; prostokątnej. Ma ona 5&ndash;9 m. długości, około 3 m. szerokości i 1&ndash;3 m. wysokości. Na dnie salki, w SE części leżą duże bloki skalne. Od jej narożnik&oacute;w odchodzą kr&oacute;tkie, boczne odgałęzienia (o długości 1&ndash;3 m). Przy południowej ścianie salki, w środkowej części znajduje się ciasny otw&oacute;r 3,5-metrowej studzienki. Schodzimy studzienką (łatwo) do szczelinowego, wysokiego korytarza o szerokości 0,7 m. Korytarz ku ESE wznosi się, a&nbsp;po kilku metrach, nad 1-metrowym prożkiem, ciąg zamyka mała, ciasna kom&oacute;rka o wymiarach 3x1,5 m. Ku NW, z końca korytarza, odchodzą dwie kr&oacute;tkie, bardzo ciasne szczeliny, zakończone zawaliskiem. Wylot południowej szczeliny widać nad prożkiem o wysokości 3,5 m, p&oacute;łnocnej&nbsp;&ndash; nad 1,5-metrowym prożkiem.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmu należących do wierchowej jednostki Organ&oacute;w (fałd Czerwonych Wierch&oacute;w). Jest predysponowana tektonicznie. Jaskinia w g&oacute;rnej części jest wymyta. Beznadziejna Salka i stare ciągi mają charakter zawaliskowy. Spąg pokrywa autochtoniczny gruz wapienny, w partiach przyotworowych wymieszany z humusem i domieszką piasku i&nbsp;okruch&oacute;w granitoid&oacute;w. </span></p>
+<p><span>Jaskinia jest sucha. Przy temperaturze &ndash;10&deg;C zaobserwowano silny przepływ powietrza z&nbsp;dolnego do g&oacute;rnego otworu. Światło sięga do kilku metr&oacute;w w głąb od g&oacute;rnego otworu. Przed g&oacute;rnym otworem występuje roślinność zielona (nie badana dotychczas). W jaskini zauważono zimujące nietoperze. Przy dolnym otworze wyczuwa się słaby przewiew. Światło sięga do kilku metr&oacute;w w&nbsp;głąb groty. Przed otworem występują rośliny kwiatowe oraz paprocie, mchy i porosty. W salce zauważono owady troglokseniczne.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>O genezie i geologii jaskini wspomina J. Szczygieł (2013a,b i 2015b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta w dniu 13 września 1959 r. przez grotołaz&oacute;w zakopiańskich z STJ: W. Habila, M. Kruczka, D. Strelau i S. W&oacute;jcika udających się tędy na poszukiwanie otworu Mnichowej Studni. Taką datę oraz nazwę Jaskinia pod Zadnimi Mnichami podaje S.W&oacute;jcik (1959-mat. arch.). Natomiast Habil (1961) wymienia jako dzień odkrycia 15 sierpnia 1959 r., zamieszcza też opis groty pod nazwą Mnichowa Studnia Wyżnia oraz szkice jej przekroj&oacute;w, planu i położenia otworu. Prawdopodobnie spotykana w p&oacute;źniejszych opracowaniach (W&oacute;jcik 1966a, Borowiec i in. 1977,1978) nazwa &bdquo;Mnichowa&rdquo; odnosi się r&oacute;wnież do opisywanej tu jaskini. G&oacute;rny otw&oacute;r jaskini (schron) został odkryty 8 grudnia 2001 r. przez Z. Tabaczyńskiego (Speloeoklub Tatrzański), kt&oacute;ry 18 stycznia 2002 r. pokonujeuje otw&oacute;r i z powodu braku sprzętu, zatrzymuje się nad Studnią Jubileuszową. 20 stycznia 2002 r. K. Dudziński i Z. Tabaczyński zjeżdżają przez Studnią Jubileuszową i po odgruzowaniu zawaliska na dnie, odkrywają Beznadziejną Salkę i kominy. 3 lutego 2002 r. K. Dudziński i Z. Tabaczyński wykonują pomiary jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszą dokumentacje od dolnego otworu wykonano w dniu 10 sierpnia 1978 r podczas prac nad inwentaryzacją jaskiń tatrzańskich OW PTPNoZ. W&oacute;wczas dokumentację groty sporządziła I. Luty przy wsp&oacute;łpracy T. Ostrowskiego. Pomiary wykonano busolą geologiczną Meridian i taśmą parcianą. Dane sytuacyjno-wysokościowe położenia otworu podano na podstawie pomiar&oacute;w przeprowadzonych w dniu 23 września 1982 r. przez Zesp&oacute;ł Koła Naukowego Geodet&oacute;w G&oacute;rniczych AGH pod kierownictwem W. Borowca. Po odkryciach w 2002 r. pomiary powt&oacute;rzono. Zaktualizował Z. Tabaczyński (2009 r.).<br />Plan opracował Z. Tabaczyński</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Habil W. 1961 (opis jaskini, szkicowy plan i przekr&#243;j pod nazwą Mnichowa Studnia Wyżnia); W&#243;jcik Z. 1966a (niekt&#243;re dane morfometryczne, lokalizacja na mapkach, w tym - geologicznej pod nazwą „Mnichowa”); W&#243;jcik Z. 1968 (lokalizacja na mapce); Tatry Polskie 1976 (błędna lokalizacja na mapie 1:10000 pod nazwą Jaskinia w Mnichach); Borowiec W. i in. 1977,1878 (wymieniają jako dwie r&#243;żne jaskinie pod nazwami „Mnichowa” oraz „Mnichowa Studnia Wyżnia”, podają niekt&#243;re dane morfometryczne); Zembrzuski J. 1979 (limit osobowejść); Kardaś R.M. 1979 (wzmianka o sporządzeniu dokumentacji); Luty I. 1982b (informacja o pomiarach sytuacyjno-wysokościowych, bez nazwy); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10000); Gradziński R. i in. 1985a (wymieniają jako dwie r&#243;żne jaskinie pod nazwami „Mnichowa” oraz „Mnichowa Studnia Wyżnia”, podają niekt&#243;re dane morfometryczne); Luty I. 1989b (nowe dane morfometryczne, lokalizacja na mapie i rysunku ściany, dane historyczne); ). Jaskinie TPN 2000 (opis inwentarzowy i plan); Tabaczyński Z. 2002d,e,f. (opis i plan); Jaskinie TPN 2004 (uzupełnienie opisu inwentarzowego i plan); Szczygieł J. 2013a,b (wymienia w kontekście badań geologicznych); Szczygieł J. 2015b (wzmiankuje w kontekście genezy i uwarunkowań tektonicznych).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik S. 1959 - sprawozdanie (wzmianka o odkryciu); W&#243;jcik S. - Inwentarz (wymienia pod nazwą Jaskinia Mnichowa Wyżnia - nr 4.1.5.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty, Zbigniew Tabaczyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1125)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1126)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

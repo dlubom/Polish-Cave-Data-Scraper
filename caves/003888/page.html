@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3888">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3888;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "344036,7677".replace(',', '.') + "," + "271215,6040".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3888','Jaskinia w Rog&#243;żce (S-1.3 ex)'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia w Rog&#243;żce (S-1.3 ex)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Wolmsdorferh&#246;hle, Wolmsdorfer Tropfsteinh&#246;hle
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                S.I-03.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Sudety
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 16&#176;48′35,80″, φ: 50&#176;17′14,90″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Stronie Śląskie (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kłodzki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                dolnośląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                630
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    350
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sudety Wschodnie, Rog&#243;żka, masyw Śnieżnika, Krowiarki, kamieniołom marmur&#243;w.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z głównej drogi Kłodzko-Lądek Zdrój, za wsią Trzebieszowice skręcamy w prawo drogą do Konradowa. Mijamy wieś i widoczny z lewej strony wapiennik. Za nim, z lewej strony, znajduje się kamieniołom. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p style="text-indent: 36pt;"><span>Otwór znajdował się w ścianie kamieniołomu. K. Kowalski (1954), który odwiedził jaskinię jesienią 1953 r. zastał ją już częściowo zniszczoną (liczyła 150 m długości), tak opisuje topografię: <em>"duży otwór(...) prowadził do szerokiej obszernej sali. Ku końcowi zwężała się w ciasne przejście, zamknięte murem. Ciasny przełaz zrobiony pod nim prowadził do okrągłej, wysokiej salki. Stąd wspiąć się trzeba było po 2‑metrowym, pochyłym progu do obszernego korytarza. W początkowej części swego łukowatego przebiegu korytarz ten posiadał wielkie, masywne nacieki na dnie. Dalej napotykało się charakterystyczny most skalny dzielący chodnik na dwa piętra. Wkrótce za nim dochodziło się do zakrętu korytarza, gdzie rozpoczynała się sztolnia obudowana drzewem, prowadząca na powierzchnię. Sztolnia ta, wykonana jeszcze w latach przedwojennych, groziła zawaleniem. Dalszy ciąg korytarza doprowadzał znów do otworu w ścianie kamieniołomu. Dno całej sali było na ogół poziome, bez większych różnic wysokości. Nacieki rozwinięte były obficie, ale jedynie masywne ich formy uniknęły całkowitego zniszczenia.</em></span></p><p style="text-indent: 36pt;"><span><em>"</em>Jaskinia utworzyła się w krystalicznych marmurach pochodzących z niższego proterozoiku, występujących w metamorfiku Śnieżnika. Namulisko było wówczas miąższe. Na podstawie danych opublikowanych przez K. Uteschera (analizy chemiczne glin jaskiniowych) sądzić należy, że jaskinia zawiera osady pochodzące z przemycia zwietrzelin stokowych z okresu ostatniego zlodowacenia (Utescher 1939). W dawnych pracach spotyka się wiadomości, że namulisko zawierało kości niedźwiedzia i mamuta, ale F. Pax uznał je za nieprawdziwe. W. Arndt wzmiankował, że Mollison znalazł kości żubra, ale była to wiadomość z drugiej ręki i nie zasługiwała na zaufanie. F. Pax dokonał próbnego wykopu i na głębokości 2 m znalazł nieoznaczone kości ptasie i kawałki drewna świerka ‑ prawdopodobnie współczesne. W 1937 r. L. Zotz wykonał próbny wykop nie znajdując kości ani śladów kultur materialnych . </span></p><p style="text-indent: 36pt;"><span>W okresie przedwojennym w jaskini było jeziorko. Podczas badań F. Paxa temperatura wody w jeziorku wynosiła 4,9</span><span style="  Calibri&quot;,&quot;sans-serif&quot;;">°</span><span>C (08.04.1933), Twardość 6,2</span><span style="  Calibri&quot;,&quot;sans-serif&quot;;">°</span><span>N, zawartość tlenu 5‑6 cm<sup>3</sup>/litr, pH 7,6, temperatura powietrza od +1 do +8</span><span style="  Calibri&quot;,&quot;sans-serif&quot;;">°</span><span>C. Potem jaskinia uległa stopniowemu osuszeniu. Głębsze części jaskini były zupełnie ciemne. Ze względu na działalność kamieniołomu rośliny zielone nie występowały. We wnętrzu znaleziono grzyby <strong><em>Mycena sp</em>.</strong> (prawdopodobnie <strong><em>M. filopes</em></strong>), <strong><em>Penicillinium sp</em>.</strong><br /></span></p><p style="text-indent: 36pt;"><span>Faunę jaskiniową badali W. Arndt, F. Pax, K. Maschke, J. Seidel i H.J. Stammer. Była ona bardzo bogata. Sam F. Pax w 1933 roku stwierdził tu 71 gatunków zwierząt, w tym 1 gatunek i dwie odmiany nowe dla nauki. Z troglobiotycznych gatunków wodnych stwierdzono obecność <strong><em>Troglochaetus beranecki</em>, <em>Niphargus tatrensis</em></strong><em> <strong>schneebergensis</strong></em>, natomiast z lądowych <strong><em>Rhagidia reflexa var. volmsdorfensis </em></strong>i <strong><em>Arrohopalites pygmaeus</em></strong>. Na ścianach wokół otworu stwierdzono pospolity zespół trogloksenów i pająków. Dno w strefie oświetlonej zamieszkiwała bogata fauna złożona głównie ze skoczogonków i chrząszczy. Dno strefy ciemnej zamieszkiwały również chrząszcze, zwłaszcza <strong><em>Quedius mesomelinus</em>, <em>Choleva elongata</em>, <em>Catops fuscus</em>, <em>C. longulus</em>, <em>C. subfuscus</em></strong>. W wodzie jeziora stwierdzono wrotki <strong><em>Asplanchna priodonta</em>, <em>Notholca foliacea</em>, <em>Briachionus sp</em>.</strong>, nicienie<em> <strong>Dorylaimus stagnalis</strong></em><strong>, <em>Actinolaimus macrolaimus</em></strong>, prapierścienicę <strong><em>Troglochaetus beranecki</em></strong>, niesporczaka <strong><em>Hypsibius scoticus</em></strong>, oczliki<em> <strong>Dacyclops longuidus disjunctus</strong> </em>i <strong><em>Echinocamptus (limnocamptus) dacicus</em></strong>, studniczka <strong><em>Niphargus tatrensis schneebergensis</em></strong>. Zimowały też w niej nietoperze: mopki (<strong><em>Barbastella barbastellus</em></strong>), gacki (<strong><em>Plecotus auritus</em></strong>), nocki duże <em>(<strong>Myotis myotis</strong></em>) i nocki wąsate (<strong><em>Myotis mystacinus</em></strong>). </span></p><p style="text-indent: 36pt;"><span>W latach powojennych, wskutek zniszczeń i znacznego przesuszenia jaskini, </span><span>jej </span><span>fauna zubożała.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    W 1926 r. J. Seidel stwierdził występowanie 4 gatunków nietoperzy. W 1933 r. F. Pax, z zespołem współpracowników wykonał kompleksowe badania zoologiczne. W następnych latach H.J. Stammer zbadał jeszcze faunę jeziorka w jaskini.W 1937 r. F. Pax opisał zmiany w faunie spowodowane niszczeniem jaskini. W tymże roku L. Zotz wykonał próbny wykop w namulisku, które okazało się jałowe. W 1939 r. K. Utescher wykonał analizy chemiczne glin jaskiniowych. Ciężkowski W.(2009) porównuje krążenie wód podziemnych w obszarze Krowiarek w rejonie Rogóżki do krążenia i przepływu w Górach kaczawskich.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia została odkryta 4.11.1885 r. przy eksploatacji marmuru. Pierwszy opisał ją W. Tenzer w 1886 r. W 1920 r. badał ją zoolog W. Arndt podając długość na 200 m. Znalazł on, z fauny współczesnej, tylko kilka gatunków muchówek. W 1935 r. K. Maschke sporządził plan jaskini. Po 1933 r. zaczęło się niszczenie jaskini. Ze względu na nasilony ruch turystyczny wykonano sztuczne wejście, a część przeznaczoną na zniszczenie odcięto murem. W 1947 r. stan jaskini był taki jak w roku 1937. Podjęta w latach następnych eksploatacja marmurów powodowała dalsze zniszczenia. Mimo położenia w czynnym kamieniołomie jaskinia była nadal zwiedzana. W 1953 r. był w niej K. Kowalski i stwierdził, że długość zmniejszyła się do 150 m. Nie opublikował jednak aktualnego jej planu. Fotografię otworu jaskini z 1962 r. publikuje M. Pulina (1977).&nbsp; Otwór wejściowy był wówczas stosunkowo duży i prowadził do korytarza opadającego poniżej dna kamieniołomu. W rozmowie z autorem opisu ówcześni pracownicy kamieniołomu twierdzili, że korytarzem tym płynęła woda, a znaczna część jaskini nie uległa zniszczeniu lecz znajdowała się za usypiskiem przesłaniającym otwór.&nbsp; <br />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    W 1985 r. w górnej części ściany kamieniołomu odkryta została Jaskinia na Ścianie S.I-03.01, która przypuszczalnie tworzyła, wraz ze zniszczoną jaskinią, wspólny system jaskiniowy (Bieroński 2009). Dane zaktualizowali w 2013 r. H. Dobrakowska i A. Szynkiewicz.<br />Plan wg K. Maschke.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Tak
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Tenzer W. 1886 (pierwszy opis jaskini); Arndt W. 1921 (wzmianka o faunie); Pax F. 1921 (opis fauny); Arndt W.1923 (opis jaskini i fauny, wiadomość o znalezieniu przez Mollisona kości kopalnych); Seidel J. 1927  (opis jaskini i wykaz nietoperzy zimujących w jaskini); Wolf B. 1934 1938 (wykaz fauny wg Arndta, Paxa i Seidela); Dittrich G.1934a  (wzmianka o niszczeniu przez kamieniołom); Pax F., Maschke K., 1935: (opis i plan jaskini, opis fauny wsp&#243;łczesnej); Stammer H.J. 1936 (opis fauny wodnej); Maschke K. 1936 (uzupełnienie do spisu fauny); Pax F. 1936a (wzmianka o faunie); Pax F. 1937a (wzmianki o ssakach występujących w jaskini, gł&#243;wnie o nietoperzach); Pax F. 1937b: (opis zmian zaszłych w jaskini w skutek niszczenia i uzupełnienia do spisu fauny); Zotz L. 1937a (wzmianki); Dittrich G. 1938a (wzmianka); Dittrich G. 1939 (wzmianka); Moszyński A. 1939 (wzm. o faunie); Sokołowski K. 1939 (spis chrząszczy z grupy Catopidae spotykanych w jaskini); Geischwendt F. 1939 (wzmianka, fotografia otworu); Zotz F. 1939a (wzmianka o wykonaniu pr&#243;bnego wykopu, załączono prace K.Uteschera z opisem mineralogiczno chemicznym osad&#243;w); Stach J. 1945 (wiadomość o występowaniu w jaskini troglobiotycznego owada bezskrzydłego Arrhopalites pygmaeus); Klimaszewski M. 1949: (kr&#243;tki opis); Walczak W. 1951: (opis drogi, wzmianka); Wojciechowski J.1951: (wzmianka); Żywień H. i Młynarczyk S. 1953 (wiadomość o postępującym niszczeniu); Kowalski K. 1954 (stan zachowania jaskini, szczeg&#243;łowy opis na podstawie literatury); Walczak W. 1958 (wzmianka); Pulina M. 1977 (opis i zdjęcie otworu); Bieroński J., Wiszniowska T. 1992 (opis, wyniki badań); Bieroński J., Wiszniowska T. 1994 (opis, wyniki badań); Jaskinie Sudet&#243;w 1996 (plan i opis inwentarzowy pod nr. S-1.3ex); Rogala W. 1998a,c (wzmiankowana); Rogala W., Placek W., Wojtoń A. 1998 (dane morfometryczne, opis jaskini, położenie); Bieroński J. i in. 2007a,b,d,f,g (opis, fauna kopalna); Bieroński J. 2009 (wzmiankowana); Bieroński J. i in. 2009b,c (opis, fauna kopalna); Ciężkowski W. i in. 2009 (opis krążenie w&#243;d podziemnych); Migoń P. 2009 (nowe dane morfometryczne, wymienia w kontekście geomorfologii masywu Śnieżnika i powiązaniu z innymi jaskiniami Krowiarek); Stefaniak K., Bieroński J. 2009 (wzmiankowana); Stefaniak K., Tyc A., Socha P. (Eds.) 2009 (wymienia).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Pulina M. 1964 (opis, zdjęcie otworu); Bieroński J., Wiszniowska T. 1986 (wzmianka). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jan Trumpus
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3886)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F839">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 839;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "595575,1884".replace(',', '.') + "," + "332085,3191".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('839','Jaskinia w Sztolni Zofia na Miedziance'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia w Sztolni Zofia na Miedziance
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                sztolnia &quot;Zofia&quot;, sztolnia Łaszczyńskich
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-2.20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;21′29,00″, φ: 50&#176;50′52,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Chęciny (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kielecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody G&#243;ra Miedzianka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku W, 320 m n.p.m.; 3 - ku NE, 326 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                320
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                23
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    279
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sztolnia położona jest w zachodniej części wzg&#243;rza Miedzianka. Otwory: gł&#243;wny (1) i 2, znajdujące się w odległości 1,5 m od siebie, zlokalizowane są w zachodnim zboczu zachodniego wierzchołka wzg&#243;rza. Otw&#243;r 3 (p&#243;łnocno-wschodni) znajduje się po przeciwległej stronie, w p&#243;łnocno-wschodnim zboczu tego samego wierzchołka. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Dojście do otworu 1 prowadzi ścieżką trawersującą południowe zbocze Miedzianki. Po około 450 m idąc od strony piaskowni na zachód dochodzimy do zarastającego sztucznego wąwozu w zachodnim zboczu zachodniego wierzchołka. Przekraczamy wąwóz kierując się na północ i po około 20 m dochodzimy do otworu położonego w skałce na zboczu. Do otworu 3 możemy dotrzeć z zachodniego wierzchołka wzgórza schodząc północno-wschodnim jego zboczem w kierunku dobrze widocznej hałdy górniczej. Tuż nad nią znajduje się kilkumetrowy skalny wkop, który doprowadza do otworu.
+Dojście bez trudności, zwiedzanie większości korytarzy łatwe, niebezpieczne w okolicach szybiku, miejscami ciasno lub stromo. Zagrożenie stanowią również lboki skalne usytuowane na stromych pochylniach. Zwiedzanie szybiku wymaga użycia sprzętu i technik alpinistycznych. Dostęp do jaskini możliwy jest po uzyskaniu zezwolenia Wojewódzkiego Konserwatora Przyrody w Kielcach.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Długość całego zespołu pustek: 715,5&nbsp;m</p>
+<div>Rozciągłość horyzontalna całego zespołu pustek: 156&nbsp;m</div>
+<p>Deniwelacja części naturalnej (jaskini): 23&nbsp;m (w stosunku do otworu1: +15&nbsp;m, -8&nbsp;m)</p>
+<p>Deniwelacja obiektu wraz z wyrobiskami sztucznymi: 54 m (w stosunku do otworu 1: +15&nbsp;m, -39&nbsp;m)</p>
+<p>Gł&oacute;wny (1), naturalny otw&oacute;r jaskini ma szerokość 5&nbsp;m u podstawy i wysokość 4,5&nbsp;m, leżą w nim dwa głazy. Wprowadza do przestronnego, opadającego korytarza rozwiniętego na pochyłej szczelinie. W odległości 4&nbsp;m od otworu, po lewej stronie znajduje się wejście do kilkunastometrowego ciągu ciasnych, krzyżujących się korytarzy z kamieniami w spągu. Jedna z odn&oacute;g ciągu doprowadza do otworu 2. Prostokątny w przekroju, naturalny otw&oacute;r o wymiarach 0,4 x 0,3&nbsp;m znajduje 1,5&nbsp;m na p&oacute;łnoc od gł&oacute;wnego wejścia. Nakryty jest niewielkim filarem skalnym. Powracamy do gł&oacute;wnego korytarza, kt&oacute;rym po kamieniach i glinie schodzimy do rozszerzenia. Korytarz ma w tym miejscu 5&nbsp;m szerokości. Po lewej stronie znajduje się wejście do wrzecionowatej w przekroju wnęki długości 5&nbsp;m, do kt&oacute;rej dostajemy się po śliskim progu o wysokości 1,5&nbsp;m. Na dnie wnęki znajduje się niewielkie jeziorko długości 2,5&nbsp;m, szerokości 0,5&nbsp;m i głębokości 20cm. Wnęka ma także połączenie z korytarzem gł&oacute;wnym niewielkim oknem skalnym. Tuż przy wejściu do opisywanej wnęki znajduje się otw&oacute;r ciasnego, opadającego korytarzyka, kt&oacute;ry po 3&nbsp;m jest zagruzowany. Po przeciwległej stronie korytarza gł&oacute;wnego znajdują się trzy wejścia do ciągu stromych rozwijających się ku g&oacute;rze korytarzy, kt&oacute;rych spąg pokrywa osad piaszczysto-ilasty i gruz skalny. Pierwsze wejście, u podn&oacute;ża kt&oacute;rego widoczny jest stożek usypiskowy, położone jest najbliżej otworu i ma kształt owalny; tuż za nim rozpoczyna się stroma (50<sup>o</sup>) pochylnia. Drugie wejście, położone 6&nbsp;m w głąb jaskini, rozpoczyna się progiem skalnym (wysokości 2&nbsp;m), za kt&oacute;rym w g&oacute;rę ciągnie się pochylnia. Trzeci korytarz, oddzielony od drugiego niewielkim filarem skalnym, ma od początku charakter pochylni. Po kilku metrach wszystkie trzy korytarze łączą się w jedną pochylnię kontynuującą się jeszcze w g&oacute;rę około 10 metr&oacute;w i kończącą się zawaliskiem. Na 5&nbsp;m przed jej końcem ku wschodowi odchodzi opadający korytarz, kończący się ślepo po 6&nbsp;m.</p>
+<p>&nbsp;&nbsp;&nbsp;Wracamy do ciągu gł&oacute;wnego, kt&oacute;ry ma w tym miejscu 5&nbsp;m szerokości i 6&nbsp;m wysokości. Podążamy nim ku południowemu-wschodowi i po 10&nbsp;m dochodzimy do dwu bocznych korytarzy, rozwijających się po prawej stronie ciągu gł&oacute;wnego. Pierwszy z nich to chodnik g&oacute;rniczy o długości 8&nbsp;m. P&oacute;łtora metra powyżej wejścia do wspomnianego chodnika bierze początek korytarz o charakterze stromej pochylni. Idziemy nim 10&nbsp;m ku g&oacute;rze w kierunku południowym i dochodzimy do prostopadle rozwiniętego ciągu, kt&oacute;ry w kierunku zachodnim ciągnie się 10&nbsp;m i kończy zawaliskiem, natomiast w kierunku wschodnim ma długość 20&nbsp;m i dochodzi do korytarza ciągu gł&oacute;wnego. Idąc dalej pochylnią docieramy po 2&nbsp;m do jej rozszerzenia, z kt&oacute;rego na zach&oacute;d odchodzi wąski korytarz długości 6&nbsp;m, zagruzowany na końcu, natomiast w kierunku wschodnim podąża korytarz rozwinięty na pochyłej szczelinie, przez 10&nbsp;m wznoszący się, p&oacute;źniej opadający progiem o wysokości 4&nbsp;m, a dalej pochylnią łączący się z opisanym wcześniej korytarzem dochodzącym do ciągu gł&oacute;wnego.</p>
+<p>&nbsp;&nbsp;&nbsp;Wracamy do ciągu gł&oacute;wnego, do odejścia dwu bocznych korytarzy. Stąd idziemy szerokim korytarzem, kt&oacute;rego prawą ścianę tworzy pochylnia zasłana blokami skalnymi. Po około 16&nbsp;m z prawej strony natrafiamy na chodnik g&oacute;rniczy o długości 8&nbsp;m. 4&nbsp;m dalej korytarz zwęża się i doprowadza do niewielkiego zawału skalnego podstemplowanego starymi, drewnianymi belkami. Tuż za zawałem, po prawej stronie do ciągu gł&oacute;wnego dochodzą wcześniej opisane korytarze. Podążamy dalej opadającym korytarzem rozwiniętym na szczelinie. Ma on w tym miejscu 1,5&nbsp;m szerokości i 4&nbsp;m wysokości. Po 10&nbsp;m docieramy do bocznego chodnika g&oacute;rniczego, odchodzącego w prawo, zalanego już na wstępie wodą. Po kolejnych 8&nbsp;m wkraczamy do partii, kt&oacute;re tracą naturalny charakter i są chodnikami g&oacute;rniczymi. Idąc korytarzem ciągu gł&oacute;wnego mijamy po prawej stronie wejście do ciągu r&oacute;wnoległego i dochodzimy nad krawędź prostokątnego w przekroju szybiku, wypełniającego prawie całą szerokość korytarza (uwaga - niebezpieczne przejście, wpadnięcie do szybiku spowodowało już śmierć turysty). Szybik o wymiarach 4&nbsp;x 2,5&nbsp;m z początku urywa się prawie pionowo, by po kilku metrach przejść w stromo nachyloną pochylnię. Jego dno możemy osiągnąć 30-metrowym zjazdem na linie. Kilka metr&oacute;w nad dnem w ścianie szybu bierze początek korytarz o długości 6&nbsp;m rozwijający się w kierunku zachodnim. Z dna szybiku w kierunku zachodnim podąża korytarz po kilku metrach całkowicie zalany wodą.</p>
+<p>&nbsp;&nbsp;&nbsp;Z nad szybiku w kierunku południowym wchodzimy do niewielkiej sali, z kt&oacute;rej odchodzą cztery korytarze. Prawy, ciągnący się na zach&oacute;d, stanowiący wspominany wcześniej ciąg r&oacute;wnoległy do gł&oacute;wnego korytarza ma 6&nbsp;m długości; w niewielkim jego rozszerzeniu znajduje się kwadratowy (o boku 1&nbsp;m) szybik zalany wodą. W kierunku południowo-wschodnim, odchodzi rozwidlający się korytarz. Jego lewa odnoga ma 8&nbsp;m długości, prawa po 2&nbsp;m zalana jest wodą. W stropie sali ma początek trzeci korytarz, będący kominem, kt&oacute;ry po kilku metrach zakończony jest zawaliskiem wiszącym nad drewnianym szalunkiem. Do czwartego korytarza wchodzimy przez pr&oacute;g skalny wysokości 0,5&nbsp;m. Bierze tu początek kilkudziesięciometrowy ciąg chodnik&oacute;w g&oacute;rniczych.</p>
+<p>Kontynuację ciągu gł&oacute;wnego znajdujemy za szybikiem, nad kt&oacute;rym trawersujemy wąską p&oacute;łką i wchodzimy do chodnika g&oacute;rniczego o szerokości 1,5&nbsp;m i zmiennej wysokości od 1,2&nbsp;m do 2,3&nbsp;m. Korytarz ten założony został na szczelinie krasowej widocznej w stropie chodnika. Korytarz ciągnie się w kierunku wschodnim i po około 50&nbsp;m doprowadza do niewielkiego rozszerzenia. W połowie tego odcinka, za zawałem znajduje się wejście do prostopadłego chodnika o długości 10&nbsp;m. W miejscu rozszerzenia korytarz zmienia kierunek na p&oacute;łnocno-wschodni i po dalszych 50&nbsp;m doprowadza do otworu 3 (wschodniego). Otw&oacute;r ten, pierwotnie naturalny, został powiększony g&oacute;rniczo. Jest łukowato sklepiony i ma wysokość 1,5&nbsp;m. W jego stropie po prawej stronie widoczna jest szczelina wypełniona osadem ilasto-piaszczystym. Na dnie leżą dwa głazy.</p>
+<p>Sztolnia wraz z naturalnymi korytarzami krasowymi znajduje się w obrębie masywnych wapieni dewonu środkowego-żywetu. W kilku miejscach korytarze przecinają wiśniowe łupki dewonu g&oacute;rnego-famenu. Spąg pokrywa rumosz skalny wymieszany z osadem piaszczysto-ilastym. W kieszeniach krasowych zachowały się gliny typu &ldquo;terra rossa&rdquo;. W gł&oacute;wnym otworze na spągu znajduje się niewielka ilość humusu. W kilku miejscach występują cienkie polewy kalcytowe. Na ścianach obserwować można kolorową mineralizację azurytowo-malachitową.</p>
+<p>Zasadniczą część obiektu stanowi nachylony, przestronny, krasowy korytarz rozwinięty na szczelinie tektonicznej o przybliżonym biegu 100<sup>0</sup> i zmiennym upadzie 55<sup>0</sup>-70<sup>0</sup> na p&oacute;łnoc. Traci on sw&oacute;j naturalny charakter w okolicy szybiku. Z tego miejsca biorą początek chodniki kopalniane przecinające w wielu miejscach nisze i kieszenie krasowe. Naturalna jest r&oacute;wnież znaczna część korytarza za szybikiem oraz bezpośrednie okolice p&oacute;łnocno-wschodniego otworu. Zdaniem Majchert-W&oacute;jcik (1964) wyższe jaskinie Miedzianki powstały w neogenie.</p>
+<p>&nbsp;&nbsp;&nbsp;Obiekt jest wilgotny. Na ścianach występują krople wody. W korytarzach znajdują się liczne kałuże, niekt&oacute;re o charakterze małych jeziorek. Część korytarzy zalana jest wodą o zmiennym poziomie. Poziom ten podnosi się zazwyczaj w porze wiosennej. Światło dzienne sięga do 20&nbsp;m w głąb gł&oacute;wnego korytarza w okolicach otworu 1 i do 5&nbsp;m - w okolicy otworu 3.</p>
+<p>W obu otworach zachodnich (1 i 2) występuje roślinność reprezentowana przez krzewy, rośliny kwiatowe, paprocie i mchy, a w otworze 3 - dodatkowo glony. Fauna sztolni i związanych z nią naturalnych pustek krasowych jest dość bogata. E. Sanocka-Wołoszyn (1964) wymienia liczne gatunki występujących tu pająk&oacute;w: <strong><em>Segestria senoculata (L.), Nesticus cellulanus (Cl.), Lepthyphantes leprosus (Ohlert), Micrargus herbigradus (Blackw.), Meta menardi (Latr.), Drassodes lapidosus (Walck.), Amaurobius fenestralis (Stroem)</em></strong><em>. </em>Opr&oacute;cz pająk&oacute;w spotyka się tu typowy zesp&oacute;ł trogloksen&oacute;w, wśr&oacute;d kt&oacute;rych są rusałka pawik <strong><em>Inachis io (L)</em></strong>, szczerb&oacute;wka ksieni <strong><em>Scoliopteryx libatrix (L.)</em></strong> oraz ślimaki szklarkowate (Zonitidae). W sztolni spędzają zimę liczne nietoperze. Przebywa tu okresowo 10 gatunk&oacute;w tych ssak&oacute;w: nocek duży <strong><em>Myotis myotis (Borkhausen)</em></strong><em>,</em> nocek wąsatek<strong> <em>Myotis mystacinus (Kuhl)</em></strong><em>,</em> nocek Natterera <strong><em>Myotis nattereri (Kuhl)</em></strong><em>,</em> nocek rudy<strong> <em>Myotis daubentonii</em> <em>(Kuhl)</em></strong><em>,</em> gacek brunatny <strong><em>Plecotus</em> <em>auritus (L.)</em></strong>., gacek szary <strong><em>Plecotus austriacus (Fischer)</em></strong>, nocek łydkowłosy<strong> <em>Myotis dasycneme (Boie)</em></strong> (ostatnio nie spotykany), mopek <strong><em>Barbastella barbastellus (Schreber)</em></strong> i mroczek p&oacute;źny <strong><em>Eptesicus serotinus (Schreber)</em></strong> (Wołoszyn 1962a, 1964a,b, 1994a, Gubała 1996b). Faunę wodną reprezentują przedstawiciele trzech typ&oacute;w bezkręgowc&oacute;w: nicieni (<span style="font-style: italic;">Nematoda</span>), skorupiaki z rzędu widłonog&oacute;w (<span style="font-style: italic;">Crustacea-Copepoda</span>) oraz pierścienic (<span style="font-style: italic;">Annelida</span>) reprezentowanych przez skąposzczety (<span style="font-style: italic;">Oligochaeta</span>) z rodziny wazonkowc&oacute;w (<span style="font-style: italic;">Enchytraeidae</span>) (Dumnicka, w druku)</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obiekt znany był prawdopodobnie od XIV wieku. Gł&oacute;wne prace g&oacute;rnicze w sztolni prowadzone były w XIX wieku przez Austriak&oacute;w (lata 1804-1807) i w okresie Kr&oacute;lestwa Kongresowego (1817-1820). Najstarszy zachowany plan obiektu (F. Krumpla) pochodzi z 1818 r. (Fijałkowska, Fijałkowski 1976, Guldon 1979, Kosik, Marcinkowski 1979, Wr&oacute;blewski 1979, W&oacute;jcik, 1996).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację jaskini sporządził Krzysztof Recielski przy wsp&oacute;łpracy Agnieszki Gajewskiej i Dariusza Lermera - 4 i 6. 05.1990 r. oraz 26. 05. 1990 r. Geodezyjny pomiar wysokości otworu wykonał zesp&oacute;ł pod kierownictwem Wiesława Wilka - 8.06.1996 r. Dane zaktualizował K. Recielski (2009 r.).<br />Plan opracował K. Recielski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wołoszyn B.W. 1960a (nietoperze); Wołoszyn B.W. 1962a (nietoperze); Majchert-W&#243;jcik H. 1964 (wiek krasu); Sanocka-Wołoszyn E. 1964 (pająki), Wołoszyn B.W. 1964a (nietoperze); Wołoszyn B.W. 1964b (nietoperze); Wołoszyn B.W., W&#243;jcik Z. 1965 (nietoperze); Fijałkowska E., Fijałkowski J. 1976 (historia prac g&#243;rniczych); Guldon Z. 1979 (plan sztolni); Kosik E., Marcinkowski S. 1979 (historia prac g&#243;rniczych); Wr&#243;blewski T. 1979 (dawne wyrobiska g&#243;rnicze); Ruprecht A. 1983 (nietoperze); Koteja P., Weiner J., Wołoszyn B.W. 1994 (nietoperze); Wołoszyn B.W. 1994a (nietoperze); Wołoszyn B.W. 1994b (nietoperze); Wołoszyn B.W., Labocha M., Gałosz W., Postawa T. 1995 (nietoperze); Dumnicka E. 1996 (fauna wodna); Gubała J. 1996b (nietoperze); Gubała J., Kasza A., Urban J. 1996 (wielkość); Recielski K. 1996 (wielkość, część krasowa i g&#243;rnicza obiektu); Wołoszyn B.W. 1996 (nietoperze); W&#243;jcik Z. 1996 (historia badań); Jaskinie Regionu Świętokrzyskiego 1996 (plan i opis inwentarzowy); Bujna E., Klauzińska M. 1997 (nietoperze); G&#243;rniak M., J&#243;źwiak M., Kasza A., Urban J. 2006 (wzmianka, wiek krasu).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Krzysztof Recielski, Bronisław W. Wołoszyn
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(340)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=867" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

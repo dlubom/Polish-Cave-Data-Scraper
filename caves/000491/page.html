@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F491">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 491;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566560,77".replace(',', '.') + "," + "152688,83".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('491','Jaskinia Wielka Litworowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Wielka Litworowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Jaskinia Wielka Śnieżna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′52,78″, φ: 49&#176;14′17,11″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1906,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                354
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                16
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                370
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    7185
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                236
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, Dolinka Litworowa, Czerwone Wierchy, NW zbocze Małołączniaka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Położenie: w prawym orograficznie zboczu Doliny Litworowej, ponad ryglem skalnym dzielącym dolinkę na dwa odcinki. Dojście: niebieskim szlakiem wiodącym Doliną Miętusią na Małołączniak. Po wyjściu żlebem na grzbiet dzielący doliny Miętusią i Małej Łąki (Czerwony Wierch) podchodzimy około 50 metrów dalej szlakiem w kierunku kopuły szczytowej Małołączniaka. Po kilku minutach, w miejscu, gdzie w zwietrzelinie stokowej zaznacza się wyraźnie granica wapieni i czapki krystalicznej, lub nieco powyżej tego kontaktu, zaczynamy trawersować w kierunku Doliny Litworowej (latem wyraźna perć, zimą w okolicach szóstej tyczki). Niebawem mijamy lej będący otworem Niebieskiej Studni. Trawersując dalej przechodzimy obok rozlanych na stoku młak. Po ich ominięciu otwiera się widok na skalny rygiel w dnie doliny oraz przecinające nasz stok dwa wapienne żeberka z charakterystycznymi, leżącymi nieco poniżej nas siodełkami, przez które wiedzie dalsza droga. Otwór znajduje się w trzecim, najwybitniejszym pasie skał, na wysokości drugiego siodełka. Ukryty za niewielkim filarkiem, z daleka jest zupełnie niewidoczny, bywa jednak oznaczony tyczką. Dojście bez trudności, lecz w czasie mgły i zimą trudne orientacyjnie. Zimą przy złych warunkach niebezpieczne (możliwość poślizgnięcia na stromych stokach, lawiny), otwór bywa zasypany śniegiem. Zwiedzanie trudne, wymaga użycia lin i pełnego zestawu sprzętu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia stanowi część systemu o nazwie Jaskinia Wielka Śnieżna.<br />Otw&oacute;r usytuowany w stromej ściance skalnej jest wylotem pionowej studni o szerokości 2 m, oddzielonej od stoku grzebieniem skalnym i wąską p&oacute;łeczką. Studnia o głębokości 14 m w dolnej części rozszerza się i po 10 m rozdzielona jest mostem skalnym. Lądujemy na dnie wąskiego, rozwiniętego na szczelinie korytarza, o dnie pokrytym drobnym rumoszem skalnym, a czasami&nbsp;&ndash; śniegiem. W prawo korytarz wznosi się i po kilku metrach stajemy pod 1,5 m prożkiem. Nad nim ciągnie się kr&oacute;tki, szczelinowaty meander, rozdzielony przez zaklinowane głazy na dwa poziomy, kt&oacute;rymi posuwać się można kilka metr&oacute;w. Oba kończą się ciasnymi szczelinami. G&oacute;rny poziom (dostępny po pokonaniu 3,5 m progu) doprowadza do 5 m kominka. W jego stropie znajduje się przełaz do korytarzyka ze śniegiem (strop na poziomie +6,4 m), bardzo ciasnym przejściem łączącego się z opisanym dalej ciągiem Mieszkanka (szczelina &bdquo;Los Desperatos&rdquo;).<br /> Z dna studni wlotowej w lewo prowadzi szeroki i wysoki korytarz gł&oacute;wnego ciągu jaskini. Pokonujemy (o ile obniżenie dna nie jest zasypane śniegiem) 2 m prożek w g&oacute;rę i po kilku metrach dochodzimy do zwężenia. Przez 2 m prożek z want schodzimy nad 7 m pr&oacute;g, kt&oacute;rym zjeżdżamy. U jego podn&oacute;ża znajduje się okrągła, wysoka salka (szerokość około 3,5 m) o dnie płaskim, zasłanym rumoszem.<br /> W miejscu tym odchodzą w g&oacute;rę Partie Wielkanocne o długości około 100 m, prowadzące do najwyższego punktu jaskini. Dostajemy się do nich po 7 m wspinaczki prawą ścianą naprzeciwko linii zjazdu (trudności IV, sprzęt konieczny). Nad progiem korytarz skręca w prawo. Stromą pochylnią dochodzimy do niewielkiego rozszerzenia i wypłaszczenia. W tym miejscu ciąg rozwidla się. Prawe odgałęzienie po kilku metrach kończy się zawaliskiem, natomiast lewe, będące wąską, stromo wznoszącą się szczeliną, doprowadza do bardzo ciasnego przełazu między płytą skalną a stropem. Dalej ciąg kontynuuje się w tym samym kierunku. Pod zaklinowaną wantą przeczołgujemy się do wysokiego korytarza, kt&oacute;ry po kilku metrach zwęża się. Za obniżeniem stropu znajduje się podłużna salka. Z niej przez zacisk pod stropem i niski korytarzyk docieramy do wysokiej salki z wantami na dnie, w kt&oacute;rej ciąg się rozgałęzia. W lewym skraju salki znajduje się wylot niskiego korytarzyka, zablokowany namuliskiem i wantami. Przez nieznaczny prześwit widać pionową szczelinę. Idąc lewym z zaczynających się w salce ciąg&oacute;w, mijamy po lewej wylot niewielkiego, mytego, ślepego kominka, a po prawej wejście do kilkunastometrowego, schodzącego w d&oacute;ł, zakończonego ślepo ciągu. Dno korytarza obniża się, a po paru metrach ponownie się wznosi doprowadzając pod 2,5 m kominek, dawniej zablokowany wantami. Ponad nim znajduje się wysoki korytarz o litych ścianach, wiodący na p&oacute;łnocny zach&oacute;d. Osiągnięto w nim najwyższy punkt jaskini (+16 m) i stwierdzono kontakt głosowy ze Szczeliną nad Wielką Litworową (E-12.46) &ndash; do kt&oacute;rej brakuje ok. 5 m w pionie. Ewentualne połączenie obu jaskiń zwiększyłoby głębokość systemu Wielkiej Śnieżnej o 9 m (do &ndash;833 m).<br /> Prawe z końcowych odgałęzień Partii Wielkanocnych poprzez przegrodę z want wiedzie do niewielkiej komory, o dnie pokrytym blokami i namuliskiem. Przez 2,5 m prożek dochodzimy do wąskiego i niskiego korytarzyka, kt&oacute;ry skręca w lewo i doprowadza do wiodącej w g&oacute;rę żwirowo-gliniastej pochylni, kt&oacute;rej dno po kilku metrach styka się ze stropem. Jest to jeden z najwyższych punkt&oacute;w jaskini (+9,5 m).<br /> Spod 7-metrowego progu gł&oacute;wny ciąg prowadzi wstecz (pod studnię wlotową) wysokim, szczelinowym korytarzem. Dno opada coraz stromiej, po kilku metrach, ponad otworem małej studzienki dochodzimy nad połogi skalny prożek. Poniżej znajduje się szeroki balkon o płaskim dnie zawieszony ponad Komorą Konia Skalnego. Wspomniana studzienka oraz korytarzyk u podn&oacute;ża połogiego prożka łączą się ciągiem niewielkich korytarzyk&oacute;w (łącznie 12 m długości).<br /> Balkon urywa się 10 m Prożkiem z Dziurką (lina konieczna). Jego g&oacute;rną, przewieszoną część ominąć można ciasną studzienką, kt&oacute;rej otw&oacute;r znajduje się pod lewą ścianą. Tą drogą możliwe jest klasyczne wyjście podczas powrotu (trudności IV). Pod Prożkiem z Dziurką znajduje się wąska, lecz wysoka (około 15 m) sala. Posuwamy się między prawą ścianą a ogromną wantą (Koń Skalny) zajmującą większą część dna. Bloki w SW części sali zaklinowane są nad studnią zwaną Pierwszą Pięćdziesiątką, co można stwierdzić zaglądając w zawalisko u podn&oacute;ża dużej wanty o wysokości 3 m, przez kt&oacute;rą wiedzie dalsza droga. Wszedłszy na wspomnianą wantę skręcamy w lewo i za obniżeniem stropu stajemy na platformie nad Pierwszą Pięćdziesiątką. Z przeciwległego końca platformy dostać się możemy, schodząc około 8 m zapieraczką (lina konieczna) do interesujących partii zwanych Mieszkankiem, o długości około 250 m.<br /> Mieszkanko zaczyna się wysokim i obszernym szczelinowym korytarzem o dnie pokrytym piaskiem i żwirem ze skał krystalicznych z domieszką miejscowego rumoszu. Urywa się on do Pierwszej Pięćdziesiątki, w przeciwną zaś stronę doprowadza do dw&oacute;ch połączonych ładnych salek, będących dnem kilkudziesięciometrowych komin&oacute;w. Zaściełają je bloki wapienne oraz wspomniana powyżej zwietrzelina skał krystalicznych (piasek, żwir, nieco frakcji grubszych). W pierwszej salce (Salka I) na namulisku występują kości (m.in. czaszki o długości do około 7 cm&nbsp;&ndash; prawdopodobnie drapieżnik&oacute;w). Po usypisku z want schodzimy do sąsiedniej Salki J. W jej lewej ścianie znajduje się niewielki kominek, po prawej stronie na wysokości około 9 i 11 m czernieją trzy okna prowadzące do Antresoli. Występuje tu nieco mleka wapiennego i naciek&oacute;w grzybkowych. Przez niski przełaz na końcu salki (w obniżeniu okresowo gromadzi tu się woda) przechodzimy do Salki z Antresolą o kilkumetrowych, ciasnych odgałęzieniach. Wspinając się ścianą mniej więcej naprzeciw przełazu możemy dotrzeć (nietrudno, bez liny) na znajdujący się 10 m nad dnem efektowny balkon, kt&oacute;rym trawersujemy do Antresoli&nbsp;&ndash; przebicia łączącego się z oknami w Salce J.<br /> W prawym swym krańcu Salka z Antresolą przechodzi w zwężający się korytarz, kt&oacute;rego wznoszące się dno pokrywa wapienny rumosz oraz żwir i piasek krystaliczny. Zaczynające się tu bardzo ciasne korytarzyki prowadzą do g&oacute;rnych partii Mieszkanka, nie opisanych przez odkrywc&oacute;w, o niepełnej dokumentacji. Pierwszym ich rozszerzeniem jest Salka Leny, ciasnym korytarzykiem kontaktująca się z balkonem w Salce z Antresolą. Zaczynające się pod stropem Salki Leny dalsze korytarzyki wyprowadzają do Salki nad Antresolą (około 8 m powyżej wspomnianego balkonu). Z niej wiedzie korytarzyk w g&oacute;rę (około 7 m) do pięterka łączącego się oknami z kominem Salki J. Wspinamy się dalej kilka metr&oacute;w na tzw. Balkon Apacz&oacute;w, położony około 30 m nad Salką J. Następnie około 8 m wspinaczki kominem zwanym Eskalatorem doprowadza do okna, przez kt&oacute;re przejść można na Balkon Joanny (około 32 m nad Salką I). W kominie łączącym Salkę i z Balkonem Joanny znajduje się jeszcze jedna platforma zwana Werandą (na wysokości około 25 m). Wspinając się dalej w Eskalatorze powyżej okna do Balkonu Joanny, około 20 m nad Balkonem Apacz&oacute;w docieramy do stropu, pod kt&oacute;rym trawersujemy ciasną szczeliną nazwaną Los Desperatos. Szczelina ta kontaktuje się przez zacisk z salką ze śniegiem nad 5 m kominkiem w meandrze wiodącym ze studni wlotowej (+ 6,4 m).<br /> Zjazd Pierwszą Pięćdziesiątką zaczynamy schodząc stromą skalną pochylnią nad właściwą krawędź studni (około 2,7 m poniżej platformy). Od tego miejsca studnia liczy 43,5 m, ściana wzdłuż kt&oacute;rej zjeżdżamy jest nieco przewieszona. Lądujemy w dużej sali (23x10 m) o silnie nachylonym dnie, pokrytym wielkimi wantami. Przedłużenie jej stanowi wznoszący się z g&oacute;rnego krańca korytarz, po kilku metrach zablokowany zawaliskiem. Schodzimy salą do miejsca, gdzie dno się wypłaszcza. Lewa ściana tworzy tu obszerną, zaokrągloną wnękę, na kt&oacute;rej dnie występuje kałuża wody zasilana intensywnym deszczem. Do tego miejsca sięga zimą wymarzanie, a l&oacute;d utrzymuje się czasami do lata (np. 8 lipca 1976 r. występował on tutaj, a także we wznoszącym się z g&oacute;rnego krańca sali korytarzu). W ścianie, około 20 m ponad kałużą znajduje się wejście do stromo wznoszącego się korytarza o długości 15 m, o dnie zasłanym rumoszem i zwietrzeliną skał krystalicznych. Jest on zablokowany zawaliskiem, w końcowej części występuje intensywny deszcz. Wejście korytarza osiągnięto trawersem z p&oacute;łki w Pierwszej Pięćdziesiątce (w linii zjazdu, około 20 m nad dnem).<br /> W dolnym krańcu sali zejść można do niewielkiej kom&oacute;rki, z kt&oacute;rej w lewo, przez 4 m prożek w g&oacute;rę i znajdujący się nad nim zacisk, prowadzi wejście do kr&oacute;tkiego, ciasnego korytarzyka, kontynuującego się następnie w prawo nad 5 m kominkiem (łącznie około 20 m ciąg&oacute;w, zakończonych wąską szczeliną).<br /> Dalsza droga zaczyna się wejściem pod zawalisko przy prawej ścianie, w miejscu gdzie dno sali pod Pierwszą Pięćdziesiątką się wypłaszcza. Korytarzykiem między ścianą a wantami dochodzimy po kilku metrach nad krawędź 28 m Studni Flacha. Dzwonowato rozszerzająca się studnia, kt&oacute;rej dno pokryte jest dużymi wantami i rumoszem, ma wymiary 16x10 m, kończy się ślepo, a najniższy punkt w tym ciągu leży na głębokości&nbsp;&ndash; 121,6 m.<br /> Trawersujemy zapieraczką nad Studnią Flacha szczeliną o szerokości 1,0&ndash;0,8 m. Dalej wznosi się wysoki, obszerny korytarz. Dno tej pochylni jest cienkim mostkiem zaklinowanym nad szczeliną, do kt&oacute;rej można się dostać przez mały otw&oacute;r pod ostatnim batinoxem (punktem asekuracyjnym) trawersu. Dostajemy się do smukłej szczeliny o wysokości do 10 m. Wg. archiwalnego opisu C.Szury: &bdquo;Na jej dnie są dwa meandry, jeden wychodzi w ścianie Studni Flacha (kilkanaście metr&oacute;w nad jej dnem), drugi[&hellip;] jest ciasny i kręty. Wpada bezpośrednio do Drugiej Pięćdziesiątki, w kominie kt&oacute;ry znajduje się głęboko we wnęce (jadąc na linie to jest po prawej, zaraz za 1 przepinką). Cały ten ciąg liczy ok. 24 m. Na zakręcie korytarza za trawersem St.Flacha, nad 3 m progiem znajduje się ślepa, boczna salka. W prawo, za dużym głazem ciąg urywa się krawędzią Drugiej Pięćdziesiątki. W tym miejscu, za trawersem studni odchodzą rozbudowane partie łączące się ponownie z ciągiem gł&oacute;wnym w Sali pod Płytowcem (Partie za Drugą Pięćdziesiątką, około 500 m) ale też stanowiące wraz z będącymi ich kontynuacją Partiami Bielskimi i Nowymi Partiami Bielskimi wybitne odrębne odgałęzienie jaskini o łącznej długości około 2800 m.<br /> Trawers do Partii za Drugą Pięćdziesiątką rozpoczynamy przejściem za ostrogę skalną z lewej strony przed krawędzią studni. Dalej p&oacute;łką o szerokości 1,0 do 1,5 m pokrytą rumoszem skalnym posuwamy się aż do jej krańca i zjeżdżamy wąskim bocznym wymyciem oddzielonym od właściwej Pięćdziesiątki filarkiem skalnym. Po 13 m lądujemy na zaklinowanych wantach, skąd tzw. Klatką Schodową kontynuujemy zjazd jeszcze 3 m do kr&oacute;tkiego korytarzyka stromo opadającego nad kolejną studzienkę. Na wysokości jej krawędzi można przetrawersować do 8-metrowej wznoszącej się szczeliny, nie zaznaczonej w dokumentacji graficznej. Zjeżdżając dalej około 8 m Klatką Schodową mijamy przebicie między wantami do Drugiej Pięćdziesiątki i lądujemy w wąskim korytarzyku. W jedną stronę przez niski przełaz wyjść można na rozległą tr&oacute;jkątną p&oacute;łkę, kt&oacute;rej krawędź znajduje się około 15 m nad dnem Drugiej Pięćdziesiątki (zjechać tu można także bezpośrednio z p&oacute;łki na trawersie, omijając Klatkę Schodową&nbsp;&ndash; około 30 m zjazdu), w drugą zaś schodzimy obszernym korytarzem i za obniżeniem stropu docieramy do salki o dnie rozciętym wąskim meandrem. Przeciwległy jej kraniec stanowi 2 m studzienka, do kt&oacute;rej z 10 m ciasnego kominka dopływa struga wody. Woda ta ginie we wspomnianym wąskim meanderku. Na wstępie salki, pod prawą ścianą znajduje się wejście do płaskiej, zapadającej w głąb szczeliny z wymyciami w dnie. Zsuwając się rynną wymytą wzdłuż upadu szczeliny docieramy po kilku metrach nad kruchy, połogi prożek sprowadzający do wysokiej Salki Susełka.<br /> W prawej ścianie Salki Susełka, 4 m nad jej dnem bierze początek około 50 m korytarz. Wznosi się on stromo po zaklinowanych wantach do podstawy około 7 m ślepego kominka, z kt&oacute;rego spływa struga wody, ginąca w trawersowanej nieco wcześniej 2 m studzience.<br /> Z Salki Susełka zjeżdżamy 6 m do niewielkiej kom&oacute;rki i schodzimy kilkumetrowym korytarzem nad krawędź Smukłej Osiemnastki, kt&oacute;rą zjeżdżamy. Można tu dotrzeć r&oacute;wnież systemem studzienek i korytarzyk&oacute;w o łącznej długości 44 m, zaczynających się w lewej ścianie kruchego prożka sprowadzającego do Salki Susełka.<br /> Smukła Osiemnastka jest ładnie mytą, 17,5 m studnią, o płaskim, okrągłym dnie z dużą wantą pośrodku. Przy lewej jej ścianie występuje umiarkowanie intensywny deszcz podziemny. Korytarze, rozwinięte między dnem Smukłej Osiemnastki a wyprowadzającym do ciągu gł&oacute;wnego w Sali pod Płytowcem meandrem Jelito, nazwane zostały Partiami Waldiego. Ich odgałęzieniem są odkryte p&oacute;źniej Partie Bielskie. <br /> Stojąc na dnie studni mamy do wyboru dwie możliwości. Pierwsza z nich rozpoczyna się naprzeciwko zjazdu. Nad 3 m prożkiem prowadzi obszerny, wysoki meander, kt&oacute;ry po 8 m znacznie się zwęża i obniża. Kontynuuje się on jeszcze w tym samym kierunku na odcinku kilkunastu metr&oacute;w i kończy niedostępną szczeliną (punkt&nbsp;&ndash; 154,2 na planie). Przez szczelinę tę istnieje kontakt wzrokowy z jednym z korytarzy Partii Bielskich (korytarz za Zaciskami z Kośćmi Nietoperzy). W miejscu zwężenia schodzimy kilkumetrową studzienką i ciasną pochylnią pokrytą drobnym rumoszem obniżamy się nad 2 m przewieszony prożek, poniżej kt&oacute;rego znajduje się niewielka kom&oacute;rka. Niewysokim korytarzem przechodzimy do kolejnej salki, mijając po drodze otwierający się po lewej wylot ciasnego korytarza prowadzącego do Partii Bielskich. Do salki tej możemy dojść r&oacute;wnież ciasnym meandrem rozpoczynającym się przy dnie Smukłej Osiemnastki, nieco w prawo od progu prowadzącego do poprzednio opisanego wariantu. Meander ten wyprowadza do salki 3 m przewieszonym prożkiem.<br /> Partie Bielskie osiągamy przez wspomniany powyżej korytarz. Ich opis zamieszczamy za W.Michalskim i J.Ganszerem (1992). &bdquo;Po kr&oacute;tkiej chwili dochodzimy do cieku wodnego. Na NW można dojść wzdłuż niego z powrotem do Partii Waldiego (niewygodnie, mokro, ciasno). Natomiast idąc nim w g&oacute;rę po kilku metrach napotykamy na odgałęzienie korytarza idące w kierunku p&oacute;łnocnym. W nim po pokonaniu ciasnych zacisk&oacute;w (kości nietoperzy) dochodzimy do kr&oacute;tkiego, acz wysokiego korytarza biegnącego w g&oacute;rę. Kończy się on szczeliną nie do przejścia. Mniej więcej w jego połowie znajduje się kominek o wysokości około 3 m. Słychać tam szum wody ze Smukłej Osiemnastki. Nawiązano kontakt wzrokowy z korytarzem w [opisanych poprzednio] partiach (w punkcie o kocie&nbsp;&ndash; 154,2 m). Odcinka tego nie pokonano ze względu na ciasnotę, choć wydaje się to możliwe.<br /> Wracając do cieku wodnego idziemy dalej w g&oacute;rę i po kilku zakrętach (meander) dochodzimy do przekopu prowadzącego w rejon płytowc&oacute;w. Istnieją dwa warianty dojścia do pierwszego z nich (obydwa dość ciasne). Po ich pokonaniu korytarz rozszerza się i podnosi w g&oacute;rę. Rozpoczyna się pierwszy płytowiec [Płytowiec A] częściowo zasłany żwirem. W tym rejonie łączy się kilka strug wodnych, kt&oacute;re już jako jeden ciek płyną w meandrze. Płytowiec w połowie rozdziela się na dwie części.<br /> Prawa staje się bardzo stroma i zakończona jest wręcz pionowym progiem. Po jego pokonaniu i 3 m zjeździe (studzienka) dochodzimy w małej salce do połączenia z częścią lewą. Dalej albo pokonując 5 m komin, albo 2 m prożek i ciasny przełaz, dostajemy się jeszcze w rejon dużego zawaliska.<br /> Lewa to 14 m pr&oacute;g (lina) doprowadzający do obszernego, posiadającego ładną szatę naciekową płytowca [Płytowiec B]. Nim dostajemy się do zawaliska&rdquo;, kt&oacute;re do jesieni 2005 r. stanowiło najwyższy punkt tych partii jaskini. Po przejściu przez zawalisko wchodzimy do kontynuacji &bdquo;starych partii" w postaci kolejnego płytowca &ndash; Płytowiec C oraz kilkudziesięciometrowej, płytowej szczeliny prowadzącej do szeregu sal o łącznej długości 263 m. Partie rozwijają się także daleko nad [opisane dalej] Nowe Partie Bielskie, na głębokość &ndash;59 m (Szura 2006a). Dno tych pochyłych sal nazwanych Costa Brava wyścielone jest piaskiem z materiału krystalicznego. Całość opisanych powyżej korytarzy Partii Bielskich liczy ponad 500 m długości.<br /> Wracamy do środkowej części Płytowca B. Tu przez niewielkie okno w jego lewej ścianie (ciek wodny, przewiew) prowadzi przejście do liczących około 1750 m długości Nowych Partii Bielskich. Opis tej części jaskini oparty jest na publikacji C.Szury (2005b). &bdquo;Okno wprowadza kr&oacute;tkim płytowym progiem do dużej sali o wymiarach 40 m x 15 m (Sala Arniki). Sala mająca w g&oacute;rnej części charakter płytowca przeciętego &bdquo;kanionem&rdquo;, dołem nieco się zwęża jednocześnie przybierając formę regularnej sali.<br /> G&oacute;rna, płytowa część posiada połączenie z wyższym piętrem, pokonując dwa progi (3,4 m i 2,0 m) wchodzimy w prawo do pochylni wypełnionej suchym krystalicznym piaskiem (Copacabana), natomiast w lewo do dw&oacute;ch pochylni zakończonych zawaliskami (jedna z nich ma kontynuację także w d&oacute;ł, ciasną szczeliną z ciekiem wodnym). W dolnej części Sali Arniki znajdziemy wejście do r&oacute;wnoległego ciągu prowadzącego w kierunku Płytowca B (w lewo), natomiast w najniższej części, zablokowanej początkowo głazami wejście do niskiego korytarza urywającego się 6-metrowym, meandrującym progiem. Zjeżdżamy do obszernego płytowca z ciekawą szatą naciekową zwanego Kruchym Płytowcem, następnie schodzimy w d&oacute;ł &ndash; poręcz&oacute;wka na lewej ścianie prowadzi do stanowiska zjazdowego omijającego kruchy teren. Znajdująca się u podn&oacute;ża sala kontynuuje się w dw&oacute;ch kierunkach. Do g&oacute;ry r&oacute;wnoległym do Kruchego Płytowca stromym korytarzem, lub na S, poprzez niski przesmyk do Salki z Naciekami [gł&oacute;wny ciąg tych partii]. Salka posiada wyjątkową szatę naciekową, niespotykana w innych częściach systemu. Idziemy [...] do przeciwległego końca salki zgodnie z kierunkiem przepływu wody, po prawej mijając wejście do kilkunastometrowej wysokości komina ([...] bez kontynuacji). Na wprost schodzimy do Kolektora, owalnej sali z wodospadem spadającym z komina (Mokry Komin). Kolektor jest zlewnią dw&oacute;ch aktywnych ciek&oacute;w wodnych: większego z okolic Kruchego Płytowca oraz okresowego płynącego z rejonu Copacabany poprzez G&oacute;rne Kaskady. Na SE biegnie wąski, prosty korytarz, będący starym, wyschniętym ciekiem. Zaobserwowano w nim resztki polew naciekowych, wt&oacute;rnie wypłukanych przez wodę. Końc&oacute;wka korytarza nazwana Hydrozagadką, rozszerza się w niską salkę o mocno potrzaskanych ścianach i stropie. Salka jest najniższym miejscem [Nowych Partii Bielskich] (&ndash;174 m), a silny przewiew powietrza sugeruje możliwą kontynuację ciąg&oacute;w w kierunku przepływu wody. Z Hydrozagadki można wydostać się do wyżej położonych Partii Bułki i Kołka przez zacisk (Z II, wyjątkowo wredny do g&oacute;ry) oraz nieco wcześniej do nieprzyjemnej szczeliny z płynącą wodą.<br /> Wracamy do Kolektora. Mokry komin mający swoje ujście w środkowej części sali ma wysokość 16,5 m i kończy się szczeliną nie do przejścia. Najłatwiejsze dojście na szczyt komina wiedzie obejściem dolnej części poprzez system r&oacute;wnoległych komink&oacute;w wyprowadzających na p&oacute;łkę w połowie wysokości, dalej wspinaczką (ok.V+) litą ścianką na p&oacute;łkę kończącą komin. Trzeci, obecnie suchy ciąg wpadający do kolektora [to] owalna rura ciśnieniowa o niewielkim przekroju, [kt&oacute;ra po usunięciu zawaliska doprowadziła do kilkunastometrowej długości kaskad i podn&oacute;ża 32 m komina (VI), ponad kt&oacute;rym] dalsza droga wiedzie meandrującą szczeliną w stropie (powietrzne Z1) do ciekawych G&oacute;rnych Kaskad &ndash; pochylni z ciekiem wodnym i ładną szatą naciekową. W środkowej części ciek ucieka w spąg, ale jak wykazała analiza planu, wpada on do Mokrego Komina w stropie Kolektora, natomiast jego g&oacute;rna część po opuszczeniu G&oacute;rnych Kaskad przez bardzo wąską szczelinę zmierza do lewej odnogi Copacabany. Dolna część Kaskad schodząć stromą pochylnią (ładne nacieki na stropie) przekształca się w niewielką salkę, [za kt&oacute;ra przez zwężenie można się dostać do Sali Blondynek oraz Partii Bułki i Kołka]. Najkr&oacute;tszą i najszybszą drogą powrotu z Sali blondynek w okolice Dolnych Kaskad jest kontynuujący się w d&oacute;ł korytarz z wspomnianym [powyżej zaciskiem] do Hydrozagadki.<br /> Wracamy do Kaskad, będących gł&oacute;wnym ciągiem tej części jaskini. Za rurą ciśnieniową (w lewo droga do G&oacute;rnych Kaskad) prosto przez niewielkie prożki kontynuuje się ładnie myty korytarz o gładkich ścianach.. Na jego szczycie znajduje się niewielki kominek wyprowadzający do Eldorado, czyli ciągu pięknych korytarzy pełnych grzybk&oacute;w, prog&oacute;w oraz sporej wielkości sal, kontynuujących się na długości około 100 m. [...]<br /> Po wejściu do Eldorado znajdujemy się w sporych rozmiar&oacute;w korytarzu z Wielką Wantą [...]. Kierując się w lewo (na SE) przechodzimy przez zwężenie pomiędzy blokami (mn&oacute;stwo grzybk&oacute;w [...]) do ciasnej szczeliny, następnie do wysokiej sali w oknami w stropie (Sala z Oknami) i sporej wielkości wantą leżącą na przeciwległym końcu. Przechodzimy przez wantę (po prawej), dalej pochylając się pod niewielkim łukowatym sklepieniem docieramy do Wodnej Sali. W środkowej części sali znajduje się 16-metrowej wysokości komin z aktywnym ciekiem wodnym [...](V+, [...] kiepska asekuracja). Na szczycie komina znajdziemy dwie ciasne odnogi wąskich meandr&oacute;w, dolny kończy się po kilku metrach wąską szczeliną, g&oacute;rnym istnieje połączenie z oknem w stropie Sali z Oknami (nie przebyte &ndash; skrajnie ciasno). Woda spadająca z komina ucieka pomiędzy leżące na spągu bloki, jej kierunek jest prawdopodobnie jednakowy z ciekiem w Hydrozagadce. Na przeciwległym końcu sali widnieje wyr&oacute;żniające się pęknięcie tektoniczne obok kt&oacute;rego znajduje się zawaliskowy korytarz r&oacute;wnoległy do Sali Blondynek (brak połączenia). Z południowej części Wodnej Sali, przez pr&oacute;g (4,0) wspinamy się do niskiej mytej pochylni zakończonej niewielkim &bdquo;oczkiem&rdquo; wodnym, natomiast w dolnej części pochylni przez niewielkie okienko wejdziemy do studzienki (5,5 m) ze śladami cieku wodnego. <br /> Wracamy do Sali z Oknami, pod koniec sali i po jej lewej stronie (idąc od Kaskad &ndash; po prawej) znajduje się niezbyt wybitna p&oacute;łka, ponad nią znajduje się ciasna, pionowa szczelina do tzw. Obejścia Eldorado &ndash; systemu meandr&oacute;w, prog&oacute;w i ciasnych korytarzy będących r&oacute;wnolegle do Eldorado rozwiniętym ciągiem jaskini. Po przejściu szczeliny wchodzimy do owalnej, ciekawie wymytej sali. Do g&oacute;ry (w prawo) przez wyślizgany pr&oacute;g wejdziemy do prostego korytarza, skąd [istnieją trzy możliwości]. A) Prosto, niskim korytarzem do okna opadającego w Sali z Oknami, z okna trawersem na p&oacute;łkę na przeciwległej ścianie. Z p&oacute;łki można przedostać się: w lewo do korytarza z zawieszonymi głazami lub w prawo (powietrznie) przez wąskie okienko do meanderka kierującego się do Wodnej Sali. B) Na wprost, ale przez niewielki prożek (1,5 m), do prostego korytarza z grzybkami. W końcowej [jego] części, po pokonaniu zacisku (Z3) znajduje się niewielka salka. Ten fragment nazwany Pieczarkarnia, nie jest polecany do zwiedzania (skrajnie trudne wyjście z zacisku). C) W g&oacute;rę do wyższego piętra korytarza, a następnie na NW niskim korytarzem do kolejnej marmitowej salki. Dalej idąc przez pr&oacute;g (uwaga &ndash; pomarańczowe grzybki) wchodzimy do ostatniego meanderka mającego swoje ujście w Ptasiej Sali (pr&oacute;g 3,5 m).<br /> Gł&oacute;wna część Eldorado, zaczynająca się od ujścia Kaskad, kieruje się na NW (podobnie jak obejście. [Eldorado ma także najwyższe piętro &ndash; ponad Obejściem Eldorado, będące ładnie mytym 69-metrowym korytarzem (Meander Dzikiej Grupy), kt&oacute;ry łączy Salę z Oknami (trawersem z okna lub wahadłem dostajemy się do wejścia w szczelinie w stropie sali) z Ptasią Salą (dochodzi 7 m nad dnem). Korytarz ten, wzmiankowany w materiałach archiwalnych Szury (2009), nie jest naniesiony na planie.] Po przebyciu Wielkiej Wanty prostym korytarzem dochodzimy do progu (6,5 m). Nad nim znajduje się Ptasia Sala, sporych rozmiar&oacute;w komora mająca płytowo-piętrową budowę. W lewej części przez pr&oacute;g zbudowany z wielkich złaz&oacute;w można zejść do najniższej części sali, a z niej do kr&oacute;tkiego zawaliskowego korytarzyka (Przodek Alana). [...] Na lewej ścianie, w stropie widnieje okno do wyższej części sali. Wejście do niej [możliwe jest] klasyczno-hakową wspinaczką V, A1. W g&oacute;rnej części po progu z &bdquo;poukładanych blok&oacute;w&rdquo; dostaniemy się do kominkowatej salki z blokiem (stanowisko zjazdowe), kończącej się wąską szczeliną (24 m ponad dnem Ptasiej Sali). Drugie okno, zdecydowanie większe, znajduje się nieco w prawo od opisanego wyżej. [Dojście do niego jest wspinaczkowe (V, V+, wysokość progu 10,5 m)]. Ponad progiem odkryto zawieszony korytarz o długości 20 m oraz w g&oacute;rnej części wejście do bardzo ciekawych partii o długości około 60 m i deniwelacji 26 m. Partie te, mające charakter podobny do Galerii Krokodyla (wąska, wysoka szczelina z płynącą wodą) nazwano Vogelarschloch. Aby dojść do g&oacute;rnych części tych partii należy pokonać zacisk (Z2), a następnie przeczołgać się przez bajorko z wodą. [druga część tych partii to piękny korytarz, kt&oacute;rego] końc&oacute;wka[...] pokryta namuliskiem błotnym (ślady intensywnego cieku) wymaga bardzo zdecydowanych działań (zacisk w błocie po pachy &ndash; ale widać dalej). Cały ciąg prowadzący do najniższego miejsca tych partii nazwano Vogelscheisse. Po poszerzeniu zacisku końcowego w Vogelscheisse, natrafiono na kolejny &ndash; niepokonany &ndash; &bdquo;do kt&oacute;rego można wjechać tylko głową w d&oacute;ł&rdquo; (Szura &ndash; mat. Archiwalne, 2009).<br /> Wracamy do centralnego punktu Ptasiej Sali. Dalej na NW biegnie połogi płytowiec. Idziemy wzdłuż prawej części płytowca do widniejącej w jego g&oacute;rnej części wyrwy pomiędzy wantami (nad głową, pod stropem wylot kominka z Ciąg&oacute;w R&oacute;wnoległych &ndash; opis dalej).Wchodzimy na Zawieszony Pr&oacute;g, skąd pochylnią w g&oacute;rę kontynuuje się szeroki korytarz pokryty grzybkami. Bezpośrednio nad progiem, pomiędzy zawieszonymi blokami widnieje wejście do komina zwanego Agresor, [niebezpieczny &ndash; niestabilne bloki. Powyżej] <br />wchodzimy w korytarz z grzybkami, po kilku metrach po prawej stronie trafiamy na wejście do tzw. Ciąg&oacute;w R&oacute;wnoległych. Są to, podobnie jak Obejście Eldorado, r&oacute;wnolegle do gł&oacute;wnego ciągu rozwinięte korytarze (tyle, że z innej strony). Ciągi składają się z jednego, szerokiego korytarza o długości ok. 30 m oraz wąskich korytarzy wypełnionych namuliskiem z piasku [okruchy skał krystalicznych], łączących się bezpośrednio z Zawieszonym Progiem przez Zacisk Z2,5. Mijamy wejście do Ciąg&oacute;w R&oacute;wnoległych, po kilku metrach wchodzimy do kolejnej ciekawej sali z dwoma dużymi oknami w stropie (Sala z Cip...i).[...] Za oknami brak kontynuacji. Dojście do lewego to 10 m wspinaczka hakowa (V, A1), do drugiego dostać się można od tyłu &ndash; bocznym meandrem w stropie sali. Wejście do meandra znajduje się na kontynuacji sali &ndash; dalej na NW.<br /> Ponad kilkumetrowym progiem z pęknięciem, znajdziemy stromy korytarz przechodzący przez kilka małych p&oacute;łek aż do ostatniej większej na szczycie korytarza. Dojście do tego miejsca [możliwe jest] także dolnym wariantem, szczelinami pod progiem &ndash; tzw. Obejście Progu. Bezpośrednio przed nami zwężenie do Zawaliska Szczytowego, systemu zawaliskowych salek, korytarzy i want podpartych &bdquo;zapałkami&rdquo; o długości ponad 100 m. Za nami widnieje wejście do wspomnianego meandra kończącego się w stropie. Wchodzimy do niego szybkimi klasycznymi ruchami (troszkę luftu pod nogami), a następnie do jego końca i nieco w d&oacute;ł na p&oacute;łkę prowadzącą do ostatniej szczeliny (ekspozycja &ndash; 10 m do dna).<br /> Wchodzimy w Zawalisko, początkowo ciasną szczeliną (w lewo odnoga prowadząca wpierw kominkiem, a następnie do kilku sal połączonych przejściami pomiędzy blokami), a następnie w prawo i nieco w d&oacute;ł do komory z wiszącym stropem. W d&oacute;ł przez prożek (4,5 m) wjedziemy do Sali Basi, ostatniej większej sali tej części jaskini. Sala, mająca kilka kr&oacute;tkich bocznych korytarzy, kończy się szczelinami nie do przejścia (widoczne niewielkie cieki wodne). Przed progiem w prawo do g&oacute;ry, idąc przez kolejne potrzaskane salki dojdziemy do poziomu &ndash;81,0 m, najwyżej położonego miejsca w Nowych Partiach Bielskich.<br /> Wracamy do Partii Waldiego, do salki w kt&oacute;rej łączą się dwa ciągi ze Smukłej Osiemnastki. Zaczyna się tu szeroki, lecz niski korytarz, o dnie pokrytym namuliskiem (glina, piasek ze skał krystalicznych, drobny gruz). Po około 8 m mijamy ciasne przebicie do ciągu wodnego Partii Bielskich (po lewej stronie). Po dalszych 8 m korytarz skręca on lekko w prawo, a przy lewej ścianie pojawia się wcięty w dnie wąski meanderek z wodą (prawdopodobnie jest to woda z Partii Bielskich). Nieco dalej natrafiamy na zagradzające drogę wanty. Przełazem między wantami wchodzimy do kontynuacji korytarza i posuwając się dalej docieramy przez mały prożek do okrągłej, dość wysokiej salki. Z dna jej odchodzi kr&oacute;tki ślepy korytarzyk, w kt&oacute;rego połowie 6 m kominek doprowadza do biegnącego wyżej ciągu, wiodącego do przestronnej Sali Renaty, a wstecz uchodzącego trzema oknami w stropie około 8 m nad dnem poprzedniej salki.<br /> Od przełazu między wantami można się r&oacute;wnież dostać przez ciasne pęknięcie w kształcie litery &bdquo;T&rdquo; do kolejnego rozgałęzienia. W lewo, korytarzem o dnie rozciętym meandrem dochodzimy do 3 m studzienki. Znaczną część jej dna pokrywa jeziorko mające dopływ z ciasnej szczeliny około 4 m nad dnem. W prawo natomiast przez bardzo ciasny przełaz wchodzimy do 9 m studzienki, do kt&oacute;rej innym oknem, niedostępnym dla człowieka wpływa struga wody z meanderka pod lewą ścianą gł&oacute;wnego korytarza Partii Waldiego. Woda ta po kilku metrach niknie w ciasnej szczelinie uchodząc w postaci strefy intensywnego deszczu w Sali pod Płytowcem (gł&oacute;wny ciąg jaskini). <br /> Wracamy do gł&oacute;wnego korytarza Partii Waldiego (pod przełazem między wantami). Możliwe jest tu zejście w meanderek pod lewą ścianą (w tym miejscu już suchy). Po około 20 m bardzo ciasnego meanderka zwanego Jelitem dochodzimy nad 5 m pr&oacute;g (lina zbędna) sprowadzający wstecz do podłużnej salki, będącej dolnym rozszerzeniem Jelita. Posuwając się nią wstecz docieramy po kilku metrach do niedostępnej szczeliny. W przeciwnym kierunku w dnie salki znajduje się niewielki otw&oacute;r studzienki, w kt&oacute;rej na głębokości 3 m zaklinowana jest wanta. Poniżej wanty studzienka otwiera się w stropie sali i po 26 m wolnego zjazdu stajemy w gł&oacute;wnym ciągu, na dnie olbrzymiej Sali pod Płytowcem, przy jej prawej ścianie.<br /> Rejon Jelita ma też wąskie połączenie z ciągiem nazwanym Meander nad Salą pod Płytowcem, kt&oacute;rym możliwe jest przejście g&oacute;rą z Partii Waldiego bezpośrednio do Studni Bociana i Korytarza z Fajką (Szura 2004e). Ciąg ten opisany jest dalej.<br /> Wracamy do gł&oacute;wnego ciągu jaskini, nad Drugą Pięćdziesiątkę. Po 50 m zjeździe obszerną studnią stajemy na tr&oacute;jkątnym dnie z kilkoma dużymi głazami. Niskim przełazem w pobliżu miejsca zakończenia zjazdu przechodzimy do szerokiego (8 m), lecz niskiego korytarza zasłanego blokami. Mamy tu do wyboru dwie drogi. W prawo w d&oacute;ł po około 10 m dochodzimy do 2,5 m progu z want. Strop wznosi się. Poniżej progu ma sw&oacute;j wylot 24 m Walentowy Komin, zwieńczony dwupoziomową, małą salką z dwoma kr&oacute;tkimi, ciasnymi korytarzykami. Od podn&oacute;ża komina dno korytarza nadal opada. Zwęża się on do 2,5 m. Dochodzimy do poprzecznej pochylni. W d&oacute;ł (w prawo) opada ona, a pokryte blokami i gruzem dno coraz bardziej zbliża się do stropu. Po około 10 m dalsze przejście zamyka gliniaste namulisko. W miejscu tym gromadzi się czasem woda (Okresowe Jeziorko, &ndash;157,6 m). Struga jej spływa ze szczeliny po lewej stronie, w miejscu, gdzie odchodzi g&oacute;rne odgałęzienie pochylni&nbsp;&ndash; Trzeci Płytowiec. Dno Trzeciego Płytowca zasłane jest rumoszem skalnym o chwiejnej r&oacute;wnowadze, co wymaga bardzo ostrożnego poruszania się. Po około 14 m pokonujemy 2 m prożek, za kt&oacute;rym pochylnia ma taki sam charakter. Partie te są bardzo kruche i niebezpieczne, a zwiedzanie ich wymaga dużej ostrożności i uwagi. Po dalszych 18 m dochodzimy do 3 m kruchego progu, nad kt&oacute;rym Płytowiec kontynuuje się jeszcze około 30 m. W okolicach wzmiankowanego progu, na lekkim zakręcie korytarza, znajduje się okno do ciągu wąskich korytarzyk&oacute;w (brak opisu, umieszczony na planie). Trzeci Płytowiec był na końcu zablokowany głazami, jednak &ndash; jak relacjonuje C.Szura (2006a) udało się odgruzować szczyt szczeliny i przejść do ciągu sal i korytarzy o długości 423 m, kt&oacute;re nazwano Partiami Ślepych. Siedem wznoszących się w nich komin&oacute;w zmierza zapewne w kierunku jaskiń położonych w pobliżu Wielkiej Litworowej (op.cit.) &ndash; Wyżniej Litworowej i Dziury w Grzędzie (Szura &ndash; mat. arch.). Ciągi te&nbsp;&ndash; wrysowane na planie na podstawie niepublikowanego opracowania (Szura, 2009) &ndash; nie mają szczeg&oacute;łowego opisu. W oparciu o relacje z eksploracji można jedynie stwierdzić, iż komin o nazwie Mocny Cios pozostaje nadal otwartym problemem (op.cit.).<br /> Droga gł&oacute;wnym ciągiem wiedzie w lewo szerokim korytarzem, do kt&oacute;rego weszliśmy z dna Drugiej Pięćdziesiątki. Po kilku metrach zwęża się on do około 1,5&ndash;2 m, jest niski, a dno pokrywają bloki skalne. Korytarz wyprowadza na platformę nad potężnym pochyłym progiem&nbsp;&ndash; Pierwszym Płytowcem. W tym miejscu ciągi rozgałęziają się w trzech kierunkach.<br /> W prawo w g&oacute;rę, poprzez połogi prożek wchodzimy do rozległej (12 na 12 m), lecz niskiej Sali nad Płytowcem. W przeciwległym krańcu pokryte wantami dno sali podnosi się, przechodząc w stromą skalną pochylnię o kruchych ścianach, prowadzącą do niewielkiej komory. Dotrzeć tu można r&oacute;wnież przez zawalisko, nieco w prawo od pochylni, pokonując po drodze kilka prożk&oacute;w. W komorze ponad pochylnią skalną zaczynają się Partie Szwajcarskie o łącznej długości 150 m. W lewo prowadzi stąd niski zawaliskowy korytarz. Po ominięciu jego rozszerzenia, a następnie znacznego zwężenia, dochodzimy do niewielkiej kom&oacute;rki. Tu, między blokami, można dojść nad około 10 m studnię, kt&oacute;rą spływa woda. Studnia ta kończy się niedostępną szczeliną.<br /> Drugie odgałęzienie Partii Szwajcarskich wiedzie z komory nad pochylnią skalną w prawo w g&oacute;rę. Jest to wysoki, stromo wznoszący się korytarz, z dwoma niewielkimi odgałęzieniami w prawo. Doprowadza on pod 6 m pr&oacute;g z want, powyżej kt&oacute;rego ciąg skręca w prawo, zwęża się i po kilku metrach uchodzi do Sali Pawełka, o znacznych rozmiarach (20 na 10 m, wysokość 12 m). W przeciwległej do wejścia ścianie sali znajduje się na wysokości 8 m balkon, na kt&oacute;ry dostajemy się stromą pochylnią z lewej strony. W głębi balkonu jest około 4 m studzienka, z dna kt&oacute;rej zawaliskowy korytarzyk doprowadza z powrotem do Sali Pawełka. <br /> Opr&oacute;cz opisanego powyżej gł&oacute;wnego dojścia do Salki Pawełka można tam dotrzeć także przeciskając się między wantami w dnie prowadzącego do niej korytarza. Wariant ten nie jest zaznaczony na planie.<br /> Wracamy do ciągu gł&oacute;wnego. Z platformy nad Pierwszym Płytowcem w lewo opada płytowy pr&oacute;g tego ciągu, a na wprost pionowa Studnia za Płytowcem. Najdogodniejszym miejscem zjazdu do tej studni jest okno w Pierwszym Płytowcu, przebijające grańkę dzielącą go od studni, około 7 m poniżej platformy, przy przeciwległej ścianie. Zjeżdżamy stąd około 9 m na pokryte blokami i gruzem pochyłe dno studni. W pobliżu miejsca zjazdu, w prawo prowadzi przejście do bocznego, ślepego, około 10 m korytarza z piaskiem (nie naniesiony na planie). W najniższej części dna studni, przez 1,5 m prożek w g&oacute;rę wchodzimy do wąskiego, szczelinowego korytarza, opadającego 15 m progiem, w połowie kt&oacute;rego istnieje możliwość trawersu na wprost po mostach w szczelinie (nie zbadane do końca). Zjazd progiem doprowadza do wysokiej salki, kt&oacute;rej opadającym, pokrytym gruzem i blokami dnem schodzimy nad około 2,5 m prożek z want. Poniżej niego wchodzimy w zawaliskowe korytarzyki wiodące w lewo, kt&oacute;rymi dojść możemy (dwoma drogami) do ciągu zwanego Podpłytowcem (nie wszystkie odgałęzienia w zawalisku były badane).<br /> Podpłytowiec wznosi się w lewo dużym korytarzem, kt&oacute;rego dnem, między blokami i rumoszem spływają strugi wody. Zablokowany jest on zawaliskiem, przez kt&oacute;re przełazem w g&oacute;rę dostajemy się do dużej sali (16 x 6&ndash;8 m, wysokość 6 m), nad kt&oacute;rą ciągnie się system korytarzyk&oacute;w w zawalisku, o łącznej długości 77 m. Dostajemy się do nich przez kilkumetrowe prożki w prawej i g&oacute;rnej krawędzi sali.<br /> W najniższej części korytarza Podpłytowca spoczywa duża wanta, za kt&oacute;rą w lewo, niskim przełazem pod ścianą wczołgujemy się do niskiej, wznoszącej się szczeliny. W jej dnie po kilku metrach otwiera się wąska, szczelinowa ślepa studzienka, ponad kt&oacute;rą ciasne, niedostępne dla człowieka szczeliny prowadzą do podstawy Pierwszego Płytowca. Znad studzienki lekko w lewo 30 cm wysokości szczelina doprowadza do g&oacute;rnej części Sali pod Płytowcem w ciągu gł&oacute;wnym. Łączna długość opisanych powyżej partii pomiędzy oknem do Studni pod Płytowcem a Salą pod Płytowcem wynosi około 220 m.<br /> Z platformy w ciągu gł&oacute;wnym przez przewieszony kilkumetrowy pr&oacute;g rozpoczynamy zjazd Pierwszym Płytowcem&nbsp;&ndash; płytowym, szerokim (do 10 m) progiem o nachyleniu około 45&deg; i długości około 40 m. Zjazd doprowadza nas do Sali pod Płytowcem. Jest to jedna z dw&oacute;ch największych sal w jaskiniach polskich (drugą jest mająca podobną powierzchnię Sala Fakro w J.Małej w Mułowej), o p&oacute;łksiężycowatym kształcie, kt&oacute;rej długość mierzona wzdłuż osi osiąga: około 50 m&nbsp;&ndash; ramię p&oacute;łnocne i około 40 m&nbsp;&ndash; ramię zachodnie, a maksymalna szerokość około 25 m. Ma ona znaczne deniwelacje. Najwyższymi punktami są oba końce: &ndash;173,4 m u podstawy Pierwszego Płytowca i &ndash;186,3 m u podstawy Drugiego Płytowca, a najniższą częścią&nbsp;&ndash; środek (&ndash;204,0 m). Wysokość sali wynosi od 6&ndash;7 m do 22 m (pod zjazdem z Jelita). Dno zaściełają wielkie wanty, w środkowej części spiętrzające się w pr&oacute;g o wysokości do 7 m oraz gruz skalny. Ponad wspomnianym progiem dopływa stale ze stropu rozpylona w bardzo intensywny deszcz struga wody z Partii Waldiego. Imponująca swymi rozmiarami sala jest centralną częścią jaskini, z kt&oacute;rej rozchodzą się liczne boczne odgałęzienia.<br /> Pierwszym z tych odgałęzień jest odchodzący z prawej strony p&oacute;łnocnego końca sali Korytarz Matki o długości 190 m. Po zjeździe z Pierwszego Płytowca kierujemy się w prawo wstecz (lub trawersujemy kilka metr&oacute;w nad podstawą progu w prawo). Początkiem ciągu jest niewielka salka o płaskim dnie pokrytym gliną. Dalej wznosi się wysoki, szczelinowy korytarz z zaklinowanymi dużymi głazami, tworzącymi progi. Wspinamy się po nich około 8 m wyżej, gdzie ciąg rozgałęzia się. Wstecz biegnie korytarz w g&oacute;rnym piętrze szczeliny, zakończony pochylnią urywającą się oknem w ścianie Pierwszego Płytowca, około 6 m nad wejściem do Korytarza Matki. W przeciwnym kierunku kontynuujemy wspinaczkę po zaklinowanych wantach około 11 m do korytarzyka zasłanego piaskiem. Przy jego lewej ścianie znajduje się soczewkowaty otw&oacute;r 6 m studzienki. Jej pochyłe dno pokrywa r&oacute;wnież piasek. Można stąd cofnąć się poprzez bardzo wąską szczelinę do wspomnianego wcześniej miejsca rozgałęzienia ciąg&oacute;w. Z korytarzyka z piaskiem wspinamy się około 2 m na zaklinowane wanty i dalej z prawej strony ostrogi skalnej, przez przełaz nad pochyłą płytą wchodzimy do salki o wymiarach 8 na 3 m. Jej pochyłe dno urywa się krawędzią okna nad Pierwszym Płytowcem w okolicy zjazdu do Studni za Płytowcem. W środkowej części salki wznosi się 12 m komin z deszczem . Tkwią w nim zaklinowane wanty. Ponad kominem wznosi się kamienista pochylnia dochodząca do wąskiego korytarzyka nad prożkiem, zakończonego szczeliną nie do przejścia. Natomiast znad komina w przeciwnym kierunku opada skalna pochylnia do wąskiej studzienki, sprowadzającej z powrotem do salki pod kominem.<br /> W lewym zaułku p&oacute;łnocnego końca Sali pod Płytowcem, pod lewą ścianą, znajduje się niewielkie obniżenie dna. Nad ograniczającą je sporą wantą niska pozioma szczelina w ścianie wiedzie do opisanych wcześniej partii Podpłytowca. <br /> Kontynuując zejście przy lewej ścianie, trafiamy do kolejnego zaułka, z widoczną ukośną, ciasną szczeliną, za kt&oacute;rą biorą początek Partie Szeptane o długości około 80 m. Jest to ciąg rozdzielonych przewężeniami salek, utworzonych między zawaliskiem a płytowym stropem. Wznoszą się one stromo, a deniwelacja ciągu sięga około 40 m. W dolnej części istnieją połączenia niedostępną dla człowieka szczeliną tektoniczną z Salą pod Płytowcem.<br /> Wracamy do ciągu gł&oacute;wnego. Od podstawy Pierwszego Płytowca najczęściej używana droga prowadzi pod prawą ścianą sali. Jest tu dogodna możliwość zejścia przez wspomniany już pr&oacute;g z want w miejscu gdzie ma on tylko około 1,5 m (dalej osiąga on wysokość do 7 m i przecina salę poprzecznie na całej prawie szerokości). W miejscu tym kończy się opisany poprzednio zjazd z Jelita (koniec Partii za Drugą Pięćdziesiątką).<br /> Poniżej progu znajduje się lejkowate zagłębienie dna, za kt&oacute;rym istnieje jego wyraźne wypłaszczenie (punkt &ndash;202,2 m). Stąd na wprost wchodzimy do niewielkiego odgałęzienia z charakterystycznym płytowym stropem. Jest to dogodne miejsce biwakowe (Biwak). W przedłużeniu tego ciągu można się wcisnąć kilka metr&oacute;w dalej niż to pokazano na planie.<br /> Od punktu &ndash;202,2 m kierujemy się w zachodnie skrzydło sali. Na jego wstępie, w prawej ścianie, ponad 6 m progiem znajduje się Balkon. Pr&oacute;g omijamy trawersując od lewej strony i znajdujemy się w wysokim, stromo wznoszącym się korytarzu, w kt&oacute;rego ścianach i dnie istnieją wejścia do ciasnych szczelin, a w stropie komin o wysokości ok. 15 m, prowadzący do Meandra nad Salą pod Płytowcem. Ponad spiętrzeniem dno staje się płaskie, a między pokrywającymi je wantami jest wejście do 6 m studzienki, zakończonej ciasną szczeliną. Nieco wcześniej wspiąć się możemy prawą ścianą do okna, za kt&oacute;rym myty korytarzyk o płytowym stropie i rozciętym rynną dnie opada na p&oacute;łkę w ścianie Sali pod Płytowcem, około 14 m nad jej dnem. Naprzeciw okna (r&oacute;wnież na prawej ścianie) wznosi się wyżej stroma pochylnia prowadząca do ciąg&oacute;w zwanych P&oacute;łpiętrem (wspinaczka o trudnościach ok. VI). Według Szury (2005b): &bdquo;składają się na nie dwie połączone sale, od kt&oacute;rych odchodzi kilka korytarzy (jeden wpada na Balkon bocznym ciągiem i zakończony jest progiem 4,5 m).&rdquo; P&oacute;łpiętro ma połączenie z położoną powyżej Salą Pochyłą.<br /> Około 9 m nad Balkonem, w miejscu gdzie zaczyna się wspinaczkę na prawą ścianę (do okna i wejścia do P&oacute;łpiętra), znajduje się w stropie wylot Przykrości (okno z partii za Korytarzem z Fajką, prowadzącym z Drugiego Płytowca).<br /> Posuwamy się dalej zachodnim ramieniem Sali pod Płytowcem. Przy jego końcu, gdzie dno wyraźniej zaczyna się wznosić, w lewej ścianie, ponad 3,5 m progiem czernieje okno prowadzące do 40 m Studni Bociana. Opada ona za wąskim grzebieniem skalnym zrazu stromą płytą na leżącą 11 m niżej szeroką p&oacute;łkę. Za jej obłą krawędzią ściana studni staje się pionowa, a niżej lekko przewieszona. Lądujemy na pokrytym wantami dnie (&ndash;223,9 m). Około 7 m od tego miejsca, idąc wzdłuż ściany przy kt&oacute;rej zjeżdżaliśmy, schodzimy przez 1,5 m prożek do rozwiniętego w zawalisku (częściowo na kontakcie z ograniczającą je od SW litą ścianą) ciągu salek połączonych przełazami i studzienkami schodzącymi do najniższego niegdyś punktu tego odgałęzienia (&ndash;237 m). Podczas eksploracji w 2003 r. udało się pokonać zawalisko i odkryć korytarze &ndash; Ciągi Moralnego Niepokoju&nbsp;&ndash; doprowadzające do mytej szczeliny z ciekiem wodnym, schodzącej na głębokość &ndash;258,2 m (Szura 2004c) lub &ndash;255 m (Szura 2004f). Ciąg poniżej dawnego dna tych partii liczy 175 m. Pr&oacute;by eksploracji pod prąd cieku wodnego doprowadziły do tzw. 10-Tonowego Zacisku (Z2), za kt&oacute;rym ciąg kontynuuje się szczeliną z niebezpiecznym, nie pokonanym zawaliskiem (Szura 2004c). Drugą część tych partii (rozwiniętą nad punktem &ndash;237) stanowi system zawaliskowych salek i korytarzy, mający połączenie z dnem Studni Bociana oraz przypuszczalnie (Szura 2004c) z Biwakiem w Sali pod Płytowcem (co jednak nie zostało wyeksplorowane).<br /> Według Wiśniewskiego (1976a) Studnia Bociana ma bliźniaczą studnię, z kt&oacute;rą łączy się oknem dostępnym po dwudziestu kilku metrach wspinaczki (trudności V). &bdquo;Za oknem znajduje się studnia o kształcie soczewki dług. 3 m r&oacute;wnoległa do Studni Bociana, wyprowadzająca r&oacute;wnież nad zawalisko, co stwierdzono na podstawie kontaktu głosowego /../ na [jej] przeciwległej ścianie /../ zauważono jeszcze jedno okno&rdquo; (op.cit.). Okno to nie zostało zbadane.<br /> W przewieszonej ścianie zachodniego ramienia Sali pod Płytowcem, ponad oknem do Studni Bociana, na wysokości 15,5 m znajduje się niewielki wiszący balkonik, będący wstępem do partii o łącznej długości około 215 m (dojście skomplikowane, techniką hakową z użyciem hak&oacute;w typu jedynka, knife i skyhook, a wyżej klasycznie&nbsp;&ndash; V). Z balkoniku przez przełaz nad 2 m prożkiem wchodzimy do Sali pod Płytą. Pod prawą ścianą, między wantami znajduje się w niej zejście do Korytarza Trzech Studni. Pierwsza z nich, do kt&oacute;rej wejście znajduje się przy lewej ścianie korytarza, opada do Studni Bociana. Około 8 m dalej stajemy nad krawędzią drugiej studni. Jest ona obszerna, ma głębokość około 6 m, a jej przedłużeniem w g&oacute;rę jest nie do końca zbadany komin (wspinano się nim około 16 m, nie osiągając stropu). Ponad krawędzią drugiej studni korytarz zawraca i po 4 m doprowadza do trzeciej studni, r&oacute;wnież ślepej, o głębokości około 9 m. Ponad wejściem do niej korytarz kontynuuje się jeszcze kilka metr&oacute;w na nieco wyższym poziomie.<br /> W lewym krańcu Sali pod Płytą schodzimy kilka metr&oacute;w po prożkach z want do niewielkiej salki o zawaliskowym dnie. Ciąg skręca tu w prawo, doprowadzając do mytych Kaskad z kałużami wody i dużymi otoczakami skał krystalicznych. Kaskady te ciągną się w g&oacute;rę i w d&oacute;ł. W d&oacute;ł przez dwa prożki docieramy nad krawędź, kt&oacute;rą ciąg urywa się do Studni Bociana naprzeciwko okna z Sali pod Płytowcem. Jest to wsp&oacute;lny wylot ze wzmiankowaną wcześniej pierwszą studnią Korytarza Trzech Studni. Z krawędzi krok w lewo w ekspozycji doprowadza do zawieszonej salki. W prawo natomiast odgałęzia się 4 m ciasny korytarzyk, o dnie pokrytym gliną. Kończy się on niepokonanym zaciskiem, poniżej kt&oacute;rego znajduje się studnia.<br /> Kaskadami w g&oacute;rę (kolejno prożki 5,6 m, 3 m i 5,6 m) dochodzimy pod 12 m komin z intensywnym deszczem. Powyżej komina w prawo wiedzie kilkumetrowy, zablokowany wantami kominek, w lewo natomiast przez niski przełaz wczołgujemy się do korytarzyka z jeziorkiem. Prawą ścianę tego korytarzyka stanowi pochylnia zakończona w g&oacute;rze ciasną szczeliną stanowiącą zacisk, przez kt&oacute;ry przedostać się można do podn&oacute;ża zakończonego szczelinami Komina bez Wyjścia, wspinaczka kt&oacute;rym wyprowadza na poziom &ndash;131,1 m. Ciąg nad zaciskiem ma długość 44 m (Szura 2004d).<br /> W rejonie balkoniku będącego wstępem do Partii nad Studnią Bociana można się wspiąć pod stropem (V) do dw&oacute;ch okien. Niższe z nich to wylot kr&oacute;tkiego meandra, za kt&oacute;rym znajdują się bardzo niskie korytarze, zakończone zwężeniem nie do przejścia (Szura 2004e). Wyższe (20 m nad dnem) prowadzi do wspomnianego już powyżej Meandra nad Salą pod Płytowcem (op.cit.). Jest on początkowo szeroki (do 4m) lecz niski (0,5 &ndash; 1,0 m). We wstępnym odcinku, po lewej stronie odchodzi połączenie do Korytarza z Fajką (przez skrajnie ciasny korytarzyk i eksponowane okno). Dno opisywanego meandra na prawie całej długości pokryte jest żwirem i otoczakami ze skał krystalicznych z kośćmi nietoperzy i innych, bliżej nie określonych zwierząt (Cmentarzysko). Doprowadza on najpierw do okna łączącego z Balkonem (ok. 15 m zjazdu), następnie, po ominięciu kr&oacute;tkiego kominka, do 25-metrowego zjazdu na dno Sali pod Płytowcem (między Balkonem, a Pierwszym Płytowcem). Za stanowiskiem zjazdowym (2 spity) wiedzie dalszy ciąg meandra doprowadzający do Jelita, a więc stanowiący połączenie z Partiami Waldiego. Meander nad Salą pod Płytowcem liczy łącznie 47 m (Szura 2004e).<br /> Z zachodniego krańca Sali pod Płytowcem odchodzi w g&oacute;rę szeroki (od 8 do 6 m), stromy korytarz, o dnie pokrytym spiętrzonymi wantami i gruzem skalnym&nbsp;&ndash; Drugi Płytowiec. Docieramy do jego rozszerzenia, gdzie dno lokalnie wypłaszcza się u podstawy progu z want. W prawej ścianie znajduje się tu niewielkie wejście do bocznego, nie badanego kominka. Nieco dalej w zaułku prawej ściany odchodzi przejście do 11 m ślepej Studni Docenta. Za trawersem tej studni znajduje się prowadzący w g&oacute;rę ciąg kaskad z dopływem wody, po kilkunastu metrach zablokowany wantami (13 m nad wlotem do studni). Przed krawędzią Studni Docenta, od strony Drugiego Płytowca, można wspiąć się około 3 m do stromej pochylni łączącej się studzienką z g&oacute;rną częścią opisanych uprzednio kaskad.<br /> W rozszerzeniu Drugiego Płytowca, naprzeciw wejścia do Studni Docenta znajduje się przy lewej ścianie obcięta wyraźną krawędzią p&oacute;łka, wzdłuż kt&oacute;rej strawersować można w lewo do prowadzącego wstecz okna w stropie korytarza. Za oknem tym, ponad prożkiem z want, znajduje się wysoki Korytarz z Fajką. Z rozszerzenia na jego końcu opada stroma pochylnia o niskim stropie, urywająca się do zachodniego krańca Sali pod Płytowcem. W lewo od krawędzi widoczne są pod stropem Sali wymyte na płaszczyźnie uławicenia okienka (jedno z nich stanowi połączenie z Meandrem nad Sala pod Płytowcem). Nieco wcześniej pod lewą ścianą pochylni wejść można do systemu studni rozdzielonych piarżystymi p&oacute;łkami, prowadzących do Drugiego Płytowca.<br /> W rozszerzeniu Korytarza z Fajką odchodzi w lewo poprzeczna ukośna szczelina. W jej wyższym poziomie znajduje się dostępne dla człowieka rozszerzenie, przechodzące w owalną rurę z wyraźnym przesunięciem tektonicznym części po obu stronach pęknięcia o upadzie 42&deg; SE (niższa część jest przesunięta w d&oacute;ł o 5 cm). Po kilku metrach doprowadza ona do mytego korytarza, kt&oacute;rego strop stanowi lustro tektoniczne rozwinięte na tym samym co uprzednio pęknięciu. Pokryte rumoszem dno opada stromo do wypłaszczenia, z kt&oacute;rego kr&oacute;tki korytarzyk w lewo prowadzi pod strop Balkonu w Sali pod Płytowcem. Okno to, nazwane Przykrością, znajduje się około 9 m nad dnem.<br /> Nad oknem z Drugiego Płytowca do Korytarza z Fajką znajduje się 8 m Komin 15 %. Najdogodniejsze dojście do ciąg&oacute;w ponad nim wiedzie ukośną p&oacute;łką rozwiniętą wzdłuż szczeliny tektonicznej, tej samej na kt&oacute;rej powstała opisana poprzednio rura wiodąca w kierunku Przykrości. Ponad kominem korytarz wznosi się, a następnie opada prożkami z want i urywa się krawędzią 11 m nad dnem Drugiego Płytowca, tuż poniżej progu z want nad wejściem do Studni Docenta. W miejscu wzmiankowanego przełamania dna, nad 1,5 m prożkiem odchodzi w prawo kr&oacute;tki korytarz doprowadzający do kolejnego rozgałęzienia. W d&oacute;ł, po dużej wancie schodzimy do Sali Pochyłej, kt&oacute;rej strop stanowi lustro tektoniczne, rozwinięte na tej samej nieciągłości, kt&oacute;ra odgrywa znaczącą rolę w ukształtowaniu opisanych poprzednio partii nad Przykrością. Dno sali zaściełają bloki i rumosz skalny. W najniższym krańcu sali wiedzie w d&oacute;ł wąskie połączenie z P&oacute;łpiętrem &ndash; ciągiem stanowiącym połączenie z Balkonem (nad Salą pod Płytowcem).<br /> Od rozgałęzienia w g&oacute;rę wiedzie pochyły prożek do przestronnej, choć niewysokiej salki o dnie z want, mającej połączenie dwoma oknami z Drugim Płytowcem. Prożek, salka i wznosząca się ponad nią nie zbadana do końca pochylnia, mają w stropie tę samą płaszczyznę tektoniczną co Sala Pochyła. Większe z wspomnianych dw&oacute;ch okien nosi nazwę Lufcik i otwiera się 12 m nad progiem z want w Drugim Płytowcu. Łączna długość partii opisanych od wejścia do Korytarza z Fajką do Lufcika wynosi 140 m. <br /> Z pochylni w rejonie Lufcika można się przedostać (przez wąskie przejście w prawo) do kolejnego interesującego ciągu (Szura 2005b), w kt&oacute;rym &bdquo;spenetrowano kolejno trzy salki, z czego ostatnia &ndash; największa (15 m x 5 m x 5 m)[...] nazwana została Salą Kopernika.&rdquo; Odchodzący z niej ku p&oacute;łnocy boczny korytarz prowadzi do najwyższego punktu tych partii, położonego na poziomie &ndash;112 m. Wg. Szury (op.cit.) znajduje się on prawdopodobnie blisko powierzchni, na co wskazuje wyczuwalny zimą ciąg zimnego powietrza. &bdquo;Druga część [tych] partii prowadzi najpierw w d&oacute;ł przez 5-metrowy pr&oacute;g, by potem poprzez płytową pochylnię nieoczekiwanie połączyć się z zawaliskiem na szczycie Studni Docenta [kaskady z dopływem wody] (w miejscu gdzie wcześniej zakończono eksplorację &ndash; połączenie nie zostało udrożnione &ndash; drogę blokuje sporej wielkości głaz). Trzeci korytarz łączy się z Salą Pochyłą poprzez wąski kominek oraz nieprzyjemny zacisk (wejście u podn&oacute;ża 5 metrowego progu).<br /> Pr&oacute;g z want w Drugim Płytowcu spiętrza się na około 14 m, jest pochyły i nietrudny&nbsp;&ndash; daje się pokonać bez użycia liny. Ponad progiem korytarz stopniowo się zwęża i po około 20 m kończy blokującym dalsze przejście zawaliskiem.<br /> Przed zwężeniem, w prawej ścianie, na wysokości 12 m znajduje się okno do stromo wznoszącego się, obszernego (5 m szerokości) korytarza&nbsp;&ndash; Nadpłytowca. Najdogodniejszym dojściem do okna jest wznoszący się, skośny trawers od opisanego powyżej Lufcika. Skalne dno Nadpłytowca rozcięte rynną pokrywają miejscami luźno leżące bloki. W g&oacute;rnym jego krańcu pokonujemy dwa 3 m progi, ponad kt&oacute;rymi korytarz zwęża się i skręcając ostro w lewo opada do Sali Dwoistej G&oacute;rnej. Jest ona obszerna (9 na 10 m), po środku pokrytego rumoszem i blokami dna spoczywa duża wanta. Pod prawą ścianą znajduje się otw&oacute;r studzienki uchodzącej do Sali Dwoistej Dolnej, kt&oacute;rą osiągamy po 8 m zjeździe. Sala ta ma kształt wydłużony (9 na 6 m), dno wznosi się. W przeciwległym jej krańcu, ponad progami, na wysokości 12 m znajduje się niewielki balkon, z kt&oacute;rego odchodzą niedostępne szczeliny. W pobliżu zjazdu z Sali G&oacute;rnej, za dużą wantą, opada wstecz zawaliskowy korytarz, urywający się 16 m zjazdem do sali położonej pod dnem Drugiego Płytowca. W rejonie sali Dwoistej Dolnej wyeksplorowane zostały dwa meandry (Szura 2005b). Jeden z nich&nbsp;&ndash; przebyty po odgruzowaniu &ndash; ma długość 12 m, drugi &ndash; Dwoisty Meander, początkowo wąski rozszerza się następnie w rozległą salkę, z kt&oacute;rej przez 12 m pr&oacute;g można zjechać na najwyższy punkt Drugiego Płytowca. Łączna długość opisanych ciąg&oacute;w (od Nadpłytowca włącznie) wynosi około 230 m.<br /> W to samo miejsce dotrzeć możemy wchodząc w zawalisko u podn&oacute;ża progu prowadzącego do Nadpłytowca. Zaczyna się tu ciąg niskich zawaliskowych salek, korytarzy i ciasnych przełaz&oacute;w, w kt&oacute;rego centralnej części znajduje się wspomniana powyżej sala, do kt&oacute;rej zjechać można z rejonu Sali Dwoistej Dolnej. Sala ta ma wymiary 7x5 m i charakterystyczną p&oacute;łkę wzdłuż prawej ściany. Jeden z korytarzy ciągu kontaktuje się poprzez kominek z Drugim Płytowcem (g&oacute;rny wylot kominka znajduje się między wantami przy lewej ścianie). Łączna długość ciągu, nazwanego Partiami pod Płytowcem, wynosi około 75 m.<br /> Wracamy do centralnego miejsca Sali pod Płytowcem (punkt &ndash;202,2 m). Wspinamy się na wanty spiętrzone z lewej strony wejścia do Biwaku i wzdłuż ściany obchodzimy przecinający salę pr&oacute;g z want. Idąc dalej przy ścianie natrafiamy na wejście do dalszej części ciągu gł&oacute;wnego. Przez 1 m prożek w wejściu obniżamy się do partii rozwiniętych między płytowym stropem a zawaliskowym dnem. Wznosimy się nieco korytarzem, na końcu kt&oacute;rego przez 4 m pr&oacute;g z want schodzimy do sporej salki o pochyłym dnie. W jej przeciwległym, g&oacute;rnym końcu odchodzi kr&oacute;tki, ciasny, myty korytarzyk, a w innym miejscu niewielkie odgałęzienia między wanty zawaliska pod dnem Sali pod Płytowcem. Nad 3 m prożkiem znajduje się też nie badane okienko.<br /> W najniższym punkcie salki (&ndash;212,2 m), przy jej lewej ścianie znajduje się ciasny przełaz między wantami, prowadzący w d&oacute;ł do Partii Zakopiańskich. Systemem zawaliskowych salek i studzienek z okresową strugą wody schodzimy do stromo nachylonego korytarza urywającego się połogim, 3 m progiem. Stajemy w końcowym korytarzu Partii Zakopiańskich, biegnącym stąd w dwie strony. Lewe jego ramię wznosi się i po kilkunastu metrach zablokowane jest zawaliskiem. W g&oacute;rnym jego odcinku znajduje się połączenie z wyższą częścią ciągu.<br /> Prawym ramieniem posuwamy się wzdłuż olbrzymiej wanty i tuż przed końcem korytarza wchodzimy pod nią ciasnym przełazem prowadzącym do zawaliskowej kom&oacute;rki. W jej dnie, przed blokiem skalnym znajduje się wejście do wiodących w d&oacute;ł ciasnych przełaz&oacute;w, noszących (nie uzasadnioną już w tej chwili rozmiarami) nazwę Zaciski Boksera. Poniżej nich pojawia się obfita struga wody spływająca w lewo, do stromej szczeliny między stropową płytą skalną a zawaliskiem. Dalsza droga skręca w prawo w poziomy korytarzyk. Mijamy drugie wejście do szczeliny z wodą i skręcamy w prawo w g&oacute;rę. Ponad niewielkim prożkiem korytarz skręca w lewo i po kilkunastu metrach uchodzi do Sali Luster. Nieco wcześniej mijamy odejście w g&oacute;rę około 30 m długości ciągu, zakończonego Salą Andrzeja. Ciągu tego oraz około 70 m innych korytarzy w rejonie Sali Luster nie ma na planie. Sala Luster (12 x 8 m) rozpoczyna ponownie ciągi o znacznych wymiarach. Kontaktuje się ona w dw&oacute;ch miejscach z następną, zwaną Okruszki. Właściwa droga wiedzie wzdłuż prawej ściany pod obniżenie stropu, za kt&oacute;rym opadają niewielkie prożki z want. Sala Okruszki ma wymiary 8 na 5 m, a jej pochyłe dno pokrywają duże bloki skalne. W dolnej jej części trzy przełazy między wantami stanowią połączenia z Salą Szeroką. G&oacute;rną jej częścią jest platforma obcięta progiem. W prawo wznosi się kr&oacute;tkie boczne odgałęzienie. W tym miejscu z zawaliska wypływa struga wody niknąca w dolnej części sali w studzience pod jej prawą ścianą (studzienka ta o głębokości około 8 m opada na Czwarty Płytowiec). Poniżej progu w Sali Szerokiej w prawo odchodzi 10 m boczny ciąg w zawalisku. My udajemy się w lewo wysokim korytarzem. Czterometrowy pr&oacute;g z want sprowadza na gliniastą platformę. Pokrytym wantami stokiem obniżamy się nieco nad płytowy pr&oacute;g, będący początkiem Czwartego Płytowca. W tym miejscu, z prawej strony znajduje się ujście wspomnianej uprzednio studzienki, kt&oacute;rą spływa woda z Sali Szerokiej. Struga wody niknie między wantami poniżej progu. Schodzimy progiem, poniżej kt&oacute;rego korytarz znacznie się rozszerza (do 14 m).<br /> Trawersując w lewo w poprzek Czwartego Płytowca w miejscu jego rozszerzenia po wyraźnej p&oacute;łce z want, osiągamy otwierające się w lewej ścianie wejście do bocznej, r&oacute;wnoległej pochylni. Po drodze mijamy dochodzący od g&oacute;ry wylot korytarza stanowiącego drugie (mniej dogodne) połączenie z gliniastą platformą nad Czwartym Płytowcem.<br /> Boczna, zasłana głazami pochylnia ma nieco niżej jeszcze jedno połączenie z Czwartym Płytowcem. Dzieli się następnie na dwie odnogi łączące się ponownie po kilku metrach. Schodząc lewym, szerszym (2 m) odgałęzieniem pokonujemy dwuczęściowy 4 m pr&oacute;g. Pojawia się tu struga wody, nieco niżej rozlewająca się w niewielką kałużę. Korytarz w tym miejscu szeroki na 6 m zwęża się następnie, a dalej ponownie rozszerza (do 8 m), dno staje się skalne i urywa się progiem obszernej Bubusiowej Studni. Pionowa studnia o głębokości maksymalnej 37 m ma pochyłe głazowo-gliniaste dno. Zjeżdżamy do niej z prawej strony (zjazd 28,5 m). W studni ponoruje spływająca z pochylni struga wody. Najniższy punkt znajduje się tu na głębokości &ndash;344,3 m. Z dna wznosi się wysoki korytarz doprowadzający pod 14 m ślepy Komin do Nikąd. Całkowita długość opisanego ciągu wynosi około 185 m. Już po wykonaniu pomiar&oacute;w tych partii jaskini dno studni usiłowano rozkopać, ale bez sukcesu (na głębokości około 3,5 m natrafiono w wykopie na dużą wantę, kt&oacute;rej nie zdołano usunąć).<br /> Kontynuujemy zejście Czwartym Płytowcem. Jego stromo opadające dno pokrywają bloki osiągające niekiedy znaczne rozmiary. Na pewnym odcinku korytarz dzieli się na dwie r&oacute;wnoległe, łączące się niżej odnogi. Od prawej z nich odchodzi nie umieszczona na planie spora salka. W szerszej (8 m) lewej odnodze natrafiamy na 2 m pr&oacute;g z want, poniżej kt&oacute;rego kr&oacute;tkie przebicie w lewo wyprowadza na balkon nad Bubusiową Studnią. Poniżej progu teren staje się mniej stromy i doprowadza do kończącego Czwarty Płytowiec wypłaszczenia, w okolicy kt&oacute;rego korytarz osiąga szerokość 12 m. Punkt ten (&ndash;313,6 m) leży 51 m poniżej gliniastej platformy nad Czwartym Płytowcem, a droga między wymienionymi miejscami wynosi około 80 m. Wysokość korytarza na opisanym odcinku waha się od 3 do 5 m.<br /> Dno wypłaszczenia pod Płytowcem zalega częściowo piasek. Zsypuje się on tu ze skręcającego w prawo Przeciwstoku, na kt&oacute;ry dostajemy się przez niewysoki, pochyły pr&oacute;g. Pokryty piaszczystym namuliskiem stok wznosi się i po około 20 m styka się ze stropem. Pr&oacute;bę pokonania namuliska zakończono bez rezultat&oacute;w po wykopaniu 3 m tunelu. Ten fragment jaskini ma strop i ściany myte, licznie występujące wymycia wypełnia częściowo to samo namulisko.<br /> Od punktu &ndash;313,6 m kierujemy się w d&oacute;ł ku lewej ścianie. Posuwając się wzdłuż niej dochodzimy do przewężenia z zaklinowaną wantą (dno pokrywa tu piasek sypiący się poprzez przebicie za filarem skalnym z opisanego powyżej Przeciwstoku). Nad Wantą przechodzimy do korytarzyka, kt&oacute;ry po paru metrach skręca w lewo, nieznacznie się rozszerzając. Strop obniża się, a na dnie gruz i bloki zastępują piasek. Dalsza droga wiedzie przez bardzo trudny zacisk, za kt&oacute;rym wąski, szczelinowy korytarzyk o piaszczystym dnie po dw&oacute;ch załamaniach doprowadza 27 m dalej do następnego bardzo trudnego zacisku. Za nim, przez prożek schodzimy do niewielkiej kom&oacute;rki zawieszonej nad Studnią Anielki o deniwelacji około 27 m. Jest to bardzo stroma szczelinowa pochylnia, w dolnej części dwudzielna (odnogi łączą się ponownie na dnie). Dno pokryte jest piaskiem, kt&oacute;ry wypełnia też ograniczające z bok&oacute;w studnię zwężenia szczelin na całej jej długości. Pod ścianą znajduje się 3 m głębokości wykop, w kt&oacute;rym osiągnięto głębokość &ndash;349,5 m. Długość ciągu od punktu &ndash;313,6 m wynosi około 95 m (łącznie z r&oacute;wnoległą odnogą studni).<br /> U podn&oacute;ża Czwartego Płytowca, w jego lewej ścianie, pod obniżeniem stropu otwiera się wejście do lekko opadającego korytarza o dnie pokrytym rumoszem, kt&oacute;rym prowadzi gł&oacute;wny ciąg w kierunku Jaskini Śnieżnej. Po kilku metrach w dnie otwiera się szereg wejść do ciasnej, stromej szczeliny zwanej Maglem. Wiedzie do niej r&oacute;wnież jeszcze jedno, r&oacute;wnoległe przebicie z wypłaszczenia pod Czwartym Płytowcem, znajdujące się kilka metr&oacute;w w prawo od opisanego wejścia. Wybierając najszersze miejsca zsunąć się można około 14 m na wąskie dno szczeliny (20 m lina przydatna, choć nie konieczna). Jest r&oacute;wnież możliwość p&oacute;jścia w g&oacute;rę szczeliny w jej najdalszym krańcu (odgałęzienie to nie zostało dokładnie zbadane). Z dna szczeliny Magla (&ndash;337,5 m) przez ciasny przełaz schodzimy w ciąg opadających zawaliskowych salek i korytarzyk&oacute;w. Pojawia się tu woda znikająca w kończącej ciąg ukośnej, wąskiej szczelinie. Jest to najniższy punkt osiągnięty w Wielkiej Litworowej przed połączeniem ze Śnieżną (&ndash;354 m). Szczelina z wodą nazwana Elektromaglem doprowadza po 14 m nad położoną już w Śnieżnej 9-metrowej głębokości Szczelinę Agonii (przydatne, choć nie niezbędne 11 m liny), skąd prowadzi dalsze przejście w kierunku Galerii Krokodyla.<br /> Światło dociera poniżej studni wlotowej&nbsp;&ndash; do 2 m prożka z want sprowadzającego nad 7 m pr&oacute;g, a w drugą stronę do 5 m kominka na końcu meandra. <br /><br />Pozostałe informacje og&oacute;lne o jaskini umieszczono w om&oacute;wieniu całości systemu Jaskini Wielkiej Śnieżnej. Tam także dostępny jest plan i przekr&oacute;j całego systemu.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dane zaktualizował R.M. Kardaś (2009 r.).<br />Plan w skali 1:500 opracował Cz. Szura, przekr&oacute;j systemu opracował M. Gala.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Rafał M. Kardaś, Mirosław Burkacki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(81)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

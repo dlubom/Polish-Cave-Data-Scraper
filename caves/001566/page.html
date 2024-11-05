@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1566">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1566;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566838,67".replace(',', '.') + "," + "153453,65".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1566','Jaskinia pod Strzelistą'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia pod Strzelistą
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.31
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′06,99″, φ: 49&#176;14′41,77″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1692,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                435
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    41
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W lewym orograficznie zboczu Doliny Małej Łąki, w p&#243;łnocnym stoku Wielkiej Turni, w trawiastej p&#243;łce prowadzącej do Komory Gwiaździstej T.E-12.33. Otw&#243;r jaskini położony jest 48 m wyżej niż Awen z Korkiem Śnieżnym T.E-12.30 i kilkadziesiąt metr&#243;w dalej na wsch&#243;d. Widać go z otworu Nyży pod Ratuszem T.E-12.18 i Jaskini Ciasnej w Groniu T.E-12.16. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Przysłopu Miętusiego niebiesko znakowanym szlakiem podchodzimy nad Kobylarzowy Żleb, następnie trawersujemy ku SE Czerwony Grzbiet i po około 300 m schodzimy około 300 m stromym żlebem nazywanym Depresją Zachodnią, opadającym od Źródła Ratusz pod ściany Pośredniej Turni. Żleb staje się w dolnej części kamienisty. Omijamy Nyżę pod Ratuszem T.E-12.18 widoczną z lewej strony i schodzimy nieco na prawo skalnym progiem o trudnościach II (spod progu na prawo widać duży otwór Jaskini Strzelistej T.E-12.32). Dalej nieco na lewo i kilkadziesiąt metrów w dół stromym trawiastym zboczem (Małołącki Ogród) opadającym po lewej (or.) stronie żlebu. Naprzeciwko czarnej „nyży” widocznej na prawo od żlebu, pod małą ścianką, trawersujemy żleb w jej kierunku trafiając do Awenu z Korkiem Śnieżnym. Krótsza droga dojścia do tego miejsca wiedzie z dna Doliny Małej Łąki przez Wyżnie, piargi pod Zagonem i dolną część Komina Flacha (V) do Małołąckiego Ogrodu (ewentualnie z wariantem obejścia dolnego progu przez Tunel Małołącki T.D-12.12).  Ponad otworem Awenu z Korkiem Śnieżnym wchodzimy na prawe (or.) zbocze żlebu, na trawiastą półkę wznoszącą się ukośnie, dość stromo, ku E. W górnej części przechodzi ona w mały, płytki, trawiasty żleb z niewielkimi prożkami w trawie. Kilka metrów nad prożkami półka opada łagodnie wprost do otworu Jaskini pod Strzelistą T.E-12.31. Droga od otworu Jaskini Strzelistej T.E-12.332: schodzimy 35 m opadającym stąd żlebem. Dalej trawersujemy 40 m na prawo (ku E), nieco w górę po bardzo stromych, eksponowanych trawkach, wprost do poszukiwanego otworu (widać go dopiero z końcowego odcinka trawersu). Dojścia eksponowane, trudności II (od Źródła Ratusz) lub V (z Piargów pod Zagonem). Zwiedzanie wymaga użycia liny, we wstępnej części jest trudny zacisk.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r jaskini jest szczelinowy, ma 2,8 m wysokości i 0,65 m szerokości. Metr wyżej widać mały otworek o średnicy 0,4 m (ciąg za nim łączy się zaraz z gł&oacute;wną szczeliną). Za otworem wiedzie w d&oacute;ł wysoki, zwężający się, szczelinowy korytarz, kt&oacute;rym po kilku metrach dochodzimy nad wylot studni, zbyt wąski jednak aby przejść. W nieco wyższej części szczeliny pokonujemy poziomy zacisk o długości ponad 2 m i szerokości 0,2 m. Za zaklinowanymi w szczelinie wantami, za kt&oacute;rymi jest niewielkie rozszerzenie, zjeżdżamy 8&nbsp;m na dno obszernego korytarza. Stropu szczeliny z miejsca zjazdu nie widać (kontynuuje się ona prawdopodobnie pod zawalisko Jaskini Strzelistej). W poziomie szczelina ciągnie się około 7 m, jest prawdopodobnie jednak zbyt wąska do przejścia. Z dna idziemy do g&oacute;ry ku W obszerniejszym, 6-metrowym korytarzem, zakończonym progiem z want prowadzącym do g&oacute;rnej, bardzo ciasnej części szczeliny, pod zacisk. Idąc w drugą stronę, ku E, omijamy kr&oacute;tką odnogę po prawej stronie i docieramy do obniżenia korytarza, kt&oacute;re jest najniższym punktem jaskini. Kilka metr&oacute;w dalej, z końca korytarza, wznosi się 6-metrowy, dość obszerny komin naciekowy. </span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmo-neokomu wierchowej jednostki Organ&oacute;w (fałd Czerwonych Wierch&oacute;w). Powstała na szczelinie o kierunku</span> 70&deg;,<span>tej samej co położona nieco wyżej Jaskinia Strzelista T.E-12.32. Na południowej ścianie korytarza widać rynienki krasowe i obszerne wymycia. W kominie końcowym występuje bogata szata naciekowa: polewy, stalaktyty, stalagmity, mleko wapienne. Są też w jaskini nacieki grzybkowe. Namulisko tworzy przy otworze gleba i rumosz wapienny. W dolnej części szczeliny występuje gruz wapienny oraz glina piaszczysta, a na końcu korytarza, pod kominem - jasnoż&oacute;łta mokra glina z mlekiem wapiennym. W namulisku znaleziono kości nietoperzy. </span></p>
+<p><span>Jaskinia jest wilgotna, woda kapie z g&oacute;rnej części szczeliny. Światło odbite dociera do kilkunastu metr&oacute;w od otworu. Wyczuwa się silny, zimny przewiew.</span></p>
+<p><span>Rośliny kwiatowe obecne przy otworze, reprezentowane są gł&oacute;wnie przez trawy. mchy, porosty i glony występują do około 6 w głębi jaskini obserwowano nietoperze, komary i inne owady, a w okolicy otworu&nbsp;&ndash; ślimaki.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Otw&oacute;r groty m&oacute;gł być znany już M. Zaruskiemu, kt&oacute;ry w 1912 r. penetrował zbocza Wielkiej Turni. Pisze on: &bdquo;<em>W pobliżu tej studni </em>(Awenu z Korkiem Śnieżnym) <em>jest inna dziura, małych rozmiar&oacute;w, tem jednak ciekawa, że z niej dobywa się prąd powietrza zupełnie dostatecznie wyczuwalny nerwami dotyku&rdquo;</em> (Zaruski, 1923). Wzmianka ta może dotyczyć opisywanej jaskini. Brak p&oacute;źniejszych doniesień o eksploracji, czy nawet istnieniu otworu, chociaż m&oacute;gł on być zauważony (leży przy drodze do Komory Gwiaździstej T.E-12.33). Prawdopodobnie nikt jednak nie pr&oacute;bował przejść przez zacisk i o jaskini ze względu na &bdquo;zbyt małe rozmiary&rdquo; nie wzmiankowano.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Podczas prac nad inwentaryzacją jaskiń tatrzańskich OW PTPNoZ w dniu 3 sierpnia 1981 r. I. Luty i A. Sadowska pokonały zacisk i zwiedziły jaskinię do końca. Wykonały też pomiary jaskini i położenia otworu przy pomocy busoli geologicznej Meridian i taśmy parcianej. Dokumentację sporządziła I. Luty przy wsp&oacute;łpracy A. Sadowskiej. Dane sytuacyjno-wysokościowe położenia otworu podano na podstawie pomiar&oacute;w wykonanych w dniu 17 sierpnia 1981 r. przez zesp&oacute;ł pod kierownictwem W. Borowca.&nbsp;Dane zaktualizowała I. Luty (2009).</span></p>
+<p><span>Plan opracowała I. Luty.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zaruski, M.1923 (wzmianka, bez nazwy, może dotyczyć tego obiektu); Luty, I. 1982a (informacja o sporządzeniu dokumentacji); Luty, I. 1984 (wzmianka); Burkacki, M. i in. 1984 (informacja o eksploracji partii za zaciskiem); Luty, I.1988 (nowe dane morfometryczne, lokalizacja na mapie i szkicu ściany, dane historyczne); Jaskinie TPN 2000 (plan, przekr&#243;j i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1081)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

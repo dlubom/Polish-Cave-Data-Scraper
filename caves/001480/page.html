@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1480">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1480;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565577,20".replace(',', '.') + "," + "152960,46".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1480','Studnia w Kazalnicy'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Studnia w Kazalnicy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′04,29″, φ: 49&#176;14′26,29″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1545
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                200
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                199
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                36
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                235
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    840
+                </div>
+                <div style="min-height: 15px;">
+                    100
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na prawym zboczu Doliny Miętusiej, nad Wielką Świst&#243;wką, w dolnej części ściany Kazalnicy Miętusiej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Doliną Miętusią podchodzimy do Wielkiej Świstówki trzymając się podnóża lewego (or.) zbocza. Z dna Wielkiej Świstówki wspinamy się 1,5 wyciągu (II-III) po charakterystycznych pochyłych płytach do widocznego z dala „Wielkiego Komina” (w nomenklaturze taternickiej), zwanego również „Studnią” (w literaturze jaskiniowej). Następnie jego piarżystym dnem podchodzimy pod tylną ścianę.W zimie wspinanie jest ułatwione dzięki zasypaniu śniegiem dolnej części płyt, ale na ogół wymaga użycia czekana i raków. Dojście do jaskini pokrywa się z dolnymi wyciągami drogi wspinaczkowej „Filarem Kazalnicy Miętusiej”. Zwiedzanie trudne, wymaga użycia sprzętu taternickiego i pokonania kilku zacisków.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r znajduje się w dnie Wielkiego Komina, pod jego południowo-zachodnią ścianą. Jaskinia jest kontynuacją tego komina. Otw&oacute;r jest ciasny, tr&oacute;jkątny o wymiarach 0,6x0,4 m. Obecnie umieszczona jest w nim rama z kątownika stalowego.</p>
+<p>Za otworem opada bardzo stromy i ciasny korytarzyk wstępny, kończący się nad przewieszoną, dzwonowatą studzienką o głębokości 5,5 m i dnem zasypanym piargiem. Dawniej korytarz zakończony był zaciskiem, poszerzonym w pierwszej połowie lat dziewięćdziesiątych. Z dna studzienki odchodzi w kierunku NE stromy korytarz o spągu utworzonym przez gładkie płyty. Po kilku metrach zakręca on ku E i wypłaszcza się, jednocześnie przechodząc w szczelinę o szerokości kilkudziesięciu centymetr&oacute;w, tworzącą nietrudny zacisk. Za zaciskiem korytarz rozdziela się. Ku g&oacute;rze prowadzi szczelinowy i ciasny, 8 m wysoki Ślepy Komin, ku E napotykamy małe okienko otwierające się w studni uchodzącej w stropie gł&oacute;wnego ciągu przed Starym Dnem. Studnia ta łączy się z gł&oacute;wnym ciągiem jeszcze jednym oknem, znajdującym się około 2 m niżej. Tymczasem gł&oacute;wny ciąg skręca znowu ku NE i przybiera podobny charakter jak przed zaciskiem. Stroma pochylnia urywa się po kilku metrach nad ślepą Piarżystą Studzienką. Trawers nad nią prowadzi do korytarza opadającego niewielkimi progami na Stare Dno. Znajduje się tu niewielka salka o spągu zasłanym rumoszem wapiennym.</p>
+<p>Z południowo-zachodniego kąta sali biegnie ku SSE długi na 12 m szczelinowy korytarz (dawniej Szczelina Końcowa) o szerokości do 0,5 m i wysokości do 1 m. Dno jego zalegają odłamki skały powstałe w czasie poszerzania szczeliny, niedostępnej dawniej dla człowieka. Za szczeliną rozpoczynają się partie H.M. stanowiące dwie studzienki o głębokości 6 i 8 m, połączone ciasnymi szczelinami. Na dno drugiej z nich nie zjeżdżamy lecz trawersujemy około 2 m nad nim do kr&oacute;tkiej szczeliny prowadzącej ku południowi. Z niej, kolejnym kilkumetrowym progiem zjeżdżamy do Trzynastki. Jest to niewielka salka powstała na przecięciu się dw&oacute;ch szczelin, z kt&oacute;rych pionowa ma kierunek 170&deg;.</p>
+<p>Tu odgałęzia się ciąg prowadzący w G&oacute;rne Partie. Pomiędzy kilkumetrowymi wantami, przedostajemy się w kierunku SE do Czerwonej Salki o wymiarach 8x3 m i wysokości 3,5 m. Dno sali pokrywają spore wanty, pod tylną ścianą zalega drobniejszy piarg. Zar&oacute;wno ściany jak i spąg w chwili odkrycia miały intensywną czerwoną barwę, pochodzącą zapewne ze świec dymnych odpalanych w jaskini w latach siedemdziesiątych. Obecnie zabarwienie to stopniowo zanika. W połowie salki ku g&oacute;rze otwiera się kilkumetrowy ślepy komin, z kt&oacute;rego sączy się jeden z intensywniejszych w tej jaskini, okresowych ciek&oacute;w wodnych.</p>
+<p>Z południowego krańca Czerwonej Salki, nietrudną wspinaczką (III), poprzez 6-metrowy pr&oacute;g, rozdzielony w połowie marmitową p&oacute;łeczką i ciasny przełaz (dawniej bardzo trudny zacisk, obecnie poszerzony) dostajemy się do Sylwestrowego Meandra zakończonego niewielką salką. W jej stropie otwiera się wąskie okienko prowadzące do 4-metrowej salki, do kt&oacute;rej dostajemy się zapieraczką. W zachodniej ścianie tej sali, nad 2-metrowym progiem wznosi się ku g&oacute;rze kr&oacute;tki, szczelinowy korytarzyk. Dalsza droga prowadzi jednak ku S poprzez 15-metrowy Komin z Kotwami. Jego dolny, 4-metrowy, pionowy odcinek zdobyty został techniką hakową (4e). Wyżej staje się on bardziej połogi, a wspinaczka jest łatwiejsza (III&ndash;IV). Komin z Kotwami ma charakter szerokiej szczeliny w g&oacute;rnej części zablokowanej wantami, między kt&oacute;rymi wychodzimy na G&oacute;rkę Rozrządową.</p>
+<p>G&oacute;rka Rozrządowa jest niewielką salką o szerokości 1,5 m i długości 4 m. W kierunku zachodnim przedostajemy się z niej przez ciasny przełaz nad około 30 m głębokości Notosstudnię. Cztery metry niżej łączy się ona ciasną szczeliną z Kominem z Kotwami. Jest to jedna z największych studni w tej jaskini, ma około 8 m średnicy. Po około 11 m zjazdu Notosstudnią wahadłem możemy dostać się do niewielkiego okna w południowej części studni (Okno Nietoperzy). Za nim przedostajemy się na dość obszerną p&oacute;łkę, kt&oacute;ra po ok. 2 m urywa się nad 10-metrową ślepo zakończoną studnią. Ponad ślepą studnią, trawersem dostajemy się na skalną groblę, kt&oacute;ra oddziela ją od następnej (nie nazwanej) studni o głębokości 22 m. W g&oacute;rę studnia kontynuuje się w postaci komina, kt&oacute;ry po kilkunastu metrach przechodzi w ciasną szczelinę bez możliwości przejścia. Poniżej grobli w&nbsp;studni znajdują dwie duże p&oacute;łki; pierwsza po ok. 5 m zjazdu i druga po kolejnych 3 m. Po następnych kilkunastu metrach zjazdu zwężającą się studnią stajemy na dnie skąd odchodzi ciasna nie możliwa do przejścia szczelina. Z g&oacute;ry studni w postaci deszczu spływa woda, dno studni jest więc wilgotne i mokre. Partie te zostały odkryte i wyeksplorowane na przełomie 1999/2000 roku.</p>
+<p>Z dna Notosstudni prowadzi ciasny szczelinowy meander o ścianach pokrytych ostrymi naciekami grzybkowymi. Po około 10 m kończy się on nad kolejną dużą Studnią Latających Parkowc&oacute;w. Po 7 m zjazdu jest w niej duża, marmitowa p&oacute;łka. Cała studnia liczy r&oacute;wnież około 30 m i kończy się ślepo.10 m nad jej dnem wahadłem dostajemy się do okna, kt&oacute;re prowadzi do kilkunastometrowego, początkowo stromo opadającego korytarza. Idąc nim pokonujemy 5 m głęboką studzienkę i stajemy na skalnej grobli, oddzielającej ślepą odnogę od stromej pochylni wypadającej w połowie Studni Kaskadowej.</p>
+<p>Wracamy na G&oacute;rkę Rozrządową. Po jej przeciwnej niż Notosstudnia stronie, wspinamy się 5 m progiem do g&oacute;rnej części Sali Grażynki. Otwierają się tu w stropie dwa kominy, z kt&oacute;rych zbadany został tylko zachodni, kończący się ślepo po około 20 m. Po dużych wantach i 3 m progu schodzimy do gł&oacute;wnej części Sali Grażynki. Ma ona wymiary około 5 x 4 m i wysokość 15 m. Można się do niej dotrzeć z G&oacute;rki Rozrządowej r&oacute;wnież ciasnym meandrem zaczynającym się pod progiem, a uchodzącym w zachodnim krańcu sali. Dno sali zasłane jest wantami, po stronie wschodniej znajduje się niewielka, ślepa studzienka. Po trudnej wspinaczce (VI) południową ścianą sali osiągamy otwierający się pod stropem meander, prowadzący ku SE. Jego g&oacute;rną częścią dostajemy się do Salki pod Prasą, z kt&oacute;rej poprzez nieduże progi wchodzimy pod Prasę. Jest to ogromna wanta odstrzelona od stropu. Przeciskamy się pod nią do niedużej salki (Kowarny), gdzie ciąg znowu się rozgałęzia. W prawo dostajemy się do okna w połowie Morawskiego Komina. W d&oacute;ł kończy się on ślepo po około 8 m, natomiast w g&oacute;rę po około 15 m przechodzi w ciasną szczelinę zablokowaną wantami. Przedostajemy się ponad nimi do niskiego, poziomego korytarzyka o charakterze zawaliskowym. Po paru metrach w jego spągu otwiera się mała studzienka, wypadająca w oknie w Morawskim Kominie. Trawersujemy nad nią i po osypującym się piargu podchodzimy do wąskiego przełazu między wantami, za kt&oacute;rym widać kolejny komin. W tym miejscu eksploracja została na razie przerwana.</p>
+<p>Wracamy do Kowarny. W jej stropie widoczne są utwory lodowe, na spągu leży kilka want. Wspinamy się po jej lewej ścianie na małą p&oacute;łeczkę u wejścia do kr&oacute;tkiego i ciasnego meandra (Z I). Przedostajemy się nim do Salki O&rsquo;lina. Dno salki jest skaliste, pod południową ścianą otwiera się 3 m, ślepa studzienka, zasypana piargiem. W kierunku zachodnim, poprzez łatwe prożki dostajemy się do małej kom&oacute;rki przechodzącej w szczeliny nie do przejścia. Wyczuwalna jest tu silna cyrkulacja powietrza, a na wiosnę jej ściany pokrywają się szronem co może świadczyć o bliskim kontakcie z powierzchnią.</p>
+<p>Wracamy do Salki O&rsquo;lina. Po kilkumetrowej wspinaczce nad ślepą studzienką, dostajemy się do korytarza, kt&oacute;rym, pokonując po drodze 2 m pr&oacute;g z want, wchodzimy do niewielkiej salki o spągu pokrytym cienką warstwą lodu. W jej stropie widnieje niezbadane okienko z lodem. Korytarz prowadzi dalej na p&oacute;łnoc nad około 15 m głębokości, pochyłą Toprową Studnię. W g&oacute;rnej części pokryta jest ona lodem wypływającym ze szczeliny pod stropem na końcu korytarza. Jak wykazały pomiary, partie te znajdują się w bezpośrednim sąsiedztwie Jaskini Lodowej Miętusiej, tu też znajduje się najwyżej położony, skartowany punkt w jaskini. Zjeżdżamy Toprową Studnią, początkowo po lodzie, kt&oacute;ry jednak kończy się nad p&oacute;łeczką w połowie studni. Na jej dnie jest niewielka salka zasłana piargiem, z kt&oacute;rej odchodzi w d&oacute;ł bardzo ciasny meander o ścianach gęsto pokrytych grzybkami. Pomiędzy tym miejscem, a Kowarną istnieje połączenie głosowe.</p>
+<p>Wracamy do Trzynastki. W d&oacute;ł opada stąd korytarz poprzez piarżyste progi doprowadzający nad studnię Dzikie Węże (nazwa nawiązuje do partii H.M.). Ma ona 17 m głębokości, po około 5 m znajduje się w niej Balkon, czyli charakterystyczna duża p&oacute;łka z odchodzącą od niej ciasną szczeliną nie do przejścia. W czasie zjazdu Balkon jest jednak omijany. Dno studni zasłane jest wantami. Ku SW odchodzi od niego niski korytarz, stopniowo opadający w d&oacute;ł, po paru metrach urywający się nad Studnią Kaskadową. Studnia ta ma w sumie 47 m głębokości i podzielona jest małymi p&oacute;łeczkami na mniejsze odcinki. Nie jest zbyt obszerna i ma spiralny przebieg. Mniej więcej w jej połowie, za charakterystyczną płytą skalną kończy się r&oacute;wnoległy ciąg z G&oacute;rki Rozrządowej. Około 5 m nad dnem stajemy na skalnym moście, kt&oacute;ry oddziela boczną, kr&oacute;tszą studzienkę o dnie zasypanym piargiem, od gł&oacute;wnego ciągu Studni Kaskadowej schodzącego o 3 m niżej.</p>
+<p>Z pokrytego wantami dna Studni Kaskadowej idziemy ku SE niskim korytarzem. Przed wejściem do niego po lewej stronie, metr nad spągiem, znajduje się ciasne okienko, za kt&oacute;rym otwiera się studnia Bambanik, niżej łącząca się znowu z gł&oacute;wnym ciągiem. Korytarz, kt&oacute;rym idziemy, opada coraz stromiej ku SE, po paru metrach jest w nim ciasny przełaz, za kt&oacute;rym z prawej strony dochodzi wąziutki meanderek, rozcinający wzdłuż dalsze 2 m tego korytarza. Przekraczamy odstrzeloną płytę tworzącą jakby groblę i zjeżdżamy 23 m Studnią Papuasa o średnicy osiągającej 5 m. Około 5 m nad dnem, w jej wschodniej ścianie znajduje się spore okno, prowadzące do Bambanika, kontynuującego się r&oacute;wnież w d&oacute;ł.</p>
+<p>Na dnie Studni Papuasa rozpoczyna się Meander z Wantami. Początkowo jest on obszerny, ma 2&ndash;3 m szerokości. Po wantach zalegających na dnie schodzimy w kierunku SE, po 8 m meander zakręca ku SW. W tym miejscu znajduje się 3-metrowy prożek, kt&oacute;ry pokonujemy opuszczając się na pętli założonej wok&oacute;ł wanty zablokowanej w meandrze (Kołowr&oacute;t). Po kolejnych 10 m stajemy na dużej wancie, za kt&oacute;rą otwiera się 8 m głęboka studzienka. W tym miejscu z prawej strony odchodzi w g&oacute;rę piarżysty kominek w kierunku Bambanika.</p>
+<p>Studzienką zjeżdżamy do dolnego piętra Meandra z Wantami, o nieco innym charakterze. Z niewielkiej salki pod studzienką idziemy na wsch&oacute;d meandrem o szerokości 1 m. Po kilku metrach rozszerza się on do 2 m, ale cały przekr&oacute;j korytarza zajmuje ogromna wanta, kt&oacute;rą trzeba obejść g&oacute;rą. Za wantą meander skręca na NE, ponownie się zwężając. Po 3 m dno meandra otwiera się dzwonowato nad Salką Piaszczystą. Trawersując dalej g&oacute;rną częścią meandra docieramy do jego zwężenia nie do przejścia, za kt&oacute;rym widać jeszcze parę metr&oacute;w kontynuacji korytarza. W tym miejscu namulisko tworzy zbity piasek z materiałem krystalicznym, osypujący się do salki.</p>
+<p>Trzymetrowym zjazdem dostajemy się do Piaszczystej Salki. Ma ona okrągły kształt, średnicę około 2 m, dno piaszczyste-muliste. Pod południową ścianą znajduje się wejście do wąskiej szczeliny o mulistym dnie. Po paru metrach urywa się ona nad ciasną, pochyłą Studnią Beznadziei. Ma ona szerokość nieco ponad p&oacute;ł metra i kręcąc się nieznacznie w r&oacute;żnych kierunkach opada 15 m w d&oacute;ł. Dno Beznadziei nie ma nawet metra średnicy i wyr&oacute;wnane jest namuliskiem żwirowym, w kt&oacute;rym można znaleźć otoczaki ze skał krystalicznych. Tu znajduje się najniżej położony punkt w jaskini.</p>
+<p>Według I. Luty (1985) jaskinia powstała w wapieniach triasu środkowego jednostki Organ&oacute;w (seria wierchowa, fałd Czerwonych Wierch&oacute;w). Informacja ta nie uwzględnia jednak partii poznanych p&oacute;źniej. Obserwacje geologiczne nie były tu dotąd prowadzone. Geneza jej związana jest zapewne z wodą pochodzącą z topniejącego lodowca.</p>
+<p>Cała jaskinia rozwinięta jest w kierunku pionowym. Tworzą ją ciągi r&oacute;wnoległych, mytych studni, niewielkich gabarytowo, połączonych kr&oacute;tkimi korytarzami często o charakterze meandr&oacute;w. Ich przebieg w rzucie na płaszczyznę poziomą jest zawiły, częste są zmiany kierunku. Jedynie pomiędzy poziomem &ndash;30 m, a &ndash;55 m jaskinia rozbudowuje się wzdłuż szczelin o generalnym przebiegu N&ndash;S.</p>
+<p>W jaskini występują osady okruchowe i chemiczne, a w niewielkim stopniu także organogeniczne. Osady okruchowe stanowią gł&oacute;wnie autochtoniczne żwiry występujące w niemal całej jaskini. Zawaliska mają niewielką miąższość, największe znajduje się w rejonie Trzynastki. W dolnych partiach pojawiają się osady allochtoniczne, na co wskazuje występowanie okruch&oacute;w skał krystalicznych. Większe namulisko piaszczysto-muliste występuje jedynie w Piaszczystej Salce. W Beznadziei można odnaleźć niewielkie konkrecje cementacyjne.</p>
+<p>Szatę naciekową reprezentują niemal wyłącznie nacieki grzybkowe. Występują one powszechnie w całej jaskini z wyjątkiem najniższego piętra, kumulując się w wąskich przejściach pomiędzy studniami. W rejonie G&oacute;rki Rozrządowej odnaleźć można fragmenty brunatnych polew naciekowych.</p>
+<p>Osady organogeniczne to nagromadzenia kości i odchod&oacute;w nietoperzy o znikomej miąższości występujące w kilku miejscach, m.in. w Czerwonej Salce.</p>
+<p>Stan wody w jaskini jest zmienny. W okresie p&oacute;źnej zimy jaskinia jest niemal zupełnie sucha, jedynie w Czerwonej Salce sączy się skąpy ciek. W czasie roztop&oacute;w wiosennych w jaskini pada deszcz podziemny o największej intensywności w rejonie Studni Kaskadowej. Powstają w&oacute;wczas nieliczne kałuże utrzymujące się do p&oacute;źnej jesieni. Latem wilgotność uzależniona jest od opad&oacute;w atmosferycznych. W okresie wiosennym w partiach wstępnych tworzą się polewy lodowe, niejednokrotnie uniemożliwiające przejście przez zacisk w płytowym korytarzu. L&oacute;d stale występuje w Toprowej Studni, gdzie jest mały lodospad. Na wiosnę okresowo zaladzane są partie od studzienki wejściowej do H.M., a w zimie ściany Sali Grażynki i stropy położonych nad nią sal. Stan lodu zależy jednak od zabezpieczenia otworu i ilości śniegu dostającego się do jaskini</p>
+<p>Klimat jaskini charakteryzuje się dużym dynamizmem. W otworze istnieje silny przewiew, w zimie do wnętrza jaskini, latem na zewnątrz. Ruch powietrza wyczuwalny jest aż do Studni Kaskadowej i w g&oacute;rnych partiach. Poniżej Studni Kaskadowej klimat staje się bardziej statyczny. Strefa wymarzania sięga poniżej Trzynastki obejmując r&oacute;wnież g&oacute;rne partie. Czerwona Salka jest zacisznym miejscem, od strony Trzynastki pokrytym lodem, a od Sylwestrowego Meandra ociekającym wodą. Światło rozproszone sięga do końca korytarzyka wejściowego.</p>
+<p>W jaskini s<span>twierdzono występowanie następujących gatunk&oacute;w nietoperzy: <strong><em>Myotis bechsteinii</em></strong>, <strong><em>Myotis myotis</em></strong>, <strong><em>Myotis brandtii</em></strong>, <strong><em>Myotis dasycneme</em></strong>, <strong><em>Eptesicus nilssonii</em></strong>, <strong><em>Plecotus auritus </em></strong>(Piksa 1998, Piksa, Wołoszyn 2001). W</span> jaskini obserwowano sporadycznie much&oacute;wki.</p>
+<p>Roślinność występuje jedynie w Wielkim Kominie, nie wchodząc w głąb poza obręb otworu. </p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Żadnych systematycznych badań naukowych w jaskini dotąd nie prowadzono.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Na wywiew spomiędzy want na dnie Wielkiego Komina zwr&oacute;cono uwagę już na początku lat sześćdziesiątych. Dopiero jednak końcem września 1973, po blisko dwuletnich pracach grotołaz&oacute;w zakopiańskich z STJ, udało się odgruzować otw&oacute;r. Według Wiśniewskiego (1996) przez 8 lat kopali tu r&oacute;wnież krakowscy grotołazi, kt&oacute;rzy wydobyli nieco ponad 1 metr sześcienny skał. Pierwszego przejścia dokonali 29-30 września 1973 B. Kaleciak, S. Miśkowiec, Ch. Parma, M. Pawlikowski i P. Podobiński osiągając Stare Dno na poziomie - 34 m. Dalszą drogę zamykała w&oacute;wczas Szczelina Końcowa kilkunastocentymetrowej szerokości i kilkumetrowej długości. Przez następnych kilka lat prace członk&oacute;w STJ i ST PTTK Zakopane polegały na pr&oacute;bach odnalezienia g&oacute;rnego otworu za pomocą zadymiania, nie dały one jednak żadnych efekt&oacute;w. Pod koniec lat siedemdziesiątych w zacisku poniżej studzienki wejściowej wytworzył się korek lodowy, na kilkanaście lat blokujący wejście do dalszych partii. <br /> Eksplorację w jaskini podjęli na nowo w 1991 K. Dudziński i S. Miśkowiec. Najpierw jednak musieli poradzić sobie z rozrastającym się korkiem lodowym. Został on usunięty dopiero w 1994 w wyniku zasłonięcia otworu jesienią 1992 i odsłonięcia go na wiosnę 1993, co zostało powt&oacute;rzone kolejnej zimy. [Według W. Wiśniewskiego (1996) akcje te były poprzedzone działaniami grotołaz&oacute;w krakowskich i katowickich, kt&oacute;rzy przy użyciu specjalnych technik poszerzyli na znacznym odcinku końcową szczelinę - przyp. red.]. Po kilkudziesięciu akcjach przeprowadzonych przez wymienioną wyżej dw&oacute;jkę wspomaganą m.in. przez M. Sochackiego, Szczelina Końcowa pokonana została w dniu 23 listopada 1995, kiedy to Dudziński i Miśkowiec dotarli do zawaliska nad Dzikimi Wężami. Ten sam zesp&oacute;ł 26 listopada 1995 rozbiera zawalisko, zjeżdża przez Dzikie Węże i kolejne studnie, stając nad Studnią Papuasa. Piaszczysta Salka osiągnięta została 3 grudnia 1995 przez zesp&oacute;ł K. Dudziński, M. Sochacki, A. Pajda i W. Wowro.<br />Obecne dno poznane zostało w czasie akcji z 9 na 10 grudnia przez K. Dudzińskiego i S. Miśkowca.<br />17 grudnia 1995 K. Dudziński i T. Zwijacz-Kozica-Zwijacz mierzą gł&oacute;wny ciąg do dna, przy okazji odkrywając Czerwoną Salkę dochodząc do zacisku przed Sylwestrowym Meandrem.<br />W dniu 31 grudnia 1995 K. Dudziński i I. Kyselak pokonują zacisk dochodząc Sylwestrowym Meandrem do Komina z Kotwami. Pierwsze 4 metry w tym kominie pokonał samotnie techniką hakową K. Dudziński 4 lutego 1996.<br />21 stycznia 1996 rozpoznana została studnia Bambanik. W akcji uczestniczyli K. Dudziński, S. Miśkowiec, W. Porębski i W. Wowro.<br />11 lutego 1995 zesp&oacute;ł K. Dudziński i T. Zwijacz-Kozica kończy wspinaczkę w Kominie z Kotwami, dochodzi do Sali Grażynki, wspinając się jeszcze 10 metr&oacute;w w pierwszym z widocznych w stropie komin&oacute;w. Zjeżdżają r&oacute;wnież Notosstudnią.<br />24 lutego 1996 K. Dudziński w towarzystwie pięciu Morawiak&oacute;w, w tym I. Kyselaka i R. Blażka, pokonują kolejne progi dochodząc do zacisku na końcu Morawskiego Komina i nad Toprową Studnię. Zjeżdżają r&oacute;wnież Studnią Latających Parkowc&oacute;w do połączenia ze Studnią Kaskadową.<br />Ostatnia akcja eksploracyjna miała miejsce 22 maja 1996 przy okazji szkolenia TOPR. Uczestniczyli w niej P. Bukowski, K. Dudziński, R. Kubin, M. Pawlikowski i T. Zwijacz-Kozica. Zjechano w&oacute;wczas Toprową Studnią i pokonano szczelinę na końcu Morawskiego Komina dochodząc do zwężenia korytarza przed kolejnym kominem. Eksploracja jaskini jest w toku, na podstawie zezwolenia TPN prowadzi ją Speleoklub Tatrzański.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i przekr&oacute;j starych partii, sporządzony przez M. Pawlikowskiego i P. Podobińskiego na podstawie pomiar&oacute;w Ch. Parmy i M. Pawlikowskiego, opublikował Parma (1976). Plan i przekr&oacute;j gł&oacute;wnego ciągu do dna sporządzili K. Dudziński i T. Zwijacz -Kozica (Dudziński 1996). Został on nieznacznie poprawiony i uzupełniony o odkryty p&oacute;źniej g&oacute;rny ciąg. Brakuje tu jednak jeszcze większości r&oacute;wnoległych i ślepych odgałęzień o szacunkowej długości 300 metr&oacute;w. Niekt&oacute;re z nich naniesiono schematycznie na plan. Do tej pory wykonano w sumie 417 m ciąg&oacute;w pomiarowych. Powyższa dokumentacja ma charakter roboczy, kompletna zostanie sporządzona po zakończeniu eksploracji. Dane zaktualizowali K. Dudziński i T. Zwijacz-Kozica (2009 r.). Pomiary sytuacyjno-wysokościowe otworu przeprowadził zesp&oacute;ł Naukowego Koła Geodet&oacute;w AGH pod kierownictwem W. Borowca 14 sierpnia 1981 r (Luty 1985).<br />Plan opracowali K. Dudziński i T. Zwijacz- Kozica.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Parma Ch. 1975 (opis jaskini i historia eksploracji); Parma Ch. 1976 (opis inwentarzowy, plan i przekr&#243;j); Borowiec W. i in. 1977, 1978 (dane morfometryczne); Parma Ch., Rajwa, A. 1978 (wzmianka); Kronika 1982 (wzmianki o odwiedzaniu i eksploracji); Parczewski J. 1983 (wzmianki o odwiedzaniu); Cikowski W. 1983b (wzmianki o odwiedzaniu i zalodzeniu); Dobosz P., Parczewski J. 1986 (wzmianki o odwiedzaniu i zabezpieczaniu otworu); Kardaś R. M. 1985 (dane morfometryczne, opis eksploracji, lokalizacja otworu na schemacie); Pryjma T. K., Wasilewski, W. 1986a (wzmianki o zalodzeniu); Siarzewski W. 1994 (informacja o okresowym zalodzeniu); Radecki W. 1988 (wzmianki o zalodzeniu); Radecki W. 1990 (wzmianki o zalodzeniu); Rajwa A. 1996 (informacja o odkryciach, zdjęcia); Dudziński K. 1996 (opis jaskini i historia eksploracji, plan i przekr&#243;j); Zwijacz -Kozica T. 1996 (wzmianki o odwiedzaniu i eksploracji); Kardaś R. 1996 (wzmianki o eksploracji); Wiśniewski W. 1996 (krakowska wersja historii eksploracji); Jaskinie TPN 1996 (plan, przekr&#243;j i opis inwentarzowy); Piksa, K. 1998 (wymienia występowanie Myotis bechsteinii, Myotis myotis, Myotis brandtii, Myotis dasycneme, Eptesicus nilsonii, Plecotus auritus); Piksa K., Wołoszyn B.W 2001 (nietoperze).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Luty I. 1985 (opisana łącznie z Wielkim Kominem i schronem K-4 pod jego NW ścianą)
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Krzysztof Dudziński, Tomasz Zwijacz-Kozica
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(985)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(986)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

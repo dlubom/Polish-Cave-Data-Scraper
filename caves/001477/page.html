@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1477">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1477;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565901,86".replace(',', '.') + "," + "152969,05".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1477','Jaskinia pod Dachem'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia pod Dachem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.08
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′20,35″, φ: 49&#176;14′26,44″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku dołowi, 1483,5 m n.p.m.; 3 - ku N, 1510 m n.p.m.; 4 - ku g&#243;rze, 1526,5 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1476,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                130
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                66
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                66
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    104
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, w dolnej połaci ściany czołowej (p&#243;łnocnej) Ratusza Mułowego. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Do Wielkiej Świstówki dochodzimy dnem Doliny Miętusiej, jedną ze ścieżek trawersujących Wantule prawym lub lewym orograficznie zboczem. Udajemy się wprost pod zamykającą kocioł ścianę Ratusza Mułowego, położoną centralnie, między progami wiszących dolinek Litworowej i Mułowej. Wspinamy się wprost w górę drogą Nowińskich, w kierunku okapów zwanych Dachem, tworzących wyraźne „brwi” w dolnej części ściany, do położonego około 30 m nad piargiem dolnego (1) otworu (trudności IV do V+). Wejście w ścianę w linii spadku kominkowatej rysy, kończącej się u podnóża ściany Jaskinią nad Piargiem. Rysą w górę (IV) do miejsca, gdzie zanika ona w płytowej ściance. Stąd w górę z lekkim odchyleniem w prawo (V) na skalny stopień. Ze stopnia w lewo w górę kruchym skalnym terenem (IV) na stromą trawiastą półkę do niewielkiego zacięcia (stanowisko). Ze stanowiska w górę przez płytę (V), a następnie zacięciem w prawo w górę (V+) pod kant Dachu, skąd trawers w lewo (IV) na półkę przy 1 otworze Jaskini pod Dachem. Stąd można się wspiąć do 2 otworu - przez bloki udajemy się na krawędź studni wejściowej, a następnie mokrą ścianką wprost w górę (VI) do otworu. Otwór 3 osiągnąć można od góry (położony jest na trójkątnej trawiastej półeczce nieco powyżej Dachu), natomiast do 4 otworu dochodzimy od leżącego 7 m niżej i około 20 m na zachód otworu Jaskini nad Dachem T.E-11.09, kierując się od niego nieco w lewo (oba otwory dzieli około 25 m w linii prostej, trudności II-III ?). Zwiedzanie jaskini wymaga skrajnie trudnej wspinaczki.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Dolny otw&oacute;r jest obszerny, widoczny z&nbsp;lewego orograficznie zbocza Wielkiej Świst&oacute;wki. Za nim bierze początek około 17&ndash;18 m ślepa studnia ze śniegiem na dnie. Trawers jej ścianą doprowadza na most nad II studnią, r&oacute;wnież ślepą, o&nbsp;głębokości 15 m. Trawersujemy II studnię i&nbsp;docieramy do salki, z&nbsp;kt&oacute;rej prowadzi bardzo ciasna, pionowa szczelina o&nbsp;długości 4 m (Z1) uchodząca na dnie kominka 4 m wysokości, z&nbsp;zaciskiem w&nbsp;stropie (Z II). Po przejściu zacisku stajemy u st&oacute;p 18 m komina podzielonego w&nbsp;połowie p&oacute;łką (trudności VI). G&oacute;rny wylot komina znajduje się w&nbsp;ciasnym meandrze, kt&oacute;ry kontynuuje się w&nbsp;dwie strony. W jedną stronę wznosi się lekko i&nbsp;po kilkunastu metrach zwęża się, przechodząc w&nbsp;szczelinę nie do przejścia. W drugą stronę meander opada, przez prożki (2 i&nbsp;4 m) schodzimy do zawaliskowej sali nad 13 m progiem, kt&oacute;rym poprzez 2&nbsp;otw&oacute;r można zjechać na p&oacute;łkę przy 1&nbsp;otworze. Przy zwiedzaniu jaskini w&nbsp;kierunku odwrotnym (od 2 otworu) trudności wspinaczkowe do tego miejsca osiągną V+ do VI.</span></p>
+<p><span>Z zawaliskowej sali nad 2 otworem wspinamy się w&nbsp;g&oacute;rę 13 m (II&ndash;III) do salki przy 3 otworze, skąd 22 m komin (IV) doprowadza do niewielkiego korytarzyka zakończonego 4 otworem.</span></p>
+<p><span>Jaskinię zwiedzać możemy wspinaczkowo od 1&nbsp;lub 2 otworu albo zjazdami od 4 otworu. Może być ona drogą wycofywania się z&nbsp;Jaskini nad Dachem (zjeżdżając jaskinią od 4 do 2 otworu).</span></p>
+<p><span>Jaskinia rozwinięta jest w&nbsp;szarych wapieniach malmo-neokomu, w&nbsp;obrębie skrętu synklinalnego jednostki Organ&oacute;w (fałd Czerwonych Wierch&oacute;w, seria wierchowa), na szczelinie o&nbsp;kierunku zbliżonym do W&ndash;E. Stanowi system komin&oacute;w przebiegających blisko powierzchni. Namulisko tworzą gruz i&nbsp;bloki skalne. Ilość wody w&nbsp;jaskini wiąże się bezpośrednio z&nbsp;warunkami na zewnątrz (przy większych opadach od 4 otworu spływa struga wody). Na mikroklimat znacznej części systemu ma wpływ liczba otwor&oacute;w oraz przypowierzchniowy charakter jaskini. Światło odbite ma spory zasięg&nbsp;&ndash; widoczne jest niemal w&nbsp;całym ciągu między 2 a 4 otworem.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta w lecie 1961 r. przez T. Branickiego i R. Rodzińskiego z Sekcji Taternictwa Jaskiniowego Koła Krakowskiego KW. Poznano w&oacute;wczas partie przyległe do 1 otworu&nbsp;&ndash; do dna ślepej, 18 m studni. Śmiałek (1966b) wzmiankuje, że 24 lipca 1965 r. J. Didur (z tego samego klubu) &bdquo;forsuje zacisk, odkrywając za nim niewielką salkę&rdquo;. Trudno obecnie stwierdzić czego dotyczy powyższa informacja. Dalszą eksplorację podjęli członkowie Krakowskiego Klubu Taternictwa Jaskiniowego pod kierownictwem A. Ciszewskiego w 1975 r. W dniu 12 lipca A. Ciszewski, A. G&oacute;rny, A. Kokoszka, J. Łopaciński i Z. Opaliński przetrawersowali studnię odkrywając następną, a za nią partie prowadzące do 2 i 3 otworu. 13 lipca A. Ciszewski, A. Kokoszka i Z. Opaliński dotarli w rejon 4 otworu, lecz odgruzowywanie prowadzącego doń korytarzyka przerwał znaczny dopływ wody związany z burzą. 25 września A. Ciszewski i Cz. Dąbrowski wyszli na powierzchnię 4 otworem.<br /> Ze względu na charakter dojścia i samej jaskini odnotowywano w niej osiągnięcia sportowe typu taternickiego. I tak pierwsze przejście zimowe miało miejsce na początku sezonu zimowego 1976/77 (zesp&oacute;ł KKTJ, kierownik A.Ciszewski), a na przełomie 1978/79 r. dokonano pierwszego zimowego trawersowania jednocześnie jaskiń Pod Dachem i Nad Dachem(Sekcja Taternictwa Jaskiniowego KW Warszawa). W 1982 r. ekipa KKTJ dokonała pierwszego trawersowania między I a II otworem klasycznie (uprzednio w 18 m kominie korzystano ze sztucznych ułatwień).<br /> Informację o odkryciu jaskini ze zdjęciem lokalizującym otw&oacute;r opublikował Rodziński (1963a), a o eksploracji nowych partii pisał Ciszewski (1976a,b), zamieszczając jednocześnie dokumentację kartograficzną.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary wykonał zesp&oacute;ł KKTJ w składzie A. Ciszewski, Cz. Dąbrowski, K. Fabijanowska i W. Wilk w dniu 26 września 1975 r. Pomiary lokalizujące otw&oacute;r sporządził zesp&oacute;ł Koła Naukowego Geodet&oacute;w AGH pod kierownictwem W.Borowca w dniu 14 sierpnia 1981 r. Zaktualizował R.M. Kardaś (2009 r.).<br />Plan opracował A.Ciszewski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Rodziński R. 1963a (informacje o odkryciu z lokalizacją i drogą dojścia); Śmiałek J. 1966b (informacje o II i III przejściu znanej w&#243;wczas części i odkryciu salki za zaciskiem); Kopeć S. 1966 (wzmianka o II przejściu jaskini); Kozik A. 1972a (podaje długość); Ciszewski A. 1976a (o eksploracji nowych partii, plan, przekr&#243;j); Ciszewski A. 1976b (o eksploracji w 1975 r., przekr&#243;j); Wiśniewski W.W. 1977a (wzmianka o I przejściu zimowym); Borowiec W. i in. 1977 (dane morfometryczne); Borowiec W. i  in. 1978 (dane morfometryczne); Rudolf W. 1979 (o i zimowym trawersowaniu Pod Dachem i Nad Dachem); Mazik K. 1980b (klasyfikacja trudności); Orłowski J. 1983 (dane o odkryciach w 1975 r.); Kronika 1983d (o klasycznym trawersowaniu między 1 a 2 otworem); Kronika 1984d (o oczyszczeniu jaskini); TATRY POLSKIE 1984 (lokalizacja na mapie - bez nazwy); Kardaś R.M. 1985f (dane historyczne i morfometryczne, rysunek dojścia); Kardaś R.M. 1989 (rysunek drogi dojścia); Cywiński W. 1996 (dojście - lokalizacja na rysunkach, informacje o położeniu i odkryciu); Jaskinie TPN 1999 (plan, przekr&#243;j i opis inwentarzowy). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Rafał M. Kardaś, Andrzej  Ciszewski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12349)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 2
+                    </a>
+                    <a onclick="showImageInfo(12350)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 3
+                    </a>
+                    <a onclick="showImageInfo(2950)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(2951)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        szkic przekroju
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

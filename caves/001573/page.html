@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1573">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1573;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "567232,78".replace(',', '.') + "," + "153102,70".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1573','Jaskinia przy Przechodzie'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia przy Przechodzie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia pod Progiem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.38
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′26,27″, φ: 49&#176;14′30,25″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku E, 1587,7 m n.p.m.; 3- ku g&#243;rze, 1606,9 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1583,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                115
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                26,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                1,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    220
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W lewym orograficznie zboczu Doliny Małej Łąki, w Niżniej Świst&#243;wce, pod ścianami opadającymi z Kotlin ku N.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Żółto znakowanym szlakiem podchodzimy Doliną Małej Łąki, następnie skręcamy na prawo, do Niżniej Świstówki i wyraźną, nieznakowaną ścieżką docieramy nad bulę, w pobliże progu, którym prowadzi ukośną płytą Przechód do Wyżniej Świstówki. Stąd kierujemy się na prawo (ku W) bez ścieżki, do widocznego z daleka dolnego (1) otworu poszukiwanej jaskini. Znajduje się on nad piargami (w tym miejscu podchodzą one najwyżej, pod ścianę). W pobliżu otworu często do późnego lata zalega płat śniegu. Dojście łatwe, zwiedzanie dość trudne.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r 1 (dolny) jest obszerny, o kształcie zbliżonym do tr&oacute;jkątnego, ma ponad 3 m wysokości i 2 m szerokości. Widać w nim duże bloki wapienne. </span></p>
+<p><span>Otw&oacute;r 2 (środkowy) położony jest kilka metr&oacute;w na prawo (ku N) i około 4 m wyżej. Z&nbsp;daleka kształtem przypomina kwadrat, ma 1,2 m wysokości i ponad 1 m szerokości. </span></p>
+<p><span>Otw&oacute;r 3 (g&oacute;rny), nie widoczny z Niżniej Świst&oacute;wki, położony jest dokładnie nad otworem&nbsp;1, w małej skałce na trawiastej, eksponowanej p&oacute;łce. Ma on kształt owalny (2,8x2,4&nbsp;m), stanowi wylot obszernego komina, uchodzi do g&oacute;ry. Dojście do niego wiedzie przez jaskinię.</span></p>
+<p><span>Dolny otw&oacute;r prowadzi do obszernej sali wstępnej nazwanej Sienią, zasłanej dużymi wantami. Stąd na lewo, przez 3-metrowy, łatwy prożek z want wchodzimy do wznoszącego się, kr&oacute;tkiego korytarza, ponad 3 m szerokiego i 3 m wysokiego. Prowadzi on do Sali pod Progiem o wymiarach około 9x4x5 m. W stropie sali widać okno, za kt&oacute;rym kryje się płytka wnęka. Kilka metr&oacute;w dalej, ku S, odchodzi szczelina z&nbsp;zaklinowanymi w niej wantami. Ma ona 3 m długości i ponad 10 m wysokości. Przy końcu Sali pod Progiem, po prawej stronie wspinamy się przez 7,5-metrowy pr&oacute;g (trudności III) do G&oacute;rnego Korytarza. Nad progiem, w południowej ścianie są dwa niezbadane okna. G&oacute;rnym Korytarzem na prawo do g&oacute;ry dochodzimy pod obszerny komin o wysokości 4 m (trudności II), uchodzący na powierzchnię terenu trzecim otworem. W&nbsp;południowej ścianie komina jest okno prowadzące do bocznego, ciasnego kominka o&nbsp;wysokości 2,7 m. Inne okienko, przy zachodnim krańcu otworu, wiedzie do ciasnej szczeliny, łączącej się z G&oacute;rnym Korytarzem.</span></p>
+<p><span>Wracamy nad 7,5-metrowy pr&oacute;g. G&oacute;rny Korytarz nad nim kontynuuje się na zach&oacute;d, jest jednak węższy i niższy. W odległości 3 m od progu, po prawej stronie odchodzi 3,5-metrowy myty kominek przechodzący we wspomnianą uprzednio, ciasną szczelinę, kt&oacute;ra prowadzi w rejon trzeciego otworu. Po kilku metrach G&oacute;rny Korytarz staje się meandrem. Za dużą wantą opada on łagodnie, w jego dnie widać metrową, ciasną studzienkę, a nieco dalej, na prawo, przebicie do sąsiedniego korytarza. Idąc na wprost, docieramy do Niskiej Komory o&nbsp;wymiarach 3x1,6x1 m w kt&oacute;rej łączą się oba korytarze. Z końca Niskiej Komory ku S, nad p&oacute;łmetrowym prożkiem wznosi się ciasny korytarzyk o przekroju rury średnicy 0,4&nbsp;m. Za zakrętem następuje rozdzielenie go na dwie r&oacute;wnoległe rurki i nieco dalej powt&oacute;rne połączenie. Przechodzimy dalej do wysokiego (6 m), wąskiego (0,4 m), szczelinowego korytarza, kt&oacute;ry nad 3-metrowym, łatwym progiem staje się bardzo ciasną, błotnistą szczeliną z zaciskiem o szerokości 0,25 m. Prowadzi ona pod mały (0,8 m) prożek, za kt&oacute;rym kontynuuje się jeszcze kilka metr&oacute;w, jest jednak coraz węższa, w końcu zbyt ciasna do przejścia. </span></p>
+<p><span>Wracamy do Niskiej Komory. Od jej NE skraju idziemy mytym, meandrującym korytarzem nad 5-metrowy, pionowy pr&oacute;g. Zjeżdżamy lub schodzimy nim do obszernej Komory P&oacute;łnocnej o wymiarach 7x3,5x7 m. Stąd przez 5-metrowy pr&oacute;g (trudności II), położony w tej samej ścianie, około 2 m na N od poprzedniego progu, dostajemy się do wysokiego korytarza o długości 4 m. Biegnie on ku W, zakończony jest zawaliskiem. Na początku tego korytarza można przejść przez prożek (1,4 m) w prawej (p&oacute;łnocnej) ścianie, a dalej przez zacisk nad dużą wantą, do wysokiej kom&oacute;rki z silnym przewiewem. Jej strop częściowo tworzy zawalisko.</span></p>
+<p><span>Wracamy do Komory P&oacute;łnocnej. Po przeciwnej jej stronie, z największej wanty wchodzimy na pr&oacute;g wiodący do szczelinowego korytarza. Korytarz ten prowadzi do g&oacute;ry i po 4 m przechodzi w 8-metrowy komin, kt&oacute;ry pokonujemy zapieraczką. Na poziomie zaklinowanej w nim wanty, 5,5 m nad dnem, szczelina rozwinięcia komina wydłuża się w kierunku zachodnim, a na wsch&oacute;d odchodzi od niej do g&oacute;ry ciasny korytarzyk zakończony zawaliskową kom&oacute;rką. W stropie kom&oacute;rki widać bardzo ciasną szczelinę (nie do przejścia) z przebiciem do powierzchni terenu. Do kom&oacute;rki tej wygodniej można dojść z g&oacute;rnej części komina, skąd wiedzie do niej bardziej obszerny korytarzyk. </span></p>
+<p><span>Wracamy zn&oacute;w do Komory P&oacute;łnocnej. Schodzimy z niej ku N przez pochyły, rozległy, 7-metrowy pr&oacute;g opadający do wysokiego, obszernego Korytarza P&oacute;łnocnego. Na lewo (ku W) korytarz ten wiedzie pod mały prożek (1,6 m) , nad kt&oacute;rym po 3 m kończy się; na prawo zaś (ku E) schodzimy po dużych wantach pod 2-metrowy, łatwy prożek, nad kt&oacute;rym przez niski przełaz zn&oacute;w docieramy do obszernego ciągu. Po kilku metrach na prawo do g&oacute;ry wstecz odgałęzia się kr&oacute;tki, ciasny, r&oacute;wnoległy korytarzyk w kształcie rury, uchodzący oknem 3,7&nbsp;m nad dnem Korytarza P&oacute;łnocnego. Tuż za odejściem tego odgałęzienia, na wprost, nad 2,5-metrowym, łatwym progiem, 5-metrowy korytarz prowadzi do otworu II, natomiast na prawo obszerny korytarz wiedzie do Sieni przy otworze I.</span></p>
+<p><span>Jaskinia rozwinęła się na systemie szczelin o kierunku </span><span>60&deg; oraz o kierunkach W&ndash;E i&nbsp;NW&ndash;SE, w wapieniach robaczkowych i ż&oacute;łto wietrzejących wapieniach dolomitycznych triasu środkowego wierchowej jednostki Organ&oacute;w (fałd Czerwonych Wierch&oacute;w). Tworzy zamkniętą pętlę z licznymi odgałęzieniami i kilkoma komorami zawaliskowymi. Południową część jaskini budują wapienie robaczkowe, zaś p&oacute;łnocną-gł&oacute;wnie wapienie dolomityczne. Korytarze są szczelinowe, częściowo myte, niekt&oacute;re mają charakter meandr&oacute;w, występują też rury freatyczne, myte pod ciśnieniem. Korytarz odchodzący od Komory P&oacute;łnocnej ku W wraz z&nbsp;odgałęzieniem znajduje się tuż pod sąsiednią jaskinią&nbsp;&ndash; Studnią przy Przechodzie T.E-12.39; rozdzielony jest od niej zawaliskiem. W grocie występują drobne nacieki grzybkowe, w&nbsp;szczelinie południowego odgałęzienia Niskiej Komory ściany pokrywa cienka warstwa mleka wapiennego. </span></p>
+<p><span>Namulisko stanowi gł&oacute;wnie rumosz wapienny oraz wielkie wanty. Domieszkę stanowi osad piaszczysty i glina, a w pobliżu otwor&oacute;w&nbsp;&ndash; gleba. W zachodniej części jaskini (Niska Komora, koniec Korytarza P&oacute;łnocnego i zachodnie odgałęzienie Komory P&oacute;łnocnej) obecny jest materiał dobrze obtoczony i drobny żwir wapienny. Dno szczeliny na S od Niskiej Komory zaściela mokra glina.</span></p>
+<p><span>Jaskinia jest wilgotna. W Sieni i Sali pod Progiem często do p&oacute;źnego lata zalegają płaty zlodowaciałego śniegu. Przewiew jest wyczuwalny w całej jaskini, lecz w zawaliskowych fragmentach NW części groty (w strefie kontaktu ze Studnią przy Przechodzie T.E-12.39) jest szczeg&oacute;lnie silny. Światło dociera do kilkunastu metr&oacute;w od otwor&oacute;w. </span></p>
+<p><span>Roślinność kwiatowa rozwija się tylko w okolicy otwor&oacute;w, nieco głębiej sięgają mchy, glony i porosty. T. Bielska wymienia następujące gatunki roślin zebranych w dniu 12&nbsp;lipca 1978&nbsp;r. (oznaczenia mszak&oacute;w wykonała J. Mickiewicz): </span></p>
+<p><span>kwiatowe (z otworu I)&nbsp;&ndash; <strong><em>Aconitum callibotryon</em></strong> Rchb., <strong><em>Hutchinsia alpina</em> </strong>R.Br., <strong><em>Soldanella carpatica</em> </strong>Vierch.,<em> <strong>Swertia perennis</strong></em> L.,<em> <strong>Ranunculus alpestris </strong></em>L.,<em> <strong>Saxifraga moschata</strong></em>Wulf., <strong><em>Festuca supina</em></strong> Schur; </span></p>
+<p><span>mszaki z otworu I&nbsp;&ndash; <strong><em>Marchantia polymorpha </em></strong>L., <strong><em>Campylium stellatum</em></strong> (Hedw.) Lang et C.J., <strong><em>Distichium montanum</em></strong>Hag.,<strong> <em>Amblystegium confervoides</em> </strong>Br.eur.,<strong> <em>Leskuraea incurvata</em> </strong>(Lske) Lindb.,<strong> <em>Bryum </em></strong>sp.; </span></p>
+<p><span>mszaki z otworu II&nbsp;&ndash; <strong><em>Campylium stellatum</em></strong> (Hedw.) Lang et C.J., <strong><em>Distychium montanum</em></strong> Hag., <strong><em>Tortella tortuosa</em></strong> Limpr.,<em> <strong>Mnium orthorrynchum</strong></em> Br.eur., <strong><em>Schistidium apocarpum</em></strong> (hedw.) B.S.G., <strong><em>Orthothecium rufescens</em></strong> Br. </span></p>
+<p><span>Faunę reprezentują nietoperze i owady troglokseniczne (min. komary, much&oacute;wki i chruściki), a przy otworach&nbsp;&ndash; ślimaki.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskini została odkryta w okresie 19-30 sierpnia 1959 r. przez grotołaz&oacute;w z koła zakopiańskiego KW: S. W&oacute;jcika w towarzystwie D. Strelau oraz R. Sznuka. S.W&oacute;jcik (1959) zamieścił wzmiankę o odkryciu. Podaje on, że zwiedzono w&oacute;wczas jaskinię do Sali pod Progiem. W dniu 7 września 1959 r. S. W&oacute;jcik i R. Sznuk wspięli się na pr&oacute;g dokonując &bdquo;wejścia do okna Wyżniego&rdquo; (prawdopodobnie III otworu) oraz &bdquo;przejścia ciasnego korytarza szczelinowego&rdquo; czyli &bdquo;całkowitego przejścia jaskini&rdquo;. Nie wspomina on o innych salach, czy progach. Wzmianka Z. W&oacute;jcika (1960g) zawiera informację, że oszacowana długość ciąg&oacute;w wynosi 80, a jaskinia wymaga dalszej eksploracji. Na podstawie tych danych trudno dziś orzec, jakie jej części zostały w&oacute;wczas wyeksplorowane, z pewnością jednak nie była to całość, a jedynie fragmenty ciągu gł&oacute;wnego. O ewentualnych p&oacute;źniejszych akcjach brak danych.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Podczas prac nad inwentaryzacją jaskiń tatrzańskich OW PTPNoZ eksplorację, a następnie dokumentację jaskini wskazanej przez S. W&oacute;jcika w 1975 r., prowadziła I. Luty przy wsp&oacute;łpracy zespołu latem 1978 r. oraz w dniu 9 września 1979 r. przy wsp&oacute;łpracy H. Hercman i J. Lewandowskiej i w dniu 2 sierpnia 1980 r. przy wsp&oacute;łpracy A. Skarżyńskiego i M. Lasoty. Fotografie otwor&oacute;w wykonał J. Milka. Pomiary prowadzono busolą geologiczną Meridian i taśmą parcianą. T. Bielska badała florę okołootworową w dniu 12 lipca 1978 r. Dane sytuacyjno-wysokościowe położenia otworu podano na podstawie pomiar&oacute;w wykonanych w dniu 17 sierpnia 1981 r. przez Zesp&oacute;ł Koła Naukowego Geodet&oacute;w G&oacute;rniczych AGH pod kierownictwem W. Borowca. Dane zaktualizowała I. Luty (2009). 20 listopada 2017 r. F. Filar skorygował wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, Z. 1960g (informacje o odkryciu); W&#243;jcik, Z. 1960b (wzmianka o osadach, lokalizacja na mapce); Habil, W. 1961 (wzmianka); [Krygowski, W.] x.y. 1961(informacje o odkryciu); W&#243;jcik, Z. 1966a (lokalizacja na mapkach, wysokości położenia otworu); W&#243;jcik, Z. 1968 (lokalizacja na mapce, wzmianka); Tatry Polskie 1976 (lokalizacja na mapie 1:10000 pod nazwą Pod Progiem); Borowiec, W. i in. 1977,1878 (dane morfometryczne); Głazek, J. 1979a (wzmianka); Zembrzuski, J. 1979 (limit osobowejść); Luty, I. 1982b (informacja o pomiarach sytuacyjno wysokościowych); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10000); Gradziński, R. i in. 1985a (niekt&#243;re dane morfometryczne, orientacyjna lokalizacja na mapie); Luty, I. 1989a (dane morfometryczne, lokalizacja na mapie i szkicu ściany, dane historyczne); Bielska, T., Mickiewicz, J. 2000 (flora); Jaskinie TPN 2000 (plan, przekr&#243;j i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, S. 1959 - sprawozdanie (informacje o odkryciu i eksploracji); W&#243;jcik, S. - Inwentarz (wymienia pod nr 4.1.7).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1088)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1627">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1627;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "567562,36".replace(',', '.') + "," + "153262,03".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1627','Jaskinia Lodowa Małołącka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Lodowa Małołącka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Dziurawe, Jaskinia Lodowa w Mnichach
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-13.02
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′42,67″, φ: 49&#176;14′35,28″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Dziura pod Lodową Małołącką II T.E-13.24) - ku W, 1622,1 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1634,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                110
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                16,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                37,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                53,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    360
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia znajduje się na prawym orograficznie zboczu Doliny Małej Łąki (Niżniej Świst&#243;wki), w Koprowych Mniszkach.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Podchodzimy żółto znakowanym szlakiem wiodącym Doliną Małej Łąki. Następnie skręcamy na prawo, do Niżniej Świstówki i wyraźną, nieoznakowaną ścieżką (stary szlak wiodący przez Przechód) docieramy nad bulę. Stąd skręcamy bez perci na lewo i wznosimy się pod ścianę Koprowych Mniszków trawiastym stokiem położonym na S od Żlebu Między Mnichy, omijając kosówki z lewej strony. Pod ścianą trawersujemy na prawo, pomiędzy kosówkami, do małego żlebu zakończonego ciemną, wysoką i widoczną z daleka nyżą. U jej podstawy znajduje się zasypany Otwór Dolny (Dziura pod Lodową Małołącką II T.E-13.24). Do Otworu Górnego dochodzimy krótkim trawersem w lewo i kilkunastometrową, trawiastą ścianką (II-III) do góry. Zwiedzanie jaskini wymaga użycia sprzętu taternickiego i wspinaczek o trudnościach do V, A0. Część korytarzy jest ciasna.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Tr&oacute;jkątny otw&oacute;r ma 0,75 m szerokości i 1,7 m wysokości. Przy jego lewej (p&oacute;łnocnej) ścianie leży duża wanta. Za otworem opada ku E 6 m, obszerny, szczelinowy Korytarz Wstępny o wysokości 2,5&ndash;3 m. Na jego końcu znajduje się przejście do małej komory, w kt&oacute;rej okresowo zalega płat śnieżno-lodowy. Wcześniej, na prawo, odchodzi stromo w d&oacute;ł ciasny (0,4 m) korytarzyk. Kilka metr&oacute;w dalej łączy się z nim jeszcze ciaśniejszy korytarzyk (z zaciskiem), odchodzący z końca wymienionej wcześniej komory. Przy połączeniu następuje zakręt na prawo i zaraz zn&oacute;w na lewo. Nieco dalej Korytarz Wstępny staje się wysoką szczeliną tektoniczną wiodącą ku E. Zaklinowane są w niej wąskie wanty z ostrymi krawędziami (konie skalne). Za drugim koniem opada 1,5 m pr&oacute;g. Pod progiem wstecz można przejść 4 m pod zawalisko, a na wprost (gł&oacute;wnym ciągiem), nieco skosem w d&oacute;ł, przez ciasną, 2,5 m studzienkę między zablokowanymi wantami. Przy rozszerzeniu studzienki szukamy możliwości przejścia szczeliną ku E. Za jej zwężeniem, gdzie zwykle trzeba odkuć polewy lodowe, 4 m zjazdem (lub trudną zapieraczką) w rozszerzającej się ku dołowi szczelinie, docieramy na dno niewielkiej niszy w Korytarzu Gł&oacute;wnym. </span></p>
+<p><span>W N części niszy znajduje się wejście do wąskiego meandra. Ma on długość 16 m i kończy się niedostępną szczeliną z wyczuwalnym przewiewem. Okresowo jego dno pokrywa warstwa lodu.</span></p>
+<p><span>Z niszy, ku W, opada stromo korytarz o lodowym spągu (jest to końcowa część Korytarza Gł&oacute;wnego). W najniżej położonym miejscu przechodzimy przez obniżenie stropu do Komory Wstępnej. Ma ona wymiary 10x5 m a jej dno pokrywa l&oacute;d. W początkowej części sali odchodzi ku SE wąski, wznoszący się do g&oacute;ry meanderek, o dnie pokrytym guzem. Po kilku metrach przejście w nim blokują wanty. W S części komory znajduje się kilkumetrowa pochylnia zakończona zagruzowanym meanderkiem prowadzącym w kierunku powierzchni. W zachodnim krańcu sali wznosi się korytarzyk prowadzący w kierunku Otworu Dolnego. W chwili obecnej nie jest możliwe wydostanie się nim na powierzchnię. Został on zasypany, ponieważ zmienił cyrkulację powietrza w jaskini, co przyśpieszało zanik pokrywy lodowej. Pod N ścianą Komory Wstępnej wytapia się czasem przejście do partii pod lodem (patrz w dalszej części opisu).</span></p>
+<p><span>Wracamy do niszy i przechodzimy z niej ku S do obszernego Korytarza Gł&oacute;wnego. Ma on w tym miejscu szerokość 4,5 m. Idziemy nim kilka metr&oacute;w ku E. W prawej ścianie, nad małym prożkiem z lodu, odgałęzia się bardzo stromo do g&oacute;ry (ku SSE) 37 m Korytarz Wschodni. Wznosi się on początkowo pochylnią, kt&oacute;ra doprowadza do niewielkiej salki, z kt&oacute;rej wspinamy się 6 m progiem. Nad nim znajduje się kolejna pochylnia, salka i 5 m pr&oacute;g. Dalej prowadzi do g&oacute;ry stroma pochylnia o dnie pokrytym gruzem, zakończona zawaliskiem w stropie. Prawdopodobnie znajdują się za nim Janosikowe Partie. Korytarz Wschodni jest kruchy i nie ma w nim lodu. </span></p>
+<p><span>Przy wlocie do Korytarza Wschodniego widać wytopioną w lodzie misę, prowadzącą do dolnych partii jaskini. Znajduje się w niej szczelina między lodem a skałą, kt&oacute;ra miewa r&oacute;żne wymiary, zależnie od stanu zalodzenia. Przy niskim stanie lodu można zjechać z niej do małej niszy lodowej i dalej, przez zacisk w lodzie, ku E, pod l&oacute;d. Po kilkunastu metrach zjazdu stajemy na pochyłym lodzie opadającej ku E Sali pod Lodem (około 8x6 m). Odchodzi od niej na wprost ciasny, około 4 m korytarzyk, a nieco na lewo od niego inny, opadający 1,5-metrowym prożkiem do owalnej kom&oacute;rki. W jej stropie znajduje komin prowadzący do Korytarza Gł&oacute;wnego (patrz w dalszej części opisu). Z sali na lewo (ku N) stromy pr&oacute;g lodowy sprowadza do biegnącego na lewo wstecz (częściowo pod lodem) obszernego korytarza. Znajduje się tu najniżej położony punkt w jaskini (-16,20 m). Korytarz uchodzi do Komory Zawaliskowej (10x5x5 m) o dnie pokrytym wielkimi wantami. Jej lewą, przewieszoną ścianę tworzy l&oacute;d. Na wprost ciąg kontynuuje się. Zawaliskowy korytarz prowadzi nad pochylnię, na kt&oacute;rej dnie znajduje się wykop. Przechodzimy nad pochylnia ku W do niskiego korytarzyka. W jego środkowej części znajduje się niewielka salka, za kt&oacute;rą dalsza droga wiedzie w lewo. W tym miejscu okresowo wytapia się przejście do Komory Wstępnej.</span></p>
+<p><span>Wracamy do Korytarza Gł&oacute;wnego i idziemy nim dalej ku E. Po kilkunastu metrach odchodzi od niego nad 1,5 m, a następnie 9 m progiem Korytarz P&oacute;łnocny (ok. 10 m długości). Wznosi się on stromo, następnie zakręca na prawo, potem w lewo i kończy się małą kom&oacute;rką. Znad 9 m progu, ku SE, wiedzie meander będący podstropową częścią Korytarza Gł&oacute;wnego. Wypada on w ścianie opisanego dalej komina.</span></p>
+<p><span>Od odejścia Korytarza P&oacute;łnocnego gł&oacute;wny ciąg biegnie ku SSE. Ma około 10 m wysokości i ponad 1,5 m szerokości. Po 6 m rozszerza się do 3 m. W g&oacute;rę odchodzi stąd myty komin o średnicy 3 m i wysoki na 26 m. Przy prawej ścianie, od wymycia pod kominem, zaczyna się wytopiona w lodzie rura. Jest ona dostępna tylko okresowo i wypada w kominie nad wspomnianą wcześniej owalną kom&oacute;rką w dolnych partiach. Dalej ciąg opada na lewo pochyłym progiem lodowym, a 6 m dalej następuje rozszerzenie w wysoką komorę o szerokości 2,5 m. Odchodzi z niej na wprost (ku E) wąska na kilkanaście centymetr&oacute;w szczelina (nie do przejścia).</span></p>
+<p><span>Wspinamy się stąd 4 m progiem, o trudnościach IV, do wylotu Dolnego Meandra. Ciągnie się on ku E jako stopniowo zwężający się korytarz, w kt&oacute;rego najciaśniejszym miejscu przejście często zamyka l&oacute;d. Za przełazem znajduje się meander biegnący w kierunku E, z kt&oacute;rego końca, przez ciasny kominek, dostać się można na jego wyższe piętro. Wracamy do przełazu. Wspinając się kawałek do g&oacute;ry osiągamy kilkumetrowy korytarz wiodący w kierunku W. Wypada on oknem 7 m nad podstawą progu, ponad kt&oacute;rym rozpoczynają się partie Dolnego Meandra. Kontynuując wspinaczkę znad przełazu, 3 m kominkiem osiągamy g&oacute;rne piętro meandra, kt&oacute;ry ciągnie się dalej 11 m i kończy zaklinowanymi w ciasnych miejscach granitowymi otoczakami.</span></p>
+<p><span>Kontynuujemy wspinaczkę z poziomu Dolnego Meandra. Szeroką zapieraczką osiągamy most z zaklinowanych głaz&oacute;w (IV). Stąd wspinamy się jeszcze kilka metr&oacute;w w kruszynie do g&oacute;ry (IV&ndash;V), na obszerną p&oacute;łkę. Zaczyna się tutaj G&oacute;rny Meander. Po przeciwnej stronie komina (trawers o trudności V) znajduje się wejście do meandra prowadzącego do Korytarza P&oacute;łnocnego. Z p&oacute;łki biegnie korytarz omijający wielką wantę. Za nią urywa się 2 m prożkiem do niewielkiej sali. Dalsza droga wiedzie w kierunku E przez pochyły pr&oacute;g. Nad nim ciągnie się węższy już meander, kończący się po kilku metrach zaklinowanymi blokami.</span></p>
+<p><span>Z p&oacute;łki u wylotu G&oacute;rnego Meandra wspinamy się N ścianą (V), a następnie trawersujemy skośnie w g&oacute;rę, w prawo (A0), na p&oacute;łkę z zaklinowanych want. Znajduje się ona 26 m nad podstawą komina. Tutaj biorą sw&oacute;j początek Janosikowe Partie. Dalej przez pochylnię i 2 m prożek z want dostajemy się do obszernej komory. Jej strop jest silnie zwietrzały i spękany. W E części sali, kilka metr&oacute;w nad jej dnem znajduje się okno ze ślepo zakończonym korytarzykiem. Kierujemy się w kierunku W i dostajemy się do kolejnej, mniejszej już sali. Jej strop jest najwyżej położonym miejscem w jaskini. Osiągamy go 7 m wspinaczką po SE ścianie (IV). Z wąskich dziur w tym stropie można było wyczuć podczas wiatru halnego silny, okresowy przewiew. Może to świadczyć o bliskości powierzchni. W SW części sali opada zagruzowany korytarzyk. Z pomiar&oacute;w wynika, że okolice te dzieli 3 m zawaliska od końca Korytarza Zachodniego.</span></p>
+<div><strong>Informacje o jaskini</strong></div>
+<p><span>Jaskinia rozwinęła się w wapieniach tzw. &bdquo;węzła Rabowskiego", należących do wierchowej jednostki Organ&oacute;w (płaszczowina Czerwonych Wierch&oacute;w), na szczelinach tektonicznych o kierunku W&ndash;E, NNW&ndash;SSE oraz NE&ndash;SW. Jaskinia składa się z obszernego, wysokiego miejscami na 15 m i rozdzielonego na dwa poziomy grubą warstwą lodu Korytarza Gł&oacute;wnego oraz bocznych, wpadających do niego meandr&oacute;w. Większość korytarzy jest myta. Janosikowe Partie, Komora Wstępna, Korytarz Wschodni i partie pod lodem (Komora Zawaliskowa) posiadają zwietrzałe ściany.</span></p>
+<p><span>Namulisko tworzy gł&oacute;wnie ostrokrawędzisty gruz wapienny, wielkie wanty oraz nieco gliny i materiału allochtonicznego. Pod kominem materiał jest obtoczony. Przy otworach występuje nieco gleby. Pawłowski (1998 mat. arch.) zaobserwował okresowe pojawianie się warstewki pyłu (do <br />1 mm grubości) na pokrywach lodowych. Wiąże on to zjawisko m.in. z sublimacją lodu, dzięki kt&oacute;rej uwalniają się okruchy skały dostarczane wraz z wodą.</span></p>
+<p><span>Jaskinia jest wilgotna. Występują w niej r&oacute;żne rodzaje lodu. Korytarz Gł&oacute;wny wypełniają warstwowane pokrywy lodowe o znacznej miąższości (kilkanaście metr&oacute;w). Mają one stały charakter, lecz ich grubość i zasięg podlegają znacznym, szybkim wahaniom w cyklu rocznym (np. w okresie 30 marca&ndash;10 maja 1997 przyrosło ponad 30 cm lodu&nbsp;&ndash; Pawłowski, 1998 mat. arch.). Zaznaczają się też znaczne zmiany w okresie wieloletnim. W grocie występuje r&oacute;wnież l&oacute;d naciekowy (stalaktyty, stalagmity, kolumny, polewy, draperie), firnowy, sublimacyjny (płatki lodowe). Formy te mają charakter okresowy, obecne są gł&oacute;wnie we wstępnych partiach oraz w dolnym ciągu, gdzie zaznacza się ich wielka r&oacute;żnorodność i bogactwo (np. skupienia dużych płatk&oacute;w lodowych pokrywające stalagmity, draperie i polewy lodowe r&oacute;żnych kształt&oacute;w). Na powierzchni lodu w Korytarzu Gł&oacute;wnym występują misy wytopiskowe r&oacute;żnej wielkości połączone rynną wytopiskową. Są też szczeliny i kominy lodowe. Zwykle do p&oacute;źnego lata w Korytarzu Wstępnym oraz Komorze Wstępnej (w okresie gdy Otw&oacute;r Dolny był drożny) zalegają płaty śnieżne.</span></p>
+<p><span>Światło rozproszone sięga do kom&oacute;rki na początku Korytarza Wstępnego oraz do początkowej części Komory Wstępnej (w okresie gdy Otw&oacute;r Dolny był drożny). Wyczuwa się silny przewiew. <br /></span></p>
+<p><span>Obserwacje mikroklimatyczne i badania lodu przeprowadził W. Siarzewski (1994) I M. Pawłowki (1968). W jaskini panuje mikroklimat o charakterze dynamicznym. Dolne otwory systemu są dostępne dla człowieka. Funkcje g&oacute;rnego otworu pełnią niedostępne szczeliny w g&oacute;rnej części Janosikowych Partii (podczas wiatru halnego dało się tam wyczuć silne podmuchy). Najniższe temperatury zanotowano w maju (&ndash;4,0&deg;C), najwyższe w lipcu (+0,2&deg;C) (Pawłowski, 1998 &ndash; mat.arch.). Na wiosnę, wraz z topnieniem śniegu na powierzchni, następuje szybkie zalodzenie, p&oacute;źnym latem l&oacute;d zaczyna się wytapiać.</span></p>
+<p><span>W strefie okołootworowej rozwijają się rośliny kwiatowe oraz paprocie, mchy i porosty. Zauważono występowanie komar&oacute;w oraz innych owad&oacute;w we wstępnych partiach oraz Korytarzu Wschodnim.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obserwacje mikroklimatyczne i badania lodu przeprowadził W. Siarzewski (1994) i M. Pawłowki (1968). Badania geologiczne prowadził J. Sczygieł (2013a,b, 20125b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Historia poznania jaskini dzieli się na dwa etapy. Pierwszy obejmuje odkrycie i eksploracje gł&oacute;wnych ciąg&oacute;w. Druga faza eksploracji jest następstwem obniżenia się poziomu lodu i wspinaczek w końcowej części Korytarza Gł&oacute;wnego. </span></p>
+<p><span>Pierwszą wzmiankę o odkryciu zamieścił Rudnicki (1959b), a opis jaskini opublikował Habil (1961), pod nazwą Lodowa Małołącka. W&oacute;jcik (1962) opisał formy lodowe. Koisar i&nbsp;Parma (1971) zwr&oacute;cili uwagę na zmniejszanie się ilości lodu. Kozik (1983) zalicza jaskinię do grupy jednootworowych dynamicznych. Podczas prac nad inwentaryzacją jaskiń tatrzańskich OW PTPNoZ podejmowano kilkakrotnie pr&oacute;by przejścia do sali lodowej (30.07.1978, 18.08 i 21.09.1979, 1980), nie powiodły się one jednak z powodu zalodzenia&nbsp;zacisk&oacute;w wstępnych lub zwężenia przed salą. </span></p>
+<div>Drugi etap:</div>
+<p><span>29 marca 1997 r. G. Badurski, W. Kuczok i M. Pawłowski odnajdują przejście między lodem a skałą (u wylotu Korytarza Wschodniego) i eksplorują partie pod lodem. </span></p>
+<p><span>Jesienią 1998 r. F. Filar i Z. Tabaczyński odsuwają głaz w lodowej rurze rozpoczynającej się pod kominem przy końcu Korytarza Gł&oacute;wnego i odkrywają drugie przejście do partii pod lodem. </span></p>
+<p><span>17 sierpnia 2000 r. R. Cygan i I. Luty penetrują szczeliny między lodem a skałą w okolicach zjazdu do Sali pod Lodem.</span></p>
+<p><span>28 października 2000 r. D. Fiedor, F. Filar i Z. Tabaczyński przedostają się pod wylotem Korytarza Wstępnego do Komory Wstępnej oraz udrażniają od środka połączenie z Dziurą pod Lodową Małołącką II, odsłaniając w ten spos&oacute;b Dolny Otw&oacute;r.</span></p>
+<p><span>04 listopada 2000 r. F. Filar i M. Parczewski eksplorują meanderek w Komorze Wstępnej. Wspinają się też do wylotu Dolnego Meandra i poznają go do zagruzowanego końca.</span></p>
+<p><span>Jesienią 2001 r., w Komorze Wstępnej, odsłania się trzecie przejście pod l&oacute;d oraz wejście do kr&oacute;tkiego meandra u wylotu Korytarza Wstępnego.</span></p>
+<p><span>04 września 2004 r. F. Filar, P. Kołtaś, M. Kowalczyk i M. Parczewski wspinają się kominem na końcu Korytarza Gł&oacute;wnego i eksplorują G&oacute;rny Meander. </span></p>
+<p><span>16 października 2004 r. F. Filar wspina się z poziomu G&oacute;rnego Meandra do Janosikowych Partii i eksploruje je do najwyższego punktu jaskini (+37,17 m).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Dokumentację jaskini w ramach działań OWPTPNoZ sporządziła I. Luty wraz z zespołem w 1979 i 1999 r. Pomiary sytuacyjno-wysokościowe położenia otworu wykonał 22 września 1982 r. zesp&oacute;ł pod kierownictwem W. Borowca. </span></p>
+<p><span>Plan korytarzy odkrytych pomiędzy Korytarzem Gł&oacute;wnym a Otworem Dolnym wykonał Z. Tabaczyński na podstawie pomiar&oacute;w przeprowadzonych z K. Dudzińskim 17 grudnia 2000 r. Powt&oacute;rne pomiary całej jaskini (podczas pięciu wyjść w okresie 04 wrzesień &ndash; 06 listopad 2004 r.) wykonał F. Filar wraz z M. Parczewskim, K. Zaczyńskim, M. Kowalczykiem i P. Kołtasiem. Do pomiar&oacute;w użyto topofila Marbach. Dane zaktualizował F.Filar (2009 r.). 22 Listopada 2017 r. F. Filar uściślił wsp&oacute;łrzędne geograficzne otworu.</span></p>
+<p><span>Plan oraz przekr&oacute;j opracował Filar.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Rudnicki J. 1959b (informacja o odkryciu); W&#243;jcik Z. 1960a (wzmianka pod nazwą Jaskinia Lodowa w Mnichach); W&#243;jcik Z. 1960g (wzmianka o odkryciu); Habil W.,1961 (wzmianka o odkryciu, opis jaskini, szkic położenia otworu, pod nazwą Jaskinia Lodowa Małołącka); W&#243;jcik S. 1962 (opis jaskini ze szczeg&#243;lnym uwzględnieniem form lodowych); W&#243;jcik Z. 1966a (niekt&#243;re dane morfometryczne, lokalizacja na mapkach, w tym – geologicznej); W&#243;jcik Z. 1968 (lokalizacja na mapce); Koisar B., Parma Ch. 1971 (uwagi o występowaniu lodu); Tatry Polskie 1976 (błędna lokalizacja na mapie 1:10000); Borowiec W. i in.,1977, 1978 (niekt&#243;re dane morfometryczne); Głazek J. i in. 1979a (wzmianka); Luty I.,1982 (informacja o pomiarach sytuacyjno – wysokościowych, bez nazwy); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10000); Gradziński R. i in. 1985a (dane morfometryczne, orientacyjna lokalizacja na mapie); Luty I. 1989b (dane morfometryczne, lokalizacja na mapie i rysunku ściany, dane historyczne); Siarzewski W. 1994 (uwagi o mikroklimacie i lodzie); Luty I. 2000b (plan i opis inwentarzowy); Tabaczyński Z. 2000d (opis); Tabaczyński Z. 2002a (opis i plan odkrytych partii); Jaskinie TPN 2004 (opis i plan odkrytych partii); Filar F. 2004b (plan i przekr&#243;j jaskini, opis nowych partii, historia ostatnich odkryć, zmiany w poziomie lodu w jaskini); Filar F. 2006c (dane morfometryczne, historia ostatnich odkryć, przekr&#243;j jaskini); Szczygieł J. 2013a,b (wymienia w kontekście badań geologicznych); Szczygieł J. 2015b (Szczygieł J. 2015b (wzmiankuje w kontekście genezy i uwarunkowań tektonicznych).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik S. 1959 – sprawozdanie (wzmianka o odkryciu, kr&#243;tki opis); W&#243;jcik S. 1959 – Inwentarz (wymienia, fotografia otworu oraz jeziorka w sali lodowej); W&#243;jcik S. 1959/60 (zmniejszony fotograficznie plan w skali 1:100); Siarzewski W. 1976 (szkicowy przekr&#243;j jaskini w skali 1:200); Pawłowski M. 1998 (opis i plan – bez dolnych partii, uwagi geomorfologiczne i mikroklimatyczne, barwne fotografie wnętrza).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Filip Filar
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1123)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1124)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

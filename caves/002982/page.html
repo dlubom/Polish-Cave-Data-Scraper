@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2982">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2982;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "523401,77".replace(',', '.') + "," + "186817,41".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2982','Jaskinia przed Rozdrożem'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia przed Rozdrożem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bż-03.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;19′25,00″, φ: 49&#176;32′54,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jeleśnia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                żywiecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Żywiecki Park Krajobrazowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1110
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                2,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                2,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    22,40
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Żywiecki, Korbiel&#243;w, w grzbiecie Czarnego Gronia (1122 m n.p.m.) odchodzącego z Pilska (1557 m n.p.m.) ku NE. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Idziemy od przystanku autobusowego Korbielów Kamienna, za znakami zielonymi wychodzimy na grzbiet zwany Szlakówka. Dalej idziemy grzbietem wzdłuż wyciągu orczykowego w kierunku Hali Miziowej. Około 120 m przed połączeniem ze szlakiem żółtym schodzimy z drogi przecinając trasę wyciągu na lewą stronę i dochodzimy do zarośniętego głazowiska (teren jest dość płaski). Tu wśród głazów znajduje się otwór jaskini. Jest on z dala niewidoczny, łatwo go przeoczyć. W 2009 r. stwierdzono rozkopanie zagłębienia w rejonie jaskini, co zwiększyło cyrkulację powietrza i jej wychłodzenie (Ganszer 2009). Zwiedzanie bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r wejściowy jest niepozorny, ponownie odgruzowany. Przez pionową, szczelinowatą studzienkę (o głębokości 1,7 m) przedostajemy się do stromo opadającego korytarzyka (małej pochylni). Charakter korytarzyka się zmienia, jest przestronniejszy, tylko lekko nachylony o dość regularnych kształtach. Wydostajemy się do niewielkiej salki o płaskim dnie i stropie (blisko powierzchni, gdzieniegdzie korzenie). Korytarzyk wstępny i salka rozwinęły się w kierunku E-W. Natomiast gł&oacute;wna część jaskini jest rozwinięta na okazałej szczelinie o generalnym przebiegu W-S. Dojście do niej przegradza ogromny, pochyły monolit. Ta dziwaczna formacja tworzy coś w rodzaju filara, kt&oacute;ry zwisając właściwie ze stropu styka się jedynie z rumoszem pokrywającym dno. Schodzimy po jego prawej stronie, po stromo opadającym rumowisku. Po około 2 m wydostajemy się do rozszerzenia o ścianach spękanych i względnie płaskim dnie przechodzącego w kierunku E i SE w dość okazałą salę (ograniczoną od NE wspomnianym monolitem). W kierunku SW, za niewielkim prożkiem odchodzi pierwszy boczny korytarzyk (opisany poniżej). Gł&oacute;wna część jaskini (za salą) kontynuuje się ku S w postaci dużego korytarza o prostokątnym przekroju (wysokości przeciętnie 3,25 m; szerokości przy dnie ponad 1,5 m, ku g&oacute;rze nieco się rozszerza). Płaski strop (lita płyta) opada ku E, podobnie nachylone jest dno. Na odcinku 2,5 m korytarz jest pochyły, następnie płaski. Ku W (między ścianą, a stropem) odchodzi wąska szczelina doprowadzająca do korytarzyka bocznego. Gł&oacute;wny korytarz w swej końcowej części ograniczony jest progiem o wysokości 1,6 m. Wydostajemy się na platformę (rodzaj balkonu), za kt&oacute;rą po około 2 m korytarz na tym poziomie się kończy. W 2001 r. Wiculski A. udokumentował tu drugi boczny korytarz schodzący z platformy (przy prawej ścianie) wąskim przełazem. Korytarz jest niski, z zaciskiem w środkowej części, o przebiegu N-S. Zrazu ma przekr&oacute;j nieregularnego prostokąta, za zaciskiem tr&oacute;jkąta i kończy się wąską szczeliną (długość około 5m, szerokość przy dnie do 1 m). Pierwszy boczny korytarz rozpoczyna się prożkiem o wysokości 1,5 m i stanowi jakby wyższe piętro jaskini. Jest to dość szeroka, lecz niska wznosząca się szczelina o przebiegu SW, kt&oacute;ra po około 5 m wyklinowuje się. Przez wąską (wspomnianą już) szczelinę łączy się r&oacute;wnież z korytarzem gł&oacute;wnym.&nbsp;</p>
+<p>Jaskinia osuwiskowa, powstała w gruboławicowych piaskowcach magurskich. Dno pokryte gruzem, głazami oraz glebą i liśćmi (w partiach wstępnych). We wnętrzu znaleziono także kawałki drewna. Na wschodniej ścianie korytarza gł&oacute;wnego występują dość okazałe, białe naloty utworzone z substancji węglanowej.</p>
+<p>Jaskinia jest sucha, przewiew wyczuwa się w partiach wstępnych. Światło sięga poniżej studni wejściowej.</p>
+<p>Na głazach przyotworowych występują mchy.</p>
+<p>W partiach wstępnych i salce zaobserwowano ćmy. W 1998 r. odnotowano 1 nieoznaczonego nietoperza (Mysłajek 2000).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Do czasu udokumentowania brak wzmianek o tym obiekcie w literaturze. Jednak w relacjach ustnych wzmiankowana (bez nazwy) przez starsze osoby znające ten teren. Prawdopodobnie zwiedzana w okresie międzywojennym (świadczyć o tym mają wspomniane kawałki drewna). P&oacute;źniej otw&oacute;r został zawalony (okoliczności nieznane). Został odgruzowany dnia 17 sierpnia 1978 r. przez J. Ganszera.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń beskidzkich materiał dokumentacyjny zebrali dnia 15 grudnia 1978 r. J. Ganszer J. Pukowski i G. Klassek (Speleoklub Bielsko-Biała): Pomiary wykonano busolą geologiczną Freiberg i taśmą parcianą. W dniu 26 grudnia 2001 r. materiał dokumentacyjny z nowo odkrytego korytarza zebrał A. Wiculski. Wsp&oacute;łrzędne geograficzne GPS w 2004 r. pomierzył P. Beczała (Speleoklub Bielsko-Biała). Dane zostały zaktualizowane w 2009 r.<br />Plan opracował G. Klassek, nowy korytarz dowiązał A. Wiculski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Klassek G. 1982 (plan i opis inwentarzowy jaskini); Klassek G. 1990b (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Rozporządzenie… nr 1/93 (ustanowienie jaskini pomnikiem przyrody); Jaskinie Polskich Karpat fliszowych 1997a (plan i opis inwentarzowy); Michalska B., Wojtas P. 1999 (wymieniona wśr&#243;d jaskiń okolic Bielska-Białej); Alexandrowicz Z., Poprawa D. 2000 (pomnik przyrody - lokalizacja i og&#243;lny opis jaskini); Mysłajek R.W. 2000 (wzmianka o nietoperzu); Wiculski A. 2002a (plan nowego korytarza dowiązany do ciągu gł&#243;wnego); Klassek G., Mleczek T. (wzmianka o zwiększeniu długości jaskini); Ganszer J. 2009 s (wzmianka o wymrażaniu jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2011
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2506)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

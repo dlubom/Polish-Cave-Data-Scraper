@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F683">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 683;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "613898,33".replace(',', '.') + "," + "333937,31".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('683','Jaskinia Wschodnia na Kadzielni'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Wschodnia na Kadzielni
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Wschodnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-1.14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;37′08,00″, φ: 50&#176;51′40,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kielce (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                Kielce
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Komunalny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW, 269 m n.p.m.; 3 - ku S, 273 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                269
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                16
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                1
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                10,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    80
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                18
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Miasto Kielce, nieczynny kamieniołom Kadzielnia w centrum miasta, park miejski.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia położona jest w środkowej części wschodniej ściany kamieniołomu, w obrębie wyraźnego filara skalnego. Dojście do jej otworów alejką biegnącą dnem wyrobiska od ulicy Krakowskiej a następnie (po około 160 m od bramy wejściowej do kamieniołomu) w górę zbocza. Główny otwór jaskini (1) położony jest po północnej, lewej stronie filara około 20 m nad alejką. Otwór 2 leży w obrębie filara i dojście do niego wymaga wspinaczki. Otwór 3 zlokalizowany po południowej stronie filara (dojście eksponowanym trawersem) jest słabo widoczny. 
+Dojście do otworu 1 i zwiedzanie głównej sali bez trudności. Wejście do studni i kominków wymaga prostej wspinaczki. 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otwory jaskini są sztuczne. Gł&oacute;wny otw&oacute;r (1) ma szerokość 1,5 m, wysokość 1,2 m i przechodzi w płytką studzienkę. Otw&oacute;r 2 jest niewielki, ma kształt owalny i średnicę około 0,6 m. Trzeci jest owalny o średnicy do 0,7 m i stanowi zakończenie ciasnej szczeliny skierowanej lekko ku g&oacute;rze. Studzienka za gł&oacute;wnym otworem doprowadza do stromo pochylonej szczeliny krasowej podzielonej filarem skalnym na kilka części. Szczelina, zwana Salą Pochyłą (nazwy element&oacute;w jaskini za Wołoszynem, W&oacute;jcikiem 1965) obniża się na południe do najniższego punktu jaskini. Jej końcowa, południowo-wschodnia część przechodzi w kilkumetrowe, zagruzowane korytarzyki prowadzące dawniej do Komory pod Kolumną i Sali Gotyckiej. <br /> W środkowej części Sali Pochyłej znajduje się pr&oacute;g, za nim zaś kr&oacute;tki korytarzyk doprowadzający do otworu 2. Ze wschodniej części sali wąską szczeliną (pokonywaną "zapieraczką") dostać się można do otworu 3. Nieco na p&oacute;łnoc od tej szczeliny zlokalizowane jest przejście do dalszych partii jaskini: Sali Krakowskiej i Korytarza Kamienistego. Przejście składa się z pochyłego korytarza i studzienki (głębokości 4 m) sprowadzającej na poziom około 8 m poniżej najwyższego otworu jaskini. Sala Krakowska jest pustką o krasowej rzeźbie ścian i wysokości do 4 m. Jej dno pokrywa namulisko gliniaste miejscami z gruzem. W końcowej części sali znajduje się wejście do Korytarza Kamienistego (długości 5 m), kt&oacute;rego dno pokrywa gruz. <br /> W Sali Pochyłej przy wejściu do tej części jaskini rozwinięty jest kr&oacute;tki kominek krasowy, stanowiący najwyższy jej fragment. <br /> Jaskinia stanowi pustkę krasową rozwiniętą gł&oacute;wnie na ukośnej szczelinie (Sala Pochyła). Powstała w pliocenie, zaś w plejstocenie uległa nieznacznemu przemodelowaniu (Kozłowski, Radwan, W&oacute;jcik 1965). <br /> Jaskinia rozwinęła się w obrębie wapieni g&oacute;rnego dewonu (franu), płytko jednak pod ich stropem i kontaktem z marglisto-łupkowymi osadami najwyższego dewonu (famenu). Opadające z g&oacute;ry okruchy łupk&oacute;w i margli spotyka się powszechnie w jaskini. Sala Pochyła powstała przez krasowe rozmycie pochylonej strefy kilku r&oacute;wnoległych, biegnących obok siebie szczelin tektonicznych. Charakterystyczną cechą jej rzeźby krasowej są wąskie, szablaste kliny skalne powstające pomiędzy rozmytymi szczelinami. Dalsze partie r&oacute;wnież mają charakter kanał&oacute;w krasowych. Na stropie Sali Pochyłej występują miejscami polewy naciekowe z interesującymi (i nie zniszczonymi) botryoidalnymi naciekami typu "popcorn" oraz drobnymi szczotkami kalcytowymi. W studzience prowadzącej do Sali Krakowskiej i w tej sali występuje miejscami namulisko gliniaste o czarnym zabarwieniu (zawierające tlenki manganu).<br /> Obiekt jest og&oacute;lnie suchy, jedynie dolne partie są częściowo wilgotne. Cechuje się dynamiczno-statycznym mikroklimatem. Częścią o statycznych warunkach mikroklimatycznych jest Sala Krakowska i Korytarz Kamienisty (Wołoszyn 1977). Światło wpada otworami i oświetla Salę Pochyłą. Przy otworach rosną trawy, na ścianach porosty i glony. Faunę kręgowc&oacute;w reprezentują przede wszystkim nieliczne nietoperze. W latach sześćdziesiątych obserwowano tu nocka dużego <span style="font-weight: bold; font-style: italic;">Myotis myotis</span> (Borhausen), nocka rudego (Kuhl), gacka szarego <span style="font-weight: bold; font-style: italic;"> Myotis daubentonii</span>,<span style="font-weight: bold; font-style: italic;"> Plecotus austriacus</span> (Fischer). W 1992 r. napotkano w jaskini gacka brunatnego<span style="font-weight: bold; font-style: italic;"> Plecotus auritus</span> (L.) (Wołoszyn 1962a, 1964a,b, 1965b, 1994a, Wołoszyn, W&oacute;jcik 1965). Ostatnio obserwowano (J. Gubała, M. Gwardian, E. Jachimkowska) w jaskini znane tu już wcześniej nocki rude i gacki szare (Gubała 1996b). W jaskini zimują traszki zwyczajne <em><strong>T</strong></em><span style="font-weight: bold; font-style: italic;">riturus vulgaris</span> (L.) (Gubała 1996a). Odwiedza ją r&oacute;wnież kuna <span style="font-weight: bold; font-style: italic;">Martes </span><span style="font-weight: bold;">sp</span>. Z bezkręgowc&oacute;w liczne są much&oacute;wki, motyle oraz pająki. Motyle reprezentują: rusałka pawik <span style="font-weight: bold; font-style: italic;">Inachis io</span> (L.), rusałka pokrzywnik <span style="font-weight: bold; font-style: italic;">Aglais urticae</span> (L.) i szczerb&oacute;wka ksieni <span style="font-weight: bold; font-style: italic;">Scoliopteryx libatrix</span> (L.). Stwierdzono też występowanie r&oacute;wnonog&oacute;w (<span style="font-style: italic;">Isopoda</span>) reprezentowanych prawdopodobnie przez stonogę murową <span style="font-weight: bold; font-style: italic;">Oniscus asellus</span> L.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania fauny prowadzili Wołoszyn (1962a, 1964a,b, 1965b, 1994a), Wołoszyn, W&oacute;jcik (1965), Gubała (1996a, b), mikroklimat badał Wołoszyn (1977).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia odwiedzana jest przez ludzi. Świadectwem ich pobytu są śmieci. <br /> Otwory jaskini odsłonięte zostały podczas eksploatacji wapieni. Jaskinia została spenetrowana i zbadana przez B.W. Wołoszyna 26.08.1961 r. Informacja o odkryciu i pierwszy plan jaskini opublikowane zostały w lokalnej prasie codziennej (Wołoszyn 1961b), zaś dokładniejszy opis i plan - w opracowaniu Wołoszyna i W&oacute;jcika (1965). Po zakończeniu eksploatacji kamieniołomu podczas rekultywacji (zagospodarowywania turystycznego) obszaru Kadzielni część jaskini w rejonie Sali Gotyckiej została częściowo zasypana gruzem skalnym wsypującym się przez otw&oacute;r (czwarty) w stropie sali. Powt&oacute;rnie te partie jaskini zostały udrożnione 3.12.2003 r. przez J. Kotwicę i J. Wyrwała (Speleoklub Świętokrzyski).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację jaskini sporządzili 12.03.1996 r. J. Gubała, A. Kasza i B.W. Wołoszyn ( Jaskinie regionu świętokrzyskiego 1996). Lokalizację otworu schroniska wykonał 6.01.2009 r. A. Kasza przy pomocy odbiornika GPS Map60 CSx.<br />Plan opracowali J. Gubała, A. Kasza.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wołoszyn B.W. 1961b (odkrycie, opis, plan); Wołoszyn B.W. 1962a (nietoperz); Wołoszyn B.W. 1964a (nietoperze); Wołoszyn B.W. 1964b (nietoperze): Kowalski K. 1965 (wzmianka); Wołoszyn B.W., W&#243;jcik Z. 1965 (plan, opis, fauna); Kozłowski S., Radwan J. W&#243;jcik Z. 1965 (plan, wiek i geneza, namulisko); Wołoszyn B.W. 1965b (nietoperze); Rubinowski Z., Wr&#243;blewski T. 1968 (wzmianka); Kozłowski S., Rubinowski Z. 1973 (kr&#243;tki opis); Siedlecka W., Micuła G. 1976 (kr&#243;tki opis); Wołoszyn B.W. 1977 (mikroklimat - termika i wilgotność); Wr&#243;blewski T. 1977 (wzmianka); Pilichowie M. i P. 1979 (wzmianka); Ruprecht A. 1983 (nietoperze); Wiśniewski W.W. 1989 (wielkość); Wołoszyn B.W. 1994a (nietoperz); Gubała J. 1996a (fauna); Gubała J. 1996b (nietoperze); Gubała J., Kasza A. Urban J. 1996 (wielkość); Jaskinie Regionu Świętokrzyskiego 1996 (dokumentacja, plan); G&#243;rniak M., J&#243;źwiak M., Kasza A., Urban J. 2006 (długość-wzmianka); Bujna E., Klauzińska M. 1997 ( nietoperze ); Urban J., Gubała J., Kasza A. 1997a (długość-wzmianka); Paszkowski M. 2001 (kr&#243;tki opis, plan);  Wąsikowski A. 2007 (wzmianka); Wr&#243;blewski T. 2008 (długość - wzmianka).
+
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Wołoszyn B.W., Wołoszyn K.P. 1990. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jan Urban, Andrzej Kasza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(191)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

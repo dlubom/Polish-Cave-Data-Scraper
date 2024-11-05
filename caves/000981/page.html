@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F981">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 981;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559313,46".replace(',', '.') + "," + "153951,32".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('981','Dziura nad Potokiem'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Dziura nad Potokiem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Za Potokiem, Nad Potokiem, Przy Potoku
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-05.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′54,97″, φ: 49&#176;15′00,69″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    150
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W prawym orograficznie zboczu Doliny Chochołowskiej, kilkaset metr&#243;w poniżej prywatnego schroniska (obecnie leśnicz&#243;wka). 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Od skrzyżowania czarnego szlaku (ścieżka nad Reglami) z drogą biegnącą dnem Doliny Chochołowskiej, idziemy w górę doliną około 130 m do pierwszego łagodnego zakrętu w lewo. Za zakrętem skręcamy z drogi w lewo, przechodzimy stare koryto potoku kierując się pod niewysoką, obrośniętą świerkami skałkę u podnóża której znajduje się otwór jaskini. Otwór widoczny jest z drogi biegnącej dnem doliny. Dojście bez trudności, zwiedzanie łatwe. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r gł&oacute;wny ma szerokość 2 m, a wysokość max. 0,8 m. Obok niego występują dwa inne, ciasne otwory. Z otworu schodzimy przez 2 metrowy pr&oacute;g do obszernej komory wstępnej o długości około 15 m i wysokości około 2 m. W końcowej części komory strop obniża się, a po obu stronach występują p&oacute;łki wysokości około 0,5 m. Na stropie można obserwować formy erozyjne w kształcie noży. Skręcamy w prawo w korytarz o długości około 20 m i płaskim dnie (tzw. Długi Korytarz). Po około 5 m przecina go poprzeczna szczelina o kierunku W-E, tworząca korytarz z jeziorkiem łączący się w części wschodniej z innym korytarzem o przebiegu S-N. Idziemy dalej, po około 5 m w lewo odchodzi myty korytarz łączący się (podobnie jak korytarz z jeziorkiem) w kierunku E z wzmiankowanym już korytarzem.</p>
+<p>Długim Korytarzem posuwamy się dalej w kierunku S około 10 m. Zakończony jest on korytarzykami okrążającymi filar, kt&oacute;ry obchodzimy i wracany idąc w kierunku komory wstępnej. Po około 10 m skręcamy w prawo we wspomniany już korytarz o okrągłym przekroju, następnie w lewo, mijamy rozwinięty na ukośnej szczelinie korytarz z jeziorkiem i po kilku załamaniach skręcamy w prawo. W początkowej części korytarz ma charakter zawaliskowy, po 7 m przechodzimy syfon piaszczysty, następnie zacisk i korytarz skręca w lewo. Po około 6 m dochodzimy do korytarza rozwiniętego na szczelinie o kierunku SW-NE, kt&oacute;rym możemy przedostać się ku NE 8 m. Natomiast w kierunku SW po przejściu 6 m, korytarz skręca w lewo i po dalszych 4 m wracamy do przebytego już korytarza o zawaliskowym charakterze, doprowadzającego do syfonu piaszczystego. Wracając z tego miejsca możemy skręcić w prawo i kr&oacute;tszą od poznanej drogą dochodzimy do końcowych partii komory wstępnej.</p>
+<p>Jaskinia rozwinięta w wapieniach malmo-neokomu serii wierchowej brzusznego skrzydła jednostki Świerkul, na spękaniach ciosowych, kt&oacute;rych przeważający kierunek na tym obszarze jest SW-NE (Jaroszewski 1957). Do 1948 r. była jaskinią przepływową (Zwoliński 1961). Po powodzi w 1948 r. Potok Chochołowski przerzucił się na lewą stronę doliny.</p>
+<p>Namulisko w jaskini jest bardzo zr&oacute;żnicowane, miejscami go brak. Gruz wapienny i bloki wapienne występują w części przyotworowej, w końcowej części Długiego Korytarza oraz w korytarzach łączących komorę wstępną z syfonem piaszczystym, a także w zakończeniach większości korytarzy. W części przyotworowej i w końcowych partiach Długiego Korytarza występują żwiry identyczne pod względem składu jak w Potoku Chochołowskim, zawierające skały krystaliczne (W&oacute;jcik 1966a). Generalnie namulisko jest gliniasto-pylaste, największą miąższość osiąga w środkowej części komory wstępnej - około 1 m (Hałat 1978, mat. arch. ).</p>
+<p>Jaskinia jest bardzo mokra, położona bezpośrednio pod powierzchnią terenu. Występuje w niej jedno stałe jeziorko. Okresowo jest zalewana, o czy świadczą szczątki roślinne - gałęzie, igły i mchy naniesione przez wodę i osadzone na ścianach i stropie jaskini.</p>
+<p>Jaskinia w całości ulega przemarzaniu. Dziura nad Potokiem charakteryzuje się mikroklimatem dynamicznym.</p>
+<p>Światło sięga do końca komory wstępnej. Poza otworem roślinności zielonej brak. Opracowana przez T. Bielską lista roślinności przyotworowej obejmuje następujące gatunki kwiatowe: <strong><em>Chrysosplenium alternifolium</em></strong> L., <strong><em>Viola biflora</em></strong> L., <strong><em>Campanula polymorpha</em></strong> Witasek, <strong><em>Galium anisophyllum</em></strong> Vill., <strong><em>Saxifraga aizoon</em></strong> Jacq., <strong><em>Luzula nemorosa</em></strong> E. Mey, <strong><em>Poa nemoralis</em></strong> L., <strong><em>Cardamine pratensis</em></strong> L., <strong><em>Arabis arenosa</em></strong> Scop., <strong><em>Valeriana tripteris</em></strong> L., <strong><em>Adoxa. moschatellina</em></strong> L.,<strong><em> Stellaria nemorum</em></strong> L.,</p>
+<p>paproć <strong><em>Cystopteris fragilis </em></strong>Bernh.</p>
+<p>mszaki (oznaczone przez J. Mickiewicz):<strong><em> Distichium montanum</em></strong> Hag., <strong><em>Drepanocladus uncinatus</em></strong> Warnst;., <strong><em>Ptilium crista castrensis </em></strong>(Hedw. ) <span>De Not, <strong><em>Brachythecium rutabulum</em></strong> /L./ (Hedw. ) Schimp., <strong><em>Thuidium delicatum</em></strong> (L. ) Mitt., <strong><em>Mnium affine</em></strong> Bland., <strong><em>Mnium orthorrynchum</em></strong> auct., </span></p>
+<p><span>wątrobowce:<strong><em> Pellia epiphylla</em></strong> (L. ) Corda., <strong><em>Lophocolea heterophylla</em></strong> (Schrad) Dum.</span></p>
+<p>W komorze wstępnej występują troglokseny a dalej owady bezskrzydłe. Kowalski (1955a) wymienia następujące gatunki:</p>
+<div><strong><em>Stylommatophora&nbsp;</em></strong>&ndash; <strong><em>Arianta arbustorum</em></strong> (Linnaeus),</div>
+<div><strong><em>Lepidoptera</em></strong>&nbsp;&ndash; <strong><em>Triphosa dubitata</em></strong> (Linnaeus),</div>
+<p><strong><em>Trichoptera</em></strong><span>&nbsp;&ndash; <strong><em>Stenophylax permistus</em></strong> Mc Lachlan. </span></p>
+<p>E. Sobiepanek znalazła w Dziurze nad Potokiem następujące gatunki:</p>
+<p><em>Opiliones</em>&nbsp;&ndash; <strong><em>Ischyropsalis manicata</em></strong>, <strong><em>Gyas annulatus</em></strong>, <strong><em>Paramenastoma kochi</em></strong>;</p>
+<p><em>Lepidoptera&nbsp;</em>&ndash; <strong><em>Triphosa dubitata</em></strong>, <strong><em>Scoliopteryx libatrix</em></strong>;</p>
+<div><em>Gastropoda</em>&nbsp;&ndash; <strong><em>Lehmannia marginata</em></strong>.</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Kompleksowe badania Dziury nad Potokiem w ramach pracy magisterskiej prowadził A. Hałat (1978&nbsp;&ndash; mat. arch. ) w latach 1976&ndash;1977. Wykonał on między innymi badania geomorfologiczne jaskini sporządzając też plan i szereg przekroj&oacute;w. Członkowie Sekcji Speleologicznej SKNG UAM Poznań prowadzili pod kierunkiem Z. Zwolińskiego (Instytut Badań Czwartorzędu UAM Poznań) około roku 1980 kartowanie geomorfologiczne, wykonując własny plan jaskini. Badaniami lodu krystalicznego i jego struktury w Dziurze nad Potokiem zajmowali się M. Z. Pulinowa i M. Pulina (1972). Badania fauny przeprowadził K. Kowalski (1953a, 1955a). E. Sobiepanek prowadziła badania fauny jaskiniowej w dniu 2.09.1977 r., a T. Bielska badała latem 1979 roku roślinność około jaskiniową &ndash; w ramach prac inwentaryzacyjnych OW PTPNoZ. Pr&oacute;bki osad&oacute;w z Dziury nad Potokiem przechowywane są w Muzeum Ziemi PAN.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Na możliwość występowania w tym miejscu jaskini zwr&oacute;cił uwagę J. Zahorski w 1933 r. T. i S. Zwolińscy oraz J. Zahorski w dniu 26.06.1933 r. rozkopali otw&oacute;r Dziury nad Potokiem, po czym dostali się do wnętrza i zwiedzili ją ( Zwoliński 1933, 1961, Kowalski 1953a). <br />Odkrycia dalszych korytarzy o długości około 30 m dokonali w 1972 r.&nbsp;&ndash; A. Kobyłecki i P. Piekarski i w dn. 10.02.1973 r.&nbsp;&ndash; A. Kobyłecki, A. G&oacute;rny, A Kłos, M. Mioduszewski. A. Kobyłecki sporządził w&oacute;wczas nowy plan całości jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis publikuje Kowalski (1953a). Plan ten nie obejmuje korytarza łączącego komorę wstępną z końcowymi partiami, idącego w lewo z końca komory, znanego zapewne Zwolińskim (por. Zwoliński, 1933). <br />W ramach prac inwentaryzacyjnych OW PTPNoZ opis dojścia oraz pomiary lokalizujące otw&oacute;r wykonali P. Kulbicki i M. Małek w lipcu 1975 r. Zaktualizował R.M. Kardaś (2009 r.). <br />Plan, na podstawie plan&oacute;w: Kowalskiego, Kobyłeckiego i Hałata opracowała Regina Kardaś.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zwoliński, S. 1933 (odkrycie jaskini, opis); Kowalski, K. 1953a (opis i plan jaskini); Kowalski, K. 1955a (wykaz gatunk&#243;w fauny stwierdzonej w jaskini); Jaroszewski, W. 1957 (sytuacja geologiczna, lokalizacja na mapie geologicznej, bez nazwy); Rabowski. F. 1959 (sytuacja geologiczna, wzmiankuje bez nazwy); W&#243;jcik. Z. 1960a (badania granulometryczne osad&#243;w); W&#243;jcik, Z. 1960b (badania osad&#243;w); Zwoliński, S. 1961 (wzmianki dotyczące historii, geneza); Goch, B. 1966 (wzmianka o nie publikowanych badaniach flory przyotworowej prowadzonych przez T. Szota w dn. 10. IV. 1966): W&#243;jcik, Z. 1966a (badania osad&#243;w, wiek); Kotański, Z. 1971, (sytuacja geologiczna, wzmiankuje bez nazwy); Pulinowa, M. Z., Pulina, M. 1972 (badania struktury lodu krystalicznego w jaskini, plan); TATRY POLSKIE 1984 (lokalizacja na mapie); Jaskinie TPN 1991 (plan i opis inwentarzowy); Bielska, T., Mickiewicz, J. 2000 (flora).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Zwoliński S. 1933–34; Kobyłecki, A. 1973 – plan Dziury nad Potokiem (l : 100); Hałat, A. 1978 – Wybrane zjawiska krasowe w Dolinie Chochołowskiej w Tatrach Zachodnich; Sobiepanek-Krzyżanowska, E. 1979 (fauna); Sekcja Speleologiczna SKNG UAM Poznań 1980 - Dziura nad Potokiem (plan l :100, morfologia jaskini). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Regina Kardaś
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3723)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(546)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

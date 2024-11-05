@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3021">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3021;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "529521,46".replace(',', '.') + "," + "210218,97".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3021','Jaskinia Komonieckiego'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Komonieckiego
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bm-02.14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;24′36,00″, φ: 49&#176;45′31,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Ślemień (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                żywiecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Nr 1/93 Woj. Bielskiego z 23.04.1993 r.; Dz. Urz. Woj. Bielskiego z 1993r. Nr 5 poz. 31  [wg http://crfop.gdos.gov.pl; Jaskinia skalna Komonieckiego]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                698
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    17
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Las, w zachodnim stoku Pośredniego Gronia (841 m n.p.m.), Beskid Mały.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od przystanku autobusowego „Las I Na żądanie”, około 300 m szosą (kierunek do miejscowości Las), następnie w lewo drogą pod górę wśród zabudowań. Dalej drogą przez potok obok składu drewna i zagajnika sosnowego. Wychodzimy na teren otwarty. Droga biegnie skrajem pól i łąk, po czym schodzi w las i pnąc się w górę, miejscami głębokim jarem, wyprowadza na niewielki grzbiet. Stąd kierujemy się w lewo i trawersując ukośnie (też drogą leśną) przeciwległe zbocze wspomnianego grzbietu schodzimy do doliny potoku Dusica. Idąc drogą w górę doliny (główny potok po prawej stronie) mijamy okazałą polanę z szopą i dochodzimy do rozwidlenia. Stromo w górę biegnie droga W zboczem Pośredniego Gronia, z której zbaczając na W też można dojść do jaskini (otwór położony niżej, z dala niewidoczny). My kierujemy się za drogą w lewo i w miejscu gdzie skręca i przecina potok odchodzimy na N w górę jego biegu. Po kilkudziesięciu metrach za pięknym wodospadem-siklawą z prawej strony, z dala widoczny, imponujący otwór jaskini. Dojście nieskomplikowane, otwór łatwy do znalezienia, tym bardziej, że jaskinia jest dobrze znana miejscowej ludności. Zwiedzanie bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>&nbsp;Otw&oacute;r wejściowy o&nbsp;szerokości 16&nbsp;m i&nbsp;przeciętnej wysokości 2 m, ograniczony jest w&nbsp;części w&nbsp;okazałym, odpadłym od stropu głazem-obeliskiem (wymiary: długości 4,5 m; szerokości 1 m), zaś w&nbsp;części E spadający z&nbsp;poziomo uławiconej (gruboziarnisty piaskowiec) płyty stropowej strumień tworzy wielce oryginalny wodospad (wysokości 2,5&nbsp;m).</p>
+<p>&nbsp;Sama jaskinia to jedna wielka, łukowatego kształtu komora o&nbsp;powierzchni 115 m<sup>2</sup>. W&nbsp;głąb liczy 11 m, a&nbsp;na najdłuższym odcinku (po przekątnej) 17&nbsp;m. Komora choć obszerna, jest dość niska. Przy otworze wysokości na 2 m, we wnętrzu zaś przeciętnie 1,5-1 m, tylko w&nbsp;jednym miejscu na kr&oacute;tkim odcinku (w końcowych partiach) można się swobodnie wyprostować. Strop masywny, nie potrzaskany, lecz miejscami wskutek wietrzenia skała jest krucha i&nbsp;łuszcząca się. Występują też liczne zagłębienia, nier&oacute;wności, zniszczone fragmenty kotł&oacute;w eworsyjnych. Szczeg&oacute;lnie na ścianie E podługowate zagłębienia, gzymsy, świadczyć mogą o&nbsp;intensywnym modelowaniu przez wody płynące. Dno generalnie płaskie, choć pełnisko jest miejscami nier&oacute;wne, a&nbsp;większe i&nbsp;mniejsze zagłębienia (doły) świadczą o&nbsp;jego rozkopywaniu.</p>
+<p>&nbsp;Jaskinia ukształtowała się na powierzchni międzywarstwowej w&nbsp;piaskowcach istebniańskich dolnych. Geneza jaskini jest złożona. Ukształtowana w&nbsp;czterech zasadniczych stadiach przez erozję wodną, wietrzenie chemiczne, sufozję i&nbsp;częściowo (w niedużym stopniu) ruchy masowe, najintensywniej modelowana jest przez wietrzenie mrozowe, kt&oacute;re doprowadzi do jej zniszczenia ( Waga 1990, 1993). Dno pokryte namuliskiem (miąższość około 0,8 m), kt&oacute;re tworzą dwie warstwy autochtonicznej gliny żwirowatej i&nbsp;piaszczystej. W&nbsp;warstwach tych znajdują się też głazy i&nbsp;większe płyty zlepieńc&oacute;w. Pod powierzchnią osad&oacute;w (na głębokości około 0,2-0,3&nbsp;m) znaleziono pozostałości po dużym ognisku i&nbsp;fragment ceramiki z&nbsp;końca średniowiecza (I połowa XVII&nbsp;w), krąg zajęczaka i&nbsp;muszle ślimak&oacute;w z&nbsp;rodziny <em>Helicidae</em> (m.in. <strong><em>Arianta arbustorum</em></strong>). Dodać należy, że na terasie przed jaskinią, w&nbsp;zwietrzelinie zalegającej kieszeń międzyskalną znaleziono też fragment wi&oacute;ra z&nbsp;piaskowca kwarcytycznego, co stanowi nikły ślad bytności przynajmniej w&nbsp;otoczeniu jaskini przedstawicieli kt&oacute;rejś z&nbsp;kultur archeologicznych końca plejstocenu lub początk&oacute;w holocenu ( Foltyn, Waga 1992, 1995). Miejscami na stropie jaskini występują drobne formy naciekowe w&nbsp;postaci grzybk&oacute;w.</p>
+<p>&nbsp;W warstwach przyotworowych, gdzie spada wodospad, jaskinia jest mokra, w&nbsp;środkowej części na og&oacute;ł sucha, w&nbsp;końcowej zaś miejscami wilgotna, zaobserwowano tu intensywniejsze skapywanie wody. Przewiew jest wyczuwalny przy otworze. Światło sięga prawie do końca.</p>
+<p>&nbsp;Na portalu wejściowym występują mchy. W jaskini zaobserwowano much&oacute;wki i najprawdopodobniej szczerb&oacute;wki ksieni (<strong><em>Scoliopteryx libatrix</em></strong>) - (Mysłajek 1999b). Na jednej z&nbsp;p&oacute;łek skalnych znaleziono stare ptasie gniazdo.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W latach 1986-1992 w&nbsp;jaskini i jej otoczeniu prowadzone były badania interdyscyplinarne:</p>
+<p>-&nbsp;J.&nbsp;M. Waga prowadził badania genetyczno-morfologiczne,</p>
+<p>-&nbsp;E. Foltyn prowadził badania archeologiczne.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Od wiek&oacute;w jaskinia była znana ludności miejscowej, wykorzystywana jako kryj&oacute;wka lub schowek cenniejszego dobytku w&nbsp;czasie &bdquo;burz dziejowych&rdquo;. Pierwszy pisemny przekaz dotyczący jaskini podaje w&nbsp;pisanym w&nbsp;latach 1699-1728 &bdquo;Dziejopisie Żywieckim&rdquo; A.&nbsp;Komoniecki:<em> &bdquo;W ślemieńskim zaś Państwie w&nbsp;Pośrednim Groniu w&nbsp;Hali Siwcowej nad wsią Las jest skała wielka, co przez nią wierzchem woda idzie, a&nbsp;pod nią dziura jest w&nbsp;kt&oacute;rej może sto statku wegnać i&nbsp;w&nbsp;niej tam sposobnie stanąć i&nbsp;będąc w&nbsp;skale obszerno, jak jaskinia jaka z&nbsp;natury uczyniona&rdquo;.</em></p>
+<p>Ponownie jaskinia ta powraca do literatury na kartach monografii &bdquo;Ziemia Wadowicka&rdquo; A.&nbsp;Siemionowa (1984), kt&oacute;ry zaproponował jej nazwę.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń beskidzkich materiał dokumentacyjny zebrali dnia 6&nbsp;października 1985&nbsp;r. J. Pukowski i&nbsp;J. Ganszer (Speleoklub Bielsko-Biała). Pomiary wykonano busolą geologiczną Freiberg i&nbsp;taśmą parcianą. J. Ganszer&nbsp;w 2002 r. pomierzył wsp&oacute;łrzędne geograficzne GPS. Dane zostały zaktualizowane w 2009 r.</p>
+<div>Plan opracował J. Ganszer.</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Komoniecki A. 1704 [druk 1866], (wzmianka o lokalizacji i charakterystyka jaskini); Siemionow A. 1984 (umiejscowienie i og&#243;lny opis jaskini, propozycja nazwy); Ganszer J. 1986 (wzmianka o wyjeździe inwentaryzacyjnym); Foltyn E. M., Foltyn E. 1987 (wzmianka o badaniach archeologicznych); Foltyn E. 1987 (wzmianka o badaniach archeologicznych); Klassek G. 1988 (wzmianka o inwentaryzacji); Siemionow A. 1989 (uwagi dotyczące treści dzieła A. Komonieckiego); Klassek G. 1990 (opis inwentarzowy i plan jaskini, ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Foltyn E. 1990 (wzmianka o badaniach archeologicznych); Waga J. M. 1990a (geneza jaskini); Waga J. M. 1990b (geneza jaskini); Foltyn E., Waga J. M. 1992 (wyniki badań interdyscyplinarnych); Kowalczyk B., Kupka J., Waga J. M. 1992 (projekt trasy dydaktycznej, wzmianki dotyczące badań interdyscyplinarnych); Rozporządzeni... nr 1/13, 1993 r. (ustanowienie jaskini pomnikiem przyrody); Klassek G. 1994 (wzmianka w zarysie typologii jaskiń fliszowych); Foltyn E., Waga J. M. 1995 (powt&#243;rzenie wynik&#243;w badań interdyscyplinarnych); Jaskinie Polskich Karpat fliszowych 1997a,b (wzmianka w typologii jaskiń pseudokrasowych t. 1, plan, przekr&#243;j rozwinięty i opis inwentarzowy t. 2); Wiśniewski W.W. 1998, 1999 (wzmianki o jaskini); Michalska B., Wojtas W. 1999 (wymieniona wśr&#243;d jaskiń okolic Bielska-Białej); Mysłajek R. W. 1999b (wzmianka o faunie występującej w jaskini); Wiśniewski W.W. 2000, 2001 (wzmianki o jaskini); Alexandrowicz Z., Poprawa D. 2000 (pomnik przyrody - lokalizacja i og&#243;lny opis jaskini); Motyka J., Zawierucha L. 2001 (uwagi z zakresu chemizmu w&#243;d); Szura C. 2003 (wzmianka o jaskini); Pukowski J., Szura C. 2004 (lokalizacja, opis, plan jaskini); Pukowski J., Krause R., Mr&#243;zek G. 2004 (plan, zdjęcie i wzmianka o jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2011
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12138)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(2546)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=1337" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

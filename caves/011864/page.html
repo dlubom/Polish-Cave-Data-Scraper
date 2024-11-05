@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11864">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11864;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559634,52".replace(',', '.') + "," + "258654,13".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11864','Jaskinia Okopy Wielka Dolna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Okopy Wielka Dolna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Okopy, jaskinia Wielka pod Okopami, jaskinia Wielka Okopy, jaskinia Pod Okopami Wielka, grota Okopy, Wielka jaskinia Okopy, Wielka Jaskinia Dolna, Dziurawiec pod Okopami, Jaskinia wielka dolna, Dziurawiec g&#243;rny nad Grzybowskim, grota Dolna Wielka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02a.123
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;50′08,50″, φ: 50&#176;11′31,53″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku g&#243;rze, wys. otw. 387 m n.p.m., wys. otw. nad dnem doliny 81 m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                379
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                73
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                8
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                8
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    138
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od wylotu Wąwozu Smardzowskiego (Smardzowickiego) idziemy wyraźną ścieżką (zielony szlak turystyczny) w górę wąwozu a następnie stromo podchodzimy na szczyt Góry Okopy. Dalej mniej więcej wzdłuż górnej krawędzi skał opadających do Doliny Prądnika, aż do miejsca, gdzie szlak zaczyna nieznacznie się obniżać i skąd biegnie mniej więcej po poziomicy ku północy. Tam skręcamy w lewo i schodzimy wyraźną ścieżką biegnącą w dół stromym, zalesionym zboczem. Mijamy widoczny z daleka górny otwór jaskini znajdujący się w ścianach, powyżej progu o wysokości 5,5 m. Idąc cały czas wzdłuż ściany skalnej, dochodzimy do dużego, doskonale widocznego z dna i przeciwległego zbocza doliny, bardzo obszernego, dolnego otworu jaskini (1.). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za bardzo obszernym otworem zachodnim, o wysokości 7 m i szerokości 3,4 m (1.), znajduje się stromy korytarz doprowadzający do rozległej sali. W jej stropie jest widoczny duży, pionowy, g&oacute;rny otw&oacute;r jaskini (2.). Z p&oacute;łnocno-wschodniej części sali odchodzą trzy boczne korytarze, łączące się po kilkunastu metrach w małej salce. Gł&oacute;wny ciąg jaskini kontynuuje się z salki ku wschodowi, i posiada kr&oacute;tkie, boczne odgałęzienia.</p>
+<p>Jaskinia powstała w wapieniu skalistym jury g&oacute;rnej. Na ścianach w otworze i sali widoczne częściowo wypreparowane przez wietrzenie, skalcyfikowane mumie gąbkowe. Jaskinia jest rozwinięta na r&oacute;wnoległych do siebie, pionowych szczelinach ciosowych. Korytarze mają charakterystyczny meandrujący przebieg oraz okrągły przekr&oacute;j z lokalnie widoczną rurą stropową. Na stropie i ścianach jaskini widoczne kotły wirowe o średnicy do kilkudziesięciu centymetr&oacute;w. W stropie znajdują się także niewielkie kominy. Strop części położonych pomiędzy otworami jest zmieniony przez obrywy skalne. Jaskinia ma genezę krasową. Powstała na skutek rozmycia szczelin ciosowych, w warunkach freatycznych, a następnie zapewne wadycznych. Jest fragmentem większej pr&oacute;żni krasowej znacznie przemodelowanej, zwłaszcza w części przyotworowej przez procesy zawaliskowe. Tym procesom zawdzięcza powstanie g&oacute;rny otw&oacute;r jaskini.</p>
+<p>Namulisko w partiach wstępnych humusowe z gruzem wapiennym, małej miąższości, miejscami pokryte niewielką ilością liści. Przed rozpoczęciem prac wykopaliskowych było w wielu miejscach pokryte przez r&oacute;żnej wielkości gruz i bloki wapienne (S.J. Czarnowski 1901b). W znacznej części zostało ono rozkopane, a częściowo usunięte podczas prac wykopaliskowych. W głębszej części korytarzy gliniaste z gruzem wapiennym. Spąg skalny zapada w stronę otworu pod kątem ok. 30&deg; (S.J. Czarnowski 1901b). Miejscami w namulisku stwierdzono obecność żwiru złożonego z ziaren o średnicy do kilku milimetr&oacute;w.</p>
+<p>W jaskini występują nacieki ze skonsolidowanego mleka wapiennego, naciek grzybkowy oraz struktury <em>vermiculations</em>. Lokalnie, w miejscach spływu wody po ścianach, znajduje się cienka warstwa miękkiego mleka wapiennego, kt&oacute;re zapewne aktywnie przyrasta.</p>
+<p>Jaskinia wilgotna, w części przyotworowej widna z powodu rozmiar&oacute;w obu otwor&oacute;w &ndash; światło sięga kilkadziesiąt metr&oacute;w w głąb. Charakteryzuje się niestabilnym mikroklimatem (A. Podstawczyńska-Bienias i T, Charciarek 2000, fide J. Wojkowski 2001), co najpewniej dotyczy części położonych pomiędzy otworami.</p>
+<p>Ściany w rejonie otworu są porośnięte przez obfity zesp&oacute;ł sinic i glon&oacute;w (J. Czerwik-Marcinkowska i T. Mrozińska 2011; J. Czerwik-Marcinkowska 2013; J. Czerwik-Marcinkowska i in. 2015a), porosty i mchy. W szczelinach zakorzenione są paprocie (<em>Asplenium trichomanes</em>). Na spągu i p&oacute;łkach skalnych w granicy okapu bardzo liczne rośliny nasienne. Stwierdzono m.in. paprocie (<em>Polypodium vulgare</em>), rośliny zielne (<em>Ballota nigra</em>, <em>Cardaminopsis arenosa</em>, <em>Cephalanthera damasonium</em>, <em>Chelidonium majus</em>, <em>Hieracium</em> sp., <em>Impatiens parviflora</em>, <em>Lonicera xylosteum</em>, <em>Mycelis muralis</em>, <em>Pulmonaria obscura</em>, <em>Stellaria media</em>), krzewy (<em>Ribes uva-crispa</em>, <em>Rosa</em> sp., <em>Rubus idaeus</em>, <em>Sambucus nigra</em>), a także siewki i młodociane osobniki drzew (<em>Acer pseudoplatanus</em>, <em>Fagus sylvatica</em>, <em>Fraxinus excelsior</em>, <em>Tilia cordata</em>, <em>Ulmus glabra</em>). W stropie bocznego korytarza widoczne są korzenie drzew. Na ścianach w końcowej części zielone i ż&oacute;łte naloty organiczne &ndash; zapewne plechy grzyb&oacute;w.</p>
+<p>Podczas inwentaryzacji stwierdzono występowanie much&oacute;wek, ciem (<em>Scoliopteryx libatrix</em> i <em>Triphosa dubitata</em>), pająk&oacute;w oraz kokon&oacute;w pajęczych. W końcowym korytarzu, podczas inwentaryzacji, zaobserwowano białej barwy, kilkumilimetrowe bezkręgowce o nieustalonej pozycji systematycznej. W jaskini odnotowano dwa gatunki parecznik&oacute;w (J. Kaczmarek 1964), 16 gatunk&oacute;w pająk&oacute;w i jeden gatunek kosarza (E. Sanocka-Wołoszynowa 1981). Na uwagę zasługuje obecność troglobiontycznego pająka <em>Porrhomma egeria</em> (= <em>P. moravicum</em>), kt&oacute;ry w zimie zasiedla głębsze partie jaskini a latem także części przyotworowe (E. Sanocka-Wołoszynowa 1981). W jaskini stwierdzono występowanie pojedynczych nietoperzy reprezentujących łącznie sześć takson&oacute;w (K. Kozakiewicz i B.W. Wołoszyn 2008; J. Nowak i W. Grzywiński 2007, 2012, 2107 i literatura tam cytowana).</p>
+<p>Na spągu w wejściowym korytarzu i sali znaleziono subfosylne kości kręgowc&oacute;w (m.in. ząb m3 parzystokopytnego &ndash; <em>Artiodactyla</em>). W głębszych partiach jaskini na spągu namuliska stwierdzono subfosylne kości nietoperzy (Chiroptera; m.in. żebra, kości palc&oacute;w i kości ramieniowe), a także pokrywy chrząszczy <em>Abax</em> sp. W końcowej części gł&oacute;wnego ciągu znaleziono odchody zwierzęce.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsze badania wykopaliskowe przeprowadził w 1874 r. J. Zawisza (1876). Następnie w latach 1895&ndash;1899 jaskinię badał S.J. Czarnowski, kt&oacute;ry w zasadzie usunął całe namulisko z części pomiędzy otworem gł&oacute;wnym a 2. otworem. W osadach jaskini znaleziono ślady jedenastu ognisk, z kt&oacute;rych dwa położone w pobliżu miały łączną długość 12 m. Ponadto stwierdzono tam bardzo liczne zabytki neolityczne i młodsze (S.J. Czarnowski 1898, 1901b). Spośr&oacute;d zabytk&oacute;w neolitycznych stwierdzono materiały kultury ceramiki wstęgowej rytej, kultury lendzielskiej (grupa malicka, grupa pleszowska), kultury puchar&oacute;w lejkowatych, kultury ceramiki promienistej, kultury boszackiej i kultury ceramiki sznurowej (E. Rook 1980). Z jaskini zidentyfikowano też materiały związane z badeńskim kręgiem kulturowym (A. Zastawny 2006), z czas&oacute;w kultury łużyckiej (J. Rydzewski 2006), z okresu lateńskiego (Z. Woźniak 2006), z okresu wpływ&oacute;w rzymskich (H. Dobrzańska 2006) i ze średniowiecza (M. Wojenka 2012, 2012b, 2018b). Najbardziej spektakularnym znaleziskiem było naczynie zawierające srebrne monety (og&oacute;łem 116 sztuk, w tym rzadkie emisje monet palatyna Sieciecha w liczbie 26 egzemplarzy) i dwa kęsy lanego srebra &ndash; depozyt ukryty ok. 1100 r. (S.J. Czarnowski, 1898; F. Piekosiński 1898; M. Gumowski 1939, 1953; S. Suchodolski 1963, 1987; M. Haisig i in. 1966; M. Wojenka 2012, 2012b, 2018b; B. Reyman-Walczak i in. 2013). Szczeg&oacute;lną uwagę poświęcono skarbowi srebrnemu znalezionemu przez S.J. Czarnowskiego w 1897 r., kt&oacute;rego zawartość i znaczenie były analizowane przez licznych specjalist&oacute;w, m.in. przez F. Piekosińskiego (1898), M. Gumowskiego (1939, 1953), S. Suchodolskiego (1963, 1987), M. Haisiga i in. (1966), a ostatnio przez M. Wojenkę (2012, 2012b, 2018b) i B. Reyman-Walczak i in. (2013). Naczynie gliniane, w kt&oacute;rym znajdował się skarb, było uznane za zaginione. W ostatnich latach M. Wojenka (2012b) odnalazł go w zbiorach Galerii Rzemiosła Artystycznego i Kultury Materialnej Muzeum Narodowego w Krakowie. Ponadto w namulisku występowały liczne kości zwierzęce; dominowały holoceńskie, ale stwierdzono także plejstoceńskie (S.J. Czarnowski 1901b; K. Kowalski 1959; Z. Bocheński 1993; M. Kot i in. 2019b). Znalezione zostały także kości ludzkie &ndash; fragment szczęki oraz zęby (S.J. Czarnowski 1901b, 1909, 1912a).<br />Sondażowe prace wykopaliskowe przeprowadził jesienią 1919 r. S. Krukowski, lecz wynik&oacute;w nie opublikował; nie upublicznił także faktu prowadzenia badań (M. Kot i in. 2019b).<br />Badania geomorfologiczne prowadził w jaskini Z. Ciętak (1935) a obserwacje mikroklimatyczne A. Podstawczyńska-Bienias i T. Charciarek (2000, fide J. Wojkowski 2001). Zesp&oacute;ł naskalnych sinic i glon&oacute;w był przedmiotem studi&oacute;w J. Czerwik-Marcinkowskiej i T. Mrozińskiej (J. Czerwik-Marcinkowska i T. Mrozińska 2011; J. Czerwik-Marcinkowska 2013; J. Czerwik-Marcinkowska i in. 2015a). Wsp&oacute;łczesną faunę jaskini badały J. Kaczmarek (1964; pareczniki) i E. Sanocka-Wołoszynowa (1981; pajęczaki). Od lat dziewięćdziesiątych XX w., w lutym każdego roku, odbywa się systematyczny monitoring nietoperzy prowadzony przez liczne zespoły w ramach og&oacute;lnopolskiej akcji Dekada Spisu Nietoperzy (K. Polowy i M. Wieczorek 2001; A. Węgiel i in. 2001; B. Labocha i B.W. Wołoszyn 1994; J. Węgiel i A. Węgiel 1996; K. Polowy i M. Wieczorek 2001; K. Kozakiewicz i B.W. Wołoszyn 2008), a w ostatnich latach gł&oacute;wnie przez W. Grzywińskiego i J. Nowaka z towarzyszami (J. Nowak i in. 2002; W. Grzywiński i in. 2004, 2006, 2015; J. Nowak i W. Grzywiński 2007, 2012, 2017).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od dawna. Pierwsza pisemna wzmianka pochodzi zapewne od J. Zawiszy (1876). Znaleziska archeologiczne pochodzące także z czas&oacute;w historycznych świadczą, że jaskinia stanowiła schronienie dla okolicznej ludności. Jest prawdopodobne, że była użytkowana podczas funkcjonowania na szczycie G&oacute;ry Okopy grodziska średniowiecznego. Być może była wykorzystywana w czasach walki Władysława Łokietka o dzielnicę senioralną (A. Żaki i M. Szuwarowski 1970). M. Rokosz (2003) sugeruje, że to stało się podstawą do szeroko rozpowszechnionej legendy o ukrywaniu się Władysława Łokietka w jaskini w okolicach Ojcowa. W.W. Wiśniewski (1997i) podaje, że jaskinia była często przedstawiana w ikonografii w XIX w. Można jednak przypuszczać, że gł&oacute;wnym motywem był przestronny i dobrze widoczny z dala otw&oacute;r jaskini, a nie jej wnętrze. Wzmianki o niej są publikowane w licznych przewodnikach, a także literaturze encyklopedycznej, gł&oacute;wnie ze względu na wspomniany powyżej charakterystyczny otw&oacute;r, a także z uwagi na znalezienie przez S.J. Czarnowskiego (1898) skarbu złożonego gł&oacute;wnie ze średniowiecznych srebrnych monet.<br />Jaskinia wpisana 29.04.1924 r. przez Radę Konserwator&oacute;w do Inwentarza Zabytk&oacute;w Nieruchomych pod nr 429 (Z Ministerstwa 1924); uznana za zabytek archeologiczny nr 868 przez Wojew&oacute;dzkiego Konserwatora Zabytk&oacute;w i Wydział Kultury W.R.N. w Krakowie decyzją V/3/92/68 z dnia 18.10.1968 r. (A. Krauss 1970). Obecnie figuruje w rejestrze zabytk&oacute;w nieruchomych pod numerem 1834 (D. Jaskanis 1988).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan sporządził S.J. Czarnowski u schyłku XIX w. (S.J. Czarnowski 1901b). Została zinwentaryzowana 02.12.1947 r. przez K. Kowalskiego. Kolejny plan wykonał M. Szelerewicz w 1983 r. Jest on zamieszczony przez M. Szelerewicza i A. G&oacute;rnego (1986), gdzie jaskinia jest r&oacute;wnież uwzględniona w wykazie. Obserwacje terenowe i uzupełnienia planu wykonali 15.04.2007 r. B. Michalska i M. Wawryka. Pomiary wykonano przy pomocy busoli Freiberg i taśmy pomiarowej z wł&oacute;kna szklanego. Obserwacje uzupełniające zebrał M. Wawryka-Drohobycki 30.11.2019 r. kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracowali M. Szelerewicz i M. Wawryka (wkładka na końcu tomu).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zawisza J. 1876 (wzmianka o znaleziskach archeologicznych i paleozoologicznych); Ossowski G. 1884a (wzmianka o badaniach Zawiszy i znalezieniu materiał&#243;w neolitycznych); Czarnowski S.J. 1898 (opis osad&#243;w, wzmianki o znalezieniu ślad&#243;w ognisk, miejsce znalezienia naczynia z monetami, dw&#243;ch kęs&#243;w lanego srebra, wiek skarbu jest szacowany na czasy Władysława Hermana); Piekosiński F. 1898 (analiza znaczenia monet palatyna Sieciecha stanowiących część skarbu znalezionego przez Czarnowskiego); Czarnowski S.J. 1899 (wzmianka, lokalizacja na schematycznej mapie); Mapa, po 1900 (lokalizacja na mapie); Czarnowski S.J. 1901a (wzmianki o badaniach i znalezieniu ślad&#243;w ognisk, bardzo licznych wyrob&#243;w krzemiennych, kościanych i fragment&#243;w ceramiki, położenie jaskini i zarysy jej korytarzy na schematycznej mapie); Czarnowski S.J. 1901b (opis, charakterystyka osad&#243;w, przebieg badań rozpoczętych w 1895 r., informacje o znalezieniu pozostałości ognisk, licznych znalezisk, informacje o znalezieniu kości zwierzęcych, wykaz gatunk&#243;w oraz muszli mięczak&#243;w, a także fragmentu czaszki i zęb&#243;w ludzkich; plan i przekr&#243;j jaskini); Czarnowski S.J. 1909 (informacja o znaleziskach w pobliżu drugiego otworu jaskini, ślad&#243;w ogniska, przekr&#243;j jaskini z zaznaczonym schematycznym profilem osad&#243;w i położeniem ogniska); Czarnowski S.J. 1911 (położenie, kr&#243;tki opis); Berezowski A. 1912 (wzmianka o znalezieniu kości konia); Czarnowski S.J. 1912a (informacja o znalezieniu fragmentu szczęki oraz zęb&#243;w ludzkich); Czarnowski S.J. ok. 1914 (lokalizacja na schematycznej mapie); Z Ministerstwa 1924 (oficjalna informacja o uznaniu za zabytek nieruchomy nr inw. 429); Antoniewicz W. 1928 (rysunki ceramiki wstęgowej); Ciętak Z. 1935 (położenie, opis, plan, lokalizacja na mapie); Gumowski M. 1939 (charakterystyka monet palatyna Sieciecha); Kowalski K. 1951 (opis i plan inwentarzowy, lokalizacja na mapie); Kowalski K. 1959 (informacja o występowaniu kości zwierząt plejstoceńskich, wykaz gatunk&#243;w); Kaczmarek J. 1964 (wzmianka o występowaniu parecznik&#243;w, wymienione gatunki); Mycielska R., Rook E. 1965 (analiza neolitycznych i młodszych materiał&#243;w archeologicznych znalezionych przez Czarnowskiego w tej jaskini); Haisig M. i in. 1966 (charakterystyka skarbu srebrnego, lokalizacja jaskini na schematycznej mapie); Krauss A. 1970 (informacja o wpisaniu do rejestru zabytk&#243;w archeologicznych p.nr. 868); Kulczycka-Leciejewiczowa A. 1970 (wzmianka o znalezieniu ceramiki reprezentującej kulturę ceramiki linearnej); Woźniak Z. 1970 (informacje o znalezieniu fragment&#243;w ceramiki p&#243;źnolateńskiej); Żaki A., Szuwarowski K. 1971 (sugestia o wykorzystaniu przez Władysława Łokietka); Czepiel M. 1976 (wymieniona); Rook E. 1980 (charakterystyka stanowiska, wykaz znalezisk neolitycznych reprezentujących: ceramikę – kultury ceramiki wstęgowej rytej, grupy malickiej kultury lendzielskiej, grupy pleszowskiej kultury lendzielskiej, kultury puchar&#243;w lejkowatych, kultury ceramiki promienistej, kultury ceramiki sznurowej oraz neolityczne wyroby z gliny, wyroby krzemienne, inne wyroby kamienne, wyroby z kości i rogu); Sanocka-Wołoszynowa E. 1981 (wyniki badań pajęczak&#243;w, uwagi o sezonowej migracji Porrhomma moravicum, lokalizacja jaskini na schematycznej mapie); Szelerewicz M., G&#243;rny A. 1986 (lokalizacja na mapie, opis, historia poznania i plan, wzmianka o objęciu ochroną); Suchodolski S. 1987 (charakterystyka denar&#243;w palatyna Sieciecha, lokalizacja jaskini na schematycznej mapie); Kamieńska J., Kozłowski J.K. 1990 (wzmianki o znaleziskach ceramiki grupy malickiej i ceramiki typu bodrogkereszt&#250;r); Bocheński Z. 1993 (kr&#243;tka charakterystyka jaskini, lokalizacja na schematycznej mapie, informacja o znalezieniu kości ptak&#243;w); Godłowska M. i in. 1995 (wykorzystywanie jaskini w neolicie, ilustracje znalezisk); Rydzewski J. 1995 (wykorzystywanie jaskini w epoce brązu i wczesnej epoce żelaza); Wiśniewski W.W. 1997i (wzmianka o przedstawianiu na ilustracjach XIX w.); Nowak J., Kozakiewicz K. 2000 (informacja o braku nietoperzy podczas kontroli 04.02.1996 r.); Podstawczyńska-Bienias A., Charciarek T. 2001b (wzmianki o warunkach mikroklimatycznych, sezonowe zmiany termiki); Polowy K., Wieczorek M. 2001 (zestawienie wynik&#243;w zimowych spis&#243;w nietoperzy w latach 1989–2001); Węgiel A. i in. 2001 (kr&#243;tka charakterystyka jaskini, wzmianka o jednokrotnym stwierdzeniu nietoperza); Wojkowski J. 2001 (dane mikroklimatyczne zestawione na podstawie literatury); Nowak J. i in. 2002 (informacje o występowaniu nietoperzy); Rokosz M. 2003 (sugestia o wykorzystywaniu przez Władysława Łokietka); Grzywiński W. i in. 2004 (podsumowanie występowania nietoperzy, wykaz gatunk&#243;w, lokalizacja na schematycznej mapie); Dobrzańska H. 2006 (wymienione znaleziska z okresu wpływ&#243;w rzymskich); Grzywiński W. i in. 2006 (informacja o występowaniu nietoperzy); Lech J. 2006 (om&#243;wienie osadnictwa wczesnego i środkowego neolitu w Jaskini Okopy Wielkiej Dolne); Rydzewski J. 2006 (wymienione ceramika i przedmioty brązowe z czasu kultury łużyckiej); Woźniak Z. 2006 (wzmianka o znaleziskach z okresu lateńskiego); Zastawny A. 2006 (wzmianka o znaleziskach związanych z badeńskim kręgiem kulturowym); Nowak J., Grzywiński W. 2007 (informacja o występowaniu nietoperzy); Gradziński M. i in. 2007 (opis i plan inwentarzowy, lokalizacja na mapie); Gradziński M. i in. 2008 (wzmianka dotycząca powstania otworu na drodze kolapsu, schematyczny plan); Kozakiewicz K., Wołoszyn B. 2008 (informacja o występowaniu nietoperzy); Czerwik-Marcinkowska J., Mrozińska T. 2011 (analiza zespołu epifitycznych sinic i glon&#243;w, dane morfometryczne jaskini, kr&#243;tka charakterystyka); Gradziński M. i in. 2011c (położenie, opis, plan, lokalizacja na schematycznej mapie, historia poznania, znaczenie archeologiczne, fauna kopalna); Bocheński Z. i in. 2012 (lokalizacja na schematycznej mapie, zestawienie takson&#243;w kopalnych ptak&#243;w); Nowak J., Grzywiński W. 2012 (informacja o występowaniu nietoperzy Plecotus sp.); Wojenka M. 2012 (wzmianka o badaniach Zawiszy, Czarnowskiego, om&#243;wienie znalezisk średniowiecznych w tym skarbu monet srebrnych datowanego na młodsze fazy wczesnego średniowiecza, licznych ułamk&#243;w naczyń, sprzączek żelaznych); Wojenka M. 2012b (analiza garnka z cylindryczną szyjką pełniącego rolę pojemnika na skarb srebrny odnaleziony przez Czarnowskiego); Czerwik-Marcinkowska J. 2013 (analiza zespołu sinic i glon&#243;w, wykaz gatunk&#243;w, dane morfometryczne, lokalizacja na schematycznej mapie); Wojkowski J. 2013 (wzmianka o badaniach mikroklimatycznych); Wrzak J. 2013 (pogląd o powstaniu jaskini na skutek cyrkulacji agresywnych w&#243;d perkolacyjnych, model powstania); Czerwik-Marcinkowska J. i in. 2015a (wyniki ekologicznej analizy zespołu epifitycznych glon&#243;w, położenie i dane morfometryczne, wykaz gatunk&#243;w); Grzywiński W. i in. 2015 (wzmianka o występowaniu nietoperzy), Rydzewski J. 2016 (wzmianka o znaleziskach kultury łużyckiej); Śliwiński W. 2016 (uwagi dotyczące nazewnictwa); Nowak J., Grzywiński W. 2017 (informacje o występowaniu nietoperzy); Wojenka M. 2018b (lokalizacja na schematycznej mapie stanowisk ze znaleziskami średniowiecznymi charakterystyka skarbu srebrnego, wzmianka o innych znaleziskach średniowiecznych); Gradziński i in. 2020 (monograficzny opis, plan, pełna bibliografia, lokalizacja na mapie). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Beata Michalska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(14049)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(14352)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

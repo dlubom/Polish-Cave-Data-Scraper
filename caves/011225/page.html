@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11225">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11225;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "550752,59".replace(',', '.') + "," + "256749,74".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11225','Jaskinia Szklana'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Szklana
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko naprzeciw Jaskini Szklarskiej
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-08.112
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;42′39,54″, φ: 50&#176;10′32,84″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                385
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                1,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                5,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    34
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Szklary, Dolina Szklarki, Bukowa G&#243;ra.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od skrzyżowania drogi wiodącej do kościoła z szosą w Szklarach idziemy około 360 m szosą ku S i przed posesją nr 61 skręcamy na prawo w drogę leśną za szlabanem. Przebiega ona wzdłuż wąwozu. Po około 290 m docieramy pod największa skałkę w okolicy, która opada do drogi. W niej odnajdujemy otwory poszukiwanej jaskini. Do otworu 1. położonego na szerokiej półce 5 m nad drogą podchodzimy tuż za skałką; otwór 2. jest po jej wschodniej stronie, u podstawy ściany, zasłonięty nieco wałem ziemnym. Dojście bez trudności, zwiedzanie dolnego ciągu bez trudności, kominów i górnych odnóg – trudne; miejscami niezwykle ciasno.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r 1 o wymiarach 2,5 x2,5 m prowadzi do korytarza gł&oacute;wnego, kt&oacute;ry zaraz ulega obniżeniu i zwężeniu, a na prawo odgałęzia się od niego wąska szczelina uchodząca na powierzchnię niedostępnym prześwitem. Po 6 m docieramy do rozwidlenia z około 5,5-metrowym, mytym na szczelinie kominem, zwężającym się znacznie ku g&oacute;rze. Z rozwidlenia na prawo wiedzie niski korytarzyk z kr&oacute;tką odnogą na prawo (zasłoniętą zwykle liśćmi), a po niecałych 3 m, za dużym głazem, pod obniżeniem stropu na lewo - pochyła komora z gliną na dnie (1,8x0,7x1,8 m). Przebiega ona r&oacute;wnolegle do korytarzyka, położona jest blisko powierzchni &ndash; widać zwisające ze stropu włosowate korzenie drzew. Odchodzą od niej niedostępne szczeliny. W korytarzyku, przed wejściem do komory, odgrzebujemy z liści niskie (0,2 m) przejście do jego dalszego ciągu. Korytarzyk ten kontynuuje się jeszcze ponad 3 m, jest bardzo niski, z rozszerzeniem w środku, zamyka go namulisko.<br />Wracamy do rozwidlenia. Odchodzący stąd komin ku WSW przechodzi w szczelinowy ciasny korytarz. Wspinamy się kominem (niecałe 2 m, trudno) do ww. korytarza. Wznosi się on stromo małymi prożkami (1,2 i 0,5), a w końcowym, już prawie poziomym odcinku, jest zbyt ciasny aby przejść; uchodzi wąskim wylotem na powierzchnię terenu, po zachodniej stronie skały.<br />Wracamy do rozwidlenia. Gł&oacute;wny korytarz zakręca nieco na lewo i biegnie 6 m ku E do otworu. Zaraz za obniżeniem stropu otwiera się w nim następny myty komin (1,5x0,8x5,5 m). Wspinamy się nim 3 m do ciasnego (z fragmentem niedostępnym) szczelinowego korytarzyka, kt&oacute;ry po blisko 2 m uchodzi na powierzchnię małym wylotem (około 0,3x0,3 m), usytuowanym 3,1 m nad otworem 2. Komin kontynuuje się w g&oacute;rę, następnie ku E przechodzi w niedostępną szczelinę; ku W można przecisnąć się zacieraczką w poziomie nad poprzedni komin. Szczelina rozwinięcia tego ciągu jest w g&oacute;rnej części niezwykle ciasna i w okolicy pierwszego komina nie wszędzie dostępna.<br />Jaskinia powstała na kilku szczelinach w wapieniach g&oacute;rnej jury (oksford). Gł&oacute;wna szczelina, na kt&oacute;rej rozwinęły się myte kominy, ma przebieg WSW-ENE. Komora położona jest tuż pod powierzchnią terenu, widać w niej zwisające ze stropu włosowate korzenie drzew. Ściany jaskini są myte, miejscami kruche. Widać na nich nieco naciek&oacute;w grzybkowych i skonsolidowanego mleka wapiennego, występują też miejscami zwietrzałe polewy kalcytowe i małe stalaktyty, a pod okapem otworu 2. &ndash; czarne, epigenetyczne naskorupienia krzemionkowe. Namulisko tworzy w korytarzu gł&oacute;wnym gruz wapienny z domieszką gleby, a w głębi - gliny, pokrywa je warstwa nawianych liści, są także śmieci (za 2. otworem uwaga na potłuczone szkło!) oraz kości kręgowc&oacute;w. W komorze występuje mokra glina jaskiniowa.<br />Wilgotność i przewiew w korytarzu gł&oacute;wnym zależą od warunk&oacute;w atmosferycznych na powierzchni terenu, wyczuwa się przewiew między otworami. Komora i koniec korytarzyka dolnego są zawsze wilgotne i bez przewiewu. Światło odbite sięga do całego ciągu gł&oacute;wnego, natomiast komora i dolny korytarzyk za odejściem do niej, są całkowicie ciemne.<br />W strefie okołootworowej rozwija się roślinność kwiatowa (gł&oacute;wnie rośliny zielne), bluszcz oraz mchy i nieco paproci, na ścianach - gł&oacute;wnie, glony, sinice i porosty, kt&oacute;re sięgają do około 3 metr&oacute;w od otwor&oacute;w. W komorze widać zwisające ze stropu włosowate korzenie drzew.<br />Faunę reprezentują gł&oacute;wnie owady oraz ślimaki. W przytulnej komorze występuje kłębowisko rozmaitych owad&oacute;w. Zaobserwowano tam m.in. r&oacute;żne gatunki pająk&oacute;w (w tym <em><strong>Meta menardi</strong></em>), motyle<em><strong> Scoliopteryx libatrix</strong></em>, ćmy <em><strong>Triphosa dubitata</strong></em>, oraz much&oacute;wki, komary, kosarze, chruściki. Na osadach znaleziono kości kręgowc&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana była od dawna. Pierwszą informację o niej opublikował Kowalski (1951). Zawiera ona plan i kr&oacute;tki opis inwentarzowy pod nazwą Schronisko naprzeciw Jaskini Szklarskiej, z numerem 164, niekt&oacute;re dane morfometryczne, w tym długość 14 m. W dniu 19.06.2005 r. J. Nowak i M. Urban zmierzyli ponownie jaskinię dodając do pomiar&oacute;w pierwszy komin z odchodzącym od niego korytarzykiem, usunęli też znaczną część śmieci. Plan, przekr&oacute;j i fotografię otworu 1. opublikował Nowak (2008), wymienił r&oacute;wnież opisywany obiekt w spisie jaskiń doliny Szklarki, podał długość 24 m, deniwelację 6,9 m (-1,6, +5,3 m) i lokalizację na mapce.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W dniu 14.07.2014 r. dokumentację jaskini sporządziła I. Luty przy wsp&oacute;łpracy M. Soćko. Pomiary wykonała za pomocą busoli i klizymetru Suunto oraz dalmierza Disto X310, a położenie otworu określiła na mapie (http://mapy.geoportal.gov.pl). 26.10.2014 r. fotografie otwor&oacute;w wykonała I. Luty, a w styczniu 2018 r. zaktualizowała obserwacje terenowe przy wsp&oacute;łpracy J. Karpiuka.</p>
+<p>Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kowalski K.1951 (plan i opis inwentarzowy pod nazwą Schronisko naprzeciw Jaskini Szklarskiej, z numerem 164; podaje długość 14 m); Szelerewicz M., G&#243;rny A. 1986 (wymieniają, podają długość 14 m); Nowak J. 2008 (plan, przekr&#243;j i opis, fotografia otworu 1, wymienia w spisie jaskiń doliny pod nazwą Jaskinia Szklana, podaje długość i deniwelację,  lokalizuje na mapce); Jaskinie Wyżyny Olkuskiej 2018b (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2018
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12719)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(12720)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 2.
+                    </a>
+                    <a onclick="showImageInfo(12783)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

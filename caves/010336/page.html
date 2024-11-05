@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10336">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10336;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "545697,43".replace(',', '.') + "," + "199031,05".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10336','Jaskinia Oblica'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Oblica
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bż-05.09
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zawoja (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                suski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Ministra Środowiska z dn. 6.10.2014 r. w spr. ochrony gatunkowej zwierząt  Dz.U. 2014 Poz. 1348.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                634
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                21,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                21,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    436
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Skawica, Krzywal&#243;wki (766 m n.p.m.), Pasmo Policy, Beskid Żywiecki.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Krzywalówki (766 m n.p.m) - Śmietanniak. Ze względu na konieczność ochrony stanowiska zimowania i bytowania nietoperzy dane dotyczące drogi dojścia jak i współrzędne otworu są dostępne za zgodą Wojewódzkiego Konserwatora Przyrody. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Przez dość szeroką studzienkę 2 m głębokości wchodzimy do niewiekiej salki. Stąd można wejść do ciasnej szczeliny w spągu, ciągnącej się przez około 2 m w kierunku p&oacute;łnocnym. Z salki idziemy na SE i przez prożek 1,8 m wchodzimy do Srebrnego Korytarza, długości około 11 m, szerokości do 1,2 m i wysokości do 4 m. Tuż nad prożkiem na wysokości około 0,7 m znajduje się wejście do wąskiego i niskiego korytarzyka, kt&oacute;ry po 3,5 m wprowadza przez studzienkę 4,2 m z powrotem do Srebrnego Korytarza. Po drugiej stronie korytarza (na N) kominek 3 m wprowadza do kr&oacute;tkich i ciasnych korytarzyk&oacute;w.<br />Idąc dalej Srebrnym Korytarzem po 6 metrach wchodzimy przez prożek na E do lekko wznoszącej się szczeliny długości ok. 3 m, w jej środku odchodzi na E kolejna zaciskowa szczelina o długości 2 m. Wracamy do Srebrnego Korytarza. Idąc dalej dochodzimy nad Zb&oacute;jską Studnię (głębokość do 4 m). W tym miejscu jaskini rozpoczynają się dwa gł&oacute;wne ciągi.<br />Trawersując Zb&oacute;jską Studnię dochodzimy nad mniejszą studzienkę &ndash; Małą Zb&oacute;jską Studnię. Nad nią, przez kominek (ok. 1,7 m) możemy wejść do niewiekiej salki, znajdującej się blisko powierzchni ziemi (widoczne korzenie, przesypywanie się gleby). Przez Małą Zb&oacute;jską Studnię schodzimy do wąskiego, wysokiego do 2 m korytarzyka i idziemy nim około 3 m do niewielkiej pochylni. Na S można wejść przez zacisk ZII do ciasnych szczelin, kt&oacute;re po około 4 m stają się nie do przejścia.<br />Za pochylnią skręcamy na NE i przez zaciskowy przełaz i prożek wchodzimy do Sali z Kogutkiem (5 m długości, do 3 m wysokości). Z Sali z Kogutkiem idziemy szczeliną skręcającą na E a potem na S Tu, albo przez prożek 2,5 m i przełaz, a potem pochylnię z prożkami, albo dolną zaciskową szczeliną (ZI), dostajemy się do ostatniej sali w tym ciągu - Herbaciarni. Sala ma około 5 m długości, do 2 m szerokości i do 2,5 wysokości.<br />Z Sali z Kogutkiem, przez trudną do znalezienia, zaciskową studzienkę 1,8 m (Z1) na S, wchodzimy do korytarza z naciekami, długości około 15 m, szerokości od 0,4 do 0,7 m i wysokości do 2,3 m. Po około 7 m pokonujemy pr&oacute;g wysokości 1,6 m, zaciskowy w g&oacute;rnej części (ZI) i dochodzimy do niewielkiego rozszerzenia w miejscu, gdzie znajdują się resztki zniszczonych naciek&oacute;w. Stąd możemy iść na SE do końca korytarza lub przez zaciskowy kominek wejść do ciasnych szczelin, nazwanych Matrix 2, o długości około 10 m, kt&oacute;re stanowią g&oacute;rne piętro szczeliny, na kt&oacute;rej rozwinął się korytarz z naciekami.<br />Po zejściu Zb&oacute;jską Studnią kierujemy się niskim korytarzem (1,2 m wysokości) na N, po około 5 m schodzimy przez prożki 0,6 m i 1,2 m do miejsca, gdzie korytarz staje się wyższy (do 2 m wysokości), stąd schodzimy niskim przełazem 3 m na SW nad ciasną studzienkę (2 m) prowadzącą do Kanału. Na początku niskiego korytarzyka za Studnią można wejść na W do ciasnej szczeliny, długości około 5 m, biegnącej r&oacute;wnolegle do korytarzyka, na N, kończącej się zaciskiem nie do przejścia. Z miejsca za prożkami można wejść kominkiem 2,1 m do ciasnej szczeliny długości 3,5 m, rozwijającej się na N. Nad wejściem do szczeliny znajduje się kolejny ciasny kominek, wysokości 1,8 m, wprowadzający na Szczeliny z Echem - niskiego (do 1 m) i wąskiego (do 0,7 m) korytarzyka o litych ścianach, kt&oacute;rym idąc na N po 7 metrach dojdziemy do niewielkiego rozszerzenia kończącego ten ciąg &ndash; jest to najdalej na p&oacute;łnoc wysunięta część g&oacute;rnych partii jaskini.<br />Nad kominkiem, kt&oacute;ry wprowadzał do Szczeliny z Echem znajduje się kolejny ciasny, pionowy przełaz, kt&oacute;ry zakręcając szczeliną na S, po niewielkim rozszerzeniu, wyprowadza do Srebrnego Korytarza. Pokonywanie tego przejścia może być niebezpieczne - luźny materiał skalny nad kominkiem. Do ciasnej studzienki do Kanału można spod Zb&oacute;jskiej Studni dostać się także wchodząc w wąską studzienkę (1,6 m głębokości) na dnie tej studni. Wchodzimy nią do Zb&oacute;jskiej Sali (4 m długości, do 1,5 m szerokości). Tuż za studzienką można wejść do ciągu ciasnych szczelin na W, kończących się zwężeniem nie do przejścia.<br />Ze Zb&oacute;jskiej Sali przez dwa zaciski (ZIII i ZI) na SSE wchodzimy do wysokiej szczeliny - Sali Pseudogrotołaz&oacute;w, długości 11 m, szerokości do 0,8 m i wysokości do 9 m. Po około 7 m przez wąską studzienkę można zejść do ciasnego, pochyłego korytarzyka długości 4 m, kończącego się studnią zawaloną wantami. Przez tą studnię istnieje połączenie z niższymi partiami - Kryptą - jest jednak nie do przejścia. Ze Zb&oacute;jskiej Sali przez prożek 1,7 m na N dochodzimy po 2,5 m nad studzienkę do Kanału. Na dno tej studzienki można dostać się także ze Zb&oacute;jskiej Sali przez zaciskową studzienkę 1,4 m głębokości, często zawalaną materiałem skalnym, i niską szczelinę. Ten ciąg wyprowadza nas na spągu studzienki do Kanału.<br />Kanał to salka długości 3 m, z kt&oacute;rej niskim i wąskim, pochyłym korytarzykiem z wiszącymi wantami, długości 4 m, schodzimy na SSW do większej salki - Krypty, długości około 4 m, wysokości do 3 m. Na początku pochyłego korytarzyka można wejść na N do niewiekiej 1,5 m studzienki (Trumna), na kt&oacute;rej dnie znaleziono szkielet lisa. Z jej dna odchodzi na E zaciskowa szczelina, kończąca się po 1,5 m. Przez ciasną studzienkę głębokości 1,0 m, zlokalizowaną w zachodniej części Krypty, wchodzimy w kręty przełaz i do rozszerzenia o wymiarach 2,5x3 m. Schodząc studzienką z Krypty możemy wejść przez przełaz na E do niskiej Salki pod Kryptą, kończącej się po około 5 m szczeliną nie do przejścia. Z rozszerzenia po krętym przełazie wchodzimy zaciskowym wejściem na E do korytarzyka kończącego się studzienką na S i pochylnią na N.<br />Przez pochylnię na N schodzimy do niewielkiej salki (2,5 m długości, do 2 m wysokości). Z salki przechodzimy na W i potem na N i docieramy do prożk&oacute;w i kominka wprowadzającego do szeregu ciasnych szczelin, kończących się zaciskami nie do przejścia. Jest to najdalej na p&oacute;łnoc wysunięta część dolnych partii jaskini.<br />Wracając do salki za pochylnią przez niski, zaciskowy przełaz na SW wchodzimy do niewielkiego rozszerzenia - najniższego punktu jaskini (-21,1 m). Z tego miejsca można wyjść na SW dwoma zaciskami (ZII, Tęczowy ZII) na dno studzienki 1,9 m, schodzącej z wcześniejszego rozwidlenia. Spod studzienki idziemy wysoką szczeliną na S, kt&oacute;ra po 2,5 m wprowadza do pochyłej szczeliny długości 6 m, szerokości 1,2-0,6 m i wysokości 2-5 m, rozwijającej się w kierunku SW. Na końcu szczeliny przez prożek 1,6 m wchdozimy do największej sali w tym ciągu - Sali SSB - długości około 17 m, szerokości do 2 m i wysokości do 4,5 - 5,5 m. W NW części Sali SSB wchodzimy do bocznej szczeliny, łączącej się niewielkim przełazem ze środkową częścią Sali i kończącą się zaciskiem nie do przejścia. Wychodzimy pochyłym dnem Sali na S i naprzeciw ciasnej szczeliny, prostopadłej do sali, wchodzimy do Tomkowej Studni, głębokości 1,8 m. Z dna studni przechodzimy niskim przełazem na N i przez ciasną, błotnistą studzienkę wchodzimy do szczeiny r&oacute;wnoległej do Sali SSB. Z rozszerzenia tej szczeliny możemy przejść na S do wąskiej szczeliny o długości 5 m, natomiast na N, przez błotnistą, ciasną studzienkę głębokości 0,8 m do 7 metrowej ciasnej (0,4 m szerokości, do 1 m wysokości) szczeliny, biegnącej r&oacute;wnolegle do zachodniej ściany Sali SSB. Z południowego końca Sali SSB, przez przełaz i kominek 0,6 m wchodzimy do niewielkiego rozszerzenia, a z niego schodzimy pochyłą szczeliną na S, wysokości do 1,5 m i szerokości do 1 m, kt&oacute;ra po 6 m skręca na W i przez prożek 1,2 m wprowadza do ostatniego w tym ciągu Korytarza Dużego Nocka - korytarz kontynuuje się na S przez 7 metr&oacute;w i po pokonaniu prożka 1,7 m kończy się ślepo. Jest to najdalej na południe wysunięty punkt dolnych partii jaskini.</p>
+<p>Jaskinia osuwiskowa typu szczelinowego, powstała w piaskowcach magurskich. G&oacute;rne partie położone są na jednej szczelinie poprzedzielanej dużymi pakietami skalnymi, d&oacute;ł jaskini (partie z Salą SSB) to ta sama szczelina zdyslokowana w kierunku ENE. Obydwie szczeliny łączy kruchy, zawaliskowy korytarzyk i sala Krypta. Spąg pokrywa glina i autochtoniczny gruz skalny, a przy otworze także humus.<br />Jaskinia posiada mikroklimat dynamiczny, okolice dna są wilgotne i zimne, w środkowych partiach silny przewiew wysusza namulisko i ściany. W części położonej najbliżej powierzchni powietrze jest ogrzewane i przez liczne szczeliny łączące Srebrny Korytarz z powierzchnią wydostaje się na zewnątrz powodując zimą wytopienie się śniegu na przebiegu korytarza. Strefa przyotworowa pozostaje w zasięgu działania czynnik&oacute;w zewnętrznych, zimą jest silnie wymrażana, tworzą się sople lodowe. Temperatura zmierzona 15 stycznia 2004 r. w otworze i jednej ze szczelin na powierzchni wynosiła odpowiednio -2,28&deg;C i +7,05&deg;C. Światło dzienne oświetla wstępne partie pod studzienką wejściową.<br />Flora występuje tylko w okolicy otworu. Pod studnią wejściową, w strefie p&oacute;łmroku stwierdzano kiełkujące siewki drzew iglastych. Pod studnią odnaleziono także grzyba czubajkę kanię (Macrolepiota procera). Korzenie drzew sięgają do pierwszej sali pod studnią wejściową, włośnikowe wyrastają ze stropu w Srebrnym Korytarzu. Na ścianach w Srebrnym Korytarzu znajdują się ż&oacute;łte i niebieskie zarodniki (prawdopodobnie) grzyb&oacute;w.<br />W jaskini zimują nietoperze: nocek orzęsiony (<em><strong>Myotis emarginatus</strong></em>), nocek duży (<em><strong>Myotis myotis</strong></em>), nocek wąsatek/Brandta (<em><strong>Myotis mystacinus/brandtii</strong></em>), nocek rudy (<em><strong>Myotis daubentonii</strong></em>) oraz gacek brunatny (<em><strong>Plecotus auritus</strong></em>). Oblica jest jednym z najliczebniejszych w Polsce zimowisk nocka orzęsionego. W środkowej części jaskini odnaleziono szkielet sarny, regularnie odnajdywane były także resztki pożywienia zaciąganego przez lisa (ptaki, pierze). Na głębokości około 16 m, w małej salce (Trumna) odnaleziono też szkielet lisa. W partiach przy otworze licznie występują pająki z rodzaju<em> Meta</em>, i motyle szczerb&oacute;wki ksieni (<em><strong>Scoliopteryx libatrix</strong></em>).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wstępne partie jaskini znane są miejscowej ludności przynajmniej od czas&oacute;w ostatniej wojny, mieli się w niej ukrywać się partyzanci. W okolicy krążą r&oacute;wnież legendy o zb&oacute;jnikach, kt&oacute;rzy mieli przebywać i ukrywać swe skarby w tej jaskini oraz pobliskiej Zb&oacute;jskiej Jamie. Informację o Oblicy członkowie Stowarzyszenia Speleoklub Beskidzki otrzymali od młodego mieszkańca Skawicy - Pawła Franczaka w maju 2004 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Podczas pierwszego wyjazdu 27 czerwca 2004 r. T. Mleczek i R. Solak zwiedzili &oacute;wcześnie znane partie długości kilkudziesięciu metr&oacute;w (Srebrny Korytarz oraz kilka korytarzyk&oacute;w poniżej Zb&oacute;jskiej Studni). Kolejny wyjazd odbył się 12 września 2004 r. kiedy to T. Mleczek, A. Szebla, R. Solak oraz B. Szatkowski pokonali zacisk doprowadzający do Sali z Kogutkiem i Herbaciarni (Partie Kogucie). Udrożnili też studzienkę sprowadzającą do Kanału odkrywając przy tym partie do Krypty. 11 grudnia 2004 r. ekipa w składzie: W. J. Gubała, R. Tęczar, T. Mleczek, M. Dudzik, A. Szebla, B. Bubula, A. Kapturkiewicz oraz B.Szatkowski wyeksplorowała partie poniżej Krypty (Sala SSB) oraz Salę Pseudogrotołaz&oacute;w i Korytarz z Naciekiem. Wreszcie tydzień p&oacute;źniej - 18 grudnia 2004 r. - W.J. Gubała i R. Tęczar odnaleźli partie za Tomkową Studnią oraz Korytarz Dużego Nocka. W 2006 roku W.J. Gubała wyeksporował i zinwentaryzował kilka niewielkich szczelin w okolicy otworu, Sali z Kogutkiem i Zb&oacute;jskiej Sali. Pomiary wykonano taśmą mierniczą i busolą geologiczną Freiberg.<br />Plan opracował W.J. Gubała.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Mleczek T., Gubała W.J. 2004 (informacja o wynikach eksploracji); Suski R., Tęczar R. 2004 (o eksploracji); Gubała W.J., Mleczek T. 2005 (o eksploracji, podanie długości); Gubała W.J. 2005b (informacja o inwentaryzacji); Gubała W.J., Mleczek T. 2006 (opis jaskini, plan); Mleczek T., Gubała W.J. 2007 (nietoperze); Gubała W.J. 2010 (informacja o nowej długości); Gubała W.J., Trybała M., Drożdż B. 2011 (nietoperze); Franczak P. 2012d (opis jaskini); Franczak P., Listwan K. 2014 (wzmianka i parametry jaskini); Jaskinie Polskich Karpat Fliszowych 2016b (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Wojciech J. Gubała
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12297)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=3282" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

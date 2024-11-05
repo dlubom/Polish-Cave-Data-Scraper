@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11969">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11969;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559350,11".replace(',', '.') + "," + "259163,55".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11969','Oborzysko Wielkie'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Oborzysko Wielkie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                jaskinia Oborzysko wielkie, Obozowisko Wielkie, grota „Oborzysko Wielkie”, jaskinia Oborzysko, Grota „Tunel Wielki”, Tunel Południowy, Jaskinia Ciemna – Oborzysko Wielkie, jaskinia „Ciemna-Oborzysko Wielkie”, Tunel, Jaskinia za leszczyną
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02a.151
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;49′54,44″, φ: 50&#176;11′48,13″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW, wys. otw. 370 m n.p.m., wys. otw. nad dnem doliny 61 m; 3 - ku SE, wys. otw. 369 m n.p.m., wys. otw. nad dnem doliny 60 m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                369
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    46
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od wylotu wąwozu Wawrzonowy Dół idziemy ścieżką biegnącą do Jaskini Ciemnej J.Olk.I-02a.152 (zielony szlak turystyczny). Po ok. 250 m dochodzimy na obszerny taras położony przed otworem Jaskini Ciemnej. Następnie przechodzimy przez Tunel będący integralną częścią Jaskini Ciemnej (w Tunelu zamontowana jest krata, przejście możliwe jest tylko podczas udostępnienia Jaskini Ciemnej dla zwiedzających) i dostajemy się na obszerny teren Ogrojca położonego pomiędzy Tunelem a Oborzyskiem Wielkim. Druga, znacznie bardziej uciążliwa droga do Ogrojca wiedzie wprost w górę stromym żlebem ograniczającym od północy wybitną i charakterystyczną turnię Rękawicę. Dolną część żlebu najłatwiej osiągnąć, skręcając ze szlaku do Jaskini Ciemnej J.Olk.I-02a.152 w dół, tak jak do Szczeliny pod Oborzyskiem Małym J.Olk.I-02a.154, a następnie trawersując zbocze u podstawy skał. W Ogrojcu obecnie jest zamontowany widokowy taras dla turystów. Z tarasu kierujemy się do doskonale widocznego północnego otworu (1.) Oborzyska Wielkiego. Otwór południowy (2.) znajduje się po przeciwległej stronie turni Rękawica i jest trudno dostępny. Trzeci otwór, prowadzący do Jaskini w Leszczynie stanowiącej obecnie część Oborzyska Wielkiego, jest położony w górnej części urwistego i eksponowanego żlebu ograniczającego masyw skalny od południowego zachodu. Otwór ten jest również trudno dostępny. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za obszernym otworem p&oacute;łnocnym (1.), o wysokości 4,7 m i maksymalnej szerokości 7 m, znajduje się korytarz doprowadzający do dużego otworu południowego (2.) o wysokości 2,6 m i szerokości 4 m. Po wschodniej stronie odchodzi boczny, niski przełaz, prowadzący do obszernego korytarza rozwiniętego na poprzecznej szczelinie. W dw&oacute;ch trzecich jego długości, pod prawą ścianą, znajduje się wejście do ciasnego początkowo korytarza (ZI), kt&oacute;ry systematycznie rozszerza się i prowadzi do obszernego otworu 3., o wysokości 3,8 m i szerokości 3,6 m. Ta część jaskini była wcześniej znana jako niezależny obiekt pod nazwą Jaskinia w Leszczynie.</p>
+<p>Jaskinia rozwinięta jest w wapieniu skalistym jury g&oacute;rnej na pionowych i ukośnych, rozmytych szczelinach ciosowych. Korytarze mają charakterystyczny p&oacute;łokrągły przekr&oacute;j, z lokalnie widoczną rynną stropową. Na stropie i ścianach całej jaskini widoczne kotły wirowe, o r&oacute;żnej średnicy, dochodzącej do kilkudziesięciu centymetr&oacute;w. W spągu pod osadami klastycznymi wypełniającymi jaskinię zachowana jest forma rynny dennej o głębokości ok. 2,5 m (Kowalski 2006). Jaskinia ma genezę krasową. Powstała na skutek rozmycia szczelin ciosowych, w warunkach freatycznych o czym świadczą kotły wirowe zachowane na stropie jaskini, a następnie wadycznych, co dokumentuje rynna denna zachowana pod osadami wypełniającymi jaskinię. Jest fragmentem większej pr&oacute;żni krasowej i pierwotnie stanowiła jeden system wraz z położoną w pobliżu Jaskinią Ciemną. Do systemu tego należał także Ogrojec, kt&oacute;ry w dzisiejszym kształcie powstał na skutek obrywu stropu i zniszczenia pr&oacute;żni krasowej przez procesy erozyjne. Obryw ten nastąpił z całą pewnością przed interglacjałem eemskim, a zapewne także przed przedostatnim zlodowaceniem.</p>
+<p>Namulisko w otworach humusowe z gruzem wapiennym, pokryte liśćmi. W pobliżu otworu 2. na spągu dużych rozmiar&oacute;w bloki wapienne. W głębszych partiach jaskini namulisko gliniaste z gruzem i otoczakami wapiennymi. Spąg miejscami pokryty mlekiem wapiennym. W jaskini występują niewielkie stalaktyty i żebra naciekowe, nacieki ze skonsolidowanego mleka wapiennego, naciek grzybkowy oraz struktury<em> vermiculations</em>.</p>
+<p>Jaskinia wilgotna. Gł&oacute;wny ciąg, pomiędzy otworami 1 i 2, całkowicie oświetlony, od otworu 3. światło sięga kilkanaście metr&oacute;w w głąb. Mikroklimat zależny od warunk&oacute;w panujących na powierzchni.</p>
+<p>Ściany w korytarzu pomiędzy otworem 1 a 2 pokryte glonami, porostami i mchami, a w otworze 1 w szczelinach paprocie (<em>Asplenium trichomanes</em>) i rośliny naczyniowe (<em>Campanula rotundifolia</em>,<em> C. bononiensis</em>, <em>Ribes alpinum</em>). Na spągu w granicach okap&oacute;w liczne rośliny naczyniowe. W otworze p&oacute;łnocnym (1.) m.in. rośliny zielne (<em>Brachypodium sylvaticum</em>,<em> Bromus</em> sp., <em>Campanula rapunculoides</em>, <em>Chaerophyllum aromaticum</em>, <em>Chelidonium majus</em>, <em>Galium schultesi</em>, <em>Geranium robertianum</em>, <em>Geum urbanum</em>, <em>Laserpitium latifolium</em>, <em>Mycelis muralis</em>, <em>Plantago media</em>, <em>Solidago virga-aurea</em>, <em>Taraxacum officinale</em> s.l., <em>Tussilago farfara</em>, <em>Urtica dioica</em>), krzewy (<em>Corylus avellana</em>, <em>Rubus idaeus</em>, <em>Sambucus nigra</em>) i siewki drzew (<em>Fraxinus excelsior</em>, <em>Quercus petraea)</em>. W otworze południowym (2.) m.in. rośliny zielne (<em>Chaerophyllum temulum</em>, <em>Chelidonium majus</em>, <em>Galium</em> sp., <em>Geranium robertianum</em>, <em>Mycelis muralis</em>, <em>Poa nemoralis</em>, <em>Solidago virga-aurea</em>,<em> Stellaria media</em>, <em>Urtica dioica</em>, <em>Verbascum</em> sp.,<em> Viola collina</em>), krzewy (<em>Sambucus nigra</em>) i siewki drzew (<em>Fagus sylvatica</em>, <em>Fraxinus excelsior</em>). W otworze 3 (otworze Jaskini w Leszczynie) na ścianach glony, porosty, mchy, paprocie (<em>Asplenium ruta-muraria</em>) i rośliny naczyniowe (<em>Geranium robertianum</em>), a na spągu rośliny naczyniowe, w tym m.in. rośliny zielne (<em>Chelidonium majus</em>, <em>Geranium robertianum</em>), krzewy (<em>Ribes uva-crispa</em>, <em>Rubus idaeus</em>) i młodociany okaz jaworu (<em>Acer pseudoplatanus</em>).</p>
+<p>Podczas inwentaryzacji stwierdzono występowanie much&oacute;wek, pająk&oacute;w i kokon&oacute;w pajęczych oraz jednego niezidentyfikowanego nietoperza. Na powierzchni namuliska znajdują się obecnie nieliczne kości zwierzęce. Podczas inwentaryzacji zebrano: astrogalus niedźwiedzia (być może <em>Ursus spelaeus</em>), kręg krowy (<em>Bos taurus</em>) i kości kozy lub owcy (<em>Capra</em> sp./<em>Ovis</em> sp.).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W trakcie prac inwentaryzacyjnych znaleziono: brzusiec wczesnośredniowiecznego naczynia, fragment naczynia gotyckiego (XIV&ndash;XV w.), na powierzchni namuliska fragmenty ceramiki, znaleziono cztery fragmenty naczyń p&oacute;źnośredniowiecznych lub pochodzących z czas&oacute;w rzymskich.<br />Jaskinia była przedmiotem kilkukrotnych badań wykopaliskowych. Zaznaczyć trzeba, że wszystkie badania, poza pierwszymi pracami S.J. Czarnowskiego, były prowadzone w zasadzie nie wewnątrz jaskini, lecz w pobliżu jej otworu p&oacute;łnocnego, a gł&oacute;wnie na terenie przedotworowym, w tzw. Ogrojcu. W literaturze wyniki tych badań są bardzo r&oacute;żnie przedstawiane, a zabytki tam znalezione klasyfikowane jako pochodzące z Oborzyska Wielkiego lub, częściej, z Jaskini Ciemnej, gdyż ta zbiorcza nazwa jest zazwyczaj stosowana dla całego stanowiska archeologicznego w rejonie Jaskini Ciemnej obejmującego przyotworowe części tej jaskini, Ogrojec i przyotworowe części Oborzyska Wielkiego.<br />Jako pierwszy badania wykopaliskowe w Oborzysku Wielkim prowadził S.J. Czarnowski. W latach 1901&ndash;1908 szczeg&oacute;łowo przekopał on g&oacute;rne partie namuliska do głębokości ok.<br />1&ndash;1,5 m w zasadzie na całej powierzchni pomiędzy otworem p&oacute;łnocnym i południowym, a także na obszarze Ogrojca. W 1909 r. badacz ten prowadził wykopaliska w korytarzu prowadzącym ku wschodowi, czyli tzw. Komorze Bocznej. Badania w części przyotworowej, jak wynika z planu S.J. Czarnowskiego (1924) mniej więcej w linii okapu otworu p&oacute;łnocnego, przeprowadzili S.J. Czarnowski i R. Schmidt w lecie 1912 r. (S.J. Czarnowski 1924; Partyka 1992c). Towarzyszył im zapewne r&oacute;wnież L. Kozłowski. Kolejne prace wykopaliskowe w ciągu dw&oacute;ch sezon&oacute;w w lecie 1918 i 1919 r., skoncentrowane gł&oacute;wnie na terenie Ogrojca, prowadził S. Krukowski (1924, 1927). Szczeg&oacute;ły dotyczące tych prac zestawili D. Piotrowska (2006a), S.K. Kozłowski (2007) i ostatnio M. Kot i in. (2019b). Ostatni etap prac archeologicznych to wykopaliska S. Kowalskiego w latach 1963&ndash;1968, skoncentrowane r&oacute;wnież gł&oacute;wnie na terenie Ogrojca, lecz także w przyotworowej części Oborzyska Wielkiego i w Tunelu będącym częścią Jaskini Ciemnej (np. S. Kowalski 1971, 2006). S.J. Czarnowski przeprowadził r&oacute;wnież rekonesansowe prace w Jaskini w Leszczynie, będącej w&oacute;wczas niezależnym obiektem; miało to miejsce najprawdopodobniej r&oacute;wnież przed I wojną światową (S.J. Czarnowski 1924).<br />W części przy otworze 1 miąższość namuliska sięga ponad 5 m (S. Kowalski 2006). Składa się w wierzchniej warstwie z pr&oacute;chnicy holoceńskiej, następnie z serii lessowej ze zmienną domieszką gruzu skalnego częściowo zdeformowanej krioturbacyjnie sięgającej do głębokości ok. 2 m. Poniżej znajdowała się kilkunastocentymetrowej miąższości prądnicka warstwa kulturowa o wyraźnie ciemnym zabarwieniu, a jeszcze niżej kompleks glin ze zmienną domieszką gruzu o r&oacute;żnym stopniu ogładzenia (S. Kowalski 2005). Przeprowadzone ostatnio w Jaskini Ciemnej badania oraz analiza danych archiwalnych umożliwiły odtworzenie przestrzennych relacji poszczeg&oacute;lnych warstw i poziom&oacute;w kulturowych w tej jaskini, w sąsiedztwie jej otworu (w tym w Ogrojcu) i w przyotworowej części Oborzyska Wielkiego (P. Valde-Nowak i in. 2016a, 2016b). Prądnicka warstwa kulturowa zawierała liczne narzędzia krzemienne i kości zwierzęce. W zewnętrznej warstwie namuliska o miąższości do 1,5 m na odcinku pomiędzy otworem p&oacute;łnocnym (1.) i południowym (2.) znajdowały się pozostałości dziesięciu ognisk. W namulisku jaskini znaleziono bogaty inwentarz materiał&oacute;w archeologicznych obejmujący zabytki od środkowego paleolitu po czasy historyczne, a także liczne kości zwierzęce. S.J. Czarnowski (1904a) znalazł w osadach tej jaskini czaszkę ludzką, kt&oacute;ra wstępnie została uznana za wykazującą cechy neandertalskie (K. Stołyhwo 1904). P&oacute;źniejsze badania wykazały, że jest to czaszka neolityczna i zapewne pełniła funkcje rytualne (J. Lech 2006).<br />Oborzysko Wielkie nie było w zasadzie przedmiotem innych, poza archeologicznymi, badań naukowych. E. Sanocka-Wołoszynowa (1981) prowadziła badania pajęczak&oacute;w, lecz najprawdopodobniej jedynie w pobliskiej Jaskini Ciemnej.<br />Części jaskini położone pomiędzy otworami 1 i 2 znane od dawna pod nazwą Oborzysko Wielkie. Zapewne pierwsze pisemne informacje o nich pochodzą od Gruszeckiego (1878). Następnie są licznie wzmiankowane w literaturze krajoznawczej, turystycznej i pamiętnikarskiej; a fotografie tego fragmentu jaskini publikowane w przewodnikach i albumach. Często są opatrzone błędna nazwą &bdquo;Jaskinia Ciemna&rdquo;. Ta część jaskini została splanowana przez S.J. Czarnowskiego przed I wojną światową (S.J. Czarnowski 1924). Druga część jaskini znana była pod nazwą Jaskinia w Leszczynie lub Jaskinia Leszczynowa. Pierwsze pisemne wzmianki o tej jaskini zawdzięczamy zapewne S.J. Czarnowskiemu (1910). Obie jaskinie zinwentaryzował K. Kowalski; Jaskinię w Leszczynie w dniu 07.11.1947 r., a Oborzysko Wielkie w dniu 22.05.1953 r., traktując go jako jeden obiekt wraz z Jaskinią Ciemną. Można sądzić jednak, że data inwentaryzacji obu tych jaskiń dotyczy ostatecznego sporządzenia planu i opisu, bowiem z pisemnych relacji autora (K. Kowalski 2004, 2006) wiemy, że Jaskinia Ciemna, a więc i Oborzysko Wielkie, nie zostały uwzględnione w pierwszym tomie inwentarza Jaskinie Polski (Kowalski K. 1951) z powodu ingerencji cenzury. Tak więc ich dokumentacja musiała być gotowa już przed 1951 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Części jaskini położone pomiędzy otworami 1 i 2 znane od dawna pod nazwą Oborzysko Wielkie. Zapewne pierwsze pisemne informacje o nich pochodzą od Gruszeckiego (1878). Następnie są licznie wzmiankowane w literaturze krajoznawczej, turystycznej i pamiętnikarskiej; a fotografie tego fragmentu jaskini publikowane w przewodnikach i albumach. Często są opatrzone błędna nazwą &bdquo;Jaskinia Ciemna&rdquo;. Ta część jaskini została splanowana przez S.J. Czarnowskiego przed I wojną światową (S.J. Czarnowski 1924). Druga część jaskini znana była pod nazwą Jaskinia w Leszczynie lub Jaskinia Leszczynowa. Pierwsze pisemne wzmianki o tej jaskini zawdzięczamy zapewne S.J. Czarnowskiemu (1910). Obie jaskinie zinwentaryzował K. Kowalski; Jaskinię w Leszczynie w dniu 07.11.1947 r., a Oborzysko Wielkie w dniu 22.05.1953 r., traktując go jako jeden obiekt wraz z Jaskinią Ciemną. Można sądzić jednak, że data inwentaryzacji obu tych jaskiń dotyczy ostatecznego sporządzenia planu i opisu, bowiem z pisemnych relacji autora (K. Kowalski 2004, 2006) wiemy, że Jaskinia Ciemna, a więc i Oborzysko Wielkie, nie zostały uwzględnione w pierwszym tomie inwentarza Jaskinie Polski (Kowalski K. 1951) z powodu ingerencji cenzury. Tak więc ich dokumentacja musiała być gotowa już przed 1951 r.<br />Można przypuszczać, że jaskinia była wykorzystywana przez okoliczną ludność jako schronienie w czasach historycznych. J. Bogdanowski (1964, 1993) sugeruje, że z powodu naturalnego ukształtowania terenu mogła w średniowieczu wraz z Ogrojcem i wstępnymi partiami Jaskini Ciemnej pełnić rolę zespołu warownego.<br />Jaskinia uznana za zabytek archeologiczny nr 899 przez Wojew&oacute;dzkiego Konserwatora Zabytk&oacute;w i Wydział Kultury W.R.N. w Krakowie decyzją V/3/92/68 z dnia 18.10.1968 r. (A. Krauss 1970). Obecnie figuruje w rejestrze zabytk&oacute;w nieruchomych pod numerem 1847 jako jeden obiekt z Jaskinią Ciemną (D. Jaskanis 1988).<br />Obecnie w części jaskini przy otworze p&oacute;łnocnym usytuowane są manekiny ludzi neandertalskich, makieta ogniska oraz duża ilość kości kręgowc&oacute;w, tworzące wystawę edukacyjną. W bocznym korytarzu znajduje się znaczne ilości śmieci.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Przejście łączące obie jaskinie przekopali ok. 1969 r. A. G&oacute;rny i A. Kobyłecki. Wymieniona w wykazie przez M. Szelerewicza i A. G&oacute;rnego (1986) jako jeden obiekt wraz z Jaskinią Ciemną. Jaskinia ponownie zinwentaryzowana 03.06.2007 r. przez B. Michalską, M. Wawrykę z pomocą J. Ganszera. Pomiary wykonano przy pomocy busoli Freiberg i taśmy pomiarowej z wł&oacute;kna szklanego. Obserwacje uzupełniające przeprowadził M. Wawryka-Drohobycki 29.11.2019 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Wawryka (wkładka na końcu tomu).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Gruszecki A. 1878 (wzmianka); Czarnowski S.J. 1903b (informacja o znalezieniu czaszki w jaskini wraz z zabytkami neolitycznymi i muszlami ślimak&#243;w); Czarnowski S.J. 1904a (położenie, opis osad&#243;w w części przyotworowej, informacje o znalezieniu ogniska oraz narzędzi krzemiennych, wyrob&#243;w z kości, fragment&#243;w naczyń glinianych, kości zwierzęcych, fragmentu czaszki ludzkiej, muszli ślimak&#243;w); Stołyhwo K. (analiza czaszki znalezionej przez S.J. Czarnowskiego); Czarnowski S.J. 1911 (położenie i kr&#243;tki opis obu jaskiń, wymienione w wykazie, lokalizacja na schematycznej mapie); Lencewicz S. 1912b (dane morfometryczne czaszki znalezionej przez S.J. Czarnowskiego); Talko-Hryncewicz J. 1913 (om&#243;wienie czaszki); Czarnowski S.J. ok. 1914 (lokalizacja na schematycznej mapie); Czarnowski S.J. 1924 (opis Oborzyska Wielkiego, charakterystyka osad&#243;w, przebieg prac wykopaliskowych, informacje o znaleziskach, plan i przekroje; wzmianka o znalezieniu w Jaskini w Leszczynie licznych zabytk&#243;w prehistorycznych); Krukowski S. 1924 (stratygrafia osad&#243;w, opis znalezisk archeologicznych, wzmianka o szczątkach fauny plejstoceńskiej i węglach drzewnych); Krukowski S. 1927 (informacja o paleolitycznych narzędziach krzemiennych ze zbior&#243;w S.J. Czarnowskiego); Danysz-Fleszarowa R. 1933 (wymienione obie jaskinie jako niezależne obiekty); Ciętak Z. 1935 (wymienione w wykazie, lokalizacja na mapie); Jażdżewski K. 1936 (informacje o znalezieniu ślad&#243;w osadnictwa kultury puchar&#243;w lejkowatych); Reyman T. 1936 (wzmianka o znalezieniu ceramiki siwej wraz z ceramiką średniowieczną); Kowalski K. 1951 (Jaskinia w Leszczynie zinwentaryzowana jako niezależny obiekt, opis, plan, lokalizacja na mapie); Kowalski K. 1954 (w części Jaskinia Ciemna i Oborzysko Wielkie potraktowane jako jeden obiekt, opis, plan); Kowalski S. 1966 (wzmianki o prowadzeniu badań wykopaliskowych i znalezieniu narzędzi krzemiennych kultury prądnickiej i starszych); Kowalski S. 1967a (analiza wybranych materiał&#243;w krzemiennych z Ogrojca i wstępnych partii Oborzyska Wielkiego); Kowalski S. 1968 (kr&#243;tkie podsumowanie dotychczasowych prac autora, informacja o wyr&#243;żnieniu dw&#243;ch gł&#243;wnych poziom&#243;w osadniczych, wymienione zabytki młodsze od paleolitu, wzmianka o dw&#243;ch ludzkich szkieletach); Woźniak Z. 1968 (informacja o znalezieniu bogatego poziomu kulturowego ze środkowego paleolitu); Kozłowski J.K. 1970 (wzmianka o znalezieniu ceramiki z ornamentacją typu Bodrogkereszt&#250;r); Krauss A. 1970 (informacja o wpisaniu do rejestru zabytk&#243;w archeologicznych Jaskini w Leszczynie p.nr. 898); Kowalski S. 1971a (om&#243;wienie wynik&#243;w prac, charakterystyka inwentarza narzędzi krzemiennych ze środkowopaleolitycznej warstwy kulturowej, wzmianka o znaleziskach neolitycznych i młodszych); Kamieńska J. 1973 (informacje o znalezieniu ceramiki reprezentującej grupę malicką kultury nadcisańskiej, charakterystyka stanowiska); Czepiel M. 1976 (wymieniona Jaskinia w Leszczynie); Ginter B. 1978 (informacje o badaniach archeologicznych, znalezieniu wyrob&#243;w kultur prądnickiej, kultury lendzielskiej, kultury ceramiki promienistej, z epoki brązu); Rook E. 1980 (charakterystyka stanowiska łącznie z Jaskinią Ciemną, wykaz znalezisk neolitycznych reprezentujących: ceramikę kultury ceramiki wstęgowej rytej, kultury bukowogorskiej, grupy malickiej kultury lendzielskiej, grupy pleszowskiej kultury lendzielskiej, kultury puchar&#243;w lejkowatych, kultury ceramiki promienistej, kultury boszackiej, kultury ceramiki sznurowej, ponadto neolityczne wyroby z gliny, wyroby krzemienne, wyroby kamienne, wyroby z kości i rogu); Sanocka-Wołoszynowa E. 1981 (wyniki badań pajęczak&#243;w łącznie z wynikami z Jaskini Ciemnej, wykaz gatunk&#243;w pająk&#243;w i kosarzy, lokalizacja na schematycznej mapie); Szelerewicz M., G&#243;rny A. 1986 (wymienione w wykazie wraz z Jaskinią Ciemną jako jeden obiekt, lokalizacja na mapie); Wiśniewski W.W. 1989 (wzmianka o Oborzysku Wielkim – Jaskini w Leszczynie jako o obiekcie niezależnym od Jaskini Ciemnej); Gradziński M. i in. 1997b (wzmianki, schematyczny plan, charakterystyka znalezisk archeologicznych); Jaskanis D. 1998 (wymieniona jako zabytek archeologiczny; Dobrzańska H. 2006 (wymienione znaleziska z okresu wpływ&#243;w rzymskich, rozważane wykorzystywanie w charakterze refugi&#243;w); Kadrow S. 2006 (informacje o zasiedlaniu w p&#243;źnym neolicie i epoce brązu, jaskinia traktowana jako jeden obiekt z Jaskinią Ciemną); Kowalski S. 2006 (informacje o badaniach Krukowskiego, om&#243;wienie wynik&#243;w badań autora); Gradziński M. i in. 2007 (opis i plan inwentarzowy, lokalizacja na mapie); Wojtal P. 2007 (charakterystyka szczątk&#243;w kopalnych dużych ssak&#243;w); Gradziński M. i in. 2011c (opis, plan, lokalizacja na schematycznej mapie); Wojenka M. 2012 (wzmianka o znalezieniu średniowiecznych artefakt&#243;w); Ginter B. i in. 2014 (schematyczny plan p&#243;łnocnego fragmentu); Wojtal P. i in. 2015 (daty 14C z kości Ursus spelaeus); Krajcarz M.T. i in. 2016 (wzmianka o artefaktach środkowopaleolitycznych w osadach lessowych); Rydzewski J. 2016 (wzmianka o znaleziskach z czas&#243;w rzymskich); Valde-Nowak P. i in. 2016a (schematyczny plan p&#243;łnocnego fragmentu, korelacja profili); Wojenka M. 2017 (wzmianka o znalezieniu żelaznych ostr&#243;g); Gradziński M. i in. 2020 (monograficzny opis, plan, pełna bibliografia, lokalizacja na mapie). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Beata Michalska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(14034)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(15061)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

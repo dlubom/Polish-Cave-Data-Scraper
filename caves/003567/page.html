@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3567">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3567;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "537440,1284".replace(',', '.') + "," + "300800,9023".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3567','Jaskinia Głęboka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Głęboka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Głęboka w Berkowej G&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.III-06.02
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;31′44,00″, φ: 50&#176;34′23,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kroczyce (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                zawierciański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku NNW; 3 - ku N; 4 - ku E.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                365
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                12,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                16,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    170
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Podlesice, Skałki Kroczyckie, G&#243;ra Zbor&#243;w (Berkowa).
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się w zachodnim zboczu Góry Zborów. Otwory NNW i SW znajdują się u podstawy ścian nieczynnego kamieniołomu. Są sztuczne. Otwory N i E są w obrębie łomiku szpatowego, położonego nad zboczem kamieniołomu, u stóp Skałki Kruka. Do kamieniołomu prowadzi polna droga, biorąca swój początek 200 metrów wcześniej - koło parkingu przy asfaltowej drodze Kotowice - Kroczyce. Jaskinia jest łatwa w zwiedzaniu, jedynie pokonanie ciasnych korytarzy może stwarzać pewne trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p style="">Jaskinia posiada cztery otwory. Dwa z nich znajdują się u podstawy zachodniej ściany kamieniołomu (1, 2), a dwa pozostałe w leju położonym za północną ścianą kamieniołomu (3, 4). Wygląd leja wskazuje, że otwory w tym miejscu (podobnie jak otwory w kamieniołomie) zostały odsłonięte w sposób sztuczny (odkopane). Jaskinia Głęboka składa się z dwóch, wyraźnie zaznaczonych części – części północnej i&nbsp;południowej. Oba te fragmenty łączy bardzo ciasny korytarzyk o charakterze szczeliny skalnej.</p>  <p style="">Część północna posiada 3 otwory. Otwór (2) oraz leżący za nim korytarz jest silnie przekształcony w trakcie robót górniczych, prowadzonych w kamieniołomie oraz w&nbsp;jaskini. Kilka metrów za tym otworem, po prawej stronie korytarza, w zagłębieniu dna, znajduje się wejście do korytarzyka łączącego obie części jaskini. Wejście to jest częściowo przysłonięte luźnymi głazami - pozostałością po robotach wydobywczych. w&nbsp;środkowej części Partii Północnych znajduje się niewysoki, ślepy komin, który zachował swój naturalny charakter, a jego górna część jest pokryta polewami kalcytowymi. W miejscu tym zachowały się także resztki nacieku pagodowego. U&nbsp;podstawy tego komina znajduje się wejście do niskiego, opadającego w dół, korytarzyka o&nbsp;długości około 10 m. Korytarzyk kończy się ślepo a jego dno jest pokryte dużą ilością gruzu skalnego. Za nim znajduje się dalsza część korytarza, która wznosząc się nieco w górę prowadzi do otworu trzeciego (3). Sam otwór zachował się w&nbsp;pierwotnym stanie, a w jego stropie jest widoczny duży kocioł wirowy z&nbsp;mniejszymi zagłębieniami wirowymi. W bezpośrednim sąsiedztwie otworu (3) leży kolejny otwór (4). Jest to bardzo niska wnęka w skale, prowadząca do tak samo niskiego korytarzyka, który po skręcie w lewo łączy się z główną częścią Partii Północnych. Ten fragment jaskini rozwinął się na rozluźnieniu międzyławicowym i jest on w niewielkim stopniu przekształcony przez roboty wydobywcze.</p>  <p style="">Do części południowej Jaskini Głębokiej prowadzi tylko jeden otwór (1). Jest on dość szeroki choć niezbyt wysoki, w połowie rozciągłości przedzielony blokiem skalnym. Otwór ten kiedyś był zapewne znacznie większy. Od strony wnętrza jaskini widać wyraźnie, że jego dolna część jest przysypana gruzem. Otwiera się on wprost do największej sali jaskini, o wymiarach 24x12 m. Sala rozwinięta jest generalnie na południe, a jej dno opada stromą pochylnią, podciętą kilkoma prożkami, o wys. od 0,6 do 2,0 m. Wzdłuż lewej orograficznie ściany sali, w ramach turystycznego udostępniania jaskini, ułożono kamienne stopnie i zbudowano barierkę. Urządzenia te szybko zostały zdewastowane.</p>  <p style="">Sala Wejściowa to duża komora powstała w wyniku przepływów freatycznych, przemodelowana w skutek procesów tektonicznych, a na koniec jej wnętrze zostało przekształcone antropogenicznie. Jej dno, zbudowane przede wszystkim z dużych bloków skalnych, oprócz tego że nachylone, jest jeszcze przedzielone kilkoma niezbyt wysokimi prożkami. W dolnej części dno tej Sali staje się płaskie i jest wysłane grubą warstwą bloków skalnych. Zaraz za wejściem po lewej stronie jest prawie pozioma półka, która od wschodniej strony osiąga wysokość około 3 m. Z tej półki w kierunku północno-wschodnim prowadzi ciasna szczelina do Partii Północnych. Około 4 m na wprost za otworem, w progu skalnym, znajduje się wąska półka skalna a&nbsp;w niej wejście do Partii pod Schodami. Ta część jaskini ma charakter typowo zawaliskowy, a&nbsp;rozwinęła się na jednym z opisywanych wcześniej uskoków tektonicznych. Jest to wąska, silnie nachylona w kierunku NW kieszeń, kończąca się płytką studzienką, zasypaną w&nbsp;tej chwili gruzem skalnym.</p>  <p style="">W dolnej części Sali Wejściowej, u podstawy pochylni, tuż przed dużym filarem znajduje się 12-metrowy, niski korytarzyk Mytego Ciągu, zakończony niedużą, naciekową salką. Zachowały się tutaj nieduże stalaktyty oraz wystające ze ściany resztki polew, świadczące o dawnym poziomie namuliska. Samo namulisko jest piaszczyste (czerwony piasek typu <em>terra rosa</em>). Strop Sali Wejściowej, zaraz za otworem wznosi się wysoko w górę, do szczeliny wypełnionej brekcją tektoniczną i&nbsp;mlekiem wapiennym. Takim samym mlekiem jest wypełniony ślepy komin o&nbsp;wysokości około 8 m. Za szczeliną i kominem strop opada gwałtownie aby w&nbsp;najniższym miejscu osiągnąć wysokość kilkudziesięciu centymetrów. W&nbsp;tym miejscu znajduje się niskie przejście Sali za Obniżeniem Stropu. Strop tej Sali jest bardzo silnie skorodowany i&nbsp;pokryty ciemnymi polewami. Dno pokryte jest grubą warstwą gruzu skalnego. W północnej ścianie Sali za Obniżeniem Stropu widoczna jest szeroka szczelina, całkowicie zablokowana dużymi blokami skalnymi. W wielu miejscach są one spojone mlekiem wapiennym. Prawdopodobnie łączy się ona z powierzchnią.</p>  <p style="">W zachodnim narożniku Sali za Obniżeniem Stropu, u podstawy ściany znajduje się wejście do bardzo ciasnego i krętego korytarzyka Esso. Zachował on swój pierwotny charakter. Korytarz ten ma średnicę około 0,4 m, jest przedzielony dwoma około 1,5-metrowymi progami. Po około 10 m doprowadza on do niskiej ale stosunkowo obszernej Salki Naciekowej. Zachowały się tutaj ładnie wykształcone polewy naciekowe, niestety przybrudzone gliną, całkiem spore stalagmity (jeden o wysokości 1&nbsp;metra!) oraz niewielkie, ale występujące w dużej ilości stalaktyty, tworzące specyficzną, jakby gąbczasto-porowatą strukturę. W salce tej kończą się dostępne obecnie części Jaskini Głębokiej.</p>  <p style="">&nbsp;W jaskini przeprowadzono badania florystyczne i klimatyczne. W okolicy otworu głównego stwierdzono występowanie 13 gatunków mszaków, przy otworze SW – 1 gatunek, przy otworze N – 9 gatunków i&nbsp;przy otworze E – 1 gatunek. Partie przyotworowe jaskini cechuje silna dynamika klimatyczna. Natomiast poniżej pochylni klimat jest statyczny. Światło bezpośrednie oświetla tylko partie przyotworowe. Światło pośrednie i rozproszone dociera do końca pochylni oraz obejmuje dużą część korytarza między otworami SW i N.</p>  <p style="">&nbsp;W jaskini sporadycznie zimują pojedyncze nietoperze, należące do gatunków: nocek duży <strong><em>Myotis myotis</em></strong> (max. 4 os. – 29.01.95), nocek Natterera <strong><em>Myotis nattereri </em></strong>(2 os. – 12.02.93), podkowiec mały <strong><em>Rhinolophus hipposideros</em></strong> (1 os. – 09.01.89, 2 os. - 2008), nocek rudy <strong><em>Myotis&nbsp;daubentonii</em></strong> (2 os. – 29.01.95) i gacek brunatny <strong><em>Plecotus auritus </em></strong>(1&nbsp;os.- 29.01.95).</p>  <p style="">Jaskinia powstała w wapieniach górnej jury typu skalistego. W&nbsp;miejscu, w którym znajdują się główne sale jaskiniowe, dominuje wapień skalisty uławicony, co wyraźnie widać w stropie Sali wejściowej. Ławice wapienia zapadają w&nbsp;kierunku północnym pod kątem około 30 do 45°. W okresach większych opadów atmosferycznych do głównego otworu jaskini wpływa dość duża ilość wody, pochodząca z kanału krasowego, położonego nieco na prawo (na południe) i kilka metrów powyżej otworu. Specyficzne ukształtowanie terenu powoduje, że zamiast odpływać dnem kamieniołomu woda deszczowa wpływa do wnętrza jaskini i wsiąka w&nbsp;gruzowisko zalegające na dnie Sali Wejściowej. Woda opadowa jest drenowana w głąb, aż do poziomu otaczających Górę Zborów dolin rzecznych tj. do wysokości około 320 m n.p.m.</p>  <p style="">Jaskinia Głęboka, pomimo totalnych zniszczeń, zdołała zachować nieco wartości przyrodniczych. Należą do nich m.in.:</p>  <div style="">- dobrze widoczna, specyficzna tektonika tego fragmentu Góry Zborów,</div>  <div style="">- specyficzna, wieloetapowa geneza jaskini,</div>  <p style="">- formy korozyjno-erozyjne, osady i nacieki jaskiniowe będące odzwierciedleniem minionych procesów torfotwórczych,</p>  <p style="">- ciągle żywe procesy krasowe (powstawanie nowych nacieków), dążące do zabliźnienia ran po eksploatacji wapieni i kalcytu,</p>  <p style="">- mikroklimat jaskiniowy, który dzięki dostępności jaskini może być obserwowany przez cały rok,</p>  <div style="">- miejsce zimowania kilku gatunków nietoperzy.</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    W jaskini przeprowadzono badania florystyczne i klimatyczne.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Otwór jaskini został odsłonięty około 1942 r. podczas robót w kamieniołomie, zarządzanych przez władze okupacyjne. Kamieniołom został założony przez Niemców w okresie II wojny światowej, w celu pozyskania materiału skalnego dla naprawy drogi Kroczyce-Żarki. W 1949 roku kamieniołom był już nieczynny, lecz często odwiedzany przez „szpaciarzy”, którzy z Jaskini Głębokiej wydobywali duże ilości kalcytu (zwanego szpatem). Wtedy też zniszczono szatę naciekową groty.&nbsp; Korytarzyk Esso i inne boczne ciągi zostały odkryte później, przez anonimowych grotołazów (nazwa „Esso” pochodzi od esowatego kształtu tego korytarza). W roku 1979 jaskinia została skatalogowana przez K. Mazika, pod nieco zmodyfikowaną ale popularną nazwą Jaskini Głębokiej. W stosunku do tej jaskini używano także innych nazw, takich jak: W kamieniołomie, Eso i Naciekowa.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia została pierwszy raz opisana przez K. Kowalskiego w roku 1949,  jako „Jaskinia Głęboka w Berkowej Górze”, pod numerem inwentarzowym 440. Dokumentację jaskini oraz pomiary wykonali: Z. Lorek, K. Mazik i A.  Ziober w dniach: 10-12 marca i 28 kwietnia 1979. Aktualizację i  uzupełnienia wykonał J. Zygmunt, z pomocą M. Wilczka, w dniu 9 lipca 2009  r. Salka za korytarzykiem Esso była także drugi raz splanowana - przez  M. Janułę ze Speleoklubu Bielskiego.<br />Plan opracował K. Mazik, Z. Lorek, J. Zygmunt.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Sosnowski K. 1949 (wzmianka); Kowalski K. 1951 (plan, opis); Mazik K. 1979 (plan, opis); Szelerewicz M., G&#243;rny A. 1986 (plan, opis); Ganszer J. 1988 (plan partii za Esso); Jędrzejko K., Ziober A. 1992 (badania mszak&#243;w naskalnych); Pawełczyk M. 1997 (plan i opis Mytego Ciągu); Krajewski M., Matyszkiewicz J. 2009 (tektonika); Stefaniak K. i in. 2009d (błędne dane morfometryczne, kr&#243;tka charakterystyka, zakres badań);Tyc A. 2009b (w kontekście ochrony przyrody); Jaskinie Wyżyny Częstochowskiej 2010 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Postawa T. 2001 (sprawozdanie z obserwacji nietoperzy); Polonius A. 2008 (ekspertyza geologiczna).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius, Jerzy Zygmunt, Krzysztof Mazik
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Mikuszewski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3251)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=171" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

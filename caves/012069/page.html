@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F12069">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 12069;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "553322,91".replace(',', '.') + "," + "264923,55".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('12069','Jaskinia w Paskowych Dołach '); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia w Paskowych Dołach 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                ?Schronisko na Paskowych dołkach, ?Schronisko Paska, ?Jaskinia w Sułoszowej, Jaskinia w Sułoszowej, Lisica, Jaskinia Sułoszowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02c.206
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;44′53,29″, φ: 50&#176;14′56,73″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Sułoszowa (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Ojcowski Park Narodowy - otulina
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                445
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    81
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sułoszowa I, Paskowe Doły, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia położona jest w skałach na prawym zboczu bocznego wąwozu Paskowe Doły w jego górnej części. Od wylotu wąwozu do Doliny Prądnika (koło nieczynnej piekarni w Sułoszowej) idziemy utwardzoną drogą w górę wąwozu ok. 1,4 km, aż do wąskiej, asfaltowej drogi. Około 20 m przed nią skręcamy na prawy stok, kierując się w stronę małej, słabo widocznej skały o wysokości ok. 5 m położonej na skraju lasu z otworami Szczeliny Dwuotworowej w Paskowych Dołach J.Olk.I-02c.207. Mijamy tą skałę i idziemy ok. 100 m drogą biegnącą ku NE. Następnie kierujemy się w prawo w górę w stronę skał położonych powyżej na zboczu. Otwór jaskini znajduje się u podstawy tych skał. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za otworem o wysokości 1,7 m i szerokości u podstawy 0,9 m znajduje się stromo opadający korytarz prowadzący do wnętrza. Jaskinia składa się z dw&oacute;ch, połączonych z sobą sal i biegnącego ku wschodowi korytarza. Sala wschodnia stopniowo obniża się ku południowi, aż do rozmiar&oacute;w uniemożliwiających dalsze przejście.</p>
+<p>Jaskinia rozwinięta jest w wapieniu skalistym jury g&oacute;rnej cechującym się wyraźnym uławiceniem. Powstała wzdłuż szczelin ciosowych i powierzchni międzyławicowych. W stropie miejscami widoczne są kotły wirowe. Jaskinia ma genezę krasową. Zachowane formy pozwalają stwierdzić, że rozwijała się w warunkach freatycznych. Następnie została przemodelowana przez obrywy blok&oacute;w ze stropu wzdłuż powierzchni międzyławicowych.</p>
+<p>Namulisko przy otworze humusowe, w głębi gliniaste z dużą ilością gruzu wapiennego. Miejscami na dnie znajdują się bloki o rozmiarach do kilku metr&oacute;w, rozdzielające salę na niezależne części. W otworze na stropie widoczne są fragmenty scementowanego osadu złożonego z gruzu wapiennego oraz krzemieni.</p>
+<p>W jaskini znajdują się niewielkie stalagmity i stalaktyty. Ponadto występują polewy z miękkiego i skonsolidowanego kożuchowego mleka wapiennego, a w głębszej części także nacieki ze spilśnionego mleka wapiennego. W 1993 r. stwierdzone były także stalaktyty z kożuchowego mleka wapiennego, kt&oacute;re nie zachowały się do dzisiaj.</p>
+<p>Jaskinia w głębi zupełnie ciemna.</p>
+<p>W otworze na ścianach glony. We wrześniu 1993 r. w zachodniej sali jaskini zaobserwowano występowanie grzyb&oacute;w kapeluszowych rosnących na butwiejącym drewnie.</p>
+<p>Podczas inwentaryzacji stwierdzono obecność pająk&oacute;w. Odnotowana został obecność zimujących nietoperzy w jaskini. Maksymalną frekwencję odnotowano w latach 2013 i 2017. Łącznie stwierdzono przedstawicieli sześciu gatunk&oacute;w nietoperzy, w tym gacka szarego (<em>Plecotus austriacus</em>) rzadko występującego w jaskiniach OPN. Najliczniej występującym nietoperzem jest podkowiec mały (<em>Rhinolophus hipposideros</em>).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania szaty naciekowej prowadził M. Gradziński w 1993 r. Od początku XX w. w lutym każdego roku odbywa się systematyczny monitoring nietoperzy prowadzony przez liczne zespoły w ramach og&oacute;lnopolskiej akcji Dekada Spisu Nietoperzy (W. Grzywiński i in. 2004, 2006, 2015; J. Nowak i W. Grzywiński 2007, 2012, 2017; K. Kozakiewicz i B. W. Wołoszyn, 2008).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od dawna; miejscowa ludność nazywała ją Lisica (K. Kowalski 1951). Zapewne pierwsze pisemne wzmianki jej dotyczące pochodzą od S.J. Czarnowskiego (1905a, 1911, 1911b). Była wykorzystywana jako schronienie przez miejscowa ludność w czasie II wojny światowej. W 1994 r. otw&oacute;r wejściowy został zasypany głazami zapewne przez miejscową ludność. Otw&oacute;r został odkopany zapewne latem lub wczesną jesienią 2000 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Została zinwentaryzowana 04.06.1948 r. przez K. Kowalskiego, opisana i wymieniona w wykazie przez M. Szelerewicza i A. G&oacute;rnego (1986). Jaskinia została ponownie zinwentaryzowana 11.11.2000 r. przez M. Wawrykę z pomocą B. Bartela, K. Polańskiej i S. Zag&oacute;rskiego. Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego. Obserwacje uzupełniające przeprowadził M. Wawryka-Drohobycki 19.10.2019 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Wawryka</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Czarnowski S.J. 1905a (wzmianka o jaskiniach i schroniskach we wsi Sułoszowa, być może dotyczy tej jaskini); Czarnowski S.J. 1911 (wzmianka o Schronisku na Paskowych dołkach we wsi Sułoszowa na gruncie Jana Paska, zapewne dotyczy tej jaskini lub Tunelu w Paskowych Dołach); Czarnowski S.J. 1911b (wzmianka o schronisku we wsi Sułoszowa na gruncie Jana Paska, zapewne dotyczy tej jaskini lub Tunelu w Paskowych Dołach); Czarnowski S.J. ok. 1914 (lokalizacja Schroniska Paska na schematycznej mapie, zapewne dotyczy tej jaskini lub Tunelu w Paskowych Dołach); Danysz-Fleszarowa R. 1933 (wymieniona Jaskinia w Sułoszowej, informacja ta zapewne dotyczy tej jaskini lub Tunelu w Paskowych Dołach); Kowalski K. 1951 (opis inwentarzowy, plan, lokalizacja na mapie); Czepiel M. 1976 (wymieniona w wykazie); Szelerewicz M., G&#243;rny A. 1986 (położenie, opis dojścia, opis, historia poznania i plan, lokalizacja na mapie); Gradziński M. 1994–1995 (informacje o naciekach z mleka wapiennego, fot. naciek&#243;w); Kurek A. 1995b (informacja o zasypaniu otworu kamieniami); Gradziński M. i in. 2001 (inwentarzowy opis, plan, lokalizacja na mapie); Grzywiński W. i in. 2004 (podsumowanie występowania nietoperzy, wykaz gatunk&#243;w); Grzywiński W. i in. 2006 (lokalizacja na schematycznej mapie, informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Nowak J., Grzywiński W. 2007 (informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Gradziński M. i in. 2008 (wymieniona, lokalizacja na mapie); Kozakiewicz K., Wołoszyn B. W. 2008 (informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Nowak J., Grzywiński W. 2012 (informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Gradziński, 2014a (lokalizacja na mapie geologicznej, wzmianki); Grzywiński W. i in. 2015 (lokalizacja na schematycznej mapie, kr&#243;tka charakterystyka, informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Śliwiński W. 2016 (uwagi dotyczące nazewnictwa); Nowak J., Grzywiński W. 2017 (podstawowe parametry morfometryczne, informacje o występowaniu nietoperzy, wykaz gatunk&#243;w); Wojenka M. 2018a (wzmianka o ukrywaniu się miejscowej ludności podczas II wojny światowej, błędna lokalizacja na schematycznej mapie); Gradziński M. i in. 2020 (opis inwentarzowy, plan, lokalizacja na mapie). 
+Opracowali Michał Gradziński i Marcin Wawryka 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Marcin Wawryka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13879)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(15040)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

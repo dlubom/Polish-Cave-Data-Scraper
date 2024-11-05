@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3928">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3928;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "344824,8424".replace(',', '.') + "," + "279145,3826".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3928','Jaskinia Radochowska (S-3.1)'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Radochowska (S-3.1)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Reyersdorfer Tropfsteinh&#246;hle
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                S.I-02.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Sudety
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 16&#176;49′03,86″, φ: 50&#176;21′32,28″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Lądek-Zdr&#243;j (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kłodzki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                dolnośląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku N, 453 m n.p.m ; 3 - 458 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                450
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    265
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sudety Wschodnie, Radoch&#243;w, G&#243;ry Złote.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z drogi Kłodzko-Lądek Zdrój, zielonym szlakiem schodzimy w dół do doliny Białej Lądeckiej, w której znajduje się miejscowość Radochów. Przechodzimy przez most na rzece i idziemy drogą polną w górę, po zachodnim zboczu Góry Cierniak (591 m n.p.m), nazywanej też Górą Św. Marii – od sanktuarium znajdującego się na jej grzbiecie. Schodzimy do dolinki Potoku Radochowskiego, okresowego, niewielkiego potoku spływającego z południowych zboczy Góry Bzowiec (697,1 m n.p.m). Przekraczamy potok i dochodzimy do skraju lasu na południowo-wschodnim zboczu dolinki wspomnianego potoku. U podnóża niewielkich skałek występujących na zboczu dolinki są trzy otwory wejściowe do jaskini. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    Wejściem zachodnim schodzimy do sztucznej sztolni i nią stromo dostajemy się na platformę. Z platformy ku północy (w górę), biegnie korytarzyk, o długości ok. 10 m. Wracamy na platformę i po kilku stopniach osiągamy dno korytarza. W lewo (ku zachodowi), biegnie obszerny, ślepo zakończony kilkunastometrowy korytarz. Na wprost, w lewej (północnej) ścianie korytarza jest otwór prowadzący do błotnego korytarza na końcu którego stagnuje woda. Od wejścia zachodniego, w prawo ku północnemu wschodowi prowadzi długi, kręty korytarz. Po ok. 15 m, w lewej (północnej) ścianie są dwa otwory. Pierwszy prowadzi do niewielkiej, ślepej komory wypełnionej w części osadami gliniastymi, drugim po kilku metrach dojdziemy do salki, z której widać jeziorko. Wracamy do ciągu głównego. Po przejściu ok. 15 m (na wysokość środkowego otworu) dochodzimy do Salki Na Rozdrożu. W pobliżu otworu środkowego, w południowo-zachodniej ścianie, jest wejście do niewielkiej salki i dwóch ciasnych korytarzyków. Naprzeciw otworu środkowego, ku północy, biegnie w dół szeroki korytarz. Po kilku metrach, w zachodniej jego ścianie (po lewej), jest niski korytarzy, który doprowadza do wspomnianego wyżej jeziorka. Wracamy do Salki na Rozdrożu i idziemy dalej ku wschodowi, wykutymi w skale stopniami nad pięknie wymytym progiem skalnym, przez niewielki otwór przechodzimy do Komory Gotyckiej     największej sali jaskini. Ma ona 12 m długości, 3-4 m szerokości i około 3 m wysokości. Przy końcu sali jeziorko. Ściany sali z białego, ładnie wymytego marmuru. Sala na północno-wschodnim kierunku kończy się korytarzykiem wypełnionym wodą, a na zachodnim końcu, za 2-metrowym progiem kończy się ślepym korytarzem.<br />Wracamy do środkowego otworu i w lewo długim, szczelinowym korytarzem, mającym w końcowej części równoległą odnogę, dochodzimy do wschodniego otworu. Mijamy go idąc dalej i po ok. 10 m dochodzimy do zawaliska. Wracamy do otworu i wychodzimy na powierzchnię. <br />  <p style="text-indent: 36pt;"><span style="">Jaskinia powstała we wkładce czystego marmuru, częściowo na kontakcie z łupkami łyszczykowymi w serii strońskiej (Pulina 1977). Rozwój korytarzy postępował wzdłuż uwarunkowanych tektonicznie spękań i szczelin, a sal na skrzyżowaniu spękań. Dostępny obecnie fragment systemu krasowego posiada charakter horyzontalny. Jaskinia powstała w wyniku korozyjno-erozyjnego działania wód krasowych, wypełniających szczeliny i posiadających dużą siłę przepływu (Walczak 1956). Pod koniec plejstocenu nasilenie erozji doprowadziło do pogłębienia doliny, a w związku z obniżeniem koryta potoku obniżył się i poziom wód krasowych, doprowadzając do odwodnienia strefy przyotworowej jaskini (Walczak 1956). Gruz skalny na dnie największej sali dowodzi, że powstała ona przez zawalenie ścian łączących dwa korytarze. </span></p>  <p style="text-indent: 36pt;"><span style="">Namulisko tworzą osady ze zwietrzałych łupków łyszczykowych z domieszką, pochodzących z powierzchniowej zwietrzeliny osadów ilastych, gruzu, nacieków i substancji organicznych. Wypełniało ono prawie całkowicie komory i korytarze jaskini. Zostało usunięte w latach 1933‑39 (Walczak 1956). Proces tworzenia namuliska przez sączącą się z powierzchni wodę występuje również współcześnie. Zawartość paleontologiczną namuliska w 1935 r. badał G. Frenzel (1936), a w 1936 L. Zotz (1937). Zawierało ono szczątki następujących gatunków zwierząt: <strong><em>Ursus spelaeus</em></strong><span>, <strong><em>Ursus arctos</em></strong>, </span></span><span style="font-weight: bold; font-style: italic;">Martes martes</span><span style=""><span>, <em style="font-weight: bold;">Meles meles</em>, <em style="font-weight: bold;">Equus caballus</em>, <em style="font-weight: bold;">Bison priscus</em>, <em style="font-weight: bold;">Alces alces</em>, <em style="font-weight: bold;">Cervus elaphus</em>, <em style="font-weight: bold;">Sus scrofa</em>, <em style="font-weight: bold;">Hyaena sp</em><span style="font-weight: bold;">.</span>, <em style="font-weight: bold;">Lepus sp</em>., <em><span style="font-weight: bold;">Capreolus capreolus</span> (</em>?), <em style="font-weight: bold;">Cervus sp</em><span style="font-weight: bold;">.</span></span> (prawdopodobnie <em>elaphus</em>), <em style="font-weight: bold;">Equus sp</em>. (z grupy E.Germanicus), <em style="font-weight: bold;">Bos</em> lub <em style="font-weight: bold;">Bison sp</em><span><span style="font-weight: bold;">.</span>, <em style="font-weight: bold;">Arvicola sp</em>., <em style="font-weight: bold;">Microtus sp</em>., <em><span style="font-weight: bold;">Rhinolophus hipposideros</span> (</em>?), <em><span style="font-weight: bold;">Felis silvestris</span> (</em>?),<em> <span style="font-weight: bold;">Megaceros sp</span></em></span>. Ponadto w przedniej części jaskini znaleziono kości o współczesnym wyglądzie należące do lisa, borsuka, żbika lub kota domowego, psa lub wilka, jelenia, sarny, zająca, żaby trawnej i okonia. W namulisku L. Zotz znalazł także 3 wyroby z kwarcytu i węgielki limby, a w niszy skalnej czaszkę <em><span style="font-weight: bold;">Ursus spelaeus</span> </em>przykrytą płytą skalną. Obok czaszki znaleziono 3 kręgi szyjne i żuchwę. Prawa część czaszki była odłupana (Kowalski 1954). W 1985 r. badania paleontologiczne prowadziła T. Wiszniowska z Uniwersytetu Wrocławskiego.</span></p>  <p style="text-indent: 36pt;"><span style="">Jaskinia miała urozmaiconą szatę naciekową. Z pozostałości widać, że występowały w niej okazałe nacieki kalcytowe. Niestety, pozostawienie w okresie powojennym jaskini bez ochrony, spowodowało prawie zupełną dewastację szaty naciekowej. Zachowały się tylko niewielkie fragmenty polew ściennych. W jaskini występują jedynie wody infiltracji pionowej. Przedostają się do wnętrza z powierzchni stoku systemem spękań i zalegają w spągu tworząc większe i mniejsze jeziorka. </span></p>  <p style="text-indent: 36pt;"><span style="">Według F. Paxa (Kowalski 1954) temperatura powietrza w głębi jaskini mierzona w latach 1934‑35 wahała się od +7,7</span><span style="  Calibri&quot;,&quot;sans-serif&quot;;">°</span><span style=""> do +10,1</span><span style="  Calibri&quot;,&quot;sans-serif&quot;;">°</span><span style=""> C przy średniej +9,1</span><span style="  Calibri&quot;,&quot;sans-serif&quot;;">°</span><span style=""> C. W korytarzach między otworami panuje przewiew, a wilgotność jest znaczna. Światło ograniczone jest do sąsiedztwa otworów, jedynie ze środkowego otworu sięga prawie do jeziorka.</span></p>  <p style="text-indent: 36pt;"><span style="">Roślinność zielona przy otworach ‑ uboga. W głębi stwierdzono grzyby <em><span style="font-weight: bold;">Stereum hirsutum</span> </em>i <em style="font-weight: bold;">Coryne sarcoides</em>, a na martwych owadach prawdopodobnie <em style="font-weight: bold;">Cordiceps sphaecophila</em>. Fauna była badana przez F. Paxa i H.J. Stammera. Stwierdzono 91 gatunków zwierząt, w tym endemity <em style="font-weight: bold;">Oncopodura reyersdorfensis </em>i <em><span style="font-weight: bold;">Niphargus tatrensis</span> </em>var.<em> <span style="font-weight: bold;">reyersdorfensis</span></em> oraz troglobionty <em>T<span style="font-weight: bold;">roglochaetus beranecki</span> </em>i <em style="font-weight: bold;">Niphargus arndti</em>.W pobliżu otworów znaleziono chrząszcze: <em style="font-weight: bold;">Catops fuscus</em><span>, <em style="font-weight: bold;">Catops fuliginosus</em>, <em style="font-weight: bold;">Choleva glauca</em>, <em style="font-weight: bold;">Choleva oblonga</em>, <em style="font-weight: bold;">Quedius mesomelinus</em>,</span>owady bezskrzydłe: <em><span><span style="font-weight: bold;">Oncopodura</span> <span style="font-weight: bold;">reyersdorfensis</span></span></em><span>, <em style="font-weight: bold;">Hypogastrura sigillata</em>, <em style="font-weight: bold;">Tomocerus longicornis</em>,</span>wija <em style="font-weight: bold;">Scutigerella immaculata</em>,muchówki: <em style="font-weight: bold;">Triphlebia antricola</em><em><span style="font-weight: bold;">,</span> <span><span style="font-weight: bold;">Limosina racovitzei</span> </span>var</em>. <em style="font-weight: bold;">Microps</em>. Szczególnie ciekawa okazała się fauna wodna w jeziorkach: nicień <em style="font-weight: bold;">Mononchus macrostoma</em>, prapierścienica trglobiontyczna <em style="font-weight: bold;">Troglochaetus beranecki</em>, oczliki <em><span style="font-weight: bold;">Cyclops (diacyclops) olonguidus disjunctus</span> </em>i <em style="font-weight: bold;"><span>Echinocamptus (limnocamptus) dacicus</span></em><span style="font-weight: bold;">i</span> wcześniej wymienione studniczki (Kowalski 1954). Badania fauny współczesnej prowadził A.W. Skalski (1994).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Faunę współczesną w latach 1933 35 badał F. Pax, a H.J.Stammer opisał faunę wodną. Owady bezskrzydłe zebrane przez F. Paxa opracował J. Stach. W 1934 r. G. Dittrich opisał jaskinię i wykonał pierwsze fotografie. G. Frenzel w 1935 r. rozkopał namulisko znajdując kości zwierząt plejstoceńskich i współczesnych. W 1936 r. przeprowadził on systematyczne wykopaliska znajdując dalsze kości i ślady człowieka z paleolitu. Wyniki najnowszych badań paleontologicznych i geologicznych podważają dotychczasowe dowody pobytu człowieka z paleolitu w tej jaskini.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia była znana prawdopodobnie już w XVIII w. W 1757 r. Kahlo wspomina o jakiejś jaskini w okolicy Śnieżnika. Prawdopodobnie opis ten odnosi się do Jaskini Radochowskiej. W przewodniku po Lądku Zdroju i okolicy A. Ostrowicz (1881) pisze o pieczarach w Radochowie. Od 1933 do 1947 r. jaskinią opiekował się P. Heinrich, dawny górnik, który zajmował się przewodnictwem i pracami nad udostępnieniem zasypanych chodników.<br />Przed wojną jaskinię zwiedzało rocznie około 2000 osób. Tuż po wojnie jaskinia też była zwiedzana. Niestety po opuszczeniu jej przez przewodnika zbiory zniknęły, a jaskinia uległa dewastacji. Obecnie, mimo częściowej opieki i okresowego sprzątania jaskinia jest zaśmiecana i dewastowana.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Plany jaskini były opracowywane przez L. Zotza (1937), K.Kowalskiego (1954), W. Walczaka w 1954 r.&nbsp; Opis inwentaryzacyjny opracował w 1996 r. J. Trumpus na podstawie opisów K. Kowalskiego (1954) i W. Walczaka (1956), dane i opis zostały uzupełnione i zaktualizowane w 2013 r przez A.Szynkiewicza.<br />Plan wg W.Walczaka.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kahlo J.G. 1757 (wzmianka o jaskini - prawdopodobnie Radochowskiej); Ostrowicz A. 1881 (opis); Stammer H.J. 1936 (opis fauny wodnej); Frenzel G. 1936 (opis znalezionych w namulisku kości); Pax F. 1936a (dzieje jaskini, jej opis i plan, opis mikroklimatu i fauny wsp&#243;łczesnej); Stach J. 1936 (opis Oncopodura reyersdorfensis); Frenzel G. 1937 (opis fauny owad&#243;w bezskrzydłych); Pax F. 1937 (wzmianka o ssakach wsp&#243;łczesnych i kopalnych); Zotz L. 1937 (opis wykopalisk, ryc. znalezisk); Zotz L. 1937a (opis i fot. czaszki niedźwiedzia jaskiniowego jako dowodu kultu niedźwiedzia w paleolicie); Dittrich G. 1938 (wymienia); Dittrich G. 1939 (wymienia); Geschwendt F. 1939 (wzm. o śladach paleolitu); Sokołowski K. 1939 (rewizja oznaczeń chrząszczy z rodziny catopidae); Stach J. 1939 (wzm. o owadach bezskrzydłych); Zotz L. 1939 (opis jaskini i poszukiwań oraz znalezionych kości i zabytk&#243;w); Stach J. 1945 (wymienia z jaskini troglobiotycznego owada bezskrzydłego Arrhopalites bifidus); Stach J. 1947 (opis reliktowego owada bezskrzydłego znalezionego w jaskini); Sawicki L. 1948 (wzmianka); Klimaszewski M. 1949 (opis); Kostrzewski J. 1949 (wzm. o paleolicie); Stach J. 1949a (wzm. o owadach bezskrzydłych); Stach J. 1951 (wzm. o faunie owad&#243;w bezskrzydłych); Wojciechowski J. 1951 (wzmianka); Kowalski K. 1954 (plan i opis, literatura); Kowalski K. 1960 (opis fauny); Walczak W. 1956 (opis, plan, literatura); Walczak W. 1958 (opis); Walczak W. 1960 (wymienia); Walczak W. 1968 (wzmiankuje); Pulina M. 1977 (wzmiankuje); Bieroński J. i in. 1985 (wyniki badań paleontologicznych); Skalski  A. 1994 (wzmiankuje); Jaskinie Sudet&#243;w 1996 (plan i opis inwentarzowypod nr S-3.1); Rogala W. 1998a,c,e (wzmiankowana, opis); Wojtoń A. 1988 (dane morfometryczne, opis);Buczyński S., Rzońca B. 2003 (wzmiankuje); Rogala W., Wojtoń A. 2003 (wzmiankowana); Rzońca B. i in. 2004, 2005 (wymieniają); Bieroński J. i in. 2007a,b,e,f,g (wzmiankowana, fauna kopalna); Buczyński S., Rzońca B. 2007 (wzmiankowana); Dumnicka E. 2007 (fauna wodna); Rzońca B., Buczyński S. 2007a,b,c (wzmiankowana); Buczyński S., Rzońca B. 2009 (wzmiankowana); Wiśniewski A. i in. 2009 (wzmiankowana, fauna kopalna); Wojtoń A. 2013 (wymienia, podaje długość).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Pulina M. 1964 (opis i plan); Kos B. 1978 (opis środowiska przyrodniczego).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jan Trumpus
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3883)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=2914" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

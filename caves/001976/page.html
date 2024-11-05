@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1976">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1976;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "553506,98".replace(',', '.') + "," + "257862,41".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1976','Jaskinia Dziewicza'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Dziewicza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-07.26
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;44′59,00″, φ: 50&#176;11′08,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                430
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    64
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Dolina Będkowska.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od Łaz idziemy drogą polną, zaczynającą się naprzeciw parkingu koło boiska, w kierunku SE około 250 m do granicy lasu. Po przejściu około 50 m w lewo, w lesie znajdujemy otwór Jaskini Dziewiczej.
+Przy wejściu do Studni pod Bączkami należy zachować ostrożność ze względu na obrywające się kamienie, przy pokonywaniu jej wygodnie jest użyć liny.
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini otwiera się w leju. W stropie znajduje się szczelina początkowo otwarta od g&oacute;ry. Z dna leja korytarz silnie opada, doprowadzając do salki 4 metrowej wysokości z kotłami wirowymi w stropie. W prawo, na E, otwiera się Studnia z Bączkami o głębokości 5 m, utworzona na szczelinie W-E. Z jej dna, w kierunku E przez prożek 1,5 m przedostajemy się do ciasnej studzienki o głębokości 2,5 m, o ścianach pokrytych grzybkami naciekowymi. Z jej dna w kierunku E biegnie ciasny, 3 metrowy korytarzyk, a ku W odchodzi stromo w d&oacute;ł ciasna rura. <br /> Idąc gł&oacute;wnym korytarzem od studni po 4 m w lewo odchodzi szczelinowa studnia 4 metrowej głębokości, o dnie zasłanym blokami wapiennymi. Na jej ścianach występują polewy naciekowe i stalagmity. Na jej g&oacute;rnym poziomie znajduje się rozszerzenie z p&oacute;łką zakończone głęboką szczeliną z przewiewem. Idąc w głąb gł&oacute;wnym korytarzem mijamy po <br />prawej stronie dwie nyże, po 10 m strop obniża się, korytarz prowadzi w g&oacute;rę do owalnej salki o wymiarach 3,5x3,5 m i wysokości 3 m. Jej strop od strony S tworzy brekcja drobnego gruzu wapiennego z ilastym osadem i mlekiem wapiennym. Pod zachodnią ścianą odsłonięto w 2008 r. niszę z bogatą szatą naciekową, następnie zasypaną w obawie przed jej zniszczeniem.<br />Jaskinia rozwinięta w wapieniach skalistych, gąbkowo-mikrobialnych g&oacute;rnej jury (oksford), powstała w warunkach freatycznych i wadycznych; wewnątrz zachowane są liczne formy erozyjne takie jak kotły i zagłębienia wirowe, drobne koliste kanały i poziome rynny boczne widoczne na ścianach korytarza Prawej Odnogi. <br />Szata naciekowa w jaskini reprezentowana jest przez kilka generacji naciek&oacute;w. Najstarsze występują na ścianach w Lewej Odnodze, gdzie na ścianach znajdują się masywne polewy i zniszczone częściowo stalagmity, na dnie studni znajdowała się warstwa około 30 cm miąższości strzaskanych stalaktyt&oacute;w, stalagmit&oacute;w i polew naciekowych. Jeden z naciek&oacute;w datowany był metodą radiowęgla C14 na Politechnice Śląskiej w Gliwicach, wiek warstwy zewnętrznej wynosi 34000&plusmn; 3100 lat BP. W salce na końcu, w zasypanej aktualnie wnęce znajduje się duża grupa kilkunastocentymetrowych, przyrastających obecnie stalaktyt&oacute;w. Część starszych naciek&oacute;w pokrywa miejscami plastyczne i skonsolidowane mleko wapienne - z naciek&oacute;w tych uzyskano wiek 39800 1970 lat BP. W naciekach najmłodszych widoczne są warstwy węgliste związane z pobytem człowieka w jaskini. W ciasnych korytarzach odchodzących z dna Studni pod Bączkami, na ścianach, bardzo liczne są grzybki naciekowe.<br />Osady namuliska w jaskini są bogate, w znacznej części przemieszane. Już podczas pierwszych wykopalisk Stołyhwo stwierdził ich naruszenie prawdopodobnie przez poszukiwaczy skarb&oacute;w. Aktualnie w znacznej części jaskini osady namuliska to gruz skalny zmieszany z przemytym lessem i humusem we wstępnej części jaskini. Na dnie studni w lewej odnodze namuliska pod gruzem ze strzaskanych naciek&oacute;w tworzy rdzawy, ilasty osad. W grudniu 1990 roku na dnie studni w Lewej Odnodze znaleziono czaszkę ludzką i fragmenty ceramiki. Osad węglanowy pokrywający i wypełniający czaszkę datowany jest na 4870 lat BP. W trakcie wydobywania gruzu ze Studni z Bączkami znaleziono kompletną czaszkę dziecka i fragmenty ceramiki. Czaszki są zdeponowane w Muzeum Geologicznym AGH. <br />Jaskinia jest wewnątrz wilgotna, w ciasnych miejscach wyczuwalny jest silny przewiew. W zimie korytarz wejściowy częściowo wymarza i tworzy się w nim lodowa szata naciekowa.<br />Widny jest korytarz wejściowy w pochylni i salka na jego końcu. <br />W otworze rosną glony i paprotniki. <br />Wewnątrz występują pajęczaki, motyle i komary. W jaskini hibernują nietoperze.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Osady w jaskini przekopywane były przez K. Stołyhwę w 1911 r. Po badaniach Stołyhwy pozostało w jaskini kilkadziesiąt tzw. `bączk&oacute;w@ (niewielkich butelek); zostały one znalezione w odnodze, gdzie aktualnie znajduje się pięciociometrowa studnia.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia była znana i odwiedzana od dawna. W 1990 roku A. Wito wraz z A. G&oacute;rnym i M. Olszewskim odgruzowali studnię w Lewej Odnodze do głębokości 4 m. W 1991 roku A. G&oacute;rny, Z. Holcer i A. Kurek odgruzowali wnękę przy otworze, odkrywając ciasne korytarze sprowadzające na aktualne dno jaskini. W latach 1997-2001 członkowie Speleoklubu Bielsko-Biała kierowani przez L. Zawieruchę odgruzowali Studnię pod Bączkami, pogłębiając ją do 5 m. Wiosną 2008 roku grotołazi z Krakowa - A. Kurek, M. Golanko i P. Kępek w sali na końcu odkryli wnękę z bogatą szatą naciekową, kt&oacute;rą dla bezpieczeństwa zasypali znaczną ilością gruzu. Jaskinia jest często odwiedzana.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i opis jaskini sporządził K. Stołychwo (1921), plan i opis inwentarzowy opublikował w 1951 r. K. Kowalski. Aktualną dokumentację sporządził A. G&oacute;rny (08.2009 r.). Pomiary wykonali A. G&oacute;rny i M. Szelerewicz (10.2001 r.). <br />Plan opracował M. Szelerewicz.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Stołyhwo K. 1921 (opis jaskini, plan, opis badań i zabytk&#243;w); Ciętak Z. 1935 (w spisie jaskiń południowej części Wyżyny Małopolskiej poz. 12, na mapie rozmieszczenia jaskiń); Kowalski K. 1951 (inwentarzowy opis jaskini poz. 143, &quot;Jaskinia Dziewicza&quot; [14.IV.1946 r.], plan); Czepiel M. 1980 (dane morfometryczne, opis dojścia, plan wg S. Janoty [1978]); Sanocka-Wołoszynowa E. 1981 (wymienia z jaskini jeden gatunek kosarzy i 12 gatunk&#243;w pająk&#243;w); Szelerewicz M., G&#243;rny A. 1986 (inwentarzowy opis jaskini, plan, w pełnym wykazie jaskiń i schronisk Wyżyny Krakowsko-Wieluńskiej, poz. II.F.22); Labocha M., Wołoszyn B.W. 1994 (nocek duży Myotis myotis i gacek brunatny Plecotus auritus hibernujące w jaskini); Pazdur A. i in. 1994 (w tabeli wynik&#243;w datowań naciek&#243;w [7 pr&#243;bek]); Gradziński M. i in. 1998 (przekr&#243;j przez polewę (fot.), w tabeli wynik&#243;w badań wieku radiowęglowego [2 okazy]); Pazdur A. i in. 1999 (5 pr&#243;bek z jaskini w wykazie datowanych naciek&#243;w, kr&#243;tka informacja o jaskini, znalezieniu w niej czaszki i 1 pr&#243;bka w zestawieniu wynik&#243;w datowań pr&#243;bek z ciemno zabarwionymi laminami); Goc P. i in. 2000 (w tabeli stężenia azotan&#243;w w jaskiniach południowej części Wyżyny Krakowskiej); Nowak J., Kozakiewicz K. 2000 (nocek duży Myotis myotis i gacek brunatny Plecotus auritus hibernujące w jaskini); G&#243;rny A. 2001 (szczeg&#243;łowy opis jaskini, długość 64 m, plan [M., Szelerewicz 2001], plan wg K. Stołyhwy, datowanie naciek&#243;w, historia ostatnich odkryć w jaskini, fot. nacieku z wiekiem zaznaczonych warstw); Nowak J., Grzywiński W. 2007 (podkowiec mały Rhinolophus hipposideros, nocek duży Myotis myotis, nocek wąsatek/Brandtta Myotis mystacinus/brandtii, nocek rudy Myotis daubentonii, gacek brunatny Plecotus auritus, mopek Barbastella barbastellus); Jaskinie Wyżyny Olkuskiej 2010 (plan i opis inwentarzowy).
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej G&#243;rny
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15096)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(1489)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1490)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

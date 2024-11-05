@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11248">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11248;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "557405,39".replace(',', '.') + "," + "257248,38".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11248','Jaskinia Zapomniana'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Zapomniana
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko przed Tunelem w dolinie Kluczwody II
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-04.87
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wielka Wieś (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                419
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                2,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                8,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                11,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    460
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Bębło, Dolina Kluczwody.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z drogi krajowej nr 94 Kraków-Olkusz skręcamy w Murowni na SW, w ulicę Dziurawiec. Po przejściu 650 m dochodzimy do skrzyżowania z ulicą Leśną. Skręcamy na N i idziemy tą drogą 160 m. Następnie skręcamy ku E i podchodzimy w górę zbocza około 50 m. Otwór Jaskini Zapomnianej znajduje się u podnóża niewielkiej skałki na S zboczu zalesionego wzgórza, w górnej części doliny. Przed otworem leży kilkumetrowa hałda materiału wydobytego podczas udostępniania otworu (śmieci i gruz wapienny).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r wejściowy o szerokości 4,5 m i wysokości do 1,5 m. Część N otworu, to 3m długości nyża osiągająca 1,2 m szerokości, z gruzem wapiennym i dużymi blokami wapienia w dnie. Za otworem 6-metrowy korytarz opada stromo do głębokości - 2,6 m, jest to najniższy znany punkt w całej jaskini. Koniec opisywanego korytarza jest poziomy, strop od wysokości 0,5 m podnosi się w g&oacute;rę (przegięcie syfonalne) i dalsza droga jest zablokowana otoczakami wapienia z pylastym osadem, częściowo scementowanym mlekiem wapiennym. Korytarz ten początkowo był dostępny tylko na odcinku 2,5 m, gdyż był zasypany śmieciami tworzącymi 1-metrowej miąższości warstwę. W odległości 2,5 m od otworu w kierunku NE odchodzi początkowo stromo opadający korytarz długości 4,5 m, o wysokości do 1 m i szerokości do 1,5 m. Na jego końcu, z prawej strony znajduje się niskie wejście do 3,5 m korytarza. Szerokość wspomnianego korytarza dochodzi do 2 m natomiast jego wysokość osiąga 1 m. Ściany pokryte są polewami naciekowymi, na powierzchni pokrytymi skonsolidowanym mlekiem wapienny. Na stropie występują "żywe" stalaktyty o długości do 10 cm. Natomiast w lewo, w kierunku W na odcinku 2 m występuje rozszerzenie z zaklinowanymi dużymi głazami, kt&oacute;re łączy się z nyżą w otworze.<br />Gł&oacute;wny korytarz biegnie dalej na N i ma długość 3,5 m, wysokość do 0,4 m i szerokość 1,4 m. Na jego końcu pojawia się 0,5 m pr&oacute;g, składający się z blok&oacute;w skalnych, pokrytych polewą naciekową, zbudowaną z porowatego kalcytu i stwardniałego mleka wapiennego. Z jego prawej strony znajduje się 30 cm wysokości kolumna naciekowa. Za progiem otwiera się obszerna, niska sala PBJ (Przedsiębiorstwa Budowy Jaskiń), posiadająca niezwykle bogatą szatę naciekową. Wspomniana sala ma wymiary; 8,0x8,0 m i od 0,5 do 2,8 m wysokość. W części centralnej jest najniższa, natomiast w części SE i NW wysokości wzrastają. Dno jest nier&oacute;wne, pokryte otoczakami wapiennymi porośniętymi ogromną ilością grzybk&oacute;w naciekowych. W kierunku W dno podnosi się lekko i pojawiają się tutaj dwa obszary o powierzchni ok. 1 m2 pokryte polewą naciekową, z misami martwicowymi, kt&oacute;rych głębokość dochodzi do 10 cm, zapełnionymi wodą. Na stropie występuje bardzo duża ilość form stalaktytowych. Są to masywne stalaktyty o długości do 80 cm i średnicy do 15 cm, często pokryte języczkami nacieku wełnistego; większość stalaktyt&oacute;w ma gładką powierzchnię i osiągaja długość maksymalnie 50 cm, mają do kilku cm średnicy u nasady. Ich powierzchnia jest pokryta nalotem z mleka wapiennego. Tylko na części naciek&oacute;w znajdują się krople wody. Przeważająca część form stalaktytowych ma długość dochodzącą do 20 cm. Częste są zasłony naciekowe, osiągające kilkanaście cm wysokości, zazwyczaj zakończone stalaktytami. Brak jest w tej sali stalaktyt&oacute;w rurkowych tzw. makaron&oacute;w. Na dnie licznie występują stalagmity. Są one reprezentowane przez formy masywne mające wysokość i średnicę u podstawy do 20 cm. Najliczniejsze są formy drobne osiągające 3 cm średnicy przy kilku centymetrach wysokości. W sali liczne są r&oacute;wnież kolumny naciekowe, kt&oacute;rych wysokość dochodzi do 30 cm. Ich największe skupisko znajduje się centralnej, najniższej części sali. Znaczną powierzchnię dna Sali, w tym otoczak&oacute;w wapiennych, pokrywają kilkucentymetrowe polewy naciekowe, na kt&oacute;rych miejscami na pochyłościach dna występują misy martwicowe. Niekt&oacute;re z nich wypełnione są wodą (patrz opis wyżej), a w niekt&oacute;rych na dnie pojawiają się pizolity i drobne kryształy kalcytu. W sali znajduje się niezwykle duża ilość naciek&oacute;w grzybkowych występujących na stalaktytach, stalagmitach, kolumnach naciekowych i otoczakach wapiennych występujących na dnie. Na dnie sali zalegają fragmenty kości zwierząt plejstoceńskich, częściowo zalane polewami naciekowymi.<br />We wschodniej części sali znajduje się niskie przejście do 5-metrowego korytarza o szerokości 2 m, wysokości do 0,6 m, biegnącego w kierunku NE. Na jego końcu strop opada a dalszą drogę blokują nacieki. Są to gł&oacute;wnie stalaktyty a przy wejściu oryginalne kolumny pokryte naciekiem grzybkowym.<br />Przedłużeniem sali w kierunku N jest 2-metrowy, niski korytarz o szerokości do 2,5 m zakończony metrowej wysokości progiem kamiennym prowadzącym do 5m salki z kotłem wirowym w stropie. Salka ta ma wysokość do 2 m, szerokość do 1,5 m. W salce występują zasłony naciekowe zakończone stalaktytami.<br />W kierunku NW, w ścianie znajduje się 0,5 m pr&oacute;g a nad nim okno skalne o wysokości 0,4 m. Za nim jest kopulasta salka o długości 3m i szerokości 2,5 m. W salce ku NE dno na odcinku jednego metra opada stromo do niskiego przełazu. Za nim w dnie znajduje się zasypana studnia 1-metrowej głębokości, z dna, kt&oacute;rej odchodzi ciasny korytarz łączący się z korytarzem odchodzącym z sali PBJ w kierunku E (kontakt wizualny). Za przełazem korytarz ciągnie się stromo w g&oacute;rę na odcinku 5 m tworząc rurę, w kt&oacute;rej ściany i strop na odcinku 4 m tworzy drobny gruz wapienny z gliniastymi osadami. Na g&oacute;rze korytarz początkowo biegnie w kierunku E (2 m) a następnie skręca na NE, ma długość 3 m i jest niski. Korytarz ten wprowadza do obszernej Sali Mariusza (nazwanej tak w hołdzie Mariuszowi Szelerewiczowi). Ze szczytu pochylni w kierunki SE biegnie 5 m korytarz, kt&oacute;ry na odcinku 3 m tworzy wysoką szczeliną, kt&oacute;rej NE ściana jest lita, natomiast przeciwległa jest zbudowana z gruzu wapiennego. Wyczuwalny jest tutaj silny przewiew powietrza. Końcowe 2 m to korytarz opadający w d&oacute;ł o łukowatym sklepieniu, zablokowany osadami; wyczuwalny jest w tym miejscu przewiew.<br />Sala Mariusza - 18 m długości, do 6 m szerokości i do 4 m wysokości, ma przebieg NW-SE. Dno sali jest poziome i znajduje się na wysokości +3,4 m względem otworu; w części NW na odcinku 4m biegnie stromo w g&oacute;rę osiągając +5,8 m względem otworu. W sali występuje niezwykle bogata szata naciekowa reprezentowana przez formy stalaktytowe, stalagmity, polewy naciekowe pokryte misami martwicowymi z licznymi pizolitami. Setki stalaktyt&oacute;w występują gł&oacute;wnie w środkowej i NE części sali, kilka z nich osiąga długość do 1 m. Większość ma kilkadziesiąt cm. Są one białe i kremowe. Licznie występują tutaj zasłony osiągające kilkanaście cm wysokości i kilkadziesiąt długości; na uwagę zasługuje jedna z nich zakończona ekscentrycznym stalaktytem i następna powstała przez ukształtne połączenie dw&oacute;ch zasłon. Tego typu nacieki po podświetleniu są przeświecające. W sali występuje duża grupa stalagmit&oacute;w, osiągających do 60 cm. Są tutaj formy wysmukłe o średnicy kilku i wysokości kilkudziesięciu cm, oraz formy masywne o szerokości u podstawy i na g&oacute;rze ok. 25 cm. Występują na powierzchni dna całej sali, szczeg&oacute;lnie licznie w części środkowej. Polewy naciekowe pokrywają znaczną część powierzchni dna sali, tworząc pokrywy kilkucentymetrowej grubości. Na powierzchni kilku m2 na polewach występują misy martwicowe z licznymi pizolitami. Większość naciek&oacute;w w sali jest sucha, a na ich powierzchni skrzy się drobnokrystaliczny kalcyt. Występują tutaj r&oacute;wnież nacieki grzybkowe pokrywające powierzchnie otoczak&oacute;w leżących na dnie sali. W sali zalegają szczątki ssak&oacute;w plejstoceńskich częściowo pokryte polewą naciekową.<br />Dalszy ciąg jaskini to 15 m korytarz o szerokości 2 m, wysokości do 1,5 m, odchodzący z końca sali w kierunku NE, doprowadzający do Sali na Rozdrożu. W korytarzu występują liczne formy naciekowe reprezentowane przez stalaktyty o długości do 30 cm, kilka stalagmit&oacute;w o wysokości do 20 cm i polewy naciekowe. Przy wejściu do korytarza na polewie naciekowej znajduje się metrowej średnicy pole mis martwicowych. Na 8. m korytarza występuje płaski (30 cm wysokości) stalagmit, zajmujący 3/4 szerokości korytarza (mający około 1,5 m średnicy). Pola mis występują koncentrycznie na wspomnianym stalagmicie.<br />Sala na Rozdrożu utworzona jest na szczelinie WNW-ESE, ma 20 m długości, do 4 m szerokości i do 7 m wysokości. Jej dno w środkowej części położone jest +4,4 m nad poziomem otworu, natomiast w kierunku NW podnosi się osiągając na końcu poziom o 4,5 m wyższy. W tym miejscu dalszy ciąg zablokowany jest gruzem skalnym. Dno sali jest nier&oacute;wne, pokryte otoczakami i gruzem skalnym oraz polewami naciekowymi, na kt&oacute;rych tworzą się stalagmity. W sali występuje bogata szata naciekowa reprezentowana przez niezwykle liczne stalaktyty osiągające do 30 cm długości przy niewielkiej średnicy, część z nich to rurkowate formy tzw. makarony. Ich barwa jest biała i jasnokremowa. Liczne są tutaj zasłony naciekowe osiągające 15 cm wysokości i około 1 m długości. Podświetlone są przeświecające. Za oryginalną zasłoną znajdującą się w NW części sali jest przejście do dalszych partii jaskini. Dno pokrywają polewy naciekowe, na kt&oacute;rych tworzą się rozległe pola mis martwicowych, z kt&oacute;rych największe leżą w jej centralnej części. W misach i poza misami występują liczne pizolity. Na polewach tworzą się często stalagmity osiągające do 30 cm wysokości. Są to formy masywne, szerokie u podstawy oraz spora ilość mniejszych o wysokości około 10 cm występujących gł&oacute;wnie na skłonie dna w NW części sali.<br />Z Sali na Rozdrożu w kierunku SE biegnie 11-metrowej długości korytarz, kt&oacute;rego szerokość dochodzi do 4,5 m a wysokość osiąga maksymalnie 1,5 m. Jest on zakończony 11-metrowej długości poprzeczną Salą Ślepą. Na odcinku 5 m przed salą strop, ściany i dno korytarza pokrywają ogromne ilości form naciekowych. Miejsce to należy do jednego z najładniejszych w opisywanej jaskini. Występują tutaj setki form stalaktytowych takich jak masywne stalaktyty, osiągające do 40 cm długości, stalaktyty rurkowe do 30 cm długości, zasłony naciekowe o wysokości do 10 cm, stalagmity o wysokości do 15 cm, kolumny naciekowe, kt&oacute;rych wysokość dochodzi do 40 cm oraz polewy naciekowe pokrywające gruz i otoczaki wapienne stanowiące dno korytarza. Sala Ślepa ma przebieg ENE-WSW, osiąga wysokość 2 m i szerokość 3 m. W stropie widać niewielkie formy stalaktytowe, na dnie kilka stalagmit&oacute;w. Dno pokrywają duże głazy, gruz i otoczaki wapienne.<br />Z Sali na Rozdrożu ku E biegnie korytarz o długości 8 m, przechodzący w 6-metrowej długości salę z kominem. Korytarz ma szerokość od 1,5 do 2,5 m i osiąga 1,5 m wysokości. Występują w nim liczne stalaktyty tworzące dwa skupienia. Pierwsze z nich widać w stropie na pierwszych dw&oacute;ch metrach po jego prawej stronie, a drugie z tej samej strony na końcowym metrze korytarza. Są to białe stalaktyty osiągające do 30 cm długości. Pod nimi znajdują się polewy naciekowe z niewielkimi stalagmitami. Przy wejściu do korytarza, w dnie leży duży głaz 2-metrowej długości i metrowej szerokości, stosunkowo niedawno odspojony od stropu. Na dnie zalega gruz i otoczaki wapienne. Sala na końcu korytarza ma 4 m szerokości, w centralnej jej części znajduje się komin osiągający 7 m wysokości. Przy N ścianie leżą duże bloki wapienne tworzące 5 m długości gruzowisko, osiągające do 1m wysokości. Bloki te pochodzą z ławicy, kt&oacute;ra odpadła od stropu. W dnie sali występuje gruz i otoczaki wapienne osiągające kilkadziesiąt cm średnicy. Z sali w kierunku SE biegnie korytarz po 9 metrach skręcający ku E i po 17 metrach doprowadzający do Wielkiej Szczeliny. Korytarz charakteryzuje się zmienną szerokością (0,7-2,0 m) i wysokością (0,5-3,3 m). Cały korytarz na odcinku od sali do Wielkiej Szczeliny ma spadek 5 m. Ściany w nim są silnie skorodowane, widoczne są na nich liczne wżery, ospa krasowa i drobne kotły wirowe. Dno na całej długości wypełnione jest gliniastymi osadami z r&oacute;żnej wielkości otoczakami wapienia oraz fragmentami kości kręgowc&oacute;w plejstoceńskich.<br />Wielka Szczelina - z opisanego powyżej korytarza wprowadza do niej oryginalny otw&oacute;r o kształcie dziurki od klucza o wysokości 1,3 m. Za nim ciągnie się 20-metrowy korytarz rozwinięty na wysokiej szczelinie osiągającej 11 m wysokości. Szczelina ma przebieg SSW-NNE, w środkowej i końcowej części rozszerza się tworząc salki. Środkowa z nich ma 2,5 m szerokości, a końcowa 1,5 m. Ściany w szczelinie są r&oacute;wnoległe (w odległości średnio około 80 cm). Szczelina na znacznej swej wysokości wypełniona jest piaskowcami o spoiwie wapnisto-ilastym z dużą ilością otoczak&oacute;w kwarcowych i krzemieni oraz z wkładkami marglistymi. W osadach tych są mechanicznie wymyte kominy. Część osad&oacute;w odpadła ze szczeliny tworząc blokowiska na dnie korytarza. Przy wejściu do szczeliny, w dnie leży duży głaz i liczne otoczaki wapienne. W centralnej części szczeliny, w jej rozszerzeniu, pod najwyższym kominem (12 m wysokości) w dnie znajduje się jeziorko (0,5 m średnicy), zasilane silnym deszczem podziemnym. Odpływa z niego niewielka struga, kt&oacute;ra metr dalej znika w ponorze.<br />Nad jeziorkiem w SE ścianie szczeliny na wysokości 1 m otwiera się ciasne wejście (ZI) do 10-metrowego korytarza. Wchodzimy do niego przez zacisk, za kt&oacute;rym korytarz opada 3,2 m w pionie. Dalej tworzy go rozmyta szczelina o wysokości do 3m i szerokości do 1 m. W ścianach widoczne są liczne wżery i niewielkie kotły wirowe. Dno ku końcowi podnosi się lekko, korytarz zwęża się do 0,3 m, zakręca ku S i opada w d&oacute;ł tworząc zacisk (ZIII). Dalsza widoczna kontynuacja to korytarz na wąskiej szczelinie bez widocznego stropu. Wyczuwalny jest tutaj silny przewiew powietrza. W korytarzu występują nacieki tworzące żebra, polewy i niewielkie stalaktyty. Dno wypełniają ilaste osady barwy brązowej. W najniższym punkcie korytarza jest niewielkie jeziorko.<br />Kontynuacją jaskini jest ciasny przełaz za zasłoną w Sali na Rozdrożu. Otwiera się tutaj niski (do 40 cm wysokość) opadający stromo w d&oacute;ł 6-metrowy korytarz biegnący początkowo ku N a p&oacute;źniej ku NE doprowadzający do ciągu korytarzy i Sali za Zasłoną. Cała długość korytarza została przekopana w stromym gruzowisku wapiennym, mającym kontynuację w kierunku N i NW. Występują w nim liczne drobne stalaktyty. We wspomnianym gruzowisku 2 metry na N od korytarza widoczna jest niewielka salka o wymiarach 2,0x2,0 m i wysokości do 0,8 m, w kt&oacute;rej widoczna jest zasłona naciekowa. Salka ta łączy się z korytarzem z polami ryżowymi, odchodzącym z korytarza wstępnego do Sali za Zasłoną.<br />Ciąg za Zasłoną to Sala za Zasłoną wraz z doprowadzającymi do niej korytarzami i Korytarz Świąteczny. Po wyjściu z pochylni biegnącej od zasłony stajemy w korytarzu o przebiegu SW-NE. Korytarz ten w kierunku SW ciągnie się na odcinku 8 m, gdzie nad prożkiem o wysokości 0,8 m kontynuuje się w niedostępnej szczelinie. Na 3. metrze od wejścia ku N otwiera się wejście korytarza prowadzącego do Korytarza Świątecznego. Od wejścia w lewo (NW) na 3. metrze odchodzi w ku SW metrowej szerokości, 3-metrowy korytarz prowadzący stromo w g&oacute;rę do salki z zasłoną (wcześniej opisywanej). W dnie tego korytarzyka znajduje się biała polewa z misami martwicowymi o powierzchni 1 m2. Na 7. metrze otwiera się Sala za Zasłoną, kt&oacute;rej dalszą kontynuacją w tym kierunku jest 5-metrowej długości korytarz (pochylnia) o obniżającym się stropie z widocznym dalszym ciągiem. Korytarz doprowadzający do sali ma maksymalną szerokość 4 m i wysokość do 2 m. W korytarzu doprowadzającym do Sali za Zasłoną występują licznie formy naciekowe. W części środkowej są to gł&oacute;wnie białe stalaktyty o długości do 25 cm i zasłony, pod nimi stalagmity - niekt&oacute;re osiągają 20 cm wysokości. W SE końcu tego korytarza na N ścianie występuje skupienie kilku białych stalaktyt&oacute;w o długości do 30 cm. Pod nimi w dnie na polewie naciekowej są stalagmity. W korytarzu w kierunku SW na odcinku 2. metr&oacute;w przed salą aż do niej na dnie znajduje się polewa naciekowa a na niej skupienie kilkunastu białych, masywnych stalagmit&oacute;w o średnicy i wysokości do 20 cm. Nad nimi występują niewielkie stalaktyty. Sala za Zasłoną ma wymiary 9,0x7,0 m i wysokość do 4,5 m. Na początku sali w kierunku NW odchodzi 5-metrowej długości, wysoki, szeroki do 0,8 m, ślepy korytarz. Natomiast w końcu sali ku SW ciągnie się 10-metrowej długości korytarz - pochylnia o szerokości do 5 m z 4-metrowym kominem w stropie. Ciąg ten biegnący stromo w g&oacute;rę osiąga +7,4 m względem otworu, na końcu dalszą drogę zamykają duże, ostre bloki wapienne (gruzowisko). Sala za Zasłoną i korytarz odchodzący od niej ku SW mają niezwykle bogatą szatę naciekową. W N części sali na kilku m2 powierzchni stropu znajduje się kilkadziesiąt stalaktyt&oacute;w osiągających do 60 cm długości. Na N ścianie występują białe polewy naciekowe z zasłonami osiągającymi 1m długości, zakończonymi stalaktytami. Na dnie N części sali na powierzchni około 10 m2 znajdują się bloki wapienne pokryte masywną polewą naciekową z tworzącymi się na niej licznymi kremowo-białymi stalagmitami. Są to formy masywne o szerokiej podstawie (do 30 cm) osiągające 50 cm wysokości. W korytarzu biegnącym na SW na znacznej części powierzchni stropu występują białe stalaktyty. Są ich tutaj setki i osiągają one do 30 cm długości. Na dnie na powierzchni kilku m2 jest biała polewa naciekowa z misami martwicowymi - z pizolitami wewnątrz. Ponadto na polewach występują nieliczne stalagmity dochodzące do 10 cm wysokości. Na dnie sali i korytarzy z niej odchodzących zalega gruz i otoczaki wapienne. Występują tutaj r&oacute;wnież szczątki fauny plejstoceńskiej m.in. fragmenty czaszek i oryginalna, zalana polewą naciekową szczęka niedźwiedzia jaskiniowego (<em><strong>Ursus spelaeus</strong></em>).<br />Za wejściem do Korytarza Świątecznego znajduje się ciasny o 4-metrowej długości korytarz osiągający szerokość do 1m, zakończony studzienką o głębokości 0,8 m. Za nią strop podnosi się do wysokości 2,5 m, po 2. metrach opadając stromo w d&oacute;ł do niskiego przełazu, za kt&oacute;rym strop ponownie podnosi się osiągając 0,7 m. Opisany 10-metrowy odcinek prowadzący w kierunku NE doprowadza do rozszerzenia (salki). Kontynuuje się ona dalej w tym samym kierunku 5-metrową, stromą pochylnią, zakończoną 1-metrowym prożkiem ( studzienką) o dnie zablokowanym otoczakami wapiennymi. W tym miejscu wyczuwalny jest silny ruch powietrza. Ściany w całym opisanym ciągu korytarza są silnie skorodowane, widoczne są liczne wżery a w ścianach i stropie niewielkie kotły wirowe. W dnie na całym odcinku korytarza znajdują się otoczaki wapienne. Z salki w kierunku NW odchodzi właściwy Korytarz Świąteczny o długości 20 m. Początkowo ma on wysokość 1. metra i szerokość do 1,5 m. Po 5. metrach doprowadza do niewielkiej salki o wymiarach 2,5x2,5 m i wysokości 1,2 m. W salce widoczna jest poprzeczna szczelina o kierunku NW-SE. W N części salki szczelina jest dostępna na długości 2. metr&oacute;w a w jej dnie znajdują się dwa, niewielkie jeziorka. Natomiast w kierunku SE w szczelinie znajduje się małe okno skalne (nie do przejścia) a za nim prożek, pod kt&oacute;rym jest jeziorko. Za salką korytarz po 5. metrach doprowadza do następnej salki o długości 4 m, szerokości 3 m i wysokości do 2 m. Kontynuacja w kierunku NE jest zamknięta gliniastymi osadami. 3 metry przed końcem w kierunku NE znajduje się 1-metrowej głębokości studzienka zatkana osadami ilastymi. W kierunku SW biegnący stromo w d&oacute;ł niski, niezwykle ciasny korytarz po 3. metrach skręca na NW. W jego dalszej kilkumetrowej części znajdują się dwa skrajnie trudne przejścia (ZIII) i na końcu widać jego dalszą kontynuacją. W Korytarzu Świątecznym występuje bogata szata naciekowa. Są tu liczne stalaktyty osiągające do 40 cm długości, na dnie polewa naciekowa kilkucentymetrowej grubości i stalagmity osiągające do 10 cm średnicy i kilkanaście cm wysokości. Występują tutaj r&oacute;wnież niewielkie kolumny naciekowe. Część szaty naciekowej odpadła i na dnie zalegają duże fragmenty stalaktyt&oacute;w i stalagmit&oacute;w. Wszystkie formy naciekowe występujące w tym korytarzu są pokryte emulsją wody a na końcach stalaktyt&oacute;w wiszą krople wody. W dnie korytarzy są otoczaki wapienne z namuliskiem ilastym oraz częściowo ostrokrawędzisty gruz wapienny. Na uwagę zasługuje występowanie otoczak&oacute;w ze żwirowc&oacute;w pochodzących ze starszych przedplejstoceńskich osad&oacute;w, pierwotnie wypełniających jaskinię (Gradziński, 1999). Otoczaki te osiągają do 30 cm średnicy.<br />Jaskinia utworzyła się w wapieniach g&oacute;rnej jury (oksford). Większość korytarzy jaskini jest rozwinięta na pionowych szczelinach o kierunku NW-SE i NE-SW. Powstała w warunkach freatycznych, czego dowodem są formy korozyjne - kominy i kotły wirowe. Jaskinia charakteryzuje się niezwykłym bogactwem szaty naciekowej. Występuje tutaj niezwykła ilość form stalaktytowych takich jak: tysiące stalaktyt&oacute;w począwszy od form rurkowych (makaron&oacute;w) do stalaktyt&oacute;w osiągających 10 cm średnicy i długość do 80 cm. Znaczne ilości stalaktyt&oacute;w występują w: Sali PBJ, Sali Mariusza, Sali na Rozdrożu, Sali za Zasłoną i dojściu do Sali Ślepej. Występują tutaj liczne zasłony naciekowe o wysokości do 10 cm i grubości do 1cm, podświetlone są przeświecające i osiągają długość do 1 m, często zakończone są stalaktytami. Ściany i dno jaskini często pokrywają polewy naciekowe osiągające kilka cm grubości. Formy stalaktytowe zazwyczaj są gładkie, niekiedy pokryte są języczkami nacieku wełnistego. W dnie na polewach naciekowych zajmujących czasami wiele m2 powierzchni dna korytarzy i sal licznie występują misy martwicowe, w kt&oacute;rych często znajdują się pizolity - osiągające do 2 cm średnicy. Pod stalaktytami w wielu miejscach jaskini występują stalagmity. Są to formy masywne, o stałej szerokości (do 25 cm) osiągające 60 cm wysokości. Znaczna większość stalagmit&oacute;w to formy wysmukłe o średnicy kilku cm i wysokości do 40 cm.</p>
+<p>W jaskini występują kolumny naciekowe, ich największe nagromadzenie występuje w Sali PBJ, osiągają do 30 cm długości. Pojawiają się duże ilość grzybk&oacute;w naciekowych pokrywających gł&oacute;wnie gruz i otoczaki wapienne. Spotykamy je w całej jaskini; na uwagę zasługuje ich ogromna ilość w Sali PBJ, gdzie pokrywają one większość form naciekowych oraz gruz wapienny leżący na dnie sali. Nacieki występujące w jaskini zbudowane są z drobnokrystalicznego kalcytu. Są one barwy białej i kremowo-białej. Większość szaty naciekowej prawdopodobnie jest holoceńska, tworzy się r&oacute;wnież wsp&oacute;łcześnie. Na zakończeniach wielu stalaktyt&oacute;w występują krople wody a niekt&oacute;re misy martwicowe wypełnione są wodą. Część naciek&oacute;w (polewy naciekowe, zewnętrzna warstwa stalaktyt&oacute;w i stalagmit&oacute;w) pokryta jest skonsolidowanym mlekiem wapiennym. Obserwacje stanu szaty naciekowej prowadzone były od października 2017 do lutego 2018 roku. W październiku nacieki w Sali PBJ były suche, natomiast od grudnia na zakończeniach stalaktyt&oacute;w widoczne są krople, a misy martwicowe są całkowicie zapełnione wodą. Nacieki w Sali Mariusza, Sali na Rozdrożu, Sali za Zasłoną w większości są suche, a w misach martwicowych brak jest wody. Jedynie w Korytarzu Świątecznym przez cały okres obserwacji nacieki były wilgotne.<br />W jaskini znaczną część objętości sal i korytarzy zapełniają osady r&oacute;żnego typu. Część przyotworowa jaskini wypełniona jest znaczną ilością śmieci (warstwa około 1 m). Wypełniały one otw&oacute;r już w latach 60. XX wieku a ich wsypywanie do jaskini zakończono prawdopodobnie początkiem XXI wieku. Część śmieci usunięto podczas odsłaniania wejść do korytarzy, tworząc z nich i gruzu wapiennego hałdę przed otworem. Pod warstwą śmieci znajduje się cienka warstwa humusu występująca jedynie w samym otworze. Pod tymi osadami w prawie całej jaskini zalegają osady plejstoceńskie i starsze. Plejstocen to glina zmieszana z ogromną ilością r&oacute;żnej wielkości otoczak&oacute;w wapiennych osiągających kilkadziesiąt cm średnicy oraz fragmentami szczątk&oacute;w fauny. Jedynie przed Salą Mariusza w korytarzu do niej doprowadzającym występuje cienka (do 20 cm) warstwa pylasta (less). W Sali Mariusza, Sali na Rozdrożu i Sali za Zasłoną pochylnie biegnące ku g&oacute;rze zablokowane są ostrokrawędzistym gruzem wapiennym. W Sali na Rozdrożu i korytarzu od niej odchodzącym w kierunku Wielkiej Szczeliny zalegają duże ostrokrawędziste bloki wapienia stosunkowo niedawno odpadłe ze stropu z niestabilnych ławic wapienia. W Korytarzu Świątecznym na uwagę zasługuje występowanie otoczak&oacute;w ze żwirowc&oacute;w o rozproszonym szkielecie ziarnowym, dla kt&oacute;rych charakterystyczne są ciemne ziarna pochodzenia pedogenicznego powstałe w glebach w warunkach klimatu tropikalnego, kt&oacute;re rozwijały się w paleogenie (Gradziński, 1999). Otoczaki żwirowc&oacute;w są pozostałością osad&oacute;w pierwotnie występujących w jaskini, kt&oacute;rych resztki zachowały się w N końcu Korytarza Świątecznego. Ponadto w korytarzu tym obserwujemy młode ruchy tektoniczne, kt&oacute;re spowodowały częściowe spękanie i przemieszczenie się ścian, jak r&oacute;wnież odpadnięcie części szaty naciekowej. Niezwykle interesujące są osady znajdujące się w Wielkiej Szczelinie. Wypełniają one miejscami całą jej wysokość (do 12 m). Są to drobnoziarniste piaskowce o spoiwie wapnisto-ilastym z dużą ilością otoczak&oacute;w kwarcowych do 3 cm średnicy i krzemieniami. Miejscami są one lite, mocno scementowane. Osady te odpadając ze stropu tworzą miejscami blokowiska na dnie szczeliny. Wstępnie przeprowadzone obserwacje jednej pr&oacute;bki pozwalają przypuszczać, że jest to materiał prawdopodobnie kredowy, redeponowany w p&oacute;źniejszym okresie w rozwartej szczelinie.<br />Jaskinia ma mikroklimat dynamiczny. Charakteryzuje się silnymi przewiewami, uzależnionymi od p&oacute;r roku i temperatury otoczenia. Przy cyrkulacji letniej z otworu jaskini wypływa zimne powietrze. Przy cyrkulacji zimowej jest ono zasysane do środka jaskini. We wnętrzu jaskini, szczeg&oacute;lnie w zwężeniach korytarzy wyczuwalny jest silny przewiew powietrza. Ma to miejsce przed Salą Mariusza i w korytarzu przed Wielką Szczeliną. Wilgotność powietrza w jest r&oacute;żna. Duża wilgotność panuje w Sali PBJ, gdzie w styczniu obserwowano mieszanie się mas zimnego powietrza z ciepłym wilgotnym z wnętrza i tworzącą się "mgłę". Szczeg&oacute;lnie duża wilgotności panuje w Korytarzu Świątecznym i Wielkiej Szczelinie. W Wielkiej Szczelinie występuje jeziorko utworzone przez intensywny "deszcz podziemny" i niewielką strugę odpływającą z niego i znikającą w ponorze pod ścianą. Jeziorko występuje r&oacute;wnież na dnie korytarza odchodzącego z Wielkiej Szczeliny ku SE. W Korytarzu Świątecznym znajdują się trzy jeziorka, kt&oacute;re występują w odchodzących od niego ciasnych korytarzach, utworzonych na szczelinie o kierunkach NE-SW. W dniu 14.02.2018 r. wykonano pomiary temperatury wewnątrz jaskini. Wynosiła ona: w Sali PBJ +8,3&deg;C, w Sali Mariusza +9,9&deg;C, w Sali na Rozdrożu +10,1&deg;C, w Sali za Zasłoną +10,1&deg;C, w Wielkiej Szczelinie +9,3&deg;C. Na zewnątrz temperatura wynosiła +1,0&deg;C. Światło dzienne oświetla otw&oacute;r wejściowy i kilka metr&oacute;w korytarzy wstępnych jaskini.<br />W części przyotworowej na ścianach występują glony, rosną mchy i paprocie. Przy wejściu do Sali PBJ nacieki pokryte są ż&oacute;łtawymi glonami.<br />W jaskini występują komary, pajęczaki m.in. pająki <em><strong>Meta menardi</strong></em> i ślimaki (pomr&oacute;w wielki) <em><strong>Limax maximus</strong></em>. W grudniu 2017 roku obserwowano przemieszczającego się gacka brunatnego <em><strong>Plecotus auritus</strong></em>.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana jest od dawna. Zinwentaryzowana została przez K. Kowalskiego (Kowalski, 1951) jako Schronisko przed Tunelem w dolinie Kluczwody II. Podaje jej długości na 6 m i opisuje "Otw&oacute;r prawie pionowy prowadzi do niskiego, zapadającego w d&oacute;ł korytarz zasypanego dalej zupełnie namuliskiem. Być może kryje się za nim większa jaskinia. Wilgotne. Namulisko kamieniste, zaśmiecone". Podana w Pełnym Wykazie Jaskiń Wyżyny Krakowsko-Wieluńskiej (Szelerewicz, G&oacute;rny, 1986). Pr&oacute;bę eksploracji jaskini podjął Andrzej G&oacute;rny w 1966 roku. Zniechęciły go wtedy duże ilości śmieci zalegających w otworze jaskini. Kolejną pr&oacute;bę po wskazaniu "problemu" podjął 28.08.2017 r. Paweł Sojka, kt&oacute;ry po usunięciu wierzchniej warstwy śmieci stwierdził istnienie dalszej kontynuacji jaskini w kierunku NE i SE. Dalsze prace podjął zesp&oacute;ł grotołaz&oacute;w, od kilku lat eksplorujący jaskinie w okolicach Krakowa, tworzący nieformalną grupę PBJ "Przedsiębiorstwo Budowy Jaskiń" w składzie Jakub Bajorek, Andrzej G&oacute;rny, Kazimierz Gędoś, Olimpiusz Paul, Zbigniew Rabenda, Tomasz Siwecki, Paweł Sojka, Andrzej Tyrpa. Ponadto w pracach udział wzięli Artur Kurek, Piotr Malina, Jan Tołysz. W okresie od 30.09.2017 r. do 10.02.2018 r. odbyło się 15 wyjazd&oacute;w. Podczas pierwszych trzech usunięto 1-metrową warstwę śmieci zalegającą w otworze i zapełniającą wejścia do korytarzy jaskini. Na koniec trzeciego wyjazdu (14.10.2017 r.) Paweł Sojka pokonując niezwykle ciasne przejście dokonał wejścia do Sali Przedsiębiorstwa Budowy Jaskiń, posiadającej niezwykle bogatą szatę naciekową. Podczas kolejnych wyjazd&oacute;w prowadzono dalszą eksplorację jaskini wykonując r&oacute;wnocześnie jej dokumentację fotograficzną i kartograficzną. 13.12.2017 r. po przekopaniu ciasnej, 6-metrowej pochylni w gruzie wapiennym udało się wejść do systemu rozległych sal i korytarzy o długości około 100 metr&oacute;w (Sala Mariusza, Sala Na Rozdrożu i Sala Ślepa). 21.12.2017 r. odkryto partie z Salą za Zasłoną oraz korytarze z Wielką Szczeliną o długości ponad 100 metr&oacute;w. 26.12.2017 r. zostały odkryte ciągi z Korytarzem Świątecznym. Po wykonaniu dokumentacji, w związku ze zbyt dużym zainteresowaniem nową jaskinią z niespotykanym na Wyżynie bogactwem szaty naciekowej zostaliśmy zmuszeni do trwałego zabezpieczenia wejścia do jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentacja została wykonana przez A. G&oacute;rnego, O. Paula i T. Siweckiego. Pomiary sporządzili A. G&oacute;rny, O. Paul i T. Siwecki w lutym 2018 roku.<br />Plan opracowali A. G&oacute;rny, O. Paul i T. Siwecki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kowalski K. 1951 (plan, opis); Szelerewicz M., G&#243;rny A. 1986 (wzmianka); Gradziński M. 1999 (opis żwirowc&#243;w w jaskiniach okolic Krakowa); Jaskinie Wyżyny Olkuskiej 2018a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej G&#243;rny, Tomasz Siwecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2018
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12772)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(12801)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12773)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        Sala Mariusza
+                    </a>
+                    <a onclick="showImageInfo(12774)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        Sala PBJ
+                    </a>
+                    <a onclick="showImageInfo(12775)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        Sala za Zasłoną
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

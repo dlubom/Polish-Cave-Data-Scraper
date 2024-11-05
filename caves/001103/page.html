@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1103">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1103;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563168,69".replace(',', '.') + "," + "153923,35".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1103','Jaskinia Naciekowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Naciekowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-08.14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;52′05,69″, φ: 49&#176;14′58,39″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                g&#243;rny - ku SW, 1199 m n.p.m.; południowy - ku S, 1180 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1188
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                188
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                62
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                35
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                97
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1210
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na prawym orograficznie zboczu Doliny Kościeliskiej. w podszczytowych skałkach Organ&#243;w, około 70 m powyżej otworu Jaskini Zimnej (T.D – 08.08) . 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Dojście do otworu możliwe jest dwoma wariantami. Wariant pierwszy prowadzi z dna doliny ścieżką turystyczną do południowego otworu Jaskini Mroźnej (T.D-08.07). Stąd percią obok otworu Jaskini Zimnej w górę, do skalnej ostrogi nad otworem tej jaskini. Tu opuszczamy perć, kierując się na lewą stronę ostrogi i podchodząc około 10 m w górę, aby następnie po przetrawersowaniu kilku metrów stanąć nad 6 m progiem (przydatna lina, szczególnie zimą). Po zejściu progiem i przetrawersowaniu płytkiego, stromego żlebiku, kierujemy się w górę pod widoczną z daleka ścianę, spod której idziemy w prawo w górę do skalnej nyży, naprzeciw której znajduje się otwór Jaskini Naciekowej.
+Drugi wariant dojścia prowadzi z dna doliny początkowo turystyczną ścieżką od Lodowego Źródła do Jaskini Mroźnej, a następnie percią wiodącą do Okien Zbójnickich Niżnich (T.D-08.09), aż do podstawy ostatniego pasa skałek północnej części Organów. Stąd w prawo trawersem pod skałkami około 200 m do trawiastego żlebu, urywającego się niżej nad jaskiniami Zimną i Mroźną. Schodząc kilkanaście metrów w dół żlebem osiągamy podstawę ściany skalnej, spod której w prawo w górę dochodzimy do nyży położonej naprzeciw otworu jaskini. 
+Otwór górny znajduje się nieopodal dolnego, 11 m wyżej (prawy z trzech szczelinowatych otworów pod ścianką – dwa pozostałe prowadzą do Schronu przy Naciekowej – T.D-08.54). Dojście drugim wariantem łatwe, zwiedzanie większości korytarzy jaskini również, jednak niektóre miejsca wymagają użycia sprzętu i technik wspinaczkowych (trudności do V).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Od tr&oacute;jkątnego, dolnego otworu opada stromo korytarz, kt&oacute;ry po 10 m przechodzi w Komorę Wejściową o wysokości 3&ndash;4 m i wymiarach 15x8 m. Doprowadzający do niej korytarz został powiększony przez usunięcie blokujących go pierwotnie głaz&oacute;w. Komora Wejściowa poprzez ciasne, niedostępne szczeliny kontaktuje się z leżącym w pobliżu niewielkim schroniskiem (Korytarz do Naciekowej &ndash; T.D-08.04).</p>
+<p>Zaczynający się w najniższym punkcie Komory Wejściowej szeroki, łukowo sklepiony korytarz, prowadzi do wysokiej Tr&oacute;jkątnej Komory. Odchodzi od niej ku wschodowi kr&oacute;tki i niski korytarzyk, kończący się niewielką, zawaliskową salką. Korytarzyk ten jest interesujący ze względu na wyraźne formy korozyjne na ścianach i dwa duże, ponad metrowej średnicy marmity wyżłobione w dnie.</p>
+<p>Gł&oacute;wny ciąg jaskini od Komory Tr&oacute;jkątnej prowadzi do niskiej lecz szerokiej komory (Salka z Rysą), kt&oacute;rej nazwa pochodzi od wyraźnego, podłużnego zaklęśnięcia w gruzie pokrywającym dno. Dalej przez niski przełaz przechodzi się do Komory z Wantami, na kt&oacute;rej dnie leżą bloki kilkumetrowej wielkości. Zar&oacute;wno w tej, jak i w poprzedniej sali spotyka się liczne fragmenty pokruszonej, bogatej niegdyś polewy naciekowej.</p>
+<p>Od Komory z Wantami ku SW biegnie stumetrowej długości Korytarz Grzybkowy. Jak wynika z pomiar&oacute;w, zbliża się on ku powierzchni. Uwidacznia się to r&oacute;wnież na naciekach, kt&oacute;re przy końcu korytarza stają się bardziej zwietrzałe. Dno korytarza pokryte jest odpadłymi naciekami, na kt&oacute;rych wytworzyły się wt&oacute;rnie niewielkie nacieki grzybkowe. W końcowej części korytarza występują nacieki z mleka wapiennego w postaci draperii. Na samym końcu Korytarza Grzybkowego znajduje się biegnąca w g&oacute;rę, kilkumetrowa ciasna szczelina, łącząca się z korytarzykiem uchodzącym w partiach za otworem południowym.</p>
+<p>R&oacute;wnolegle do Korytarza Grzybkowego, w lewej ścianie w dw&oacute;ch trzecich jego długości, za 2-metrowym progiem, biegnie 30-metrowej długości, ciasny, szczelinowaty korytarzyk z ładnymi naciekami i niewielkim jeziorkiem w dnie.</p>
+<p>Od Komory z Wantami gł&oacute;wny ciąg jaskini biegnie ku NE. W rozszerzeniu za ciasnym korytarzykiem ciąg jaskini rozwidla się.</p>
+<p>Na lewo znajduje się wejście do Małej Komory. Niewielka ta salka o stromym, wznoszącym się ku NW gliniastym dnie kończy się szczeliną zasypaną gruzem.</p>
+<p>Z rozszerzenia w g&oacute;rę po głazach dostajemy się do g&oacute;rnego korytarza, skąd ku p&oacute;łnocnemu wschodowi prowadzą trzy r&oacute;wnoległe, wysokie szczeliny. Ta część jaskini, zwana Szczelińcem, jest bardzo skomplikowana w przebiegu, z licznymi przejściami pomiędzy głazami zaklinowanymi na r&oacute;żnych wysokościach. Dalej wszystkie te szczeliny zwężają się na tyle, że przejście staje się niemożliwe. W przeciwną stronę (ku SW) biegnie szeroki korytarz o ścianach pokrytych grubą pokrywą mleka wapiennego, kt&oacute;ry pierwotnie dochodził do powierzchni. Obecnie połączenie to jest zasypane rumoszem, a łączność z powierzchnią stanowi ciasny korytarzyk, uchodzący na powierzchnię nieco poniżej Jaskini Krwawego Nosa. Jest to obecnie trzeci, (g&oacute;rny) otw&oacute;r jaskini.</p>
+<p>Powracamy do gł&oacute;wnego ciągu jaskini, kt&oacute;ry opuściliśmy w rozszerzeniu. Idąc korytarzem na wprost, dochodzimy do rozwidlenia&nbsp;&ndash; lewa odnoga kończy się zaraz ciasną niedostępną szczeliną. W prawej, szerszej odnodze, na jej końcu znajduje się przełaz w kształcie litery "z" kt&oacute;rym przedostajemy się do podłużnej salki. Mniej więcej w połowie jej wschodniej ściany, pomiędzy leżącymi na dnie wantami znajduje się przejście do partii odkrytych w 1976 r., rozpoczynających się 30-metrowej długości Salą Odkrywc&oacute;w. Jej południowa ściana jest bogato zdobiona utworami naciekowymi, a dno zasłane wielkimi głazami, pomiędzy kt&oacute;rymi można zejść około 6 m. Sala Odkrywc&oacute;w wznosi się ku E, a jej wysokość wzrasta z 5 do około 10 m. Dno sali staje się gliniaste, pokryte odpękniętymi polewami naciekowymi. Za Salą Odkrywc&oacute;w ku NE ciągnie się Galeria Naciekowa, z kilkoma głazami zaklinowanymi w jej środku. Galeria doprowadza do niewielkiej salki z kolorowymi naciekami i dalej do Szczeliny Zapieraczkowej, kt&oacute;rej początkowy, 10-metrowy odcinek pokonuje się zapieraczką około 2&ndash;5 m nad dnem. Z końca Szczeliny Zapieraczkowej odbiega w prawo 10-metrowy ślepy korytarzyk, natomiast na wprost rozciąga się przedzielona 3 m progiem Sala Złomisk. W końcu tej sali, po prawej stronie wznosi się 40-metrowej wysokości komin, jego strop stanowi najwyższy punkt jaskini.</p>
+<p>Utrzymując p&oacute;łnocno-wschodni kierunek, przechodzimy z Sali Złomisk do 20-metrowej długości korytarza, w kt&oacute;rym znajdują się trzy ciasne przełazy, rozdzielone rozszerzeniami z licznymi naciekowymi draperiami. Korytarz doprowadza do 15-metrowej wysokości salki w kt&oacute;rej skręcamy w prawo (ku SW) do ładnie sklepionego, opadającego korytarza kończącego się Salką Biwakową. Z niej przez ciasny przełaz dostajemy się do stromo opadającego korytarza o dnie zasłanym rumoszem skalnym. Korytarz ten poprzez 4-metrowy pr&oacute;g wprowadza do komory zwanej Rozdzielem. Leży ona 26 m poniżej gł&oacute;wnego otworu jaskini i stanowi miejsce, w kt&oacute;rym jaskinia rozdziela się na kilka ciąg&oacute;w korytarzy.</p>
+<p>Ku zachodowi, powyżej 2 m wysokiego prożka rozciąga się Ciasny Korytarzyk z ładną szatą naciekową, wiodący do nieco niżej leżącej szczeliny z wyczuwalnym przepływem powietrza.</p>
+<p>W kierunku p&oacute;łnocno-wschodnim odchodzą z Rozdziela dwa ciągi korytarzy. Pierwszy z nich rozpoczyna się kamienistą pochylnią, kt&oacute;ra po 12 m przechodzi w niewielką studnię (Studnia Białych Komar&oacute;w), możliwą do pokonania zapieraczką. Po kilku metrach studnia przełamuje się i pod obniżeniem stropu przedostajemy się na pochylnię wyprowadzającą nad 6 m wysokości pr&oacute;g. Po zejściu z progu (przydatna lina) wygodnym korytarzem ku NE po 20 m dochodzimy do raptownego zwężenia. Ciasną, rozkopaną w kilku miejscach szczeliną możemy przedostać się jeszcze kilkanaście metr&oacute;w, do miejsca, gdzie zawalisko blokuje dalszą drogę.</p>
+<p>Drugi ciąg rozpoczyna się powyżej 2 m prożka, na kt&oacute;ry wspinamy się (łatwo) wprost z początku pochylni opadającej do Studni Białych Komar&oacute;w. Po 25 m od Rozdziela korytarz obniża się na odcinku kilku metr&oacute;w, jego dno pokrywa gliniaste namulisko wypiętrzone pośrodku w formie wału biegnącego w osi korytarza. Kilka metr&oacute;w dalej korytarz doprowadza do Rotundy&nbsp;&ndash; dawnego syfonu, z dobrze widocznymi na ścianach dawnymi poziomami stagnującej wody. Wspinamy się jej NE ścianą, tworzącą 10 m wysokości pr&oacute;g (przydatna lina) do korytarza, kt&oacute;ry gwałtownie skręca ku południowi i za kolejnym, 5 m wysokim prożkiem przechodzi po około 10 m w ciasną, niedostępną szczelinę.</p>
+<p>Na przedłużeniu pochylni, po minięciu Rozdziela wkraczamy do Białego Korytarza, kt&oacute;rego łukowato sklepione ściany pokrywa mleko wapienne. Skręca on ku S i przyjmuje kształt szczeliny o wysokości 8 m. Około 30 m od Rozdziela dno szczeliny zamyka rumosz skalny, a dalsza droga wiedzie w g&oacute;rę (po tzw. Gzymsie) do okna leżącego 8 m wyżej. Z okna prowadzi ku południowi korytarzyk, kt&oacute;ry doprowadza do obszernego korytarza około 7 m nad jego dnem. Wygodniej można dotrzeć do tego miejsca skręcając po przejściu Gzymsu na lewo (ku wschodowi), do ciasnego, opadającego korytarzyka. Doprowadza on do wysokiej szczeliny, biegnącej w prawo do wspomnianego wcześniej obszernego korytarza.</p>
+<p>Na jego początku w lewo w d&oacute;ł wiedzie przez 4-metrowy pr&oacute;g korytarz skręcający na p&oacute;łnoc. Jego ściany pokrywa mleko wapienne. Korytarz kończy się pionową szczeliną, kt&oacute;rą można zejść w d&oacute;ł jeszcze kilka metr&oacute;w.</p>
+<p>Gł&oacute;wny ciąg jaskini prowadzi wygodnym korytarzem ku SW, następnie skręca ku S do Salki z Kolumną. Z salki w kierunku p&oacute;łnocno-wschodnim opada poprzez 2-metrowy prożek korytarz zasłany kamieniami, przechodzący następnie w pochylnię (Studnia pod Kolumną) doprowadzającą do poziomego, kilkumetrowego korytarza, kończącego się bardzo ciasną szczeliną z wyczuwalnym przepływem powietrza.</p>
+<p>Z Sali pod Kolumną można przejść ku SW dwoma r&oacute;wnoległymi korytarzami (lewy, wschodni, jest wygodniejszy) do Sali z Zameczkami, jednej z najładniejszych w całej jaskini. Na r&oacute;wnym, namuliskowym dnie pod p&oacute;łnocną ścianą znajdują się bardzo oryginalne utwory naciekowe: stalaktyty i draperie, a pod nimi śnieżnobiała polewa naciekowa ze sterczącymi, kopulastymi stalagmitami (Zameczki).</p>
+<p>W południowo-wschodnim krańcu Sali z Zameczkami możemy przedostać się przez niski przełaz do korytarza skręcającego ku E i stromo wznoszącego się ku NE. Po kilku metrach stajemy nad Studnią pod Lalką (przydatna lina). Po 6 m studnia przechodzi w stromo opadający, ładnie myty korytarz, po 20 m całkowicie zamulony.</p>
+<p>Z Sali z Zameczkami gł&oacute;wny ciąg jaskini prowadzi w kierunku południowo-zachodnim obszernym, wznoszącym się korytarzem, kt&oacute;ry wkr&oacute;tce skręca w prawo i doprowadza do rozgałęzienia (Widły). Dalej gł&oacute;wny ciąg kontynuuje się w prawo (ku NE) w postaci wysokiego korytarza, wznoszącego się stromo na odcinku około 20 m. Doprowadza on pod 6-metrowej wysokości I Pr&oacute;g Naciekowy, kt&oacute;ry pokonuje się wspinaczką (V) jego środkiem (w połowie progu spit do asekuracji). Nad progiem szeroki i ładnie zdobiony naciekami korytarz skręca w lewo i doprowadza do Kaplicy, skąd dalej ku NE biegnie w g&oacute;rę wysoki korytarz doprowadzający pod II Pr&oacute;g Naciekowy. Dno korytarza pokrywają r&oacute;żnej wielkości głazy, a ściany wyścieła białe mleko wapienne. Z Kaplicy na p&oacute;łnoc odchodzi także 30-metrowej długości korytarz, kończący się 10 m wysokości, ślepym kominem.</p>
+<p>II Pr&oacute;g Naciekowy, o wysokości 11 m i trudnościach V (w dw&oacute;ch trzecich progu po prawej stronie dwa spity do asekuracji) wyprowadza na idącą w g&oacute;rę, stromą i śliską pochylnię o długości 10 m. Z nad pochylni idziemy na wprost wygodnym, lekko opadającym korytarzem, pozostawiając z lewej kr&oacute;tki korytarz, łączący się ponownie po kilku metrach z gł&oacute;wnym ciągiem. Po około 10 m stajemy nad 2-metrowym prożkiem, kt&oacute;rym schodzimy (łatwo) do Sali z Jeziorkiem. Zachodnią jej ścianę pokrywają polewy naciekowe, zaś na dnie stoi kilka dużych stalagmit&oacute;w.</p>
+<p>Z Sali z Jeziorkiem obszernym korytarzem przechodzimy do Sali Kapucyn&oacute;w, pośrodku kt&oacute;rej na dużym, pokrytym polewą kalcytową bloku skalnym wyrasta grupa stalagmit&oacute;w.</p>
+<p>Z Sali Kapucyn&oacute;w dalsza droga prowadzi w prawo korytarzem, kt&oacute;ry po 10 m dochodzi do prostopadłego korytarza rozwiniętego na wysokiej, pionowej szczelinie. Po kilkunastu metrach w lewo korytarz przechodzi w Skośną Salę, rozbudowaną na dw&oacute;ch pionowych pęknięciach. Wysokość jej stropu sięga 10 m, dno opada prawie pionowo, tworząc formację w rodzaju studni, z dna kt&oacute;rej poprzez utworzone z zaklinowanych want prożki schodzi stromy korytarz, łączący się dalej z gł&oacute;wnym ciągiem.</p>
+<p>Do gł&oacute;wnego korytarza dostajemy się wprost ze Skośnej Sali, schodząc nieco w d&oacute;ł piarżystą p&oacute;łką i skręcając w kierunku p&oacute;łnocnym. W tym też kierunku rozwija się wysoki, szczelinowy korytarz, kt&oacute;ry opada stromo w d&oacute;ł i po około 25 m doprowadza do błotnistego syfonu. Przechodząc przez syfon (ciasno) wchodzimy do Błotnej Salki, z kt&oacute;rej przez ciasny korytarzyk idący do g&oacute;ry wychodzimy nad szczelinową studnię o głębokości 6-metr&oacute;w, a z niej do małej salki, kończącej ten ciąg jaskini.</p>
+<p>Wracamy do Wideł. Stąd na południe korytarz prowadzi do Strzelistej Salki. Z niej na wprost w g&oacute;rę biegnie kilkunastometrowa, śliska pochylnia ślepo zakończona. W przeciwnym kierunku otwiera się szczelinowy korytarz, do kt&oacute;rego schodzimy około 3 m w d&oacute;ł. Na jego dnie znajduje się Syfon Niezapominajka -tu wiosną i latem korytarz bywa wypełniony wodą do wysokości 2,5 m; podczas długotrwałych mroz&oacute;w korytarz osusza się całkowicie, umożliwiając suche przejście. Syfon można jednak obejść przez zacisk zwany Dusicielem, do kt&oacute;rego dociera się ciasnym korytarzykiem ze Strzelistej Salki. Przechodząc ponad syfonem możemy przedostać się do systemu wznoszących się korytarzyk&oacute;w, kt&oacute;rych ściany obficie pokrywa mleko wapienne (Mleczarnia).</p>
+<p>Wracamy do syfonu. Po jego przejściu stajemy w wygodnym, lekko wznoszącym się korytarzu, biegnącym ku zachodowi. Stanowi on drugie ramię syfonu, z widocznymi na ścianach dawnymi poziomami wody. Po około 20 m korytarz skręca w lewo i kontynuuje się w postaci wąskiej i wysokiej szczeliny. Na tym odcinku dno pokrywa namulisko. Dalej, przez niski przełaz i kalcytową płytę (Blacha) przedostajemy się do niewielkiej salki. Z niej poprzez metrowy prożek wchodzimy do korytarza, kt&oacute;ry teraz na odcinku 15 m biegnie na południe, po czym urywa się 2,5-metrowym progiem do wygodnego korytarza. Spod progu&nbsp;&ndash; ku południowi&nbsp;&ndash; korytarz przechodzi w bardzo ciasną szczelinę, kończącą się ślepo po kilkunastu metrach. Ku p&oacute;łnoc korytarz kontynuuje się i rozwija się w niewielką salkę (Bac&oacute;wka), za kt&oacute;rą bezpośrednio znajduje się Salka z Niedźwiedziem, w kt&oacute;rej (po odkryciu) znaleziony został kompletny szkielet niedźwiedzia brunatnego.</p>
+<p>Z Salki z Niedźwiedziem na południowy zach&oacute;d odchodzi kilka szczelinowych korytarzyk&oacute;w o r&oacute;żnej długości, zakończonych ślepo, natomiast w przeciwnym kierunku biegnie w g&oacute;rę korytarz, kt&oacute;ry po 10 m rozdziela się na dwie odnogi.</p>
+<p>Lewa jest niskim i wąskim korytarzykiem, kt&oacute;ry po 15 m doprowadza do odgruzowanego, południowego otworu jaskini.</p>
+<p>Prawy korytarz, o dnie pokrytym częściowo wyschniętym namuliskiem, po 10 m skręca na zach&oacute;d i stając się coraz węższym, przechodzi w 3-metrową, ciasną rurę wypełnioną błotem. Jej koniec łączy się ze szczeliną odchodzącą z końca Korytarza Grzybkowego.</p>
+<p>Jaskinia powstała na tektonicznych szczelinach w obrębie wapieni malmo-neokomu jednostki Organ&oacute;w (seria wierchowa, płaszczowina Czerwonych Wierch&oacute;w). W jaskini liczne są ślady w&oacute;d przepływających pod ciśnieniem w postaci występujących na ścianach form korozyjno-erozyjnych oraz marmit&oacute;w spotykanych w dnie korytarzy. W&oacute;jcik (1960a,b, 1966b, 1968), podobnie jak Rudnicki (1967) przypisują jaskini genezę przepływową&nbsp;&ndash; stanowić miała ona w trzeciorzędzie podziemny przepływ Potoku Kościeliskiego. Według W&oacute;jcika należy do VII piętra jaskiń tatrzańskich. Namuliska były badane przez W&oacute;jcika (1960a,b, 1966a)&nbsp;&ndash; obok materiału piaszczysto-żwirowego o charakterze allochtonicznym, licznie występują w jaskini namuliska autochtoniczne (ilaste oraz zawaliska, pokruszone nacieki i rumosz wapienny), w kt&oacute;rych spotyka się kości. Szata naciekowa jest bardzo bogata i r&oacute;żnorodna, obejmuje nacieki kalcytowe i z mleka wapiennego.</p>
+<p>Woda nie występuje w większych ilościach, tylko miejscami tworzy kałuże i niewielkie jeziorka oraz spływa po dnie na niewielkich odcinkach. Jedynym dużym zbiornikiem wody jest okresowy Syfon Niezapominajka. W wielu miejscach występuje deszcz podziemny, nasilający się w okresach dżdżystych. Przewiew zmienny, odczuwa się w większości korytarzy jaskini.</p>
+<p>Światło obejmuje jedynie najbliższe okolice otwor&oacute;w. W rejonie południowego otworu został znaleziony kompletny szkielet niedźwiedzia brunatnego (przechowywany w Muzeum TPN). Ze znalezionych kości nietoperzy Wołoszyn (1970) oznaczył <strong><em>Myotis myotis</em></strong>i <strong><em>Myotis mystacinus,</em></strong>odnotowując także wątpliwe szczątki kuny. <span>W latach p&oacute;źniejszych stwierdzono występowanie następujących gatunk&oacute;w nietoperzy: <strong><em>Myotis daubentonii</em></strong>, <strong><em>Plecotus auritus</em></strong> (Kepel 1995), <strong><em>Myotis mystacinus</em></strong>, <strong><em>Eptesicus nilssonii</em></strong> (Postawa i In. 1994,<strong><em> Myotis nattereri </em></strong>(Piksa 1998), <strong><em>Myotis emarginatus</em></strong> (Nowak (2000) &ndash; pierwsze stwierdzenie występowania w Tatrach.</span></p>
+<p>W jaskini występują owady. W trakcie inwentaryzacji jaskiń tatrzańskich OW PTPNOZ Elżbieta Sobiepanek-Krzyżanowska zebrała 8 lipca 1978 r. następujące gatunki:</p>
+<p><em>Diptera:</em> <strong><em>Mycetophila ruficollis </em></strong>(skrzydła), <strong><em>Politophyla cinerea </em></strong>(taka nazwa nie występuje w systematyce, prawdopodobnie chodzi o inny gatunek -przyp red.)<em>, <strong>Helomyza captiosa</strong></em>, <strong><em>Helomyza modesta</em></strong><em>, <strong>Copromyza mitiga</strong>, <strong>Eccoptomera obscura</strong>, <strong>Scoliocentra caesia;</strong></em></p>
+<div><em>Trichoptera</em>:<em> <strong>Stenophylax permistus</strong>.</em></div>
+<p>W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ Teresa Bielska w dniu 6 sierpnia 1979 r. zebrała i oznaczyła roślinność przyotworową (oznaczenia mszak&oacute;w wykonała J. Mickiewicz). Dla otworu dolnego oznaczono:</p>
+<p>Kwiatowe: <strong><em>Chrysosplenium alternifolium </em></strong>L.,<em> <strong>Heliosperma quadridentatum</strong> </em>Sch. et Thell., <strong><em>Anthriscus nitida</em></strong>Garcke, <strong><em>Geranium robertianum </em></strong>L., <strong><em>Arabis arenosa</em></strong> Scop., <strong><em>Adoxa moschatellina</em></strong> L., <strong><em>Oxalis acetosella</em></strong> L., <strong><em>Luzula nemorosa </em></strong>E. Mey.</p>
+<p>Paprotniki: <strong><em>Cystopteris fragilis </em></strong>Bernh.</p>
+<p>Mszaki: <strong><em>Ctenidium molluscum</em></strong> Mitt., <strong><em>Campylium stellanum </em></strong>Lange et C.E.O. Jens., <strong><em>Mnium punctatum </em></strong>Hedw., <strong><em>Drepanocladus uncinatus</em></strong>/Hedw./ Warnst.,<em> <strong>Mnium cuspidatum</strong> </em>Leys., <strong><em>Eurynchium zetterstedtii </em></strong>Stormer, <strong><em>Brachythecium velutinum </em></strong>Br. eur., <strong><em>Plagiochila asplenioides</em></strong> /L./ Dum., <strong><em>Bryum capillare </em></strong>L. var.<strong><em> faccidum</em></strong> (Brid) Bruch et Schimp.</p>
+<p>W g&oacute;rnym otworze stwierdzono występowanie:</p>
+<p>Kwiatowe: <strong><em>Geranium robertianum </em></strong>L., <strong><em>Chrysosplenium alternifolium </em></strong>L., <strong><em>Adoxa moschatellina </em></strong>L., <strong><em>Urtica dioica </em></strong>L.</p>
+<p>Paprotniki: <strong><em>Cystopteris fragilis </em></strong>Bernh.</p>
+<p>Mszaki: <strong><em>Polytrichum alpinum</em></strong> Hedw., <strong><em>Mnium orthorrynchum </em></strong>auct.</p>
+<div>Wątrobowce: <strong><em>Pellia epiphylla</em></strong> (L.) Corda.</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania namulisk dawniej znanych partii jaskini prowadził Z. W&oacute;jcik (pr&oacute;by okaz&oacute;w znajdują się w Muzeum Ziemi PAN w Warszawie), szczątk&oacute;w kostnych nietoperzy B. W. Wołoszyn, fauny &ndash; E. Krzyżanowska-Sobiepanek, a flory przyotworowej T. Bielska.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Rejon dolnego otworu był penetrowany w połowie maja 1934 r. przez S. Zwolińskiego i J. Zahorskiego, stwierdzili jednak tylko istnienie prowadzącego skośnie w d&oacute;ł korytarza, całkowicie dalej zasypanego (Zwoliński 1993). Miejsce to było rozkopywane p&oacute;źniej przez grotołaz&oacute;w zakopiańskich, jednak bez rezultat&oacute;w. 13 września 1959 roku, po wcześniejszym odgruzowaniu ciasnej szczeliny, jaskinia została odkryta przez Jerzego Bieniaszewskiego, Hannę Sobol i Jana Rudnickiego ze Speleoklubu Warszawskiego. Odkryto w&oacute;wczas około 400 metr&oacute;w korytarzy o deniwelacji około 24 m (+10,7, -13,4) i odkopano od środka jaskini dolny otw&oacute;r, wcześniej rozkopywany z powierzchni przez Zakopiańczyk&oacute;w. W&oacute;wczas też Rudnicki sporządził plan i opis jaskini (Rudnicki, 1959). Poznane wtedy partie jaskini sięgały do końca Korytarza Grzybkowego oraz do przełazu za Zetką, wiodącego do Sali Odkrywc&oacute;w. Dalsze odkrycia zostały dokonane w grudniu 1976 r. przez grotołaz&oacute;w zakopiańskich. 1 grudnia Paweł Jędrzejczak i Andrzej Renes docierają do Szczeliny Zapieraczkowej, osiągając w towarzystwie Tomasza Świdra w dniu 10 grudnia I Zacisk i 12 grudnia II Zacisk. Został on pokonany 15 grudnia przez Jędrzejczaka i Świdra, kt&oacute;rzy w kolejnych akcjach rozkuwają III Zacisk i docierają do Wideł 7 stycznia 1977 r. W kolejnych akcjach wraz z Renesem poznają Syfon Niezapominajka, Mleczarnię i Naciekowe Progi do błotnistego syfonu za Skośną Salką. 27 września 1977 r. Roman Kubin i Jacek Parczewski pokonują 40 metrowy komin, osiągając najwyższy punkt jaskini. 20 lutego 1978 P. Czarniak i T. Świder przechodzą zawalisko na dnie Studni Białych Komar&oacute;w i odkrywają leżący za nim korytarz, a 23 marca tego roku Kubin i Parczewski przekopują błotnisty syfon w partiach za II Progiem Naciekowym, odkrywając około 30 m leżących za nim korytarzy. 14 stycznia 1979 Jędrzejczak, Świder i Andrzej Tylka przeszli Niezapominajkę i odkryli około 160 m nowych korytarzy, a P. Bednarz i Czarniak wspięli się do okna w Widłach, eksplorując około 15 m ślepo kończącego się korytarza.. Zamknięciem tego etapu eksploracji było przekopanie południowego otworu łączącego partie za Niezapominajką z powierzchnią (Stefan Januszkowski i Tylka 3/4 marca 1979) i kilkumetrowego korytarzyka pomiędzy tymi partiami a Korytarzem Grzybkowym (Krzysztof Dudziński, M. Kozłowski i S. Michalik 20 kwietnia 1985 r.).<br /> W opublikowanym zestawieniu całości dokumentacji Jaskini Naciekowej po odkryciach zakopiańskich (Dudziński 1985) podane zostały inne niż w niniejszym opisie rozmiary: długość ok. 1500 m i deniwelacja 103 m (+40, -63). Na podstawie pomiar&oacute;w przeprowadzonych w 1986 r. W. Szymanowski skorygował deniwelację na 95 m i długość na 1204 m, co po uwzględnieniu kilkumetrowego przekopu, łączącego rejon otworu południowego ze starymi ciągami jaskini dało ok. 1210 m długości wszystkich korytarzy. Takie parametry systemu zostały przyjęte we wszystkich p&oacute;źniejszych publikacjach. Pewne wątpliwości może nasuwać fakt, że rezultaty pomiar&oacute;w W. Szymanowskiego nie zostały nigdzie opublikowane i wobec niemożności por&oacute;wnania obu dokumentacji sprawy nie można uznać za ostatecznie rozstrzygniętą.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis partii poznanych w 1959 r. opublikował J. Rudnicki, a zestawienie całości dokumentacji K. Dudziński. Powyższy opis jest uzupełnioną wersją publikacji Dudzińskiego (1985). Pomiary jaskini prowadzili także Ch. Parma i W. Szymanowski (1986). Zaktualizowali K. Dudziński i R.M. Kardaś (2009 r.).<br />Plan opracował K. Dudziński na podstawie pomiar&oacute;w Rudnickiego (1959) i Ch. Parmy (1977-79). <br />Opracowali Krzysztof Dudziński i Rafał M. Kardaś.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Rudnicki, J. 1959 (plan, opis); W&#243;jcik, Z. 1960a,b (osady); W&#243;jcik, Z. 1961 (lokalizacja na mapie, plan, opis, nacieki); Wołoszyn, B. W. 1964 (subfosylna fauna); W&#243;jcik, Z. 1966a (osady, geneza, wiek); Rudnicki, J. 1967 (geneza, wiek); Wołoszyn, B. W. 1970 (subfosylna fauna); Dudziński, K. 1981 (informacje o odkryciach); Parczewski, J. 1984 (informacje o odkryciach); TATRY POLSKIE 1984 (lokalizacja na mapie); Dudziński, K. 1985 (plan opis, historia eksploracji); Gradziński, R. i in. 1985a (dane morfometryczne, lokalizacja na mapie); Zwoliński, S. 1993 (informacja o zasypanym korytarzu - p&#243;źniejszym dolnym otworze jaskini); Jaskinie TPN 1993b (plan i opis inwentarzowy); Postawa T. i in. 1994 (Myotris mystacinus, Eptesicus nilsonii); Kepel A. 1995 (Myotis daubentonii, Plecotus auritus, Eptesicus nilsonii); Piksa K. 1998 (wymienia nietoperze z prac poprzednik&#243;w oraz Myotis naterreri); Bielska, T., Mickiewicz, J. 2000 (flora); Nowak J. 2000 (Myotis emarginatus – pierwsze stwierdzenie występowania w Polsce i Tatrach); Kicińska, D. 2005 (uwagi o genezie i osadach);.Gradziński, M. i in. 2009 (uwagi o genezie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Sobiepanek-Krzyżanowska, E. 1974 (fauna).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Rafał M. Kardaś, Krzysztof Dudziński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11830)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r S
+                    </a>
+                    <a onclick="showImageInfo(579)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

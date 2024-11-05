@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2189">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2189;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "519335,6590".replace(',', '.') + "," + "320342,2053".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2189','Jaskinia Zamkowa Dolna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Zamkowa Dolna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko pod Zamkiem w Olsztynie Duże
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.I-02.13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;16′27,00″, φ: 50&#176;44′59,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Olsztyn (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                częstochowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                WSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                357
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    30
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Wzg&#243;rza Olsztyńskie,  Olsztyn, G&#243;ra Zamkowa.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od rynku w Olsztynie należy udać się na Górę Zamkową, w kierunku głównej części ruin zamku. Otwór jaskini znajduje się pod murami wieży mieszkalnej średniowiecznego zamku. Pomiędzy murem a krawędzią skały powstał także drugi, sztuczny, górny otwór jaskini. Jest on usytuowany w pobliżu okrągłej baszty. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Duży otwór jaskini ma kształt ostrołukowy, o szerokości u podstawy 5 m oraz wysokości około 12 m. Przed wybudowaniem zamku był on szeroko otwarty, z daleka widoczny. Obecnie jaskinia jest połączona z powierzchnią w dwóch miejscach: na dole, poprzez otwór drzwiowy w murze zamkowym (2,2x2,2 m), oraz na górze, na wysokości 14 m, poprzez trójkątną szczelinę pomiędzy krawędzią skały i murem (4,6x2 m). </span></p><p><span>Jaskinia jest właściwie dużym schroniskiem podskalnym. Główną i w zasadzie jedyną częścią jaskini jest komora o długości 18 m i szerokości do 6 m. Jej wysokość wynosi około 12 m. W końcowej części komory, za wyraźnym obniżeniem stropu znajduje się niskie przejście do małej, zasłanej gruzem salki. Stąd można wrócić do sali poprzez efektowne, piętrowe obejście. Ta część jaskini jest zupełnie ciemna. W stropie komory jest kilka ślepych kominów. </span></p><p><span>Jaskinia rozwinęła się w wapieniach jurajskich. Dno sali pokrywa namulisko, częściowo zniszczone i przemieszane. Nacieków brak, choć w stropie wykształciły się ładne wymycia (kotły). Jaskinia jest prawie w całości widna i sucha.</span></p><p><span>Namulisko było szczegółowo badane w latach 1969-1971 przez Muzeum w Częstochowie (Kopacz, Skalski, 1970). Górna jego część została zniszczona w średniowieczu podczas adaptacji jaskini na pomieszczenia gospodarcze. Liczne wkopy nowożytne spowodowały dalsze zniszczenia. Badania pozostałych części pierwotnego namuliska wykazały, że grubość osadów w głębi wynosi około 30 cm i gwałtownie rośnie ku otworowi, przekraczając miąższość 3 m. Najstarsze osady, składające się z gliny, zachowały się w głębokiej szczelinie w pobliżu otworu. Znaleziono w niej niezwykle bogaty i bardzo cenny zespół wczesno-plejstoceńskich gryzoni. Wyżej całą jaskinię zalegają osady późno-plejstoceńskie (Würm), zawierające kości niedźwiedzia jaskiniowego i drobnych gryzoni chłodnego stepu bezleśnego. W głębi natrafiono na fragment soczewki lessowej zawierającej znaczną ilość zabytków krzemiennych z okresu środkowego paleolitu. W środkowej części namuliska odsłonięto wkop ze śladami po piecu dymarskim (węgle i żużel dymarski). W namulisku jaskini znajdują się jedne z najstarszych w Europie, udokumentowanych faunistycznych form borealnych, świadczących o obecności zlodowaceń.</span></p><p><span>Wg Kopacza i Skalskiego, jaskinia istniała przed drugim zlodowaceniem Mindel. Wskazuje na to między innymi ukształtowanie jaskini, która powstała w znacznie wynioślejszych masywach niż obecnie, gdyż tylko wówczas mogłyby zgromadzić się tu dostateczne ilości wody, niezbędne do wytworzenia tak obszernych korytarzy. Przedwürmskie osady zostały wymyte, czemu sprzyjało duże wejście do jaskini. </span></p><p><span>Polonius (Cabała, 2005) twierdzi, że podziemna próżnia Jaskini Zamkowej Dolnej powstawała w głębokiej, freatycznej strefie przepływów, pod wpływem ruchu konwekcyjnego wód nieco podgrzanych. Potwierdza to również pozostałość komina krasowego, istniejącego w bezpośrednim sąsiedztwie wejścia do jaskini. Komin ten prowadzi do okna, przebijającego na wylot skalny mur. Pozostałości komina krasowego potwierdzają hipotezę, że objętość korytarzy tej groty była kiedyś znacznie większa. Duże rozmiary głównej komory oraz gąbczastość krasowa, pojawiająca się w kilku miejscach w sąsiedztwie jaskini, świadczą o wielkiej intensywności procesów krasowych, zachodzących w tej części masywu skalnego. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Namulisko było szczegółowo badane w latach 1969-1971 przez Muzeum w Częstochowie (Kopacz, Skalski, 1970). Autorzy Ci wypowiadali sie o genezie i ewolucji jaskini, podobnie jak Polonius (Cabała 2005).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Wg Kowalskiego (1951) Jaskinia Zamkowa Dolna należy do najwcześniej wzmiankowanych jaskiń Polski. Na podstawie średniowiecznego opisu lustratorów dóbr królewskich z roku 1564 (z Wiśniewskiego, 1998): „<span style="font-style: italic;">... starosta pokazał im skałę jedną, na której połowica zamku ku bramie stoi, iż jest ta wszytka skała z przyrodzenia klowtami przerostała i na wielu miejscach czcza, bo w niej są jamy, dlatego ją Olsthain przezwano, a nie jest cała głazu zawartego..</span>.”<br />Jaskinia była wymieniana przez wielu autorów, w tym Maślankiewicza i Fleszarową-Danysz. Kowalski (1951) opisał ją pod nr 495 jako „Schronisko pod zamkiem w Olsztynie duże”. Natomiast A.W. Skalski w niepublikowanej „Inwentaryzacji...” oraz w kwartalniku „Z otchłani wieków” opisał ją pod nazwą „Jaskinia Zamkowa Dolna”. Załączony tamże jest także plan jaskini oraz rysunki przekroju osadów, profili działek i zabytków krzemiennych. W opisie przyjęto nazwę proponowaną przez Skalskiego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Aktualizację i uzupełnienia do planu A.W. Skalskiego wykonał J. Zygmunt  w dniu 17 lutego 2000 r. Dane zaktualizował J. Zygmunt w 2009 r.<br /> Plan opracował J. Zygmunt.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Gruszecki A. 1978 (wzmiankuje); Danysz-Fleszarowa R. (wzmiankuje w wykazie); Maślankiewicz K. 1937 (wzmianka); Kowalski K. 1951(plan, opis); Kopacz J. Skalski A.W. 1970 (fotografia otworu, plan jaskini, fragment profilu, wyroby krzemienne); Skalski A.W. 1995 (plan jaskini, przekroje namuliska, przykłady zabytk&#243;w, lokalizacja i obszerne piśmiennictwo); Wiśniewski W. 1998 (historia poznania); Zygmunt J. 2003  (wykaz jaskiń); Cyrek K. 2009 (wyniki badań archeologicznych); Lewandowski J. 2009 (wzmiankuje, stanowiska archeologiczne); Madeyska T. 2009 (osady); Stefaniak K. i in. 2009a (fauna subfosylna); Stefaniak K. i in. 2009d (błędne dane morfometryczne, kr&#243;tka charakterystyka, zakres badań); Jaskinie Wyżyny Częstochowskiej 2011a  (plan i opis inwentarzowy); Zygmunt J. 2013 (replika planu - zmniejszony - i  opisu (skr&#243;conego) z t.1 Jaskinie Wyżyny Częstochowskiej, fot. otworu i wnętrza jaskini, pod nr inwentarzowym wg własnego podziału autora).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Skalski A.W. 1972 (plan, opis); Zygmunt J. i in. 2000 (dokumentacja); Cabała S. i in. 2005 msk (walory przyrodnicze, uwagi nt genezy jaskiń G. Zamkowej).
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Zygmunt
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1703)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

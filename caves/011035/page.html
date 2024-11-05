@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11035">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11035;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "560652,82".replace(',', '.') + "," + "252964,33".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11035','Jaskinia Borsucza'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Borsucza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Borsucza w Podskalanach
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-03.05
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;50′56,60″, φ: 50&#176;08′26,90″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wielka Wieś (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SE.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                291
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                5,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                5,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    37
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Tomaszowice-Podskalany, Dolina Wedonki, Wąw&#243;z Podskalański.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Na północny wschód od centrum wsi Tomaszowice leży przysiółek Podskalany, będący częścią Tomaszowic. Na północnym skraju Podskalan znajduje się wylot Wąwozu Podskalańskiego będącego przełomową częścią Doliny Wedonki. W wylocie wąwozu, w jego północnym zboczu znajduje się ściana skalna, a nieco ponad 100 m na NW, po tej samej stronie leży druga grupa skalna. Główny otwór jaskini leży w skałach u wylotu wąwozu, około 100 m na NW od skrzyżowania polnej drogi biegnącej dnem wąwozu z drogą asfaltową biegnącą przez wieś. Wejście znajduje się w samym dnie doliny, bezpośrednio przy drodze, a w otworze jaskini wypływa niewielkie źródło.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W 1951 jaskinię szczeg&oacute;łowo opisał K. Kowalski. Jego opis, szczeg&oacute;lnie w punkcie dotyczącym topografii, pozostał aktualny do dzisiaj. Aby m&oacute;c por&oacute;wnać stan wsp&oacute;łczesny z tym sprzed lat warto zacytować wspomnianego autora:</p>
+<p><em>&bdquo;Otw&oacute;r dolny (południowy) niewielki, leży bezpośrednio na dnie doliny, kt&oacute;re okresowo bywa zalewane wodą, stąd i w otworze tworzy się niekiedy płytka kałuż. Za otworem korytarz, zrazu dość obszerny, po 5 m staje się tak ciasny, że tylko z trudnością przedostać się można do rozwidlenia chodnik&oacute;w, gdzie strop zn&oacute;w jest wyższy. Od tego miejsca na prawo prowadzi dość wysoki chodnik podnoszący się ku g&oacute;rze i doprowadzający po 10 m do g&oacute;rnego (wschodniego) otworu jaskini &ndash; ciasnego okna w skale kilka m nad dnem doliny. Wr&oacute;ciwszy do miejsca rozgałęzienia spostrzeżemy tu duży komin rozszerzający się ku g&oacute;rze. Idąc teraz w głąb skały poziomym, ogładzonym chodnikiem z nieznacznymi odnogami osiągamy po 6 m zwężenie, za kt&oacute;rym jaskinia skręca w prawo pod kątem prostym. Po 4 m dno gwałtownie opada a strop się podnosi, by dalej zn&oacute;w opaść stromo w d&oacute;ł. Dalej prowadzą tu dwie wąskie poziome jamy. Lewa mniejsza, zapchana jest kamieniami i gliną, prawa ma dno skalne i nieco się rozszerza. Miejsce to zwykle zalane jest wodą, w porze suchej wieje tu dość silny prąd powietrza. Nacieki bardzo nikłe. Przy końcu jaskini pod dużą szczeliną w stropie widoczna w ścianie cienka warstwa zlepieńca z dużymi ziarnami kwarcu.</em></p>
+<p><em>Namulisko zostało prawie zupełnie wyeksploatowane w 1879 przez Ossowskiego. Jak wskazują ślady na ścianach wypełniało ono prawie całą przestrzeń jaskini. Miało ono wg Ossowskiego 1 &ndash; 1,75 m grubości i składało się z humusu z warstewkami napływu czarnoziemno-gliniastego. W spodniej jego połowie występowały zabytki neolityczne. Spalenisk nie znaleziono. Na dnie leżała kilka cali gruba warstwa gliniasta, w kt&oacute;rej znaleziono ząb mamuta i inną kość zwierzęcia grubosk&oacute;rnego. Dziś namulisko skąpe, przy g&oacute;rnym otworze ziemia wapnista z kamieniami, przy dolnym glina z domieszką pr&oacute;chnicy, w głębi prawie czysty less. W kilku miejscach na dnie widoczna lita skała. Na powietrzu spotyka się wsp&oacute;łczesne kości i skorupy naczyń toczonych na kole.</em></p>
+<p><em>Światło widać po początek końcowego korytarzyka. Pomiędzy obu otworami przewiew, w głębi w suchej porze wieje wiatr z kanał&oacute;w końcowych. Jaskinia na og&oacute;ł sucha, woda stale kapie w korytarzu końcowym. Okresowo w otworze dolnym stoi kałuża i zalewany bywa koniec jaskini. Temperatura w głębi 31 II 1940 wynosiła w wodzie +7OC, tamże 7 VII 1940 +8OC.</em></p>
+<p><em>Flora bardzo uboga. W kałuży w dolnym otworze plankton sięgający 2m w głąb. W głębi nietoperze podkowce. Owady i pająki.</em></p>
+<p><em>Opisał i zbadał jaskinię w 1870 Ossowski, odkrywając w niej wiele zabytk&oacute;w neolitycznych. W 1924 zwiedził ją Żurowski, stwierdzając dobry stan zachowania. Namulisko wyczerpane.</em></p>
+<p><em>Materiały z prac Ossowskiego znajdują się w Muzeum Archeologicznym P.A.U. pod nr inw. 2557-2558, 4579, 4854 i ks. Wpływ&oacute;w 1945/6 nr 22.&rdquo;</em></p>
+<p>W tym miejscu do opisu topografii można dodać tylko tyle, że od skrzyżowania korytarzy do otworu wschodniego jaskinia ma charakter szczelinowy, natomiast geneza pozostałej części jest typowo krasowa. Ta część powstała przy zr&oacute;żnicowanych przepływach zar&oacute;wno freatycznych jak i wadycznych. W korytarzu jaskini są widoczne fragmenty zar&oacute;wno rynny dennej jak i fragmenty kanału paragenetycznego. Jaskinia rozwinięta się w wapieniach skalistych g&oacute;rnej jury (oksford) i niewątpliwie jest fragmentem podziemnego przepływu potoku Wodonka, a pojawiająca się we wnętrzu woda świadczy, że podziemny kanał jest nadal aktywny.</p>
+<p>Według notatki sporządzonej przez M. Bąka (1997), w styczniu lub lutym 1997 roku, miejscowa ludność spaliła we wnętrzu jaskini dużą ilość opon samochodowych w celu wytępienia mieszkających we wnętrzu lis&oacute;w. W skutek tej akcji doszło do nieodwracalnej dewastacji. Na ścianach i stropie osadziła się ogromna ilość sadzy a wnętrze od tej pory jest kompletnie czarne. M. Bąk opisuje, że w trakcie penetracji jaskini natrafili na siedemnaście (!) sztuk rozkładających się lis&oacute;w oraz 6 (!) nietoperzy, podkowc&oacute;w. Dodatkowo z notatki wynika, że gł&oacute;wny otw&oacute;r był niemal całkowicie zasypany śmieciami.</p>
+<p>Zaczernienie ścian spowodowało niemożność przeprowadzenia obserwacji pierwotnego poziomu namuliska. Niewidoczna jest także żyła zlepieńca z ziarnami kwarcu opisywana przez Kowalskiego.</p>
+<p>Kowalski pisze, że w kilku miejscach jest widoczne skalne dno. W trakcie prowadzenia ostatnich pomiar&oacute;w nigdzie nie zaobserwowano skalnego podłoża (opr&oacute;cz końcowego odcinka korytarza do wschodniego otworu gdzie w szczelinie pojawiają się zaklinowane głazy po kt&oacute;rych trzeba przejść). Jednocześnie zwraca uwagę fakt, że od skrzyżowania w kierunku końca jaskini namulisko pokryte jest w miarę świeżą warstwą suchej trawy, kt&oacute;ra w kilku miejscach ma grubość kilkunastu centymetr&oacute;w. Świadczy to o tym, że do jaskini na powr&oacute;t &bdquo;wprowadziły&rdquo; się zwierzęta.</p>
+<p>Co do prac archeologicznych prowadzonych jeszcze w XIX wieku to obejmowały one najprawdopodobniej tylko strefę przyotworową. Sam Kowalski, po wielu latach opisujący jaskinię, stwierdza, że od otworu gł&oacute;wnego do skrzyżowania trzeba się czołgać bardzo ciasnym korytarzem. To ciasne miejsce pozostało do dzisiaj, choć w ostatnim czasie zostało chyba poszerzone, bo kilka metr&oacute;w za otworem widać świeże, choć płytkie wykopy, a poza tym leżą tu dwa wiadra i łopata. Tak więc, stwierdzenie &bdquo;namulisko wyczerpane&rdquo; nie odnosi się do całej jaskini.</p>
+<p>Omawiając namulisko trzeba w tym miejscu dodać, że w końcowej części jaskini nie widać opisywanego rozwidlenia, kt&oacute;re prawdopodobnie zostało przysypane namuliskiem przez zwierzęta (bo widać tu sporo suchej trawy) lub ludzi (bo widać tu pr&oacute;by rozgrzebywania dna). W samym końcu jaskini, gdzie zazwyczaj zbiera się woda w kałuży, było tylko mokre błoto, podobnie jak przed gł&oacute;wnym (południowym) wejściem. Powodem tego stanu rzeczy był wyjątkowo suchy okres wiosenno-letni.</p>
+<p>Naciek&oacute;w w jaskini nie widać wcale (okopcone ściany), jedynie w pobliżu otworu wschodniego można zaobserwować bardzo niewielkie nacieki grzybkowe.</p>
+<p>Mimo niewielkich rozmiar&oacute;w obiekt zachowuje sw&oacute;j mikroklimat (szczeg&oacute;lnie w końcowej części). W trakcie prowadzenia pomiar&oacute;w nie zaobserwowano kapania wody we wnętrzu (długi okres bez opad&oacute;w). Nie obserwowano r&oacute;wnież wywiewu z końcowej części (od &bdquo;jeziorka&rdquo;), a przewiew między otworami był minimalny. Spowodowane to było wyr&oacute;wnaną temperaturą zewnętrzną i wewnętrzną.</p>
+<p>Światło dzienne dociera bardzo płytko i cała jaskinia jest całkowicie ciemna.</p>
+<p>W jaskini nie zaobserwowano żadnych przedstawicieli flory. Nawet w strefie przyotworowej nie widać na ścianach glon&oacute;w czy porost&oacute;w.</p>
+<p>W trakcie prac kartograficznych nie spotkano w jaskini nietoperzy. Natomiast w korytarzu od skrzyżowania do otworu wschodniego natrafiono na kilka egzemplarzy kilku gatunk&oacute;w kosarzy. Występowały tu r&oacute;wnież pojedyncze egzemplarze motyli, pająk&oacute;w rodzaju <em>Porrchomma</em> oraz nieliczne much&oacute;wki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania archeolologiczne prowadził Ossowski w latach 1879-1882.</p>
+<p>Sanocka-Wołoszynowa (1981), prowadziła badania faunistyczne (pajęczak&oacute;w).</p>
+<p>W 2005 r ukazuje się informacja R&oacute;żkowskiego i in. o przeprowadzonych badaniach dotyczących właściwości hydrogeologicznych wapieni występujących w jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od bardzo dawna. Duży, dobrze widoczny otw&oacute;r leżący przy samej drodze prowokuje do częstych odwiedzin. Jednak fakt, że we wnętrzu trzeba się czołgać ogranicza ilość zwiedzających.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy dokładny plan i opis wykonał K. Kowalski, kt&oacute;ry r&oacute;wnież nadał jaskini numer &ndash; 59. Sanocka-Wołoszynowa (1981), prowadząc badania pajęczak&oacute;w przeprowadziła r&oacute;wnież obserwacje&nbsp; w Jaskini Borsuczej. W 1986 r. wymieniają ją Szelerewicz i G&oacute;rny, kt&oacute;rzy nadają jej numer II.B.2. W 1997 r.&nbsp;ukazuje się informacja M. Bąka o dewastacji spowodowanej rozpaleniem ognia w jaskini.</p>
+<p>Pomiary wykonał we wrześniu 2015 r. A. Polonius.</p>
+<p>Plan opracował A. Polonius.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ossowski G. 1879 (opisuje); Ossowski G. 1880 (opisuje); Ossowski G. 1882 (opisuje); Czarnowski S.J. 1911 (wzmianka); Żurowski J. 1923 (fot. czarki neolitycznej); Kozłowski L. 1924 (wzmianka o neolicie); Żurowski J. 1929 (wzmianka o zwiedzaniu); Danysz-Fleszarowa  R. 1933 (wymienia), Żurowski J. 1933 (wzmianka o neolicie, fot. czarki); Kowalski K. 1951 (plan i opis, nadaje numer); Sanocka-Wołoszynowa E. 1981 (informacja o badaniach pajęczak&#243;w); Szelerewicz M., G&#243;rny A. 1986 (wymieniają, nadają numer); Bąk M. 1997l (informacja o zniszczeniach w jaskini); R&#243;żkowski J. i in. 2005 (badania dot. właściwości hydrogeologicznych wapieni); Jaskinie Wyżyny Olkuskiej 2018a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12053)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otwory (po prawej otw&#243;r E)
+                    </a>
+                    <a onclick="showImageInfo(12052)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

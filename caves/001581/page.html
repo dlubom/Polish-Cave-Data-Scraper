@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1581">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1581;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "567192,34".replace(',', '.') + "," + "153136,78".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1581','Jędrusiowa Dziura'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jędrusiowa Dziura
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Jędrusiowa Dziura
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.43
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′24,29″, φ: 49&#176;14′31,37″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Jaskinia przy Jędrusiowej Dziurze) - ku N, 1562 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1592,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                52,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                56,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    419
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                63
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W lewym orograficznie zboczu Doliny Małej Łąki (Niżniej Świst&#243;wki), w dolnej części Baranich Schodk&#243;w, pod małą skałką w trawniku. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Żółto znakowanym szlakiem podchodzimy Doliną Małej Łąki, następnie skręcamy na prawo, do Niżniej Świstówki i wyraźną, nieznakowaną ścieżką docieramy nad bulę, w pobliże progu, którym prowadzi ukośną płytą Przechód do Wyżniej Świstówki. Spod progu idziemy niewyraźna percią ku W, do Baranich Schodków – trawiastego zachodu przecinającego ukośnie ściany, prowadzącego aż na Wielką Turnię. Zachodem tym, pod ścianami wiedzie nas do góry perć, która na początku jest piarżysta. Po kilkunastu metrach wyczuwamy chłodny prąd powietrza. Pod ścianą, pod niewielkim okapem odnajdujemy otwór Jaskini przy Jędrusiowej Dziurze T.E-12.45, zasłonięty nieco głazami i roślinnością. Jest to dolny otwór systemu. Idziemy dalej, wprost do widocznego w pobliżu otworu Schronu pod Jędrusiową Dziurą T.E-12.44. Za tym otworem podążamy trzymając się środkowej części trawiastego upłazu (bliżej jego północnej krawędzi) i po około 25 m odnajdujemy małą skałkę przypominającą raczej duży kamień. Pod skałką ukryty jest w trawach otwór Jędrusiowej Dziury T.E-12.43 – górny otwór systemu. Dojście łatwe, zwiedzanie bardzo uciążliwe ze względu na trudne zaciski.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Do wnętrza Jędrusiowej Dziury prowadzi tr&oacute;jkątny otw&oacute;r o wymiarach 0,75x0,75 m. Za nim ciągnie się w d&oacute;ł niski korytarzyk. Po paru metrach staje się on wyższy i urywa się pierwszym z dw&oacute;ch prog&oacute;w Studni Wlotowej. Po prawej stronie, nad progiem, widać w zawalisku niewielką kom&oacute;rkę o stromo wznoszącym się dnie. Jej najwyższy punkt znajduje się ponad poziomem otworu.</p>
+<p>Zjeżdżamy pierwszym, 5 m progiem Studni Wlotowej (do jej zaporęczowania potrzeba 22 m liny i 4 karabinki) i stajemy na piarżystej p&oacute;łce. Ku W odchodzi kr&oacute;tki, ślepy meanderek. W dnie niższej części p&oacute;łki otwiera się 4 m studzienka. Prowadzi ona do niższego, obszerniejszego piętra wyżej wymienionego meanderka. Po kilku metrach, r&oacute;wnież tu przejście zamyka zawalisko. Dolna część 4 m studzienki ma niedostępne dla człowieka połączenia z podstawą Studni Wlotowej.</p>
+<p>Z końca p&oacute;łki w Studni Wlotowej trawersujemy w kierunku W, do okna stanowiącego wejście do Meandra P&oacute;łnocno-Zachodniego. Jest on wysoki do 2 m i w niewielu miejscach szerszy niż 0,5 m. Posiada długość około 30 m. W jego początkowej części namulisko jest gliniaste, natomiast dalej spąg pokrywa gruz. W środkowej części meandra znajdują się dwa progi o wysokości 1,5 m. Za drugim z nich znajduje się łatwy zacisk. Koniec meandra stanowi zagruzowana, bardzo wąska szczelina. Przed nią uchodzi do g&oacute;ry 1,5 m kominek, r&oacute;wnież zablokowany zawaliskiem na końcu. Jest to najwyżej położone miejsce w jaskini (+3,8 m).</p>
+<p>Wracamy na p&oacute;łkę w Studni Wlotowej i zjeżdżamy 5 m na jej dno. Schodzimy kilka metr&oacute;w stromo w d&oacute;ł szerokim na 2 m i wysokim do 6 m korytarzem. Jego spąg pokrywa gruz. Dochodzimy do zakrętu pod kątem prostym w lewo. Od tego miejsca korytarz znacznie się zwęża. Schodzimy ciasnym 1,5 m progiem, za kt&oacute;rym ciąg skręca ostro w prawo. Zaraz za zakrętem znajduje się trudny, pionowy zacisk w kształcie litery &bdquo;S&rdquo;. Schodzimy nim 2 m niżej do szerszej części meandra. W prawo odchodzi kilkumetrowy ciasny, szczelinowy korytarz. Schodzimy kolejnym 4 m progiem do obszernej salki o wymiarach 2,5x3,5 m, stanowiącej część tzw. &bdquo;Meandra&rdquo;. Nazwa ta (nadana przez odkrywc&oacute;w) nie oddaje morfologii tych partii. Pod zachodnią ścianą salki leży wielka wanta zajmująca połowę jej powierzchni.</p>
+<p>Z salki ku S odchodzi kilkumetrowy, ładnie wykształcony meander. Dalsza droga wiedzie z N części salki. Wchodzimy pod wantę korytarzem opadającym 1,5 m progiem. Nad progiem ciągnie się do g&oacute;ry kilkumetrowy korytarzyk zablokowanym zawaliskiem. Pod progiem korytarz stromo opada do kolejnej salki o wymiarach 2x3 m. W jej S i W części znajdują się kr&oacute;tkie zawaliskowe odnogi. W NW części salki odchodzi stromo do g&oacute;ry korytarz, kt&oacute;ry po kilku metrach urywa się 2,5 m progiem do Salki ze Szmatami (dalsza część opisu).</p>
+<p>Z N części salki przechodzimy kr&oacute;tkim korytarzykiem z 1m prożkiem do trzeciej i ostatniej salki w &bdquo;Meandrze&rdquo; o wymiarach 1,5x2 m. Idąc ku N, pokonujemy 2 m prożek i dochodzimy do Salki ze Szmatami. Nazwa pochodzi od strzęp&oacute;w starych ubrań pogrzebanych w gruzie. Jej dno o wymiarach 1,5x3 m, wznosi się stromo ku NW. W najwyższym punkcie Salki można przedostać się przez jeden z dw&oacute;ch przełaz&oacute;w na wyższe, zawaliskowe piętro. Rozciąga się ono wzdłuż kierunku NW&ndash;SE i z każdej strony kończy się zawaliskiem.</p>
+<p>Wracamy do ostatniej z trzech salek w &bdquo;Meandrze&rdquo; i podążamy w d&oacute;ł, ku SE. Dalsza droga wiedzie przez jeden z dw&oacute;ch ciasnych korytarzyk&oacute;w, kt&oacute;re łączą się po kilku metrach. Zaraz za połączeniem znajduje się ciasny przełaz, za kt&oacute;rym ciąg opada 2,5 m progiem do Sali z Brzytwą Wyżniej o wymiarach dna 1,5x4 m i wysokości 4 m. Na progu widoczny jest ciek płynący w kierunku dna jaskini. Nazwa sali wzięła się od dużej, wąskiej płyty skalnej zalegającej pionowo na spągu jaskini. Zaraz za końcem płyty schodzimy 2 m progiem i dochodzimy nad kolejny, tym razem przewieszony 3 m pr&oacute;g. Nad progiem widać bardzo ciasne przejście (Z III) do Sali na Piętrze rozwiniętej na wyższym poziomie meandra (dalsza część opisu).</p>
+<p>Do Sali z Brzytwą Niżniej schodzimy przez przewieszony pr&oacute;g lub przez ciasną studzienkę położoną wcześniej pod N ścianą. Zsuwamy się nią do niskiego meandra z gliniastym namuliskiem. Po paru metrach zakręca on w prawo. Nad niewielkim prożkiem pokonujemy zwężenie koło dużego głazu i dochodzimy nad pochyły, 4 m pr&oacute;g utworzony z zaklinowanych want. Schodzimy progiem i stajemy w niewielkiej salce. Przed nami znajduje się duża wanta, pod kt&oacute;rą otwiera się ciasna studzienka prowadząca w kierunku dna. My idziemy prosto, nad wantą. Podchodzimy stromo korytarzem, pokonujemy 3 m kruchy pr&oacute;g i stajemy w niewielkiej salce. Odchodzi z niej ku E kr&oacute;tki, ślepy meander.</p>
+<p>Wracamy nad ciasną studzienką pod dużą wantą. Schodzimy nią i po kilku metrach korytarza o dnie pokrytym gruzem docieramy do Korytarza z Jeziorkami. Jego dno zalega glina, na kt&oacute;rej okresowo tworzą się jeziorka. Początkowa część korytarza z jeziorkami jest niska i kręta. Przechodzimy na czworakach, uważając, żeby się nie zmoczyć do wyższej części korytarza, gdzie można już poruszać się wyprostowanym. Na końcu Korytarza z Jeziorkami woda wpływa do niedostępnej szczeliny. Jest to najniżej położony punkt jaskini (&ndash;56,6 m). Nieco wcześniej, ku NE prowadzi przejście do Sali Końcowej. Aby się do niej dostać musimy pokonać 2 m pr&oacute;g. Sala Końcowa ma wymiary 4x2 m i do 4 m wysokości. Jej namulisko stanowi gruz. Koniec sali tworzy zawalisko wysypujące się z pionowego ciągu dochodzącego z g&oacute;ry. Na podstawie planu można wywnioskować, że ciąg ten jest kontynuacją Korytarza nad Salą Obszerną w Jaskini przy Jędrusiowej Dziurze.</p>
+<p>Wracamy do studzienki w Sali z Brzytwą Niżniej. Także tutaj na spągu leży duża płyta. Sala posiada wymiary 2x5 m, wysokość do 6 m. W jej najniższej części znajduje się płytka studzienka prowadząca w kierunku dna. Dalsza część komory wznosi ku E. Podchodzimy po dużych wantach i w miejscu, gdzie sala przechodzi w meander, 3,5 m wyżej widać okno, za kt&oacute;rym znajduje się Meander Połączeniowy (por. opis Jaskini przy Jędrusiowej Dziurze). Meander znajdujący się przed nami zwęża się po kilku metrach w niedostępną szczelinę, za kt&oacute;rą widać Meander Połączeniowy.</p>
+<p>Informacje o systemie.</p>
+<p>System Jędrusiowej Dziury rozwinął się w wapieniach robaczkowych triasu środkowego (anizyku) wierchowej jednostki Organ&oacute;w (fałd Czerwonych Wierch&oacute;w), wzdłuż wyraźnego pęknięcia widocznego na całej długości Baranich Schod&oacute;w. Jaskinia posiada charakter rozwiniętego na wielu piętrach meandra. Cześć partii została przemodelowana przez procesy zawaliskowe, zwłaszcza okolice &bdquo;Meandra&rdquo;, Salki ze Szmatami i korytarzyka wstępnego Jaskini przy Jędrusiowej Dziurze.</p>
+<p>Osady w większości partii stanowi gruz. W Meandrze P&oacute;łnocno-Zachodnim i Korytarzu z Jeziorkami miejscami spąg pokrywa glina. W bezpośredniej bliskości otworu w namulisko tworzy gruz zmieszany z humusem. W wielu miejscach znaleźć można kości i odchody nietoperzy.</p>
+<p>Jaskinia jest wilgotna. W dolnej części gł&oacute;wnego ciągu można zaobserwować ciek. Woda wypływa r&oacute;wnież ze ślepego meandra w Jaskini przy Jędrusiowej Dziurze i łączy się z gł&oacute;wnym ciekiem w Korytarzu z Jeziorkami. Okresowe zbiorniki wody powstają w Korytarzu z Jeziorkami. Przy wyższych stanach wody tworzą one okresowy syfonik.</p>
+<p>Rozproszone światło sięga do zacisku w korytarzyku wstępnym Jaskini przy Jędrusiowej Dziurze oraz pod Studnie Wlotową Jędrusiowej Dziury.</p>
+<p>Jaskinia posiada mikroklimat dynamiczny. Pomiędzy otworami wyczuwalny jest wyraźny przewiew. W miesiącach letnich (zwłaszcza podczas upał&oacute;w) z otworu Jaskini przy Jędrusiowej Dziurze wydobywa się silny strumień zimnego powietrza, podczas gdy w okolicach Studni Wlotowej Jędrusiowej Dziury czuć napływające z powierzchni ciepłe powietrze. Cyrkulacja ta w zimie ulega odwr&oacute;ceniu. W zawalisku w Sali Końcowej, za kt&oacute;rym powinna się znajdować dalsza część jaskini, nie wyczuwa się przewiewu. Jedynie z Meandra P&oacute;łnocno &ndash; Zachodniego czuć podczas upalnych dni wyraźny ciąg zimnego powietrza.</p>
+<p>Przy otworach rozwija się roślinność kwiatowa. Głębiej sięgają paprocie, mchy i porosty.</p>
+<p>Z otworu Jędrusiowej Dziury T. Bielska wymienia następujące gatunki roślin zebranych w dniu 16 lipca 1978 r. (oznaczenia mszak&oacute;w wykonała J. Mickiewicz):</p>
+<p>kwiatowe &ndash; <em><strong>Arabis arenosa</strong></em> Scop.,<em> Arabis alpina</em> L., <em><strong>Urtica dioica</strong> </em>L., <em><strong>Scorphularia scopoli</strong> </em>Hoppe,<em><strong> Bellidiastrum michelii</strong> </em>Cass., <em><strong>Hutchinsia alpina</strong> </em>R.Br.,<em><strong> Viola biflora</strong> </em>L., <em><strong>Rhodiola rosea</strong> </em>L., <em><strong>Primula elatior</strong> </em>Grufb.,<em><strong> Ranunculus alpestris</strong> </em>L.,<em><strong> Galium anisophyllum</strong> </em>Vill., <em>Aconitum callibotryon</em> Rchb., <em><strong>Festuca carpatica</strong> </em>Dietz;</p>
+<p>paprocie &ndash; <em><strong>Cystopteris regia</strong> </em>Desv., <em><strong>Cystopteris fragilis</strong> </em>Bernh.,<strong><em> Polystichum lonchitis</em> </strong>Roth.</p>
+<p>mszaki &ndash;<em><strong> Fissidens adianthoides</strong> </em>Hedw., <em><strong>Fissidens taxifolius</strong> </em>Wils., <strong><em>Ctenidium molluscum</em> </strong>Mitt., <em><strong>Mnium orthorrynchum</strong> </em>Br. eur., <em><strong>Amblystegium confervoides</strong> </em>Br. eur., <em><strong>Tortula ruralis</strong> </em>Ehrh., <em><strong>Pholia cruda</strong> </em>Lindb.</p>
+<p>Z otworu Jaskini przy Jędrusiowej Dziurze T. Bielska wymienia następujące gatunki roślin zebranych w dniu 11 sierpnia 1980 r. (oznaczenia mszak&oacute;w wykonała J. Mickiewicz):</p>
+<p>kwiatowe &ndash; <em><strong>Viola biflora</strong> </em>L., <em><strong>Arabis alpina</strong> </em>L., <em><strong>Saxifraga cernua</strong> </em>L., <em><strong>Saxifraga aizoides</strong> </em>L.,<em><strong> Carex firma</strong> </em>Host.,<em><strong> Oxyria digyna</strong> </em>Hill.,<em><strong> Hutchinsia alpina</strong></em> R.Br., <em><strong>Ranunculus alpestris</strong> </em>L.;</p>
+<p>paproć &ndash;<em><strong> Cystopteris regia</strong> </em>Desv.;</p>
+<p>mszaki &ndash; <em><strong>Distichium montanum</strong> </em>Hag.,<em><strong> Amblystegium serpens</strong> </em>Br., <em><strong>Cirriphyllum polymorpha</strong> </em>L., <em><strong>Marchantia polymorpha </strong></em>L., <em><strong>Pellia epiphylla</strong> </em>(L.) <em><strong>corda</strong></em>, <em><strong>Pohlia </strong></em>sp., <em><strong>Mniobryum </strong></em>sp.</p>
+<p>W jaskini występują nietoperze, owady troglokseniczne (m.in. motyle Scoliopteryx libatrix, much&oacute;wki, komary) oraz drobna fauna wodna, a przy otworze &ndash; ślimaki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wstępna część Jędrusiowej Dziury została odkryta latem 1968 r. przez A. Dziobę i J. Śmiałowskiego z KKTJ oraz Z. Skuzę ze Speleoklubu Tatrzańskiego. Z powodu braku sprzętu doszli oni tylko nad pierwszy pr&oacute;g. O odkryciu zapomniano. W 1971 r. eksplorację przeprowadzili A. Dzioba, A. G&oacute;rny i A. Kozik z KKTJ. Dotarli oni do pionowego zacisku w kształcie litery &ldquo;S&rdquo;, jedynie A. Kozik pokonał go i samotnie osiągnął Salę z Brzytwą. W dniach 11-12 lipca 1971 r. ten sam zesp&oacute;ł dotarł do końca jaskini i sporządził jej dokumentację. Nadano jaskini nazwę Jędrusiowa Dziura, ponieważ eksplorowana była przez trzech Andrzej&oacute;w.</p>
+<p>Otw&oacute;r Jaskini przy Jędrusiowej Dziurze został odkryty w dniu 12 lipca 1971 r. przez członk&oacute;w STJ KW Krak&oacute;w. Oczyścili oni w&oacute;wczas przejście między głazami blokującymi otw&oacute;r, a w dniu 1 sierpnia 1971 r. A. G&oacute;rny, J. Smoleń i Z. Krajewski zwiedzili całą jaskinię oraz sporządzili jej szkicowy plan.</p>
+<p>Od 1979 r. zacisk na końcu wstępnego korytarza Jaskini przy Jędrusiowej Dziurze był zablokowany przez osunięte wanty. Przejście ponownie udrożnili 18 sierpnia 2004 r. F. Filar i M. Parczewski (Speleoklub Tatrzański).</p>
+<p>Połączenie obu jaskiń nastąpiło 28 lipca 2006 r. W tym dniu F. Filar pokonuje zacisk na końcu Jaskini przy Jędrusiowej Dziurze, odkrywa 30 m Meandra Połączeniowego i wychodzi w Sali z Brzytwą Niżniej w Jędrusiowej Dziurze. Kolejne drobne odkrycia (kilka metr&oacute;w) w rejonie Meandra połączeniowego mają miejsce podczas pomiar&oacute;w 21 października 2015 r.</p>
+<p>Niejasna jest historia eksploracji wielu bocznych ciąg&oacute;w, kt&oacute;re nie były ujęte na wcześniejszych planach i szkicach m.in.: Meandra P&oacute;łnocno-Zachodniego i Sali na Piętrze. Prawdopodobnie większość z tych partii była znana przed ich pomierzeniem w 2015 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W dniach 11-12 lipca 1971 r. A. Dzioba, A. G&oacute;rny i A. Kozik sporządzili dokumentację Jędrusiowej Dziury. Do pomiar&oacute;w użyto busoli i taśmy stalowej. Plan, przekr&oacute;j i opis inwentarzowy publikuje Kozik (1974)</p>
+<p>1 sierpnia 1971 r. A. G&oacute;rny, J. Smoleń i Z. Krajewski sporządzili szkicowy plan Jaskini przy Jędrusiowej Dziurze. Szkic A. G&oacute;rnego wraz z opisem publikuje Kobyłecki (1972).</p>
+<p>Podczas prac nad inwentaryzacją jaskiń tatrzańskich OW PTPNoZ dokumentację dostępnej części Jaskini przy Jędrusiowej Dziurze sporządziła latem 1979 r. I. Luty przy wsp&oacute;łpracy zespołu.</p>
+<p>Podczas sześciu wyjść w okresie 11 sierpnia &ndash; 21 października 2015 r. F. Filar mierzy powt&oacute;rnie cały system. Długość zostaje skorygowana na 419 m, a deniwelacja na 56,6 m. Do pomiar&oacute;w użyto przyrząd&oacute;w DistoX i DistoX2 w zestawie z palmtopem.</p>
+<p>Dane sytuacyjno-wysokościowe położenia otwor&oacute;w podano na podstawie pomiar&oacute;w wykonanych w dniu 17 sierpnia 1981 r. przez Zesp&oacute;ł Koła Naukowego Geodet&oacute;w G&oacute;rniczych AGH pod kierownictwem W. Borowca.&nbsp;W 2015 r. F. Filar wykonał zdjęcie otworu, a w&nbsp;listopadzie 2017 r. skorygował wsp&oacute;łrzędne geograficzne otworu.</p>
+<p>Plan i przekr&oacute;j opacował F. Filar</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kobyłecki A. 1972 (plany i opisy obu jaskiń); Kozik A. 1972 (wymienia, podaje długość); Parma C. 1972 (informacja o odkryciu, kr&#243;tki opis); Kozik A. 1974 (plan i opis inwentarzowy Jędrusiowej Dziury); W&#243;jcik Z. 1978 (wzmianka); Zembrzuski J. 1979 (limit osobowejść); Borowiec W. i in. 1977,1878 (dane morfometryczne); Kropiwnicka M. 1979 (wzmianka o pracach inwentaryzacyjnych); Baryła J. 1980c (klasyfikacja wg stopnia trudności); Orłowski J. 1983 (wzmianka dotycząca historii odkrycia); Luty I. 1982b (informacja o pomiarach sytuacyjno-wysokościowych); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10000); Gradziński R. i in. 1985a (dane morfometryczne, orientacyjna lokalizacja na mapie); Luty I. 1989a (dane morfometryczne, lokalizacja na mapie i szkicu ściany, dane historyczne); Bielska T., Mickiewicz J. 2000 (flora); Jaskinie TPN 2000 (plan i opis inwentarzowy); Kronika – jaskinie 2008 (połączenie obu jaskiń); Sienkiewicz P. 2007 (uwagi do dokumentacji); Filar F. 2016a (Informacja o nowych pomiarach, nowy plan i przekr&#243;j, dane morfometryczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Filip Filar, Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12151)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(12152)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12153)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

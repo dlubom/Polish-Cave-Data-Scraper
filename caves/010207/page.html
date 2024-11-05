@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10207">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10207;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "498007,18".replace(',', '.') + "," + "208199,83".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10207','Jaskinia Głęboka w Stołowie'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Głęboka w Stołowie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-04.34
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;58′20,40″, φ: 49&#176;44′28,20″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Brenna (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                cieszyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Uchw. Nr  XLVII/382/2006 Rady Gm. Brenna z dn. 26.10.2006 r.; Dz. Urz. Nr 142, poz. 3996 z dnia 5.12.2006 r.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                979
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    554
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                49
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Brenna, Stoł&#243;w (1035 m n.p.m), Beskid Śląski.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na SE stoku Stołowa. Od miejsca przecięcia szlaku żółtego prowadzącego z Klimczoka (1117 m n.p.m) na Stołów (1035 m n.p.m) z nartostradą biegnącą z Siodła pod Trzema Kopcami w kierunku przełęczy Karkoszczonka udajemy się w stronę góry Stołów i po 60 m skręcamy prostopadle do drogi, w lewo na SW. Po 50 m dochodzimy do dużego osuwiska, które kończy się po kilku metrach na NW. Po lewej stronie, idąc dnem rowu, znajduje się wejście do Jaskini w Stołowie K.Bs-04.13. Od jej charakterystycznego otworu kierujemy się na azymut 282° i po 150 m dochodzimy do niepozornego otworu znajdującego się w zagłębieniu. Kilka metrów od niego widoczny jest rów z dużymi blokami skalnymi na dnie. 
+Dojście skomplikowane, otwór trudny do znalezienia, widoczny dopiero z kilku metrów. Zwiedzanie wymaga dobrego zmysłu orientacji. Jaskinia ma charakter wielopoziomowego labiryntu o dużej, jak na warunki beskidzkie, rozciągłości horyzontalnej. Miejscami jest bardzo krucho, podczas zwiedzania należy zachować odpowiednie środki bezpieczeństwa. Jaskinia posiada odcinki pionowe, do pokonania których potrzebna jest lina. Grupa Beskidzka GOPR zamontowała stałe punkty asekuracyjne. 
+
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Niski i tr&oacute;jkątny, sztucznie odsłonięty otw&oacute;r na dnie leja prowadzi do niewielkiego rozszerzenia, na NW przez ciasny i śliski pr&oacute;g 2,5 m schodzimy do salki o gliniastym spągu zwanej Komorą Gazową, na SW odchodzi bardzo ciasna szczelina łącząca się z powierzchnią.<br />Z Komory Gazowej odchodzą dwa ciągi, prawy boczny na W prowadzi do niskiej zawaliskowej szczeliny o kilku kr&oacute;tkich odnogach, drugi - będący gł&oacute;wnym ciągiem jaskini - stromą pochylnią zejściową w d&oacute;ł. U jej podn&oacute;ża znajdziemy rozwidlenie, w prawo ciągi prowadzą do partii schodzących do 4. i 3. Dna (końc&oacute;wka tzw. Trawersu Głębokiej), w lewo na S przez leżący płasko blok wchodzimy do Galerii. Bezpośrednio za przejściem, w stropie, znajduje się okno (kominek z zaciskiem ZII), przez kt&oacute;re można dostać się na Pięterko - najpierw o zawaliskowym i ciasnym charakterze, dalej do ładnej szczeliny o prostych ścianach - poziom -3,6 m. Wejście do tego korytarza znajduje się także w stropie, bezpośrednio u podn&oacute;ża pochylni zejściowej (zacisk ZII).<br />Z Galerii idziemy prosto przez blok skalny w kierunku&nbsp;1. Dna. Bezpośrednio przed blokiem w lewo na N można przedostać się do niewielkiego korytarza będącego r&oacute;wnoległym ciągiem do Galerii. Dalej można iść trzema wariantami.<br />Pierwszy, do końca Galerii, skąd za załamaniem korytarza w prawo znajdziemy wejście do Kruchej Studni (spit i lina).<br />Druga droga do studni prowadzi wąskim korytarzem, kt&oacute;rego początek znajdziemy bezpośrednio za blokiem po prawej stronie (za załamaniem w d&oacute;ł do liny). Bezpośrednio za załamaniem po prawej widnieje wąskie okno (II) do Celtyckiego Korytarza.<br />Trzecia możliwość: ze szczytu bloku odnajdujemy balkon pod stropem Galerii o wysokości 2,2 m, skąd na S prowadzi szczelina do tzw. Zawaliska nad Studnią, ciasnego i kruchego pięterka jaskini prowadzącego w lewo, bocznym ciągiem nad Studnię. Natomiast na wprost, a następnie systemem szczelin i na końcu kominkiem (2,7 m) w d&oacute;ł do Celtyckiego Korytarza.<br />Kruchą Studnię pokonujemy przy pomocy liny, najpierw stromą pochylnią na pośrednie pięterko (na SW i NW boczne salki), dalej w d&oacute;ł przez pionowe prożki. Po pokonaniu ostatniego progu 1,6 m wchodzimy do Dolnej Sali. W prawej jej części znajduję się studzienka o głębokości 2,0 m, kt&oacute;ra prowadzi do wąskich szczelin będących&nbsp;1. Dnem jaskini -23,7 m (w kolejności odkrywania).<br />Z Dolnej Sali odchodzą cztery ciągi. Na SE lekko w d&oacute;ł, wydostajemy się do niskiego korytarza kończącego się po kilku metrach niedostępnymi szczelinami.<br />Obok (po lewej), przez niewielki prożek wchodzimy do korytarza prowadzącego w rejon Sali Druid&oacute;w (korytarz wraca pochylnią do Dolnej Sali).<br />Trzeci ciąg zwany Obejściem&nbsp;3. Dna prowadzi ku W, najpierw niskim korytarzem do niewielkiej salki z otworem w stropie (pr&oacute;g 1,1 m). Ponad progiem znajduje się większa komora, na E połączenie z opisywanym poniżej zaciskiem ZII. Do tego miejsca dochodzimy także trudniejszą drogą, z Dolnej Sali na N najpierw niskim korytarzem do ładnego pęknięcia, a następnie przez zacisk ZII do połączenia z Obejściem&nbsp;3. Dna. Z komory na W odchodzi kr&oacute;tki i ciasny ciąg z zaciskiem ZII, natomiast w g&oacute;rę za ponad 2,0 m progiem znajduje się zawieszona salka, kt&oacute;ra przez wąskie zawaliskowe szczeliny łączy się z Ciągi Wiceprezesa. Dalej, nieco w d&oacute;ł schodzimy do Ostatniej Sali, będącej końcem Obejścia 3. Dna. W prawej części Ostatniej Sali znajduje się wejście do kilkumetrowej pochylni prowadzącej do&nbsp;3. Dna - najniższego miejsca tej części jaskini -24,8 m.<br />Dalej ku W przez niski prożek udajemy się do długiego korytarza o wymiarach 8,0x2,0 m, zwanego Korytarzem Wiceprezesa. Korytarz najpierw poziomy, przechodzi w mocno nachylony, o spągu zasłanym głazami. W g&oacute;rnej części dochodzimy do pionowego progu o wysokości 1,6 m zbudowanego z wielkich blok&oacute;w, ponad kt&oacute;rym znajduje się Sala Prezesa o wymiarach 8,0x3,0 m.<br />Bezpośrednio pod progiem (na NW) mieści się prosty korytarz prowadzący do Partii Andrzejkowych o długości ponad 80 m. Partie składają się z kilku r&oacute;wnoległych ciąg&oacute;w łączących się na kilku poziomach. Z korytarza wejściowego kierujemy się lekko w d&oacute;ł, mijając kolejne załamania natrafiamy na rozwidlenie. Prosto, a następnie progiem 1,6 m, schodzimy do rozszerzającego się korytarza (z głazem pośrodku), dalej na wprost do wąskiej studzienki o głębokości 3,9 m, będącej dojściem do&nbsp;4. Dna - najgłębszego miejsca w jaskini -25,0 m.<br />Z krawędzi progu (1,6 m) można także kierować się w kierunku odwrotnym (na W). Natrafiamy na niewielka salkę, z kt&oacute;rej można:<br />1. na W, przez długi, trudny Zacisk Hydraulik&oacute;w (ZIII) dostać się do nieciekawej salki o zawaliskowym spągu;<br />2. na N, najpierw przez dwa kolejne zwężenia do prostego korytarza, następnie kilka metr&oacute;w na W do salki zwanej ślepa Kiszka będącej najdalej na p&oacute;łnoc wysuniętym fragmentem jaskini;<br />3. w lewo (na SE) przez gliniastą salę do ciasnego (ZII) połączenia z rejonem&nbsp;4. Dna lub opisanego powyżej rozwidlenia.<br />Wracany do Sali Prezesa, w p&oacute;łnocnej części znajdują się dwa wejścia do niskiej płytowej sali z dwoma ciasnymi odnogami. Z drugiego końca Sali Prezesa przejdziemy do bocznego ciągu o długości ok. 15 m - poziom -11,8 m. Obok wejścia do bocznego ciągu znajdziemy prożek w g&oacute;rę (2,5 m) wprowadzający do dalszej części ciągu gł&oacute;wnego. Przez kolejne trzy salki (w drugiej dodatkowy ciąg wraca wstecz do Sali Prezesa) przedostajemy się do rozwidlenia u podn&oacute;ża pochylni opadającej z Komory Gazowej. Tutaj zamyka się tzw. Trawers Głębokiej, trasa o długości 90 metr&oacute;w prowadząca przez 3 najgłębsze punkty jaskini.<br />Wracamy do ciąg&oacute;w rozwiniętych na S i SE od Galerii. Najłatwiejsze dojście prowadzi z rejonu spita (ponad Kruchą Studnią), od kt&oacute;rego ku S biegnie kr&oacute;tka odnoga, najpierw lekko w d&oacute;ł do niskiego przełazu, za nim wydostajemy się do ciągu zwanego Celtyckim Korytarzem. Wstecz, ku W a następnie na N dojdziemy do okna łączącego z Galerią (zacisk ZII - opis powyżej). Z E części sali idziemy korytarzem do 2 m szerokości i długości 10 metr&oacute;w, kt&oacute;rym dochodzimy do większej Sali po prawej stronie, o wymiarach 4,0 m x 4,0 m. Wcześniej mijamy kilka niewielkich studzienek będących wejściami do niższego poziomu korytarza oraz duży leżący blok w środkowej części. W końcowej części korytarza, w lewym narożniku, znajduje się 3 studzienki prowadzące do Sali Druid&oacute;w. Najszersza z nich jest zarazem najłatwiejszym dojściem do wspomnianej sali, najpierw pionowo 2,5 m, następnie zakręcając dwukrotnie w prawo i jednocześnie w d&oacute;ł schodzimy do niewielkiej salki. Z niej przez prożek 1,5 m lub dołem, wąską szczeliną do Sali Druid&oacute;w o wymiarach 8,0x2,0 m, kt&oacute;ra znajduje się na poziomie -17,5 m i jest drugim dnem jaskini. Z sali można wyjść jeszcze 3 drogami:<br />1) Z p&oacute;łnocnej części sali przez pr&oacute;g 2,0 m do ciasnego zacisku ZII przechodzimy do jednej z pozostałych studzienek opisanych powyżej.<br />2) U podn&oacute;ża progu 2,0 m znajdziemy ciasną szczelinę, najpierw w d&oacute;ł a następnie w g&oacute;rę prowadzącą w rejon pierwszej studzienki (studnia 2,5 m).<br />3) Wstecz ku NW, pochylnią dostaniemy się w rejon sali kończącej Celtycki Korytarz. Z niej kierujemy się na S, najpierw przez prożek 0,9 m, a następnie zwężająca się szczeliną do szerszego korytarza. Znajdujemy się w tzw. Partiach Naciekowych. Dalej na wprost dostaniemy się do najbardziej na południe wysuniętego fragmentu jaskini (na lewo zawieszony korytarzyk - poziom -7,3 m). W prawo na NW prowadzą 3 korytarze:<br />a) Prostą miejscami zwężającą się szczeliną na NW około 20 m (poziom -8,3 m).<br />b) Drugą prawą odnogą opisanego powyżej korytarza, lekko w g&oacute;rę do wyżej położonej szczeliny.<br />c) Pierwszą prawą odnogą, najpierw prostym korytarzem (połączenie z Celtyckim Korytarzem w rejonie leżącego bloku), następnie progiem 1,6 m do ciągu biegnącego ponad Celtyckim Korytarzem. W lewo na NW nieco w g&oacute;rę dostaniemy się na poziom -5,0 m, w prawo na SE około 5 m, gdzie znajdziemy studzienkę łączącą ten poziom z salą poniżej (pr&oacute;g 3,2 m). Po zejściu do sali bezpośrednio pod studzienka, przez prożek 1,3 m dostaniemy się do ciasnej szczeliny z ruchomym zaciskiem będącej najdalej na wsch&oacute;d wysuniętym fragmentem jaskini (poziom -10,2 m).<br />Jaskinia osuwiskowa, powstała w piaskowcach warstw godulskich środkowych. Pod względem morfologicznym sklasyfikowano jako: rowowo-wałowa, podtyp niejednolita. Rozwinięta w formie kilkupoziomowych zespoł&oacute;w szczelin poprzedzielanych komorami, przy zmiennym przesunięciu poszczeg&oacute;lnych części kompleksu. Rozwinięcie ciąg&oacute;w zgodne jest z poziomicami.<br />Otw&oacute;r został odkopany, istniało jedynie zapadlisko. Dno jest pokryte rumoszem, gruzem częściowo większymi blokami, a w niekt&oacute;rych partiach gliną. Jaskinia posiada ubogą szatę naciekową w postaci miniaturowego pola ryżowego, dw&oacute;ch stalaktyt&oacute;w oraz nieoznaczonych naciek&oacute;w z białej substancji. Podczas inwentaryzacji 18.10.2014 r. J. Pysz i B. Juroszek stwierdzili w okolicy Partii Naciekowych znaczny ruch osuwiska (kilka cm), w miejscu wyraźnej warstwy poślizgowej widocznej na spągu.<br />Jaskinia w wielu partiach jest wilgotna, szczeg&oacute;lnie w porze roztop&oacute;w, czy po długotrwałych opadach deszczu występuje deszcz podziemny. Występuje mikroklimat dynamiczny, temperatura mierzona w r&oacute;żnych porach roku wynosiła w Galerii +6&deg;C. Silny przewiew wyczuwalny jest w pochylni wejściowej. 24.01.2004 r. stwierdzono odwr&oacute;cenie ciągu powietrza (zasysanie do wewnątrz). Śnieg leżał do głębokości ok. 6 m, a okolice Komory Wstępnej i część Komory Gazowej były oszronione.<br />Światło sięga jedynie do progu 2,5 m prowadzącego do Komory Gazowej.<br />Zbocze studzienki wejściowej porastają mchy i porosty.<br />W jaskini zaobserwowano pająki oraz stwierdzono występowanie 6 gatunk&oacute;w nie-toperzy: w rejonie Galerii nocka dużego (Myotis myotis), podkowca małego (<em><strong>Rhinolophus hipposideros</strong></em>), w rejonie Sali Prezesa nocka wąsatka <em><strong>(Myotis mystacinus</strong></em>) i sporadycznie nocka Natterera (<em><strong>Myotis natterer</strong></em>i), nocka orzęsionego <em><strong>(Myotis emarginatus</strong></em>) oraz gacka brunatnego <em><strong>(Plecotus auritus</strong></em>) Stwierdzono także występowanie dw&oacute;ch gatunk&oacute;w motyli szczerb&oacute;wki ksieni (<em><strong>Scoliopteryx libatrix</strong></em>) w rejonie pochylni wejściowej oraz motyla z gatunku paśnik jaskiniowiec (<em><strong>Triphosa dubitata</strong></em>), kt&oacute;rego kilka osobnik&oacute;w znaleziono w okolicy Galerii. Na głębokości 20 m natrafiono na kości lisa (<em><strong>Vulpes cf. Vulpes</strong></em>), był to bardzo młody osobnik, na co wskazywały zęby mleczne - jak podał badający koci paleontolog G. Lipecki. Od 2006 r. decyzją Rady Gminy Brenna, ja-skinię uznano pomnikiem przyrody.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinię odkrył 26.04.2003 r. Cz. Szura. Otw&oacute;r odgruzowano i jaskinia została zwiedzona do I Dna.<br />- 03.05.2003 r. Cz. Szura odkrywa ciekawy boczny ciąg długości ok. 50 m. Przeprowadza pomiar głębokości wzdłuż gł&oacute;wnego ciągu - głębokość -23,7 m, długość ciągu 43,1 m. Został osadzony spit w Kruchej Studni oraz stałe punkty pomiarowe.<br />- 19.06.2003 r. Cz. Szura odkrywa nowe g&oacute;rne piętro jaskini (ok. 30 m długości) i kartuje korytarze od drugiej Sali (Komora Gazowa) do otworu, razem 64 m.<br />- 27.06.2003 r. Cz. Szura kartuje część gł&oacute;wnego ciągu. Podczas prac pomiarowych odgruzowane zostaje wejście do nieznanych partii (długości około 100 m). Do tej pory pomierzono 84,8 m.<br />- 04.07.2003 r. Cz. Szura eksploruje i kartuje partie do II Dna -17,5 m. Odkrywa nowe partie o znacznych rozmiarach (korytarz naciekowy - białe nacieki z mleczka wapiennego?). Jaskinia osiąga długość 140 m.<br />- 23.08.2003 r. P. Wojtas, Z. Kania zwiedza większą część jaskini. Grupa kartograficzna (U. Tebin, Cz. Szura) prowadziła pomiary w Partiach Naciekowych. Poszerzono wejście z korytarza pod otworem przez pr&oacute;g.<br />- 15.09.2003 r. Cz. Szura kartuje ciąg od Komory Gazowej po III Dno (35 m). Osiągnięta głębokość -24,8 m. W okolicy spita (ponad nim) przebywa nieznane dotąd korytarze i szczeliny (ok. 20 m). Przez szczelinę koło I Dna dociera do sali w okolicy III Dna. Dotychczas pomierzono 235 m, przewidywalna długość to około 400 m.<br />- 22.11.2003 r. Cz. Szura kartuje ciągi do&nbsp;1. i 2. Dna, Partie Naciekowe, Zawalisko nad Studnią oraz Pięterko.<br />- 29.11.2003 r. Cz. Szura kończy kartowanie brakujących korytarzy, obejście I-III Dno oraz nowoodkryte Partie Andrzejkowe.<br />- 24.01.2004 r. J. Ganszer, M. Kruczalak i J. Pukowski zwiedzają jaskinię, J. Pysz i Cz. Szura sporządzają dokumentację brakujących fragment&oacute;w jaskini oraz dokonują częściowej korekty planu.<br />- 18.10.2014 r. J. Pysz i B. Juroszek dokonują uzupełnienia planu o przekroje i detale.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary wykonał Cz. Szura busolą geologiczną Freiberg i dalmierzem laserowym Leica Disto. Wsp&oacute;łrzędne geograficzne GPS 04.08.2007 r. pomierzył Cz. Szura.<br />Plan opracował Cz. Szura, korekty wprowadzili A. i&nbsp;B. Juroszek.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Klassek G., Mleczek T. 2003 (wzmianka); Szura Cz. 2004 (dotychczasowy przebieg eksploracji); Szura Cz. 2005 (plan, opis jaskini); Hercman H. i in. 2006a (nacieki i ich wiek); Hercman H. i in. 2006b,c (nacieki); Uchwała nr. XLVII/382/2006 Rady Gminy Brenna z dnia 26 października 2006 r. (o nadaniu statusu pomnika przyrody); Mysłajek R.W., Szura Cz., Figura M. 2008 (nietoperze); Kurek K., Mysłajek R.W., Nowak S. 2008 (nietoperze); Szura Cz. 2010 (dane morfometryczne); Jaskinie Polskich Karpat Fliszowych 2016a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Bartłomiej Juroszek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(10453)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(10454)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

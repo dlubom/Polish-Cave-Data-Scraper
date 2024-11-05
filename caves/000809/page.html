@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F809">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 809;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "613761,5353".replace(',', '.') + "," + "333934,3098".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('809','Jaskinia na Kadzielni G&#243;rna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia na Kadzielni G&#243;rna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Diabla Dziura, Jaskinia w Kadzielni G&#243;rna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-1.31
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;37′01,00″, φ: 50&#176;51′40,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kielce (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                Kielce
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Komunalny
+|                Rezerwat przyrody Kadzielnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku S, 284 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                283
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                1
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                1
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    6
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia znajduje się w najwyższej części Skałki Geolog&#243;w w obrębie nieczynnego kamieniołomu Kadzielnia. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Dojście do otworu 1: od strony ulicy Krakowskiej należy główną ścieżką podejść pod szczyt Skałki Geologów. Duży otwór 1 jaskini widoczny jest kilka metrów poniżej szczytu, po lewej (wschodniej) stronie ścieżki. Dojście do otworu 1 i zwiedzanie jaskini bez trudności. Dostęp do jaskini możliwy jest po uzyskaniu zezwolenia Regionalnego Konserwatora Przyrody w Kielcach. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otwory jaskini są duże, prawdopodobnie sztuczne. Otwór 1 o wysokości 2,2 m i szerokości 2 m ma kształt trójkątny. Otwór 2 jest bardziej owalny, ma wysokość 2 m i szerokość 1,5 m. Jaskinię stanowi prosty i obszerny korytarz krasowy łączący oba otwory i przebijający na wylot Skałkę Geologów. Gruzowo-gliniaste dno korytarza wznosi się lekko w kierunku otworu 2. Jaskinia stanowiła część większego systemu krasowego rozciętego przez wyrobisko. Zdaniem Kozłowskiego, Radwana i Wójcika (1965) oraz Gradzińskiego i Wójcika (1966) reprezentuje najwyższe piętro podziemnych pustek krasowych Kadzielni powstałe w starszym neogenie lub nawet paleogenie. </p>  <p>Namulisko jaskini tworzyły glinki pylaste ("lessowe"). W wypełnieniu leja krasowego obok jaskini znaleziono liczne szczątki drobnych ssaków pochodzące ze starszego plejstocenu lub preplejstocenu (Kowalski 1958, 1965, Wysoczański-Minkowicz 1969, Różycki 1972). </p>  <p>Obiekt jest suchy i przewiewny (Wołoszyn 1977), jasny. Przy otworach występują nieliczne rośliny zielne, na ścianach glony. Faunę reprezentują muchówki oraz pająki. Sanocka-Wołoszyn (1964) wymienia trzy gatunki pająków w jaskini: troglofile <strong><em>Nesticus cellulanus </em></strong>(Cl.),<strong><em> Lepthyphantes leprosus </em></strong>(Ohlert<strong><em>)</em></strong> i trogloksen <strong><em>Tegenaria ferruginea </em></strong>(Panc.). </p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Przedmiotem szczegółowych badań paleontologicznych były namuliska jaskini (Kowalski 1958).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia jest zaśmiecona, ma ściany pokryte napisami. Jaskinia na Kadzielni Górna jest jedną z najdawniej i najszerzej znanych jaskiń świętokrzyskich. Prawdopodobnie jej dotyczą liczne wzmianki w publikacjach pojawiające się już w XIX wieku (Opis historyczno-statystyczny. 1829, Siarkowski 1874, Gruszecki 1878, Słownik geograficzny. 1883). W opisie trzech jaskiń Skałki Geologów z 1904 r. pojawia się nazwa Diabla Dziura prawdopodobnie odnoszona do omawianego obiektu (Jaskinia w Kadzielni. 1904). Powszechnie odwiedzana, wzmiankowana była - wraz z Jaskinią Jeleniowską - w licznych przewodnikach turystycznych i wydawnictwach krajoznawczych (często bez nazwy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia jest zaśmiecona, ma ściany pokryte napisami. Jaskinia na Kadzielni Górna jest jedną z najdawniej i najszerzej znanych jaskiń świętokrzyskich. Prawdopodobnie jej dotyczą liczne wzmianki w publikacjach pojawiające się już w XIX wieku (Opis historyczno-statystyczny. 1829, Siarkowski 1874, Gruszecki 1878, Słownik geograficzny. 1883). W opisie trzech jaskiń Skałki Geologów z 1904 r. pojawia się nazwa Diabla Dziura prawdopodobnie odnoszona do omawianego obiektu (Jaskinia w Kadzielni. 1904). Powszechnie odwiedzana, wzmiankowana była - wraz z Jaskinią Jeleniowską - w licznych przewodnikach turystycznych i wydawnictwach krajoznawczych (często bez nazwy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Opis historyczno-statystyczny. 1829 (kr&#243;tki opis); Siarkowski W. 1974 (kr&#243;tki opis); Gruszecki A. 1878 (uwaga o sztucznym charakterze pustki); Słownik Geograficzny. 1883 (wzmianka); Czarnowski J. 1905 (wzmianka); Przesmycki 1912 (zniszczenie jaskini w Skałce Geolog&#243;w); Lencewicz S. 1913 (wzmianka); Sioma J. 1917 (jaskinie i kras Kadzielni); Dybczyński T. 1919 (wzmianka); Siemiradzki J. 1922 (wzmianka); Czarnocki J. 1932 (wzmianka, znaleziska kości w namuliskach); Danysz-Fleszarowa R. 1933 (wzmianka); Kowalczewski S. 1938 (cytaty z publikacji XIX-wiecznych); K.M. 1947 (wartości naukowe, ochrona); Czarnocki J. 1948 (namulisko, fauna kopalna); Czarnocki J. 1949 (uzasadnienie ochrony); O trwałe. 1949 (ochrona); Kowalski K. 1951 (wzmianka, fauna kopalna); Kowalczewski S. 1957 (wzmianka); Kowalczewski S. 1961 (wzmianka); Gradziński R., W&#243;jcik Z. 1966 (wiek); Kowalczewski S. 1967  (wzmianka). Publikacje wydane po 1970 r. wzmiankujące og&#243;lnie jaskinie na Kadzielni nie są cytowane. Literatura dotycząca Jaskini G&#243;rnej: Jaskinia w Kadzielni. 1904 (wzmianka), Dybczyński T. 1923 (kr&#243;tki opis); Niezabitowski E. 1926 (kości nosorożca z jaskini); Kowalski K. 1954 (opis, plan); Kowalski K. 1958 (namulisko, szczątki kostne z namuliska); Kotański Z. 1959 (wzmianka, zdjęcie); Wołoszyn B.W. 1961b (wzmianka); Wołoszyn B.W. 1962a (brak nietoperzy); Sanocka-Wołoszyn E. 1964 (pająki); Kowalski K. 1965 (opis, szczątki kostne w namulisku); Kozłowski S., Radwan J., W&#243;jcik Z. 1965  (wiek i geneza); Wołoszyn B.W., W&#243;jcik Z. 1965 (historia poznania); Fijałkowscy E. i J. 1967 (wzmianka); Rubinowski Z., Wr&#243;blewski T. 1968 (wzmianka); Wysoczański-Minkowicz T. 1969 (wiek szczątk&#243;w kostnych); R&#243;życki S.Z. 1972 (fauna kopalna - bez nazwy jaskini); Kozłowski S., Rubinowski Z. 1973 (projektowane udostępnienie turystyczne); Rubinowski Z. 1975 (wzmianka); Kowalski K. 1976 (fauna kopalna); Siedlecka W., Micuła G. 1976 (opis, nazwa Diabla Dziura, plan); Wołoszyn B.W. 1977 (termika i wilgotność); Wr&#243;blewski T. 1977 (wzmianka pod nazwą Diabla Dziura); Głazek J., Szynkiewicz A. 1987 (wiek form krasowych); Jaskinie Regionu Świętokrzyskiego 1996 (dokumentacja, plan); Urban J., Gubała J., Kasza A. 1997b (fauna kopalna wzmianka); Wr&#243;blewski T. 2000 (wzmianka); Fijałkowski J. 2003 (opis i położenie); Kasza A. 2005a (szkic położenia w Skałce Geolog&#243;w); Wąsikowski A. 2007 (wzmianka); Wr&#243;blewski T. 2008 (wzmianka, fotografia).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Wołoszyn B.W., Wołoszyn K.P. 1990. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej Kasza, Jan Urban
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(296)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

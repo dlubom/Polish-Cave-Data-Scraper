@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11648">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11648;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "556646,34".replace(',', '.') + "," + "261957,38".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11648','Jaskinia Szlachcicowa '); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Szlachcicowa 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                ?jaskinia V. za Koziarną w dolinie Koziarnej, Schronisko poniżej Tunelu Wielkiego, Schronisko pod Tunelem Wielkim, Jaskinia Pod Tunelem, Jaskinia pod Tunelem Wielkim, Schronisko pod Tunelem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02c.37
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;47′39,54″, φ: 50&#176;13′19,56″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW, wys. otw. 423 m n.p.m., wys. otw. nad dnem wąwozu 28 m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                423
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    38
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sąsp&#243;w, Wąw&#243;z Koziarnia, Skała Szlachcicowa, Wyżyna Olkuska, Obszar Natura 2000 – Dolina Prądnika
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się w grupie Skały Szlachcicowej w środkowej części Wąwozu Koziarnia. Idąc w górę dnem wąwozu mijamy Skałę Sadłową i skręcamy w prawo na zalesiony stok, którym podchodzimy w stronę wyraźnego spłaszczenia ponad główną ścianą Skały Szlachcicowej. Dobrze widoczny zachodni otwór jaskini (1.) jest położony w niewielkiej skałce nad tym spłaszczeniem. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za obszernym otworem zachodnim o soczewkowatym kształcie, wysokości 1,1 m i szerokości 2,1 m znajduje się stopniowo zwężający się korytarz prowadzący w głąb masywu. Oddziela się od niego korytarz boczny prowadzący do otworu południowego (2.) o wysokości 0,8 m i szerokości u podstawy 1 m. Oba korytarze w planie przypominają literę &bdquo;Y&rdquo;. Oddzielają się od nich kr&oacute;tkie, boczne ciągi. Poprzez dwa z nich, o charakterze rur i średnicy poniżej 0,2 m jaskinia komunikuje się z jaskinią Dziurawiec Wysoki J.Olk.I-02c.35 położoną po drugiej stronie grani skalnej.</p>
+<p>Jaskinia jest rozwinięta w wapieniu skalistym jury g&oacute;rnej wzdłuż pionowych szczelin ciosowych. W stropie rozwinięte kotły wirowe o średnicy do 70 cm. Jaskinia ma genezę krasową; powstała w warunkach freatycznych. T. Madeyska (1977a, 1988, 2006a) na podstawie położenia hipsometrycznego jaskini i charakteru najstarszych osad&oacute;w jaskiń położnych w sąsiedztwie przypisuje jej wiek p&oacute;źnoplioceński lub wczesnoczwartorzędowy.</p>
+<p>Namulisko w pobliżu otwor&oacute;w humusowe z gruzem wapiennym, pokryte liśćmi; głębiej gliniaste, z dużą ilością szczątk&oacute;w kostnych (najprawdopodobniej wsp&oacute;łczesnych). W końcowej części jaskini namulisko nosi ślady rozkopywania. W rejonie otworu zachodniego ma miąższość do 2 m. Pod zewnętrzną warstwą humusową (holoceńską) o miąższości do 0,4 m znajdują się osady lessowe ze zmienną domieszką gruzu wapiennego. Osady jaskini zawierały niezbyt liczne szczątki ptak&oacute;w (Z. Bocheński, 1974, 1988, 1993; Z. Bocheński i in. 2012) i ssak&oacute;w (A. Nadachowski, 1988), a także artefakty neolityczne, kultury łużyckiej i ze średniowiecza (W. Chmielewki, 1988; J. Lech 2001c; M. Kot, 2018j).</p>
+<p>W jaskini występuje naciek grzybkowy i nacieki z kożuchowego mleka wapiennego. W końcowych częściach, na ścianach znajdują się polewy naciekowe małej miąższości.</p>
+<p>Światło sięga kilka metr&oacute;w w głąb.</p>
+<p>Części przyotworowe suche.</p>
+<p>W głębi jaskinia ciemna i wilgotna.</p>
+<p>W otworze zachodnim na ścianach glony i porosty. W otworze południowym na ścianach glony, porosty, mchy, na spągu rośliny nasienne (<em>Asarum europaeum, Geranium robertianum, Geum urbanum, Viola</em> sp.). Przed otworem okazały krzew leszczyny <em>Corylus avellana</em>.</p>
+<p>Podczas inwentaryzacji stwierdzono obecność pająk&oacute;w, kokon&oacute;w pajęczych, motyli (ciem &ndash; <em>Triphosa dubitata</em>) i much&oacute;wek. Jaskinia zapewne jest wykorzystywana jako schronienie przez ssaki (lisy?).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Z jaskini odnotowano pięć gatunk&oacute;w pająk&oacute;w i dwa gatunki kosarzy (E. Sanocka-Wołoszynowa, 1981). Rejestrowano tam występowanie pojedynczych nietoperzy (J. Nowak i W. Grzywiński, 2007, 2012). Łącznie odnotowano przedstawicieli trzech gatunk&oacute;w, w tym rzadkiego gatunku Eptesicus nilssonii (W. Grzywiński i in. 2015).<br />W 1968 r. w jaskini prowadzono prace wykopaliskowe pod kierownictwem W. Chmielewskiego (T. Madeyska &ndash; inf. ustna 1993 r.). Materiały w&oacute;wczas zebrane opracowywał interdyscyplinarny zesp&oacute;ł: artefakty neolityczne, kultury łużyckiej i ze średniowiecza (W. Chmielewski, 1988; J. Lech 2001c; M. Kot, 2018j).<br />T. Madeyska (1988, 2006a) określiła charakter i genezę osad&oacute;w oraz genezę i wiek jaskini, Z. Bocheński (1974a, 1993) i Z. Bocheński i in. (2012) badał szczątki ptak&oacute;w, A. Nadachowski (1988) badał szczątki ssak&oacute;w, a E. Sanocka-Wołoszynowa (1981) prowadziła badania pajęczak&oacute;w. W jaskini przeprowadzane były wyrywkowe zimowe kontrole nietoperzy w ramach akcji &bdquo;Dekada Spisu Nietoperzy&rdquo; (A. Węgiel i in. 2001; J. Nowak i in. 2002; J. Nowak i W. Grzywiński 2007, 2012).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od dawna. Być może dotyczą jej og&oacute;lne informacje F. Roemera (1882&ndash; 1883, 1884) i K. Wr&oacute;blewskiego (1900, 1907) o jaskiniach położonych ponad Skałą Sadłową. Z. Ciętak (1935) wymienia jaskinię V za Koziarną w dolinie Koziarnej, informacja ta może dotyczyć Jaskini Szlachciowej lub Jaskini Niedostępnej</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zinwentaryzowana 24.10.1947 r. przez K. Kowalskiego. Wymieniana przez M. Szelerewicza i A. G&oacute;rnego (1986). Ponownie zinwentaryzowana 7.04. i 12.10.1985 r. przez M. Czepiela z pomocą D. Czepiel i U. Wieczorek (Czepiel, 1991). Następnie zinwentaryzowana 10.11.1990 r. przez K. Biska i M. Wawrykę z pomocą A. Malik. Weryfikację planu wykonał M. Wawryka 01.05.2010 r. Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego. Obserwacje uzupełniające przeprowadził M. Gradziński 22.08.2019 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Wawryka.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Roemer F. 1882–1883, 1884 (og&#243;lne wzmianki o jaskiniach położonych powyżej Skały Sadłowej, mogą dotyczyć Jaskini Szlachcicowej); Wr&#243;blewski K. 1900, 1907 (wzmianka o jaskiniach ponad Skałą Sadłową, może dotyczyć Jaskini Szlachcicowej); Ciętak Z. 1935 (wymienia w wykazie Jaskinię V. za Koziarną w dol. Koziarnej, informacja ta może dotyczyć Jaskini Szlachcicowej, lokalizacja na mapie); Kowalski K. 1951 (inwentarzowy opis, plan, lokalizacja na mapie); Bocheński Z. 1974a (lokalizacja na schematycznej mapie, kr&#243;tka charakterystyka, historia badań, stratygrafia osad&#243;w, om&#243;wienie znalezisk szczątk&#243;w kopalnych ptak&#243;w, wymienione gatunki); Czepiel M. 1976 (wymieniona w wykazie); Bocheński Z., Oleś T. 1977 (wzmianka o znalezieniu kości kopalnych ptak&#243;w, lokalizacja na schematycznej mapie); Madeyska T. 1977a (opis osad&#243;w, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, wnioski o genetycznym związku jaskini z poziomem terasowym c i p&#243;źnoplejstoceńskim lub wczesnoczwartorzędowym wieku); Madeyska T. 1979 (cechy osad&#243;w, informacja o znaleziskach archeologicznych); Sanocka-Wołoszynowa E. 1981 (wyniki badań pajęczak&#243;w, wykaz gatunk&#243;w pająk&#243;w i kosarzy); Szelerewicz M., G&#243;rny A. 1986 (wymieniona w wykazie, lokalizacja na mapie); Bocheński Z. 1988 (wzmianki o znalezieniu kości kopalnych ptak&#243;w, tabelaryczne zestawienie znalezisk); Chmielewski W. 1988 (wzmianki o badaniach i znaleziskach neolitycznych, kultury łużyckiej i ze średniowiecza); Madeyska T. 1988 (położenie, opis i plan jaskini, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, opis i charakterystyka osad&#243;w, diagram ilustrujący wyniki analiz osad&#243;w, interpretacja genetyczna, przekroje, profil osad&#243;w); Nadachowski A. 1988 (kr&#243;tka charakterystyka, om&#243;wienie znalezisk kopalnych kręgowc&#243;w, tabelaryczne zestawienie gatunk&#243;w); Bocheński Z. 1989 (wzmianki o znalezieniu kości kopalnych ptak&#243;w); Czepiel M. 1991 (zinwentaryzowana, położenie, opis, historia poznania, plan); Bisek K. i in. 1992 (opis inwentarzowy, plan, lokalizacja na mapie); Bocheński Z. 1993 (kr&#243;tki opis, lokalizacja na schematycznej mapie, informacja o znalezieniu kości kopalnych ptak&#243;w, wykaz gatunk&#243;w); Madeyska T., Kozłowski S. K. 1995 (plan); Lech J. 2001c (lokalizacja na mapie, wzmianka o znaleziskach kultury łużyckiej i ze średniowiecza); Węgiel A. i in. 2001 (informacja o braku nietoperzy); Madeyska T., Cyrek K. 2002 (lokalizacja na schematycznej mapie rozmieszczenia stanowisk archeologicznych); Nowak J. i in. 2002 (informacja o braku nietoperzy); Cyrek K. 2006 (wymieniona w wykazie stanowisk paleolitycznych i mezolitycznych, lokalizacja na schematycznej mapie); Madeyska T. 2006a (opis, opis osad&#243;w, plan, przekr&#243;j osad&#243;w, diagram ilustrujący wyniki analiz osad&#243;w, lokalizacja na mapie); Cyrek K. 2007 (lokalizacja na mapie rozmieszczenia archeologicznych stanowisk jaskiniowych); Nowak J., Grzywiński W. 2007 (informacja o występowaniu nietoperzy); Kozakiewicz K., Wołoszyn B. W. 2008 (informacja o występowaniu nietoperzy); Pawłowski J. i in. 2008 (lokalizacja na mapie, wiek osad&#243;w na tle osad&#243;w innych jaskiń okolicy Ojcowa); Bocheński Z. i in. 2012 (zestawienie takson&#243;w kopalnych ptak&#243;w); Nowak J., Grzywiński W. 2012 (informacja o występowaniu nietoperzy); Grzywiński W. i in. 2015 (informacja o występowaniu nietoperzy); Stefaniak K. 2015 (kr&#243;tki opis, historia badań, wymienione taksony kopalnych kopytnych); Krajcarz M. T. i in. 2016 (kr&#243;tki opis osad&#243;w lessowych, korelacja z osadami innych jaskiń, wymienione gatunki kopalnych ssak&#243;w); Jędrysik, 2018 (wymieniona w wykazie stanowisk p&#243;źnej epoki brązu i wczesnej epoki żelaza, lokalizacja na schematycznej mapie); Kot M. 2018j (charakterystyka jaskini, historia badań archeologicznych); Kot M. i in. 2019a (lokalizacja na modelu terenu i schematycznej mapie, wzmianka o objęciu planowanymi badaniami); Gradziński M. i in. 2020 (inwentarzowy opis, plan, lokalizacja na mapie, pełna bibliografia). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13695)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(14282)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

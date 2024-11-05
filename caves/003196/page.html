@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3196">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3196;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "572386,46".replace(',', '.') + "," + "204385,64".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3196','Zimna Dziura w Strzeblu'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Zimna Dziura w Strzeblu
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Grota Lodowa, Jaskinia w Lubniu
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bw-01.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;00′15,00″, φ: 49&#176;42′09,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Mszana Dolna (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                limanowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                655
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    25
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Wyspowy, Lubień, w p&#243;łnocnym stoku Szczebla (Strzebla) (977 m n.p.m.)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od przystanku autobusowego „Lubień-Skrzyżowanie" idziemy szosą w kierunku Mszany Dolnej (w górę rzeki Raby) za czarnymi znakami szlaku turystycznego. Schodzimy z szosy w prawo. Po około 2,5 km nieopodal jednego z potoków (dopływ Raby), przy szlaku, w lejowatym, skalistym obniżeniu znajduje się otwór jaskini. Otwór z dala niewidoczny, lecz łatwy do znalezienia. Zwiedzanie bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>&nbsp;Otw&oacute;r wejściowy znajduje się w&nbsp;skalistym obniżeniu (na dnie leja o&nbsp;głębokości 3&nbsp;m) o&nbsp;stromo nachylonym dnie. Ku NE prowadzi on do okazałej sali (długości około 6&nbsp;m; szerokości do 3&nbsp;m; wysokości 3&nbsp;m) ograniczonej od strony NW prożkiem, za kt&oacute;rym znajdują się dwie małe wnęki. Strop jest nieregularny, dno stromo nachylone (na końcu sali na głębokości 5&nbsp;m). Od otworu ku S, przez niski przełaz, przedostać się można do drugiej, małej sali (długości około 4 m; szerokości 2,5 m; wysokości do 0,8&nbsp;m). Strop tworzy pochylona płyta. Dno jest także pochyłe.</p>
+<p>&nbsp;Z małej sali, przez prożki (w g&oacute;rę) ku SE przedostajemy się do niedużego korytarza. Można tu się r&oacute;wnież dostać małym, g&oacute;rnym obejściem (długości 2,5 m; szerokości od 0,6&nbsp;do 1 m; wysokości do 1&nbsp;m) dochodzącym od N, przez pr&oacute;g w&nbsp;d&oacute;ł. Do korytarza prowadzi ciasne przejście znajdujące się we wstępnej części dużej sali, a&nbsp;nad przełazem do sali małej. Dalej ku SW prosty, 2&nbsp;m długości korytarz zakończony 1,5&nbsp;m progiem (w d&oacute;ł) prowadzi do prostokątnej salki (długości 2,6 m; szerokości 1,4 m; wysokości do 1,6&nbsp;m) rozwiniętej na kierunku NW-SE. Na południowej ścianie wyryta jest data &bdquo;1863". Od salki ku NW odchodzi (pod progiem) prostokątna kr&oacute;tka wnęka z&nbsp;niedostępnym pęknięciem. Ku S salka się robi się stroma. Za prożkiem (w g&oacute;rę) jaskinia kończy się w&nbsp;małej wnęce ślepym kominem o&nbsp;wysokości 3 m.</p>
+<p>&nbsp;Jaskinia osuwiskowa powstała w&nbsp;piaskowcach magurskich. Dno pokryte gruzem i&nbsp;głazami, gdzieniegdzie gliną, w&nbsp;partiach przyotworowych gleba z&nbsp;resztkami butwiejącego drewna. Na ścianach końcowej salki występują białe naloty węglanowe.</p>
+<p>&nbsp;Jaskinia jest wilgotna. Przewiewu brak. Jaskinia jest uważana za statycznie zimną. We wrześniu 1929&nbsp;r. i&nbsp;w&nbsp;czerwcu 1931&nbsp;r. S. Leszczycki znalazł w&nbsp;jaskini znaczne ilości lodu. Według K.&nbsp;Kowalskiego (1954), kt&oacute;ry nie natrafił na l&oacute;d w&nbsp;jaskini, pomiary temperatury wykonane dnia 17 czerwca 1950&nbsp;r. dały następujące wyniki: +18&deg;C na zewnątrz, +5,5&deg;C w&nbsp;zagłębieniu przed otworem, +4,5&deg;C na końcu komory, +3,6&deg;C w&nbsp;korytarzu końcowym. Podobne zmiany temperatury odczuwalne są i&nbsp;obecnie. Nie ma też lodu. Wydaje się jednak, że przy odpowiednich warunkach atmosferycznych (np. długie, śnieżne zimy) w&nbsp;takim mikroklimacie l&oacute;d w&nbsp;niekt&oacute;rych partiach jaskini m&oacute;głby zalegać przez dłuższy okres czasu. Światło sięga do końca większej sali.</p>
+<p>&nbsp;Na ścianach przyotworowych występują gdzieniegdzie mchy. Jak pisał K. Kowalski (1954): <em>&bdquo;W komorze na wilgotnych ścianach spotyka się liczne owady bezskrzydłe. Widać też w&nbsp;głębi ślady nietoperzy".</em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>&nbsp;Jaskinia znana była od dawna. Świadectwem tego może jest napis &ldquo;1863" wyryty w&nbsp;końcowej salce? Nie wykluczone jednak, że &oacute;w napis wykonano p&oacute;źniej. Opis jaskini opracowany przez K.&nbsp;Kowalskiego (1954) takiej informacji nie zawiera. Pierwszy opis jaskini podaje w&nbsp;1882&nbsp;r. G.&nbsp;Ossowski, kt&oacute;ry w&nbsp;1881&nbsp;r. zwiedził ją jadąc w&nbsp;Tatry. W&nbsp;latach p&oacute;źniejszych wzmianki o&nbsp;niej odnaleźć można w&nbsp;przewodnikach turystycznych K.&nbsp;Sosnowskiego (1914, 1926, 1930), M.&nbsp;Orłowicza (1919), J. Raychmana (1937), czy S.&nbsp;Pagaczewskiego (1951). W&nbsp;1931&nbsp;r. S.&nbsp;Leszczycki opisuje tę jaskinię jako lodową, a&nbsp;w&nbsp;1933&nbsp;r.&nbsp; R. Danysz-Fleszarowa ujmuje ją w&nbsp;opisie jaskiń krajowych.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Opis inwentarzowy jaskini wraz z&nbsp;planem i&nbsp;przekrojami w&nbsp;skali 1: 200 publikuje K. Kowalski (1954). W&nbsp;ramach inwentaryzacji jaskiń beskidzkich materiał dokumentacyjny zebrali dnia 21&nbsp;września 1996&nbsp;r. M.&nbsp;Rachwaniec, J. Pukowski i&nbsp;J.&nbsp;Ganszer ze Speleoklubu Bielsko-Biała. Pomiary wykonano busolą geologiczną Freiberg i&nbsp;taśmą parcianą. Dane zaktualizowano w 2009 r. <br /> Plan opracował J. Ganszer.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ossowski G. 1882 (opis jaskini pod nazwą Jaskinia w Lubniu); Sosnowski K. 1914 (wzmianka o dw&#243;ch jamach na Strzeblu); Orłowicz M. 1919 (wzmianka o jaskini pod nazwą Zimna Dziura); Sosnowski K. 1926, (powt&#243;rzenie informacji wcześniejszych); Sosnowski K. 1930 (powt&#243;rzenie informacji wcześniejszych), Leszczecki S. 1931 (opis, przekr&#243;j jaskini pod nazwą Grota Lodowa z zaznaczeniem nazwy miejscowej Zimna Dziura, trzy fotografie otworu i wnętrza); Danysz-Fleszarowa R. 1933 (ujęta w spisie jaskiń krajowych); Reychman J. 1937 (wzmianka o jaskini); Pagaczewski S. 1951 (wzmianka o jaskini); Kowalski K. 1954 (opis inwentarzowy wraz z planem); Klassek G. 1990 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Jaskinie Polskich Karpat fliszowych 1997b (plan i opis inwentarzowy); Alexandrowicz Z., Poprawa P. (red.) 2000 (wzmianka); Bubula B. 2001a (wzmianka); Bubula B. 2001b (historia poznania); Bubula B. 2001d (ujęta w spisie jaskiń Beskidu Wyspowego); Gacek D. 2001 (ujęta w wykazie jaskiń Beskidu Wyspowego); Kapturkiewicz A. 2001b (mikroklimat); Matuszczyk A. 2001 (opis dojścia, kr&#243;tki opis jaskini, legendy); Sułkowski B. 2001 (wzmianka); Beskid Wyspowy 2003 (lokalizacja na mapie); Beskid Wyspowy 2005 (lokalizacja na mapie); Kapturkiewicz A. 2005b (ujęta w spisie jaskiń Beskidu Wyspowego); Beskid Wyspowy 2006 (lokalizacja na mapie); Kapturkiewicz A. 2006b (wzmianka); Beskid Wyspowy 2007 (lokalizacja na mapie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tomasz Mleczek, Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2011
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12142)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(2720)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

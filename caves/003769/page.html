@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3769">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3769;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "531064,9517".replace(',', '.') + "," + "312508,6296".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3769','Jaskinia Kryształowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Kryształowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.II-05.05
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;26′23,34″, φ: 50&#176;40′43,49″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Niegowa (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                myszkowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                325
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    200
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                45
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Wzg&#243;rza Ludwinowskie, Ludwin&#243;w.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się w zachodnim zboczu wzgórza ograniczającego od NW wieś Ludwinów, w jego północnej części. Wzgórze to zlokalizowane jest pomiędzy dwoma ramionami drogi Trzebniów-Ludwinów, która tworzy w tym miejscu pętlę zakręcającą o 180 stopni. Od ostatnich zabudowań przy północnym krańcu wsi Trzebniów (obok boiska i Skały z Krzyżem) idziemy szosą ku N około 1 km. Po prawej stronie, około 250 m od drogi, widnieją w zboczu wzgórza niewielkie (do 6 m wys.) skałki. Kierujemy się ku nim, bez ścieżki, krawędzią lasu. Otwór jaskini znajduje się w wyrobisku rozcinającym zbocze, poniżej skałek.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Właściwy otwór jaskini znajduje się pod olbrzymią wantą w dnie wspomnianego wyrobiska. Schodzimy do niego około 3 m gł. ciasną szczeliną pomiędzy ścianą skalną a wantą. Dość często jest on blokowany przez gruz osypujący się spod wanty. Samo wejście, o wymiarach 0,3x0,5 m i półkolistym przekroju, na odcinku pierwszego metra jest dość uciążliwe w trakcie pokonywania. </span></p>  <p><span>Po pokonaniu przewężenia przechodzimy do korytarza o trójkątnym przekroju i wymiarach 0,5-1 m szerokości i do 1,5 m wysokości Jego dno pokryte jest humusem wymieszanym z materiałem gliniastym i drobnym gruzem. Na ścianach widoczne są częściowo zwietrzałe nacieki wełniste i żebra. Po 4 m korytarz rozszerza się do 2 m, przy wysokości 1,2-2 m. W lewo pod górę odchodzi 2 m długości odnoga, a w prawo przez niski (0,6x0,8 m) przełaz docieramy do niskiej (1 m wys.) komórki o wymiarach 3,5x2,5 m. Jej dno zasłane jest rumoszem. W stropie przejścia do niej znajduje się niewielki kocioł wirowy, wypełniony częściowo zrekrystalizowanymi kryształami kalcytu. Z komórki w kier. wschodnim odchodzi jeszcze jeden ciasny (0,4x0,7 m), 2,5-metrowy korytarzyk, łączący się z głównym ciągiem jaskini. Od skrzyżowania, główny korytarz (szerokości 1,5-2,5 m, wysokości 1,4-2 m) kontynuuje się ku SE na długości 8 m. Jego lewą ścianę stanowi obszerna, opadająca ku spągowi półka, utworzona z materiału gliniastego wymieszanego z lessem i drobnoziarnistym piaskiem. Ten sam rodzaj namuliska wypełnia spąg korytarza. </span></p>  <p><span>Po 8 m dochodzimy do skrzyżowania kilku korytarzy zwanego Rozdrożem. W lewo, ku północy odchodzi lekko opadający korytarzyk (szerokości 0,5-0,9  m, wysokości 0,7 m) o dnie zasłanym rumoszem. W prawo widnieje przejście do dalszych partii jaskini, przesłonięte wiszącą wantą o wymiarach 2x0,6x0,8 m. W kier. wschodnim od Rozdroża biegną dwa korytarze – pierwszy z prawej, ciasny i meandrujący, opada w dół, by po 5 m połączyć się głębiej z ciągiem głównym. Ma on w trójkątnym przekroju wymiary 0,4-0,9 m szerokości i do 1 m wysokości. Dno pokrywa namulisko gliniaste. Główny ciąg jaskini to równoległy do poprzedniego, regularnie myty 7-metrowy korytarz (szerokości 0,7-1 m., wysokości 0,5-1 m), lekko opadający w dół. W połowie długości skręca on na południe. Jego dno wypełnia namulisko gliniaste. Na jego początku, z lewej strony widoczne są resztki mis naciekowych utworzonych na masywnej polewie kalcytowej, natomiast na końcu, z obu stron korytarza zaobserwować można pozostałości grubej, prawie półmetrowej polewy kalcytowej ze śladami otworów wiertniczych. Korytarz ten doprowadza do kolejnego skrzyżowania. W prawo, ponad 1,2-metrowym progiem biegnie w kierunku Rozdroża wspomniany wcześniej ciasny meander, natomiast w lewo ku SE kontynuuje się 7-metrowy korytarz (szerokości 1m., wysokości 0,5-0,8 m) o dnie całkowicie zasłanym rumoszem. Przy końcu, na wprost i z prawej strony, otwierają się szczeliny nie do przejścia. W korytarzu tym, w kilku miejscach występują częściowo zniszczone stalaktyty, draperie, żebra i grzybki. Główny korytarz od skrzyżowania biegnie ku S i po około 9 m wypada w największej komorze jaskini zwaną Salą Złomisk. Na odcinku tym korytarz ma przekrój owalny o szerokości 0,5-1 m i wysokości 0,9-1,2 m. Na trzecim metrze od skrzyżowania, w obie strony odchodzą krótkie, metrowe wnęki. W lewej, oprócz wyeksploatowanej w spągu grubej polewy kalcytowej, widoczne są w stropie niewielkie draperie oraz heliktyty. </span></p>  <p><span>Komora Złomisk posiada nieregularny kształt i wymiary po najdłuższych przekątnych 8x5 m. Jej dno pokryte jest całkowicie wantami i grubym rumoszem. W stropie północno-wschodniej części komory widnieją drobne , aktualnie tworzące się makarony, natomiast w jej południowej stronie fragment złomisk pokryty jest grubą warstwą polewy z zaczątkami stalagmitów. Nad polewą, w stropie znajdują się liczne stalaktyty, w znacznej części zniszczone. W centralnej części komory, w zawalisku otwiera się 5  m gł. szczelina doprowadzająca do niższego poziomu, który tworzy częściowo zawaliskowy korytarz długości 8 m, przedzielony w środkowej części zaciskiem. W północno-zachodniej stronie komory widnieje wejście do korytarza równoległego do głównego ciągu jaskini. Ma on szerokości 0,6-1,1 m i wysokości 0,7-0,9 m, kończy się zawaliskiem. W jego środkowej części, z prawej strony znajduje się ciasne przejście, za którym w lewo kontynuuje się inny ciąg jaskini. Początkowo jest to 4 m długości korytarzyk, niski (0,5-0,8 m) o szerokości 0,5-1,2 m. We wnęce z lewej strony widoczne są zwietrzałe stalaktyty i żebra. Dno korytarzyka wypełnia namulisko gliniaste, pokryte częściowo rumoszem. Korytarzyk doprowadza do półkolistej w przekroju komory o długości 6 m, szerokości 1-2,5 m i wysokości 0,8-1,5 m. Jej dno opada nieco w kier. zachodnim a wypełnia je namulisko gliniaste pokryte kamieniami. Z komory tej, w kierunku północnym przechodzimy do 5-metrowego korytarza, doprowadzającego przez wiszącą wantę z powrotem do Rozdroża. Korytarz ten, początkowo w formie krótkiego, opadającego meanderka (0,7-0,9 m) rozszerza się dalej do 1,5 m, przy wysokości do 1,4 m. W połowie jego długości, z lewej strony znajduje się przejście do niskiej komory, zwanej Pod Stemplem. Ma ona wymiary 5x2,5 m, przy wysokości 0,8-1,4 m. Jej północna strona zamknięta jest blokami skalnymi. Dno komory wypełnia namulisko gliniaste pokryte lokalnie gruzem. Strop w kilku miejscach podparty jest przegniłymi, drewnianymi stemplami.</span></p>  <div>&nbsp;</div>  <p><span>Jaskinia rozwinęła się w wapieniach górnojurajskich na sieci krzyżujących się spękań o generalnym biegu NW-SE i NNE-SSW, dzięki czemu posiada charakter labiryntowy. Większość próżni powstała w warunkach freatycznych, w bezpośrednim sąsiedztwie bazy erozyjnej związanej z najmłodszym poziomem genetycznym doliny. Po obniżeniu się bazy erozyjnej obszerniejsze fragmenty jaskini ukształtowane zostały przez wody swobodnie płynące. Najniższe partie, poniżej Sali Złomisk, modelowane były wtórnie przez wody stagnujące, które wytworzyły na ścianach formy gąbczaste. Prawdopodobnie wody stagnujące lub wolno płynące przez pewien czas wypełniały jaskinię całkowicie, rekrystalizując w wielu miejscach wcześniej powstałe nacieki. Rejony Sali Złomisk i Komory pod Stemplem mają charakter zawaliskowy, w drugim przypadku związany z działalnością człowieka – prawdopodobnie na skutek eksploatacji szpatu przy pomocy robót strzałowych naruszona została stabilność skał.</span></p>  <div><span>Zimową porą w głównym ciągu jaskini wyczuwalny jest przewiew powietrza od otworu w głąb masywu. </span></div>  <p><span>Florę przy otworze reprezentują mchy i wątrobowce oraz skąpe ilości zanokcic skalnych <strong><em>Asplenium trichomanes</em></strong>.</span></p>  <p><span>W jaskini nielicznie zimują nietoperze. W styczniu 2001 obserwowano nocka Natterera <strong><em>Myotis nattereri</em></strong> (1 os.), nocka dużego <strong><em>Myotis myotis</em></strong> (3 os.) i podkowca małego <strong><em>Rhinolophus hipposideros</em></strong> (2 os.). Rok później, w lutym 2002 r. w jaskini zimowały nietoperze: nocek rudy <strong><em>Myotis daubentonii</em></strong> (1 osobnik w bocznej komorze za <strong><em>pierwszym skrzyżowaniem), nocek duży Myotis myotis (1 osobnik na Rozdrożu) oraz podkowiec mały Rhinolophus hipposideros</em></strong> (1 osobnik w następnym skrzyżowaniu za Rozdrożem - gatunek ten był regularnie obserwowany także w lutym 1989, 1990, 1991, 1992 r.). </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia została odkryta, prawdopodobnie w latach 1928-30, przez mieszkańca Ludwinowa Jana Mesjasza, który prowadził w niej eksploatację kalcytu. W ścianach korytarzy można spotkać wiele otworów strzałowych, z czego wynika, że urobek pozyskiwano przy pomocy materiałów wybuchowych. Po zakończeniu eksploatacji otwór przez wiele lat pozostawał zasypany. W roku 1965 wejście zostało odkopane przez W. Barskiego i Z. Koronę z Krakowskiego Klubu Turystyki Jaskiniowej. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Pierwszy opis i plan (za W. Barskim) opublikował A. Skalski w Taterniku  nr 3-4 z 1966 r. Plan opracował M. Szelerewicz, na podstawie pomiarów  własnych i A. Górnego, wykonanych w 1983 r. Dane zaktualizował J.  Zygmunt (2009 r.).<br />Aktualizację i uzupełnienia do planu wykonał M. Czepiel w 2002 r.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Skalski A. 1966 (opis, plan); Barski W. 1975 (wzmianka); Szelerewicz M., G&#243;rny A. 1986 (opis, plan); Postawa T., Węgiel A., Zygmunt J.1994 (obserwacje nietoperzy); Postawa T. 2001 (sprawozdanie z obserwacji nietoperzy); Stefaniak K. i in. 2009a (fauna subfosylna); Stefaniak K. i in. 2009d  (dane morfometryczne - błędna deniwelacja, kr&#243;tka charakterystyka, zakres badań);  Tyc A. 2009a (wzmiankuje w aspekcie genezy); Jaskinie Wyżyny Częstochowskiej 2011b  (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Czepiel M., Zygmunt J. 2001 (dokumentacja).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Marian Czepiel
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15107)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(3555)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

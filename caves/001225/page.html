@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1225">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1225;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "570753,51".replace(',', '.') + "," + "154315,48".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1225','Jaskinia Goryczkowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Goryczkowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                w Kasprowej I
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-16.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;58′21,20″, φ: 49&#176;15′08,10″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1263
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                31
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    605
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na prawym orograficznie zboczu Doliny Goryczkowej, u podn&#243;ża skał Myślenickich Turni. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Dojście prowadzi z położonych w Dolinie Bystrej Kuźnic zielonym szlakiem prowadzącym na Kasprowy Wierch. Szlak kilkadziesiąt metrów po punkcie opłat TPN przecina Potok Bystra i wznosząc się łagodnie prowadzi jego prawym brzegiem do miejsca gdzie Potok Goryczkowy wpływa do Potoku Bystra. Od tego punktu po 300 metrach, w miejscu gdzie zielony szlak odbija gwałtownie w lewo w dolinę Starych Szałasisk, należy skręcić w prawo na ścieżkę prowadzącą do dolnej stacji wyciągu narciarskiego Goryczkowa. Ścieżka wiedzie wzdłuż nartostrady. Docieramy nią do Wywierzyska Goryczkowego, skąd po ponad 200 metrach dochodzimy do miejsca gdzie po lewej stronie nad szlakiem rozpoczyna się ściana Myślenickich Turni, u podnóża których umiejscowiony jest otwór jaskini. W celu dojścia do niej należy po kilku metrach za zakrętem, omijającym wysoki murek, zabezpieczający przed osuwaniem się materiału ze zbocza na szlak, przed drugą polanką, skręcić w lewo, w kierunku podnóży Myślenickich Turni. Podążając stromo do góry przez gęsty, iglasty las po chwili docieramy do groty. Wejście usytuowane jest nieco poniżej dolej granicy skał, pomiędzy drzewami, kilka metrów poniżej najdalej wysuniętej na zachód skały. Dojście bez większych trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Jedyne wejście do jaskini zagrodzone jest ruchomą metalową kratą, kt&oacute;rą można swobodnie otworzyć. Została ona zamontowana niegdyś w celu ograniczenia penetracji i niszczenia jaskini. Sam otw&oacute;r o owalnym kształcie i wymiarach 1,2x0,8 m daje możliwość swobodnego wejścia do środka. Od wejścia w głąb groty prowadzi gł&oacute;wny, szeroki i wysoki na 2 metry, zygzakowaty korytarz o długości około 15 m. W jego pierwszej części znajdują się liczne boczne odnogi, natomiast dalsze odgałęzienia odchodzące od jego końca prowadzą w d&oacute;ł. Można się nimi dostać do obszerniejszej sali końcowej.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Zaraz za kratą od gł&oacute;wnego korytarza odchodzą dwa kr&oacute;tkie odgałęzienia w lewo i jedno w prawo. Pierwszy boczny korytarz za kratą, znajduje się na wysokości 1 m i odchodzi w lewo. Ma on 1 m szerokości, 0,5 m wysokości i około 4 m długości. Tuż za nim, po tej samej stronie na wysokości około 1 metra, znajduje się kolejny, ślepy korytarz. Ma on 2 m szerokości, od 1 do 1,7 m wysokości i koło 8 m długości, a na końcu rozwidla się na dwa kr&oacute;tkie i wąskie korytarze. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Następna boczna odnoga znajduje się mniej więcej naprzeciwko nich, na wysokości około 1 m, ma szerokość 2 m i wysokość 1,2 m. Odbija w prawo prostopadle do korytarza gł&oacute;wnego i po 2 m skręca pod kątem 90&deg; w lewo, aby po kr&oacute;tkim rozwidleniu, kilka metr&oacute;w dalej połączyć się z gł&oacute;wnym ciągiem jaskini.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Kolejnym odgałęzieniem biegnącym w lewo jest długi korytarz, kt&oacute;rego nowe partie zostały odkryte w marcu 2012 r. podczas eksploracji jaskini prowadzonej przez kilkuosobową grupę słowackich grotołaz&oacute;w ze Speleoklubu Czerwone Wierchy oraz Speleoklubu Saris w towarzystwie jednego polskiego grotołaza. Odkryli oni nowe korytarze stanowiące przedłużenie znanych wcześniej, a wysuniętych najbardziej na p&oacute;łnoc. Te partie jaskini położone są generalnie na wsch&oacute;d od otworu i mają prawie 100 metr&oacute;w długości, zostały nazwane przez odkrywc&oacute;w Sariska Hodba. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Korytarz ten na zakręcie ciągu gł&oacute;wnego odbija w lewo. Początkowo prawie płasko, a następnie mocniej nachylony biegnie w d&oacute;ł. W początkowej jego części w lewo odchodzą liczne ślepe korytarzyki. Dalej znajduje się kr&oacute;tkie obejście w prawej ścianie korytarza ponownie łączące się z gł&oacute;wnym ciągiem. Nieco dalej w tę samą stronę odgałęzia się około 5-metrowy korytarz, połączony na początku wąską szczeliną z dalszą częścią gł&oacute;wnego ciągu tych partii. Za nim znajduje się kr&oacute;tki korytarzyk w lewo, a tuż za nim, po ostrym zakręcie w prawo rozpoczynają się nowe partie, odkryte w 2012 r. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Początkowo jest to bardzo wąski korytarz, wypełniony ilasto-gliniastym namuliskiem, kawałek dalej korytarz rozszerza się i biegnie prosto, do podw&oacute;jnego, szerokiego, ślepo zakończonego odgałęzienia w prawo. Dalej korytarz dochodzi do jego najszerszego miejsca z małym jeziorkiem okresowym i jednym ślepym, wąskim korytarzykiem, odbijającym w prawo. Dalej opada stromo syfonem u wejścia do ciasnej szczeliny, liczącej około 17 m, z tego miejsca ciąg zawraca ostro w lewo i po kilku metrach jest zablokowany zawaliskiem. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Wracamy do gł&oacute;wnego ciągu jaskini. Kilka metr&oacute;w za zakrętem, po około 12 m od wejścia, gł&oacute;wny korytarz dociera do rozwidlenia. Jedno z odgałęzień, znajdujących się przy końcu korytarza wstępnego, odchodzi w lewo i wiedzie zygzakowatym, około 50-metrowej długości korytarzem, początkowo łagodnie wznoszącym się i częściowo wypełnionym namuliskiem, dochodzącym do stromej, 10-metrowej pochylni z dość bogatą szatą naciekową (polewy i draperie). Za progiem znajduje się głęboka, pionowa studnia, wypełniona namuliskiem i zawaliskiem skalnym oraz komin.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Wracamy do rozwidlenia. Od gł&oacute;wnego ciągu, stromo do g&oacute;ry wznosi się kolejny korytarz, przechodzący w kręty i ciasny, poziomy korytarzyk, liczący około 8 m.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Pozostałe trzy odgałęzienia z tej partii korytarza wstępnego prowadzą do dolnych partii jaskini. Pierwsze zejście do niższych partii odchodzi w lewo, początkowo opadając stromą pochylnią przechodzącą na wysokości około 1253 m n.p.m. w 4-metrową studnię. W tym miejscu zamontowany jest uchwyt na linę umożliwiający założenie asekuracji. Następnie kr&oacute;tkim, 3-metrowym odcinkiem docieramy do rozwidlenia, tu korytarz ma wysokość 0,7 m. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Od tego miejsca jeden, mniejszy korytarz opada łagodnie w lewo i po kilku metrach dochodzimy do syfonu, za kt&oacute;rym kontynuuje sw&oacute;j bieg mając wysokość 1 metra, po kilku metrach do korytarza dochodzą 2 odnogi z prawej i lewej strony. Prawa odnoga łączy się z położoną niżej partią jaskini, do lewej zaś po kliku metrach dołącza się zawracający gł&oacute;wny korytarz. Lewa odnoga kończy się na wysokości 1246 m n.p.m.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Drugi odchodzący w prawo od rozwidlenia, ma średnicę ponad metra, początkowo biegnie 6 m prosto, a następnie schodzi w d&oacute;ł (tu w stropie i ścianach znajdują się zagłębienia wirowe). Korytarz rozdzielony jest poziomo p&oacute;łką skalną i prowadzi do pierwszej sali położonej na wysokości 1266 m n.p.m.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Z salki tej w lewo odchodzi biegnący niezbyt stromo w d&oacute;ł korytarz o średnicy 1,2 m, kt&oacute;rym po 3 m dochodzimy do niewielkich rozmiar&oacute;w, płytkiego jeziorka o długości około 2,5 m. Za jeziorkiem, na wysokości około 1246 m n.p.m., korytarz rozwidla się, w prawo, nieco zawracając odchodzi niewielka odnoga, do kt&oacute;rej droga do dalszych partii prowadzi przez bardzo ciasną szczelinę. Gł&oacute;wny korytarz biegnie w lewo w d&oacute;ł i po kilku metrach przedzielona jest płytą skalną. Od jej g&oacute;rnej części odchodzi kilka małych korytarzyk&oacute;w w g&oacute;rę, dzięki kt&oacute;rym możliwe jest przedostanie się do korytarza kontynuującego sw&oacute;j bieg za syfonem.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">W dalszej części korytarz gł&oacute;wny dochodzi do skrzyżowania, z kt&oacute;rego w lewo odchodzi niewielkich rozmiar&oacute;w korytarzyk kończąc się po kilku metrach podobnie jak szeroka odnoga odchodząca w prawo. Korytarz biegnący prosto po kilkunastu metrach kończy się namuliskiem.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">We wspomnianej wcześniej sali, znajdującej się na wysokości 1249 m n.p.m., występują gdzieniegdzie, stosunkowo bogate jak na tę jaskinię, formy naciekowe w postaci draperii i niewielkich stalaktyt&oacute;w oraz liczne wiry powstałe na skutek drążenia skał przez wodę. Z salki odchodzą dwa korytarze, z kt&oacute;rych jeden umiejscowiony jest w jej prawym g&oacute;rnym rogu, skąd biegnie w g&oacute;rę pod kątem około 45&deg; i przeradza się w dużą ilość niewielkich korytarzyk&oacute;w, wśr&oacute;d kt&oacute;rych znajdują się dwa wąskie i strome, fragmentami pionowe przejścia szczelinami do rozwidleń odchodzących z prawej strony gł&oacute;wnego korytarza na wysokości 1262 m n.p.m. Jedno, wychodzące najbardziej na prawo znajduje się powyżej poziomu wejścia do jaskini. Drugie, prowadzące przez kręty korytarzyk, a następnie małą platformę i stromy komin z uchwytem na linę, osiąga poziom wejścia do jaskini. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">W dolnym lewym rogu Sali, na wysokości 1249 m n.p.m, umiejscowiony jest drugi, wąski korytarz, kt&oacute;ry biegnie w d&oacute;ł, w kierunku południowym, pod kątem około 45&deg;. Po około 5 metrach przerywa go 2-metrowa, prawie pionowa szczelina, nad kt&oacute;rą można przejść wąskim przesmykiem. Szczelina ta prowadzi do stożkowatej, zwężającej się ku g&oacute;rze, dolnej komory leżącej na wysokości 1242 m n.p.m., z zagłębieniami wirowymi i nielicznymi stalagmitami oraz mlekiem wapiennym. Odchodzi stąd w d&oacute;ł około 6-metrowy korytarz zakończony rumowiskiem skalnym, w kt&oacute;rego okolicach zimują nietoperze. Można stąd r&oacute;wnież przejść w d&oacute;ł pod szczelinę, kt&oacute;rą przyszliśmy. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Za szczeliną przecinającą gł&oacute;wny korytarz, odchodzący od salki na poziomie 1249 m n.p.m, korytarz dochodzi do jednej z wyższych sal w jaskini, z kt&oacute;rej odchodzi bardzo szeroki korytarz pnący się w g&oacute;rę do salki, w kt&oacute;rej zalegają duże bloki skał, wśr&oacute;d kt&oacute;rych znajdują się niewielkie korytarzyki. Jest to sala końcowa, pomiędzy głazami w jej dolnym rogu umiejscowione są dwa niewielkie otwory, skąd prawdopodobnie korytarze prowadzą do niższych partii jaskini. W południowej części Sali występują zagłębienia wirowe, kt&oacute;re wskazują na dawne przepływy wody szczelinami w d&oacute;ł. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Jaskinia powstała w wapieniach malmu (Rabowski 1959) lub triasu środkowego (W&oacute;jcik 1966a). Spąg korytarzy pokrywają osady żwirowo-piaszczyste o pochodzeniu allochtonicznym oraz autochtoniczny gruz wapienny i glina. W końcowej komorze znajdują się bloki granitognejs&oacute;w &ndash; Z. W&oacute;jcik (1959b) podaje, że zostały one przyniesione przez odkrywc&oacute;w (?) oraz, że przy otworze występuje pr&oacute;chnica. Ubogą szatę naciekową stanowią polewy, nieliczne stalaktyty i stalagmity oraz mleko wapienne.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Jaskinia należy do wilgotnych, w jej dolnych partiach występują jeziorka, kt&oacute;rych ilość oraz wielkość zależy od stanu wody w systemie jaskiniowym. Jedno z nich przy wysokim stanie wody pełni rolę syfonu. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Okolice jedynego otworu wejściowego do groty porastają mchy i trawy. Można je r&oacute;wnież spotkać wewnątrz, w niedalekiej odległości od otworu, jednak roślinność zielona za otworem jest uboga. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">W głębszych partiach jaskini zimują nietoperze z gatunk&oacute;w: nocek duży (<em>Myotis myotis</em>), nocek wąsatek (<em>Myotis mystacinus</em>), nocek Brandta (<em>Myotis brandtii</em>) oraz gacek wielkouch (<em>Plecotus auritus</em>). E. Pauli w 1889 roku natrafił niedaleko wejścia na kości kozicy i szczękę niedźwiedzia jaskiniowego, natomiast K. Kowalski (1953) pisze o znalezieniu zęba trzonowego niedźwiedzia jaskiniowego.</span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Jaskinię tworzy bardzo gęsta i skomplikowana siatka korytarzy. Wschodnia część jaskini ma charakter zawaliskowy (W&oacute;jcik, Zwoliński 1959). Podają oni, iż przesunięcia powstały prostopadle względem zboczy dolin preglacjalnych lub staroplejstoceńskich. Aktualnie biegną one r&oacute;wnolegle do dna doliny, natomiast powstałe na ich skutek zawaliska, spowodowały przesunięcie sali dolnej około 2 metry w kierunku p&oacute;łnocnym. Komora ta opadła r&oacute;wnież o około 4&ndash;5 metr&oacute;w. Przesuniecie wzdłuż płaszczyzny ukośnej występuje także w sali z lustrem tektonicznym (&ldquo;pod progiem z drabinką&rdquo; wg materiał&oacute;w archiwalnych). Tu, na wysokości około 1,2 metra korytarz przecina płaszczyzna 90&deg;/20&deg;N. Przesunięcie liczy około 5 cm, co jest widoczne na pękniętych polewach naciekowych. </span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span style="background: none repeat scroll 0% 0% white; color: windowtext; text-indent: 14.2pt;"><span><span style="text-indent: 14.2pt;"><span><span><span><span style="text-indent: 14.2pt;"><span style="color: black;">Według Kicińskiej (1996, 2002, 2002b) woda musiała tu płynąć w dw&oacute;ch przeciwległych kierunkach, czego dowodzą liczne ślady przepływu. W korytarzu gł&oacute;wnym na ścianach i stropie znajdują się zagłębienia wirowe. Kierunek przepływu w stronę otworu jest prawdopodobnie pozostałością starszego etapu rozwoju jaskini, kiedy to odwadniała ona południowo-wschodnie zbocze Doliny Bystrej. Natomiast kierunek w głąb najprawdopodobniej związany jest z przepływem w&oacute;d lodowcowych z okresu ocieplenia, kt&oacute;re to płynęły istniejącymi już wtedy korytarzami. <br /></span></span></span></span></span></span></span></span></span></span></span></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>W latach 1910&ndash;11 obserwacje geologiczne w jaskini i okolicy prowadził E. Kuźniar, zebrane przez niego materiały nie zostały jednak opublikowane. Następnie w latach 1920-1939 badania geologiczne prowadził F. Rabowski (1959), a w latach 60. XX w. Z. W&oacute;jcik. Szczeg&oacute;łowe wyniki swoich badań geologicznych przedstawił w pracach (1960b, 1961, 1966a, 1968) przypisując Goryczkową do II z wyr&oacute;żnianych przez siebie poziom&oacute;w jaskiń tatrzańskich. Natomiast jej ewolucję wiązał z kolejnymi zlodowaceniami. Z. W&oacute;jcik i S. Zwoliński (1959) badali w jaskini młode przesunięcia tektoniczne. M. Lipiec (1990) wykonał interpretację pochodzenia zawaliska w końcowej komorze oraz pomiary upad&oacute;w warstw jaskini, w celu ustalenia budowy geologicznej Myślenickich Turni oraz zajmował się kartowaniem geologicznym Myślenickich Turni, uzupełniając je danymi z jaskini (1991). Jego teorię na temat pochodzenia zawaliska w końcowej komorze potwierdziła w swoich badaniach D. Kicińska (1996). H. Hercman w 1991 roku określiła wiek krystalizacji najstarszych naciek&oacute;w na 165&plusmn;9 tys. lat. D. Kicińska w latach 1993-95 przeprowadziła szereg badań sedymentologicznych oraz analizę zagłębień wirowych. Podobne obserwacje w latach 2006 -2008 prowadził G. Marchwiński. W 2013 r. wyniki obserwacji i badań zjawisk neotektonicznych publikuje J. Szczygieł. Pisał także o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin (Szczygieł J. i in. 2020a).<br /></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wstępne części jaskini znane są już od dawna. W 1881 roku w celu prowadzenia badań archeologicznych i paleontologicznych zwiedził ją G. Ossowski nazywając grotą w Kasprowej I. P&oacute;źniej wspomina o niej r&oacute;wnież J.G. Pawlikowski (1887), jednak obydwaj piszą jedynie o idącym w d&oacute;ł krętym i ciasnym korytarzu. Jej szerszą eksploatacją zajął się natomiast leśniczy z Zakopanego E. Pauli, kt&oacute;ry dzięki zasiłkowi od Towarzystwa Tatrzańskiego, poszerzył ciasne przejście i przeszedł większą część groty. W latach 1913&ndash;17 Goryczkową eksplorowali r&oacute;wnież bracia T. i S. Zwolińscy. Pierwszy plan i opis został sporządzony w 1953 roku przez K. Kowalskiego (Kowalski 1953a). Wg prowadzonej w Internecie przez K. Dudzińskiego Kroniki działań podziemnych i nie tylko w latach 1974&ndash;80 eksplorację jaskini prowadzili zakopiańscy grotołazi. Działali oni gł&oacute;wnie w sali końcowej, w rejonie sali zawaliskowej i komina z jeziorkiem-syfonem. W dole sali zawaliskowej przekopywano namulisko oraz przy pomocy masztu wspinano się do komina w stropie. Długość odkrytych wtedy ciąg&oacute;w sięga około 30 metr&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>&nbsp;W roku 1995 pomiary jaskini przeprowadzali J. Jasiewicz, D. Kicińska, R. Matuszczak, a w 2000 roku W. Roliński oraz D. Kicińska i R. Matuszczak. D. Kicińska opracowała w&oacute;wczas dokumentację jaskini z planem R. Matuszczaka, opublikowaną w tomie 10 inwentarza Jaskinie Tatrzańskiego Parku Narodowego (2002b). Dane tam opublikowane zaktualizowała w 2009 roku D. Kicińska.</p>
+<p>Jednak najnowsze pomiary były (prowadzone w 2012 roku przez K. Dudzińskiego wraz ze słowackimi grotołazami ze Speleoklubu Czerwone Wierchy oraz Speleoklubu Saris) wykazały całkowity brak zgodności planu Matuszczaka z rzeczywistością, podobnie jak opisu jaskini autorstwa D. Kicińskiej. Na podstawie pomiar&oacute;w wspomnianej grupy w składzie J. &Scaron;moll G. Majernickova, T. Majernickova, K. Dudziński, P. Imrich, J. Szunyog, P. Imrich sporządził najnowszy plan, uwzględniający także nowo odkryte partie jaskini. W wyniku eksploracji prowadzonej przez wspomnianą grupę w latach 2011&ndash;2012 długość jaskini wzrosła do 605 metr&oacute;w, a deniwelacja do 31 m.</p>
+<p>Aktualną dokumentację jaskini opracowali w grudniu 2013 r. A. Zaleski i M. Jasuwienas na podstawie planu P. Imricha, pomiar&oacute;w K. Dudzińskiego, własnych obserwacji oraz danych o badaniach prowadzonych w jaskini zaczerpniętych z dokumentacji opublikowanej w Jaskiniach TPN (2001b) autorstwa D. Kicińskiej.</p>
+<div style="line-height: normal;"><span style="color: black;">Plan opracował P. Imrich.</span></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ossowski G. 1882a (pierwsza wzmianka o “Jaskini w Kasprowej I”); Ossowski G. 1882b (ditto); Ossowski G. 1882c (ditto); Pawlikowski J.G. 1887 (wzmianka); Markiewicz W. 1889 (autor przedstawia odkrycie groty przez Pauliego i opisuje własną wycieczkę do niej); Pauli E. 1891 (opis jaskini); Świerz L. 1894 (o zasiłku TT na badania Pauliego); Rehman A. 1895 (wzmianka o odkryciu w roku 1889); Chmielowski J. 1907 (droga i opis); Kuźniar E. 1911 (wiadomość o przeprowadzeniu badań geologicznych ); Świerz M. 1912 (wzmianka); Świerz M. 1919 (droga i opis); Świerz M. 1921 (ditto); Zwolińscy T. i S. 1922 (wzmianka); Świerz M. 1923 (droga i opis); Zwolińscy T. i S. 1925 (ditto); Zwolińscy T. i S. 1927 (ditto); Nasze Tatry, 1931 (wymienia); Danysz-Fleszarowa R. 1933 (ditto); Wrzosek A. 1933 (uwagi geologiczne o jaskini); Szokalski J. 1934 (mylny opis drogi i jaskini); Zwoliński T. 1937 (droga i opis); Zwoliński T. 1946 (droga i opis); Zwoliński T. 1948 (ditto); Kowalski K. 1951a (wzmianka); Kowalski K. 1953a (plan i opis); Kowalski K. 1953c (oznaczenia nietoperzy); Kowalski K. 1955a (fauna, niekt&#243;re dane morfometryczne); Zwoliński S. 1955b (wzmianka); Normy klasyfikacyjne i wykaz punktacji dr&#243;g jaskiniowych, 1956 (ocena trudności); Zwoliński S. 1958 (opis); Rabowski F. 1959 (badania geologiczne, szkic otworu); W&#243;jcik Z., Zwoliński S. 1959 (młode przesunięcia tektoniczne); W&#243;jcik Z. 1959b (og&#243;lny opis morfologiczny); W&#243;jcik Z. 1960b (osady); Zwoliński S. 1961 (wzmianki dotyczące historii); W&#243;jcik Z. 1961b (wzmianka o konkrecjach cementacyjnych); W&#243;jcik Z. 1966a (dane geologiczne, osady); Zwoliński S. 1968 (wzmianki); W&#243;jcik Z. 1968 (uwagi o wieku jaskini i jej związku ze zlodowaceniami); Kozik A. 1972 (wymienia, podaje długość); Tatry Polskie  1976 (lokalizacja na mapie 1:10000); Borowiec W. i in. 1977, 1978 (dane morfometryczne); W&#243;jcik Z. 1978d (wzmianka); Parma Ch., Rajwa A. 1978 (wzmianka dotycząca historii); W&#243;jcik Z. 1979 (uwagi o związku z przebiegiem zlodowaceń); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10.000); Hercman H. 1991 (określa wiek naciek&#243;w); Zwoliński, S. 1993 (informacje o jaskini); Głazek J., Grodzicki J. 1996 (wzmiankują); Piksa K. 1998 (nietoperze); Jaskinie TPN 2002b (plan i opis inwentarzowy); Dudziński K. 2013 (informacja o nowych pomiarach); Szczygieł J. 2013c (zjawiska neotektoniczne); Jaskinie TPN 2016 (zaktualizowany plan i opis inwentarzowy); Szczygieł J. i in. 2020a (o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Kardaś R., Kropiwnicka M., Luty I. 1983 (plan i opis inwentarzowy); Kicińska D. 1996 (analiza zagłębień wirowych, kierunki paleoprzepływ&#243;w, badania sedymentologiczne); Lipiec M. 1990 (obserwacje geologiczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Marta Jasuwienas, Adam Zaleski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(710)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan 
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

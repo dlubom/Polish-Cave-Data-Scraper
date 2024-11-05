@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1603">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1603;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566551,48".replace(',', '.') + "," + "153456,89".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1603','Jaskinia Zośka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Zośka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Jaskinia Zośka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.58
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′52,78″, φ: 49&#176;14′41,99″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Zagonna Studnia T.E-12.57) - ku g&#243;rze, 1800 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1790
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                550
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                84
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                93
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    416
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W dolnej części Czerwonego Grzbietu - ramienia Małołączniaka, nad Pośrednią Turnią, po stronie Doliny Małej Łąki.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Przysłopu Miętusiego niebiesko znakowanym szlakiem podchodzimy nad Kobylarzowy Żleb, aż do Czerwonego Grzbietu. Stąd istnieje możliwość dojścia dwoma wariantami. Krótszy, za to bardziej eksponowany, prowadzi w dół do Siodełka Małołąckiego, a następnie drugim od góry zachodem, trawersem po upłazkach, w kierunku Wielkiej Turni, aż do dolnego otworu. Drugi wariant: prowadzi początkowo jeszcze kilkanaście metrów Czerwonym Grzbietem, potem obniżamy się i omijając skałki idziemy ku W aż do dolnego otworu. Aby dojść do górnego otworu należy od otworu dolnego iść ku zachodowi około 10 m trawersem po upłazkach, a następnie w górę przez prożek 4–5 m (trudności II–III, po trawkach) osiągamy szukany otwór. Dojście bez trudności, nieco eksponowane w wariancie krótszym, do otworu górnego – dość trudne. Zwiedzanie jaskini wymaga sprzętu i umiejętności taternickich.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r g&oacute;rny (Jaskini Zośka T.E-12.58) o wymiarach 2x2,5 m, od południa nakryty jest częściowo okapem. Otw&oacute;r dolny ma wymiary 0,8x0,5 m od południa nakrywa go okap.</span></p>
+<p><span>Od otworu g&oacute;rnego opada 2,5 m pr&oacute;g na kr&oacute;tką piarżystą pochylnię, kt&oacute;ra przechodzi w pionową studzienkę 8 m głęboką&nbsp;&ndash; I Dziesiątkę.</span></p>
+<p><span>Nad pochylnią na wprost otworu widać wejście do G&oacute;rnych Partii, najlepiej dojść tam trawersując nad I Dziesiątką po lewej stronie, następnie idziemy po wantach w g&oacute;rę pokonując dwa małe prożki, przez przełazy pomiędzy małymi kom&oacute;rkami. Końcowa część G&oacute;rnych Partii to pionowy, ciasny kominek, w kt&oacute;rym poprzez ciasne szczeliny widać światło słoneczne.</span></p>
+<p><span>Na początku I Dziesiątki po lewej (or.) stronie widać wejście do kr&oacute;tkiego korytarzyka, o dnie piaszczystym, kończącego się ciasną szczeliną, za kt&oacute;rą widać jeszcze ok. 1 m meandra wznoszącego się ku g&oacute;rze.</span></p>
+<p><span>Natomiast na prawo, mniej więcej w połowie studzienki, można przetrawersować na p&oacute;łkę, wznoszącą się w g&oacute;rę, zasłaną wantami.</span></p>
+<p><span>Z dna I Dziesiątki, trochę powyżej jej najniższego punktu przechodzimy dalej poprzez przełaz nad 4 m prożek, poniżej kt&oacute;rego przez następny przełaz, mający kształt "suchego syfonu" o niewielkim przegięciu, przedostajemy się do Rozdziela.</span></p>
+<p><span>Z Rozdziela wprost w g&oacute;rę możemy wejść przez dwa progi na dno kolistego, mytego meandra G&oacute;rnego Korytarza, z kt&oacute;rego odchodzi niedostępna szczelina. Wyżej, idziemy przez zasłaną wantami pochylnię. Tu w lewo odchodzi drobny zasypany korytarzyk, natomiast w d&oacute;ł, w prawo dochodzimy nad 2 m pr&oacute;g prowadzący do Salki z Przegrodą. Stąd można wejść w g&oacute;rę kominkiem do kr&oacute;tkiego, poziomego korytarzyka lub w d&oacute;ł przez prożek z zaklinowaną wantą do zasypanego korytarzyka. Powyżej prożka zaklinowaną wantą (po przejściu Zacisku z Brzytwami) znajduje się 5 m kominek, kończący się w g&oacute;rze niedostępną szczeliną. Można także przejść za przegrodę przez zacisk, gdzie także znajduje się salka i kilka metr&oacute;w korytarzyka.Ta część jaskini jest dosyć skomplikowana i rozwija się na stosunkowo niewielkiej przestrzeni.</span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu. Z Rozdziela idziemy meandrem trawersując nad 9 m studnię (II Dziesiątka) najpierw po zaklinowanych wantach, p&oacute;źniej szczeliną bezpośrednio nad studnią.</span></p>
+<p><span>Trawersując dalej szczeliną wprost w g&oacute;rę dochodzimy do Partii za Zaciskiem. Przez zacisk (ZI) przedostajemy się do sali o zawaliskowym dnie, wyżej pokonujemy 5 m pr&oacute;g i dalej w lewo przez prożek osiągamy koniec tych partii.</span></p>
+<p><span>Na dnie II Dziesiątki znajduje się sala o wymiarach 4x7 m. Dno jej tworzy zawalisko. Blisko podn&oacute;ża studni, w NW części sali znajduje się ślepy komin o wysokości około 10 m, a u jego podn&oacute;ża mała kom&oacute;rka o stropie utworzonym z głaz&oacute;w, zaklinowanych w kominie. Po przeciwnej stronie sali, pod wantami znajduje się w zawalisku nie sprawdzone połączenie z Poziomką. </span></p>
+<p><span>Przez prożek około 6 m wysoki wspinamy się (trudności IV+) do okna pod stropem sali w jej NE części. Stąd przez przełaz pod oberwanym stropem przedostajemy się do sali Poziomka. Pod salą, w zawalisku o miąższości co najmniej 6 m, znajduje się przejście w kierunku komina w Zagonnej Studni. Z Poziomki można zejść piarżystą pochylnią, a potem studnią głębokości 20 m na dno Zagonnej Studni.</span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu na dno II Dziesiątki. Tutaj blisko podn&oacute;ża studni między wantami znajduje się wejście do następnej studni&nbsp;&ndash; Studni Strachu. Najpierw schodzimy przez prożek, potem zawaliskową pochylnią, za kt&oacute;rą idąc na wprost można przetrawersować do Salki za Trawersem. Dno tej salki stanowi zawalisko, będące jednocześnie stropem salki leżącej 6 m niżej, z kt&oacute;rej można zejść jeszcze około 4 m ciasnym korytarzykiem. Nad Salką za Trawersem znajduje się 15 m wysokości komin&nbsp;&ndash; Pierwszy WOK (trudności V- A0). Około 5 m nad jego dnem, od p&oacute;łki w kominie odchodzi 6 m długi, boczny korytarzyk, o&nbsp;zawaliskowym dnie.</span></p>
+<p><span>Bezpośrednio znad przełazu prowadzącego do Salki za Trawersem widać dalszy ciąg Studni Strachu&nbsp;&ndash; około 12 m komin o zakleszczającym się stropie (trudności V-). Sama Studnia Strachu jest dość skomplikowanym systemem studzienek i pochylni poprzedzielanych wiszącymi zawaliskami i płaskimi blokami odspojonymi od ścian i stropu. Opr&oacute;cz gł&oacute;wnego ciągu Studni Strachu sprawdzono jej zachodnią część, kończącą się oknem w stropie nad salą, a w dw&oacute;ch miejscach łączącą się z właściwą studnią między głazami&nbsp;&ndash; stanowiącą właściwie samodzielną studzienką. Wschodnia część Studni Strachu w dolnej części jest dość lita, g&oacute;rą przechodzi w zawaliskową pochylnię i ścianę. Całkowita wysokość Studni Strachu wraz z przewyższeniem wynosi około 47 m.</span></p>
+<p><span>Dno Studni Strachu tworzy pochyła, zawaliskowa sala o wymiarach około 16x7 m. i wysokości od 7 do 15 m, we wschodniej części wchodząca pod zawalisko, będące prawdopodobnie zawaliskiem dna Zagonnej Studni. Po prawej stronie tego zawaliska można przejść przez kilka przełaz&oacute;w aż do salki o piaszczystym dnie. Po drodze znajdują się dwa ciasne kominki we w miarę litym stropie.</span></p>
+<p><span>W zachodniej, najniższej części sali można zejść do dna jaskini, najpierw prożkiem w zawalisku, dalej w lewo przez odgruzowany przełaz do salki pomiędzy wantami i niżej przez 1 m prożek do namuliskowego dna jaskini na głębokości &ndash;83 m.</span></p>
+<p><span>Wracamy do dolnego otworu&nbsp;&ndash; otworu Zagonnej Studni. Tu w d&oacute;ł prowadzi 6 m studzienka, kt&oacute;rej dno po południowej stronie opada progiem, oddzielonym głazami od reszty salki. Spod prożka ku zachodowi nad wąski otw&oacute;r 28 m głębokiej studni prowadzi kr&oacute;tki korytarzyk, kontynuujący się za nim jeszcze kilka metr&oacute;w.</span></p>
+<p><span>Pod 28 m studnią znajduje się pochyła, zawaliskowa sala o wymiarach 22x10 m zwężająca się ku dołowi do około 2 m szerokości. Mniej więcej w połowie długości sali strop obniża się z około 25 m w części zachodniej, przez ścianę pod studnią P28 do około 2 m, a potem zn&oacute;w się podnosi w kierunku wschodnim. We wschodniej części sali można wejść do kr&oacute;tkiego korytarzyka biegnącego w kierunku SE. W drugim kierunku, na NW, ciasny korytarzyk kończący się 5 m studzienką. Dno g&oacute;rnej części sali tworzy namulisko gliniaste, niżej dno jest zawaliskowe. W najniższej części sali można zejść jeszcze około 3&ndash;4 m pod zawalisko. W tym też miejscu wznosi się 20 m wysoki komin, opadający z Poziomki (opisany wcześniej).</span></p>
+<p><span>Jaskinia ma charakter zawaliskowy, utworzyła się w wapieniach malmo-neokomu jednostki Organ&oacute;w (fałd Czerwonych Wierch&oacute;w). Dno budują przeważnie zawaliska i autochtoniczny rumosz, miejscami występują osady piaszczyste i gliniaste namuliska. Przy końcu G&oacute;rnych Partii spotyka się humus w postaci organicznych szczątk&oacute;w, przedostających się z powierzchni niedostępnymi szczelinami. Formy naciekowe spotykane są jedynie w G&oacute;rnych Partiach w postaci niewielkiego pola naciek&oacute;w grzybkowych.</span></p>
+<p><span>W jaskini na dnie Zagonnej Studni, w Studni Strachu i na jej dnie licznie występują szczątki kostne m.in. w postaci czaszek i kości kuny, kości długich nietoperzy.</span></p>
+<p><span>Światło słoneczne dociera na dno I Dziesiątki, widać je także na końcu G&oacute;rnych Partii. W Zagonnej Studni światło sięga aż do początku 28 m studni. W jaskini w kr&oacute;tkim czasie po opadach pojawia się deszcz podziemny, kt&oacute;ry w rejonie dna Studni Strachu utrzymuje się przez dłuższy czas.</span></p>
+<p><span>Roślinność zielona występuje przy otworach, a także na ścianach pierwszego 2,5-metrowego prożka w g&oacute;rnym otworze&nbsp;&ndash; są to porosty, mchy, paprocie i in.</span></p>
+<p><span>W partiach przyotworowych występują ślimaki oraz ćmy. W Zagonnej Studni napotkano nietoperza.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zagruzowany otw&oacute;r Zagonnej Studni został odkryty w dniu 31 lipca 1988 roku przez K. Dudzińskiego, kt&oacute;ry następnie w dniu 2 sierpnia 1988 r. wyeksplorował ją i pomierzył do dna. Otw&oacute;r Zośki odkrył w dniu 21 lipca 1996 r. D. Fuja i po udrożnieniu zawalonego korytarzyka pod I Dziesiątką jaskinia została wyeksplorowana do głębokości 79 m (dno Studni Strachu). Tego samego dnia odkrywca zwiedził także część G&oacute;rnego Korytarzyka. 28 lipca 1996 r. D. Fuja i B. Zwijacz-Kozica dokonują pomiar&oacute;w gł&oacute;wnego ciągu do dna, eksplorując także partie G&oacute;rnego Korytarzyka. 4 sierpnia 1996 r. D.Fuja i B.Zwijacz-Kozica eksplorują G&oacute;rne Partie jaskini. Odkrywają Salkę za Zaciskiem nad II Dziesiątką i Salkę za Trawersem. 11 sierpnia 1996 r. D.Fuja, P.Orawiec i B.Zwijacz-Kozica wspinają się do okna przy II Dziesiątce i przez studnię pod Poziomką zjeżdżają do sali na dnie Zagonnej Studni. 15 sierpnia 1996 r. K.Dudziński, D.Fuja, P.Orawiec i B.Zwijacz-Kozica dokonują pomiar&oacute;w Zagonnej Studni, wspinają się kominem powyżej Sali za Trawersem (I-szy WOK) i sprawdzają zachodnią część sali pod Studnią Strachu. 18 sierpnia 1996 r. D.Fuja i B. Zwijacz-Kozica wspinają się przewyższeniem Studni Strachu i przechodzą w najniższym punkcie pod zawaliskiem powiększając głębokość jaskini. W czasie akcji 15 września 1996 r. D. Fuja przechodzi Zacisk z Brzytwami w partiach G&oacute;rnego Korytarzyka i zwiedza kilkumetrowy kominek powyżej.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span style="color: black;">Dokumentację opracował B. Zwijacz-Kozica. Wszystkie pomiary wykonano przy pomocy przyrządu Topo-Vulcan. Zaktualizował T. Zwijacz-Kozica (2009 r.).<br />Plan opracował B. Zwijacz-Kozica..<br /></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Tak
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Dudziński, K. 1996a (opis); Fuja, D. 1997 (historia eksploracji); Zwijacz-Kozica, B. 1996 (opis odkrycia); Zwijacz-Kozica, B. 1997 (opis); Jaskinie TPN 2000 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Bartosz Zwijacz-Kozica
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1109)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1110)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

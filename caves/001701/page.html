@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1701">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1701;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "564923,28".replace(',', '.') + "," + "152202,75".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1701','Jaskinia Lodowa w Ciemniaku'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Lodowa w Ciemniaku
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Dziura Lodowa, Grota Lodowa, Grota Lodowa w Czerwonych Wierchach, Grota Lodowa w Kamiennem, Lodowa jaskinia pod Czerwonym Wierchem, Lodowa w Kamiennem pod Ciemniakiem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.F-10.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;53′31,50″, φ: 49&#176;14′02,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1695,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                200
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                11
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                31
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                42
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    390
+                </div>
+                <div style="min-height: 15px;">
+                    30
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Kościeliska, w p&#243;łnocno zachodnim stoku Ciemniaka, w jego dolnej części, u podn&#243;ża progu skalnego stanowiącego południowo - wschodnie ograniczenie kotła Kamienne Zadnie. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Do jaskini można dojść różnymi sposobami. Jednak ze względu na położenie jaskini w rezerwacie ścisłym (strefa ochrony biernej) podano drogę najłatwiejszą orientacyjnie i możliwie na krótkim odcinku przebiegającą poza znakowanymi szlakami turystycznymi. Wiedzie ona przez Kocioł Kamienne Zadnie, do którego można się dostać schodząc ze szlaku prowadzącego z Doliny Kościeliskiej na Ciemniak przez Adamicę. Przed Chudą Turnią, z Przełączki przy Kopie, kierujemy się na zachód na grzbiet oddzielający kocioł Kamiennego Przedniego od Kamiennego Zadniego, a stamtąd z Wysokiego Siodła u podnóża Wysokiej Turni schodzimy w kierunku południowo wschodnim na dno kotła. Przed nami, pomiędzy masywem Ku Turni a niewielką samotną turnią o nazwie Lodowiec, widoczna jest w dolnych partiach skał – tworzących tu wyraźny próg, czarna nyża z otworem jaskini. Idziemy do niego w górę, wzdłuż zazwyczaj suchego koryta potoku, kierując się na prawy (zachodni) stok wyodrębniającej się stąd turni kulminującej nad Kotłem. Gdy koryto potoku przechodzi w stromy żleb, a później wąską gardziel, skręcamy w lewo u podnóża skał do znajdującego się o kilkadziesiąt metrów stąd, niewidocznego otworu. Otwór widoczny jest dopiero z niewielkiej odległości. Dojście bez trudności, w zimie zagrożenie lawinowe. Zwiedzanie całej jaskini trudne, potrzebny sprzęt taternicki w tym czekan i raki. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r ma kształt tr&oacute;jkąta o wysokości 1,7 m i podstawie 4,5 m. W okresie zimy zasypywany jest śniegiem, kt&oacute;ry po rekrystalizacji w firn utrzymuje się tu zwykle do jesieni. Ciasny otw&oacute;r wejściowy wprowadza nas do obszernej komory o długości 62 m, maksymalnej szerokości do 11 m i wysokości do 10 m ponad poziom pokrywy lodowej. Jej dno podnosi się od otworu na wysokość 12 m. Komora założona jest na kontakcie szczelin międzyławicowych ze szczelinami pęknięć tektonicznych o przebiegu W&ndash;E. Upad warstw jest zmienny, generalnie wzrasta w głąb jaskini. Dno komory pokrywa w części wstępnej rumosz skalny powstający w wyniku wietrzenia ścian i stropu, dalej napotykamy na trwale utrzymującą się pokrywę lodową o grubości kilku metr&oacute;w, z licznymi wtopionymi w l&oacute;d głazami. Grubość pokrywy lodowej jest zmienna. Podane w dalszej części opisu inwentarzowego informacje na temat zalodzenia jaskini należy traktować orientacyjnie, gdyż odnoszą się one do średniego stanu obserwowanego w ciągu ostatnich kilku lat. </span></p>
+<p><span>Wstępna część komory pozbawiona lodu nosi nazwę Koziej Koleby i związana jest ze stwierdzonym tu zimowaniem kozic (Zwoliński 1923). W tej części widać wyraźną zależność pomiędzy morfologią korytarza a upadem warstw&nbsp;&ndash; m.in. dzięki temu lewa (p&oacute;łnocna) część dna znajduje się wyżej niż prawa. Konsekwencją tego układu jest nieregularny przebieg linii zasięgu trwałego zalodzenia. W części p&oacute;łnocnej rumosz skalny dochodzi do 12 m od otworu, zaś w południowej l&oacute;d przykrywa go już w odległości 4 m od otworu. Zasięg lodu nie wykazuje istotnych zmian zar&oacute;wno w cyklu rocznym, jak i wieloletnim.</span></p>
+<p><span>Około 12 m od otworu uformowany jest pr&oacute;g lodowy o wysokości od 1,5 m po stronie lewej do 4 m po stronie przeciwnej. Jego krawędź znajduje się około 6 m nad poziomem otworu. Nad progiem, po lewej stronie, przy ścianie sezonowo utrzymuje się okazała kolumna lodowa o wysokości przekraczającej cztery metry i średnicy do jednego metra. Tworzy się ona z wody wypływającej z niedostępnego kominka. W lecie i jesienią kolumna topi się, a u jej podstawy tworzą się oryginalne jeziorka i rynny wytopiskowe. </span></p>
+<p><span>Partie za progiem lodowym zwane są Ślizgawką. Jest to najobszerniejsza część komory w g&oacute;rnym piętrze jaskini. Powierzchnia lodu jest tu prawie płaska, a jego grubość w prawej części komory dochodzi do 5 m. Pod koniec lata i jesienią powierzchnia lodu pokryta jest płaszczem wodnym. W lodzie tworzą się wtedy r&oacute;żne formy wytopiskowe. Na ścianie po lewej stronie woda wypływająca ze szczelin międzywarstwowych tworzy latem deszcz podziemny. W jesieni i na wiosnę tworzą się tu okazałe formy lodowe; stalaktyty, stalagmity, kolumny, draperie itp., kt&oacute;re utrzymują się tu obecnie jedynie sezonowo. </span></p>
+<p><span>W końcowej części Ślizgawki, przy prawej ścianie, koło charakterystycznego załamania korytarza (Ostroga, Zwoliński 1933), otwiera się niekiedy w jesieni zejście do tzw. Komory pod Lodem. Schodzimy do niej szczeliną pomiędzy skałą a lodem na głębokość około 4 m. Dno komory o długości 18 m pokrywają duże bloki skalne odpadłe od stropu. Wielkość i kształt Komory pod Lodem, kt&oacute;ra jest formą wytopiskową, może ulegać istotnym zmianom w zależności od poziomu lodu w jaskini i intensywności proces&oacute;w jego degradacji. Od połowy lat 90. Komora pod Lodem bywa dostępna częściej, niż poprzednio. W styczniu 1993 r. długość dostępnych partii pod lodem oszacowano na 20&ndash;30 m (Rachlewicz 1996). </span></p>
+<p><span>Po powrocie na Ślizgawkę kierujemy się do Wielkiego Korytarza. Dawniej Ślizgawkę i Wielki Korytarz rozdzielał III Pr&oacute;g Lodowy (Zwoliński 1923). Obecnie jego lokalizację można wiązać z nagromadzeniem blok&oacute;w skalnych, kt&oacute;re znajdują się przy ścianie po lewej stronie Ślizgawki. Koniec tego rumowiska znajduje się już w Wielkim Korytarzu. Tam też, u podstawy ściany, około 36 m od otworu znajduje się wejście do Nowego Korytarza, o długości 70 m, rozwiniętego na płaszczyźnie międzywarstwowej. Korytarz ten początkowo niski i ciasny rozszerza się p&oacute;źniej nawet do 6 m, zaś jego wysokość nigdzie nie przekracza 2 m. Generalnie biegnie on w kierunku N, wznosząc się zgodnie z upadem warstw do wysokości ok. +27 m powyżej otworu i kończy się niedostępnym zawaliskiem z wyczuwalnym przewiewem. W końcowej części występują nacieki grzybkowe.</span></p>
+<p><span>Po powrocie do Wielkiego Korytarza pokonujemy kolejne spiętrzenie lodu, kt&oacute;ry na odcinku 10 m wznosi się o ponad 4 m i dochodzimy do komory końcowej. Lewa część komory, położona wyżej, znajduje się już ponad trwałą pokrywą lodową. Jej dno pokrywają duże bloki skalne. W g&oacute;rę wznosi się dość obszerny, kilkunastometrowej wysokości komin. Skała jest tu silnie zwietrzała i krucha. Wspinając się w g&oacute;rę, po 7 m osiągamy Platformę Stefana, pokrytą rumowiskiem. Tu komin rozdwaja się. Wprost w g&oacute;rę kontynuuje się ciasna i niedostępna szczelina prowadząca ku powierzchni, natomiast gł&oacute;wny ciąg (zwany Kominem Tadeusza) prowadzi dalej w g&oacute;rę do wysokości +28 m względem otworu. Tu komin rozdwaja się. Jedno odgałęzienie prowadzi w g&oacute;rę, ku powierzchni, jest kruche i niedostępne. Drugie stanowi ciasny, zagruzowany korytarzyk, wiodący w kierunku nierozpoznanej szczeliny wznoszącej się znad Platformy Stefana. W okresie jesieni i na wiosnę napływają tędy do jaskini duże ilości wody zasilające pokrywę lodową. Sezonowo tworzą się tu okazałe lodospady, kt&oacute;re do lat pięćdziesiątych utrzymywały się w kominach przez cały rok.</span></p>
+<p><span>Wracając do komory końcowej, na jej końcu, po prawej jej stronie, znajdujemy przy ścianie szczelinę z silnym przewiewem, przez kt&oacute;rą wiedzie droga do dolnego piętra jaskini. Szczelina pomiędzy skałą i lodem dostępna jest dla człowieka zwykle w jesieni, jednak bywa, że jest ona zablokowana lodem przez cały rok (ostatnio od wiosny 1987 do jesieni 1990 r.). Od połowy lat 90. ze względu na znaczny ubytek lodu zejście do dolnych partii było możliwe praktycznie w ciągu całego roku. Ciasną szczeliną pomiędzy skałą a lodem zjeżdżamy około 6 m osiągając Platformę Lodową. Z jej dna zjeżdżamy jeszcze około 20 m lodospadem, kt&oacute;rego średnie nachylenie wynosi 40, do I Sali Lodowej o szerokości dochodzącej do 6 m. Jej dno zajmuje charakterystyczny, podłużny kopiec lodowy o długości około 7 m i szerokości do 2 m, na kt&oacute;rym znajduje się zwykle kilka stalagmit&oacute;w lodowych. Ze stropu znajdującego się tu około 10 m nad dnem zwieszają się okazałe stalaktyty lodowe. Po coraz mniej pochyłym lodospadzie przedostajemy się pod stosunkowo niskim sklepieniem do II Sali Lodowej (-10,5 m), zwanej też Wielkim Kominem, lub (ostatnio) Salą Owalną. Sala ta, o prawie okrągłym dnie i wymiarach 12 x 11 m, przechodzi w komin o wysokości blisko 30 m. U podstawy komina, po prawej stronie znajduje się okazały kopiec lodowy o średnicy ponad 3 m, zwieńczony stalaktytami. W lecie i jesienią jest on silnie modelowany przez wody roztopowe kapiące ze stropu. Nieco dalej, przy ścianie znajduje się drugi, mniejszy kopiec lodowy. Pokrywa lodowa w tej sali nie dochodzi do ścian, pod kt&oacute;rymi głazy i zwietrzelina tworzą stożki nasypowe. Ściany w kominie są silnie zwietrzałe. </span></p>
+<p><span>&nbsp;&nbsp;&nbsp; W g&oacute;rnych partiach Wielkiego Komina znajdują się wyloty czterech korytarzy, a w stropie szczelina, kt&oacute;ra też może być wylotem korytarza. Dostęp do korytarzy bocznych w Wielkim Kominie jest bardzo trudny i niebezpieczny ze względu na kruszyznę ścian. Wymaga zastosowania technik specjalnych. Opis tych partii podano za Iwanejką (1991). W południowej ścianie na wysokości 15 m znajduje się platforma (Okno S), z kt&oacute;rej odchodzi w d&oacute;ł, pierwotnie całkowicie zagruzowany, meandrujący korytarzyk z przewiewem powietrza, zwany Ssakiem. Został on rozpoznany na długości około 20 m. Nieco wyżej, na prawo od Ssaka znajduje się kr&oacute;tki korytarz o eliptycznym przekroju, zwany Dziuplą. Ponad nim, 26 m nad dnem Wielkiego Komina znajduje się około 15 m szczelinowatych korytarzyk&oacute;w zwanych Matecznikiem (Okno W). Są one od g&oacute;ry przykryte zawaliskiem.</span></p>
+<p><span>Okno Wschodnie&nbsp;&ndash; to wejście do prowadzącego ku p&oacute;łnocy Meandra Geograf&oacute;w długości 88 m. Korytarz ten, początkowo wąski, rozszerza się do 1&ndash;2 m, a jego maksymalna wysokość wynosi od 2&ndash;3 m. Po 20 m w dnie otwiera się 8-metrowej głębokości Cyprysowa Studzienka zakończona zagruzowanym po strop korytarzem. Za nią Meander Geograf&oacute;w kontynuuje się dalej i wznosi lekko pod g&oacute;rę, miejscami jest ciasny i niski. Doprowadza nas do Salki Ro-Ro, z kt&oacute;rej odchodzi w lewo kr&oacute;tki, zawalony korytarzyk. Natomiast gł&oacute;wny ciąg zwęża się i ostro podnosi, przechodząc w stromą pochylnię zamkniętą od g&oacute;ry zamulonym syfonem 47 m nad dnem Wielkiego Komina. Dno korytarza jest pokryte grubą warstwą zwietrzeliny.</span></p>
+<p><span>Jaskinia powstała w wapieniach malmo-neokomu (W&oacute;jcik 1969a) autochtonicznej serii wierchowej, na kontakcie szczelin międzyławicowych i tektonicznych o przebiegu W&ndash;E. Boczne odgałęzienia nawiązują do upadu warstw i założone są na pęknięciach o generalnym przebiegu N&ndash;S. Ze względu na trwałe zalodzenie osady nie zostały szczeg&oacute;łowo rozpoznane. W miejscach pozbawionych pokrywy lodowej znajduje się materiał autochtoniczny pochodzący z wietrzenia stropu i ścian. Wg W&oacute;jcika (1968) osad&oacute;w allochtonicznych nie znaleziono, jednak w czasie prowadzenia przez niego badań nie były jeszcze znane partie nad Wielkim Kominem, gdzie w syfonie końcowym występują grube warstwy osad&oacute;w.</span></p>
+<p><span>W jaskini nie ma praktycznie szaty naciekowej. Jedynie w końcowych partiach Nowego Korytarza występują nacieki grzybkowe (Zwoliński 1933, Kowalski 1953).&nbsp;</span></p>
+<p><span>Geneza i wiek jaskini nie są w pełni rozpoznane. Wrzosek (1933) wiązał jej powstanie z uławiceniem skał. Zwoliński (1955a) sądził, że jest to jedynie część, być może już zawalonego systemu, kt&oacute;ry w przeszłości odwadniał znaczną część Ciemniaka. W&oacute;jcik (1960a) początkowo uważał ją za jaskinię wywierzyskową i zaliczył do VI poziomu jaskiniowego wytworzonego w starszym lub środkowym pliocenie. P&oacute;źniej uznał, że Nowy Korytarz należy do VIII piętra jaskiniowego wytworzonego w wyższej części dolnego pliocenu (W&oacute;jcik 1966a), a w roku 1968 stwierdził, że: wieku jaskini nie można określić z powodu braku osad&oacute;w. Ostatnio przyjmuje się, że jaskinia powstała na kontakcie skał krasowych i niekrasowych. Agresywne wody spływające z czapki krystalicznej w szczeliny strefy uskokowej (przecinające skały krystaliczne i osadowe) wytworzyły pionowe odcinki jaskini (W&oacute;jcik 1978, Głazek i in. 1979). Nowe światło na genezę jaskini może przynieść zbadanie nowo odkrytych partii w g&oacute;rnej części Wielkiego Komina.</span></p>
+<p><span>Jaskinia jest wilgotna. Wody opadowe i roztopowe przenikają do jaskini zar&oacute;wno kominami jak i szczelinami międzyławicowymi i tektonicznymi. W lecie tworzy ona miejscami deszcz podziemny, a w Nowym Korytarzu, kt&oacute;rego ściany noszą wyraźne ślady przepływu wody, Kowalski (1953a) obserwował niewielki okresowy przepływ wody. </span></p>
+<p><span>Dzięki specyficznym warunkom morfologicznym, zapewniającym wytworzenie w jaskini odpowiednich warunk&oacute;w mikroklimatycznych, woda dopływająca do niej w jesieni i na wiosnę zamarza, tworząc rozmaite formy lodowe. Niekt&oacute;re z nich utrzymują się w niej przez cały rok i dzięki temu jaskinia jest zaliczana do lodowych. Jest to największa i najciekawsza jaskinia lodowa w Tatrach, w kt&oacute;rej kubatura przechowywanego lodu szacowana była na około 1500 m3 (Gradziński, W&oacute;jcik 1961). W partiach przyotworowych w okresie zimy gromadzą się duże ilości śniegu, kt&oacute;ry potem, po rekrystalizacji w firn i l&oacute;d utrzymuje się niekiedy do następnej zimy. W głębi spotykamy rozmaite formy lodowe. Na ścianach tworzy się sezonowo polewa lodowa, na kt&oacute;rej, zwłaszcza w partiach przyotworowych rozwijają się pod koniec zimy sublimacyjne kryształy lodowe. Są to formy nietrwałe, utrzymujące się w jaskini bardzo kr&oacute;tko. W głębi, w rejonie Ślizgawki, na ścianie i na stropie w okresie jesieni i na wiosnę tworzą się okazałe draperie lodowe i stalaktyty, a na powierzchni pokrywy lodowej stalagmity. W kominie g&oacute;rnego piętra powstaje okazały lodospad. Jeszcze w latach dwudziestych formy te utrzymywały się w jaskini przez cały rok. W ostatnich dziesięcioleciach utrzymują się jedynie sezonowo. W dolnych komorach okazałe stalaktyty, stalagmity i polewa lodowa na ścianach w I i II Sali Lodowej utrzymują się jeszcze zwykle przez cały rok, chociaż w jesieni są już mocno nadtopione. Podstawową formą lodową utrzymującą się w jaskini przez cały rok jest zalegająca na dnie pokrywa lodowa (l&oacute;d pokrywowy, l&oacute;d denny, skorupa lodowa). Zajmuje w niej ona znaczną część g&oacute;rnego piętra i dolne komory. Tworzy się ona z wody napływającej kominami i szczelinami w jesieni, a zwłaszcza na wiosnę. W okresie lata ulega częściowemu nadtapianiu. Miąższość pokrywy lodowej jest zmienna i waha się od kilkunastu centymetr&oacute;w w partiach przyotworowych do blisko 5 m na Ślizgawce. W g&oacute;rnej komorze jest ona generalnie grubsza przy ścianie prawej (związane jest to z upadem warstw tworzących dno komory). W szczelinie prowadzącej do dolnych kom&oacute;r grubość lodu określono na 5,7 m, a na dnie Wielkiego Komina na 2,8 m (Rygielski i in. 1988, Rygielski i in. 1995). Pokrywa lodowa wykazuje wyraźne warstwowanie, kt&oacute;re jest rezultatem rocznego cyklu przyrostu i ablacji lodu. W 1986 roku było tych warstw 337 (Rygielski i in. 1988, Rygielski i in. 1995). Warstwy letnie mają grubość od 0,1 do 2,0 cm, a zimowe do 12,5 cm. Warstwy zimowe zawierają domieszki materiału mineralnego w ilości od 0, 895 do 0,689 g/cm3 i wartość ta maleje ku spągowi. W lodzie wtopione są liczne kamienie wykazujące uporządkowanie (ich dłuższe osie są zgodne z osią korytarza). W 1986 roku pH wody z pokrywy lodowej wynosiło od 6,5 do 7,0 (Rygielski i in. 1988). Na temat ewentualnego ruchu (płynięcia) pokrywy lodowej w kierunku otworu nie można się jednoznacznie wypowiedzieć. Gadomski (1923 i p&oacute;źniej) twierdził, że jest to miniaturowy lodowiec ukryty w głębi jaskini wykazujący ruch. Podobnie sądził i Zwoliński. Natomiast Kowalski (1953a) twierdzi, że l&oacute;d ten nie wykazuje ruchu. W świetle badań i obserwacji przeprowadzonych w latach 1986&ndash;1989 wydaje się, że niewielki ruch postępowy lodu jest możliwy (Rygielski i in. 1995, Rygielski, Siarzewski 1996). Pokrywa lodowa wykazuje znaczne wahania miąższości zar&oacute;wno w cyklu rocznym, jak i wieloletnim. Generalnie, od chwili odkrycia obserwowany jest znaczny ubytek masy lodowej. Dokumentują to zar&oacute;wno kolejne plany jaskini opracowane przez Zwolińskich (1923, 1933, 1951, 1953, 1962), jak też i nowe pomiary wykonane w 1986 roku (Rygielski, Wieliczko 1988, Siarzewski 1994a). Od czasu pierwszych pomiar&oacute;w morfologia pokrywy lodowej i jej miąższość uległa daleko idącym przekształceniom. W rejonie czoła pokrywy ubyło około trzy metry lodu i zniknął I Pr&oacute;g Lodowy. W rejonie Ślizgawki ubyło około dwa metry lodu, zaś dalej stopił się sześciometrowej wysokości III Pr&oacute;g Lodowy. Za nim ubyło ponad trzy i p&oacute;ł metra lodu. Nieco mniejszy ubytek pokrywy lodowej zanotowano w dolnych komorach, ale i tu wynosi on blisko dwa metry. W 1994 roku w wyniku wyjątkowo ciepłego lata nastąpił bardzo wyraźny ubytek pokrywy lodowej w całej jaskini. W latach 1996&ndash;2002 obserwowano parokrotnie pr&oacute;by zatykania otworu wejściowego do jaskini na okres zimy folią lub innymi materiałami izolacyjnymi. Celem tych zabieg&oacute;w miało być ograniczenie lub zatrzymanie zimowej cyrkulacji powietrza w jaskini prowadzące do wytopienie lodu trwale zalegającego jej wnętrzu. W podobny spos&oacute;b zabezpieczano także zejście do dolnych partii jaskini. Te nieodpowiedzialne pr&oacute;by podejmowane przez eksplorator&oacute;w jaskiń prowadziły do dalszej, znaczącej degradacji lodu utrzymującego się trwale w jaskini (Siarzewski 1996a, 1996b, 2002a).</span></p>
+<p><span>Geneza lodu w jaskini była przedmiotem wielu publikacji po roku 1923. Ich autorzy starali się wyjaśnić warunki tworzenia i utrzymywania się lodu w jaskini w oparciu o popularną w tym okresie teorię istnienia jaskiń lodowych opracowaną przez Balcha. W teorii tej najistotniejszą rolę odgrywał profil morfologiczny jaskini (jaskinie opadające od otworu w głąb masywu, tzw. jaskinie statycznie zimne). Jednak ani warunki morfologiczne tej jaskini, ani obserwowana silna cyrkulacja powietrza nie pasowały do teorii Balcha. Stąd też przyczyn utrzymywania się w jaskini lodu doszukiwano się przede wszystkim w niskiej temperaturze jej wnętrza. Niska temperatura powietrza w jaskini miała wynikać z jej wysokiego położenia nad poziom morza i silnej cyrkulacji powietrza powodującej wychłodzenie wnętrza (Gadomski 1923, 1923a, 1924, 1926, Goetel 1925, Wrzosek 1933, Zwoliński 1933). Kowalski (1953a) wiązał wychłodzenie jaskini z obecnością w niej lodu. W pracy tej opisał też roczny cykl rozwoju i degradacji szaty lodowej w nawiązaniu do sytuacji atmosferycznej na powierzchni. Gradziński i W&oacute;jcik (1961) uważali, że tworzenie i utrzymywanie się lodu należy wiązać z morfologią jaskini i związaną z nią cyrkulacją powietrza, a także obecnością wody. R&oacute;wnież obecnie te trzy elementy uznano za najistotniejsze warunki dla powstawania i utrzymywania się lodu w jaskini (Siarzewski 1994). Jej specyficzne warunki morfologiczne to stosunkowo ciasny otw&oacute;r wejściowy, za kt&oacute;rym znajduje się obszerna komora, w kt&oacute;rej gromadzi się l&oacute;d, a w końcowych partiach znajdują się kominy i szczeliny kontaktujące wnętrze jaskini z powierzchnią. Taka morfologia jaskini zapewnia cyrkulację powietrza sprzyjającą tworzeniu i utrzymywaniu się w niej form lodowych powstających tu z dostatecznie dużej ilości napływającej z powierzchni wody. W trakcie p&oacute;źniejszych badań nad termiką i cyrkulacją powietrza w jaskini stwierdzono, że cyrkulacja zimowa rozpoczyna się w październiku. Wtedy do jaskini napływa powietrze o temperaturze ujemnej, a ciepłe uchodzi na zewnątrz lub oziębia się przez dyfuzję. Decydującą rolę w zachowaniu silnej cyrkulacji zimowej odgrywa obecność w części końcowej g&oacute;rnego i dolnego piętra komin&oacute;w, kt&oacute;re poprzez spękania skały utrzymują wymianę powietrza z atmosferą zewnętrzną. W okresie od marca do czerwca nie stwierdzono wyraźnego ruchu powietrza. Wnętrze jaskini jest wtedy silnie wymrożone, a otw&oacute;r wejściowy częściowo zasypany śniegiem. Długość tego okresu&nbsp;&ndash; czasu stagnacji, wpływa w istotny spos&oacute;b na możliwość trwałego zachowania się lodu. Pod koniec czerwca lub w lipcu rozpoczyna się cyrkulacja letnia. Poprzez spękania i kominy do jaskini napływa ciepłe powietrze. Jego napływ otworem wejściowym jest utrudniony wskutek przeciwstawnej tendencji cyrkulacji powietrza. W otworze topi się wtedy śnieg i to zar&oacute;wno od strony powierzchni, jak i wewnątrz jaskini. Pod koniec sierpnia temperatura powietrza w g&oacute;rnym piętrze jaskini jest dodatnia, a 10 cm nad lodem wynosiła od 0,6&ndash;0,8&deg;C. Nad pokrywą lodową utrzymuje się wtedy warstwa zimniejszego powietrza zwalniająca proces jej topnienia. Ponadto, z dolnych sal lodowych, kt&oacute;re stanowią duży rezerwuar zimnego powietrza, następuje jego przepływ do g&oacute;rnego piętra jaskini, co powoduje dodatkowe op&oacute;źnienie topnienia lodu. Wąski otw&oacute;r łączący oba piętra skutecznie zapobiega szybkiej ucieczce zimnego powietrza. Sytuacja ta ulega komplikacji w przypadku zatkania tego otworu korkiem lodowym. Wtedy obserwowana jest szybsza degradacja lodu w g&oacute;rnym piętrze jaskini, ale też i większy jego przyrost na wiosnę w komorze końcowej (Rygielski, Siarzewski, Wieliczko, w druku) Wiek pokrywy lodowej w jaskini jest trudny do jednoznacznego określenia. Zwoliński (1953) naliczył w pokrywie lodowej blisko 400 warstewek, kt&oacute;re wiązał z rocznym przyrostem lodu. W&oacute;jcik (1968) wiązał jej powstanie z młodszym holocenem, po optimum klimatycznym. Po kompleksowych badaniach pokrywy lodowej w 1986 można sądzić, że akumulacja lodu w jaskini rozpoczęła się nie p&oacute;źniej niż w początkach tak zwanej małej epoki lodowej pod koniec XVI wieku, a być może i wcześniej, już w czasie ochłodzenia klimatu Europy na początku XIV wieku (Siarzewski 1994, Rygielski i in. 1995, Rygielski, Siarzewski 1996, Siarzewski 1996b). Natomiast przyczyn znacznego ubytku lodu w jaskini można upatrywać w nałożeniu się na siebie dwu zjawisk: nadmiernej penetracji jaskini po roku 1922, zwłaszcza w okresach stagnacji cyrkulacji powietrza na wiosnę, a także ocieplania się klimatu związanego z zakończeniem się małej epoki lodowej datowanym na lata osiemdziesiąte XIX wieku (Siarzewski 1994, 1996a, 1996b, 2002a) .</span></p>
+<p><span>Mikroklimat jaskini charakteryzujący się znacznymi dobowymi i sezonowymi wahaniami temperatury oraz silnym przepływem powietrza o r&oacute;żnej cyrkulacji latem i zimą pozwala ją zaliczyć do jaskiń o mikroklimacie dynamicznym&nbsp;&ndash; wg klasyfikacji Puliny (Pulinowa, Pulina 1972, Siarzewski 1994, 1996b). Formy lodowe tworzą się i utrzymują jedynie w jaskiniach o mikroklimacie dynamicznym, w tzw. podstrefie zimnej, kt&oacute;rej zasięg określa izoterma 0&deg;C. Pomiary temperatury w jaskini rozpoczęli Zwolińscy w sezonie zimowym 1923/24. Termometr minimalny pozostawiony w jaskini w Wielkim Korytarzu wskazał temperaturę &ndash;17,7&deg;C (Kwaśniewski 1924). Zwolińscy już w 1923 roku zauważyli szczelinę z przewiewem, kt&oacute;ra po latach doprowadziła ich do dolnych kom&oacute;r. W październiku 1950 roku w dolnej komorze Zwoliński (1951a) zanotował temperaturę 1,6&deg;C. W okresie od lipca 1951 do lipca 1952 badania mikroklimatyczne prowadził Kowalski (1953, 1955). Mierzył on temperatury maksymalne i minimalne, wilgotność, a także obserwował cyrkulację powietrza. Na ich podstawie stwierdził, że w Nowym Korytarzu średnia temperatura wynosiła 2,6&deg;C, przy wahaniach od &ndash;0,1 do 3,6&deg;C, zaś w Wielkim Korytarzu w okresie od października do lipca utrzymywała się temperatura poniżej zera (minimalna &ndash;2,0&deg;C), a w pozostałych miesiącach wahała się w przedziale od 0 do 1&deg;C. W latach 1986&ndash;1989 geografowie poznańscy prowadzili w jaskini pomiary i obserwacje mikroklimatyczne mające na celu poznanie reżimu termiczno-cyrkulacyjnego jaskini. Między innymi 8 września 1986 zmierzono przebieg dziennej temperatury w profilu podłużnym jaskini, notując wahania temperatury w g&oacute;rnym piętrze jaskini o wartości od 0,4&deg;C w komorze końcowej do blisko 2&deg;C w partiach przyotworowych. Temperatura w g&oacute;rnym piętrze powyżej zera, w dolnym poniżej zera i nie stwierdzono wahań temperatury w ciągu doby. Wykonano też kilka profili termiczno - cyrkulacyjne: zimowy z dnia 7 lutego 1987 o godz. 15&nbsp;&ndash; temperatura w całej jaskini poniżej &ndash;3&deg;C (minimalna przy otworze &ndash;4,6&deg;C), oraz letnie z 8 września 1986 r. o godz. 17&nbsp;&ndash; temperatura w g&oacute;rnym piętrze &gt; 0&deg;C, w dolnym &lt; 0&deg;C (maksymalna przy otworze 6&deg;C) i 22 sierpnia 1987 r. o godz. 13&nbsp;&ndash; temperatura w g&oacute;rnym piętrze &gt; 0&deg;C (dolne partie niedostępne) (Rygielski i in. 1995, Rygielski, Siarzewski 1996, Siarzewski 1996b).</span></p>
+<p><span>Światło, dzięki rozproszeniu w lodzie, sięga w praktyce do końca Wielkiej Komory. W pobliżu otworu występuje bogaty zesp&oacute;ł mszak&oacute;w, dotychczas nie badany. W jaskini stwierdzono występowanie bakterii <strong><em>Bacillus </em></strong>sp. i pierwotniak&oacute;w: <strong><em>Bodo minimus</em></strong> Klebs, <strong><em>Bodo saltanus</em></strong> Ehrenberg, <strong><em>Vahlkampfia guttula</em></strong> Dujardin i <strong><em>Trinema lineare</em></strong> Penard (Chardez, Delhez 1981).</span></p>
+<p><span>Fauna w jaskini była systematycznie badana przez K. Kowalskiego w okresie od lipca 1951 do lipca 1952 roku. W ich wyniku autor rozpoznał w Wielkim Korytarzu bogaty zesp&oacute;ł owad&oacute;w trogloksenicznych, a w Nowym Korytarzu owady bezskrzydłe, muchy, chrząszcze i kosarze. W pracy z 1955 roku Kowalski podaje z jaskini następujących przedstawicieli fauny: kosarze (Opiliones)&nbsp;&ndash; <strong><em>Ischyropsalis milleri</em> </strong>Kratochvil; skoczogonki (Collembola)<strong>&nbsp;&ndash; <em>Onychiurus armatus</em></strong> Tullberg i <strong><em>Onychiurus fimetarius</em> </strong>(auct.) Stach; chrząszcze Coleoptera&nbsp;&ndash; <strong><em>Nebria tatrica</em></strong> Miller (endemit tatrzański) <em>i <strong>Omalium excavatum</strong></em> Stephens; motyle (Lepidoptera)&nbsp;&ndash; <strong><em>Triphosa dubitata</em></strong> L. i <strong><em>Stenophylax permistus</em></strong> Mc Lachlan; much&oacute;wki (Diptera)&nbsp;&ndash; <strong><em>Eccoptomera emarginata</em></strong> Loew., <strong><em>Amoebaleria caesia</em></strong> (Meigen), <strong><em>Amoebaleria spectabilis</em> </strong>(Loew.) i <strong><em>Crumomyia </em></strong>(<em></em><strong><em>Stratioborbus</em></strong>)<em></em><strong><em> nitida</em></strong> Meigen; nietoperze (Chiroptera)&nbsp;&ndash; nocek wąsatek <strong><em>Myotis mystacinus</em></strong> (Leisler). W 1992 roku obserwowano w jaskini mroczka posrebrzonego <strong><em>Vespertilio murinus</em></strong> Nilsson (Jagielska, Strzelczyk 1993). Ponadto spośr&oacute;d znalezionych we wrześniu 1991 roku w Meandrze Geograf&oacute;w szczątkach kostnych oznaczono czaszki nietoperzy: nocek wąsatek <strong><em>Myotis mystacinus</em></strong> (Kuhl.), nocek brandta <strong><em>Myotis brandtii</em></strong> (Eversmann), mroczek pozłocisty <strong><em>Eptesicus nilssonii</em></strong> (Keyserling et Blasius) - nowe stanowisko, gacek wielkouch <strong><em>Plecotus auritus</em> </strong>(L. )&nbsp;&ndash; nowe stanowisko, mopek <strong><em>Barbastella barbastellus</em></strong> (Schreber) - nowe stanowisko, a także czaszkę kuny leśnej <strong><em>Martes martes</em> </strong>L. (Nowosad, Jagielska, Strzelczyk 1992). W latach 1997-2001 w czasie kontroli hibernujących w jaskini nietoperzy stwierdzono zimowanie 3&ndash;6 osobnik&oacute;w mroczka pozłocistego <strong><em>Eptesicus nilssonii</em> </strong>(Piksa, Nowak 2002),&nbsp;zimowały także pojedyncze egzemplarze nocka wąsatka i nocka brandta <strong><em>Myotis mystacinus</em> </strong>i <strong><em>Myotis brandtii</em> </strong>oraz pojedyncze egzemplarze nieoznaczonego gatunku. W badanym okresie stwierdzono zimowanie 8 nietoperzy w 1997 roku. Dawniej w partiach przyotworowych jaskini znajdowano też ślady zimowania kozic (Zwoliński 1923, Kowalski 1953, 1955).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia Lodowa w Ciemniaku była obiektem badań prowadzonych z r&oacute;żnych dziedzin nauk przyrodniczych. Osady jaskini badał W&oacute;jcik (1960a,b, 1966a, 1968, 1969a), szatą naciekową zajmowali się Gradziński i W&oacute;jcik (1961a). O genezie jaskini wypowiadali się Wrzosek (1933), Gradziński (1951), Zwoliński (1955a, 1961), W&oacute;jcik (1960a, 1966a, 1968, 1978c), Rudnicki (1967), Głazek i in. (1979), a geologią jaskini zajmowali się Rygielski i in. (1988). Badania mikroklimatyczne prowadzili Zwoliński (1924), Kowalski (1953a, 1955a), Pulinowa i Pulina (1972), Siarzewski (1994, 1996, b), Rygielski i in. (1995), Rygielski, Siarzewski (1996). Materiały archiwalne dotyczące pomiar&oacute;w mikroklimatycznych znajdują się w Tatrzańskim Parku Narodowym (Sprutta i Raźniecki 1988), (Robotowska 2002). Zagadnieniami dynamiki i genezy lodu w jaskini zajmowali się Zwoliński (1923), Chrobak (1925), Gadomski (1925, 1926), Goetel (1925), Wrzosek (1933), Gradziński i W&oacute;jcik (1961a), Berezowski (1953), Zwoliński (1953c, 1955a, 1961), Kowalski (1955a,b), Rudnicki (1961), W&oacute;jcik (1969a), Pulina (1971), Pulinowa i Pulina (1972), Rygielski i in. (1988, 1995) Siarzewski (1994, 1996, b), Rygielski, Siarzewski (1996). Faunę jaskini opisali Kowalski (1951, 1953b, 1955a,b), Wołoszyn (1970), Nowosad i in. (1992), Jagielska, Strzelczyk (1993), Rydell, Bogdanowicz (1997), Piksa, Nowak (2000, 2001, 2002). Wyniki zimowych spis&oacute;w nietoperzy w jaskini znajdują się w Tatrzańskim Parku Narodowym (Piksa 1997-2001), (Nowak 2008). O walorach naukowych jaskini i potrzebie jej ochrony pisali Kreutz (1932), Gradziński (1951), Kowalski (1951), Zwoliński (1951a), Siarzewski (1994, 1996a, 1999, 2002a). W 1999 roku wykonano ocenę stopnia przemian antropogenicznych w jaskini dla potrzeb TPN (Grodziski, Rycielski, Siarzewski 1999).Badania koncentracji ołowiu w lodzie zalegającym jaskinię prowadził Jaworowski (1966, 1968), a Chardez i Delhez (1981) badali pierwotniaki i bakterie. O stanie naukowego poznania jaskini i perspektywach badań pisał Głazek (1996), a o dziejach jej poznania i eksploracji Siarzewski (2002).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia była znana od dawna g&oacute;ralom, zwłaszcza pasterzom i myśliwym. Pierwsza publikowana o niej informacja pochodziła od nich i znalazła się w pracy G. Ossowskiego (1883). W przypisie dotyczącym Jaskini Zimnej (Duda) Ossowski pisał m.in.: "Upewniano mnie jednakże, że właściwa grota lodowa jest zupełnie inna i znajduje się w wąwozie zwanym Krak&oacute;w". Z turyst&oacute;w do jaskini jako pierwszy dotarł zapewne J. G. Pawlikowski z przewodnikiem M. Sieczką w 1885 roku. Byli tu ponownie, prawdopodobnie w następnym roku. Poznali wstępną część komory i początek lodospadu: prawie 10 m wysoki a mający na wierzchu zapewne około 6 m szerokości w głąb. Na powierzchni lodu znajdował się stawek, w kt&oacute;rym: zanurzone toporzysko ciupagi natychmiast obmarzało. Podczas drugiego pobytu w jaskini stawku już nie było, bo woda spłynęła szczelinami w lodzie. Ogłoszony przez Pawlikowskiego (1887) opis jaskini wzbudził spore zainteresowanie wśr&oacute;d turyst&oacute;w i naukowc&oacute;w, jednak drogi do niej prawdopodobnie nie umiano odnaleźć przez wiele lat. Do 1922 roku znajdujemy w literaturze jedynie dwie wzmianki o jej istnieniu. W pierwszej z nich (Radzikowski S. E. 1896) wymienia ją pod nazwą Lodowa Jaskinia pod Czerwonym Wierchem, natomiast J. Chmielowski (1907) w swoim przewodniku po Tatrach podaje o niej informację zaczerpniętą z pracy Pawlikowskiego. Drogę do jaskini znaleźli w sierpniu 1922 roku S. i T. Zwolińscy, a p&oacute;źniej w dwu wyprawach w dniach 17 września i 29 października poznali i splanowali g&oacute;rną część jaskini&nbsp;&ndash; komorę i komin znajdujący się na jej końcu. Informację o odnalezieniu jaskini podała najpierw prasa zakopiańska (Zebranie członk&oacute;w PTT 1922,[Zborowski, Stecki 1922]), a wyniki eksploracji podsumował T. Zwoliński (1923). Od 1923 roku jaskinia była dość często odwiedzana przez turyst&oacute;w i naukowc&oacute;w. 6 sierpnia 1933 roku przy bardzo niskim poziomie lodu S. Zwoliński z towarzyszami odkrył Nowy Korytarz, pozbawiony trwałego zalodzenia, a 31 sierpnia tegoż roku spenetrował Komorę pod Lodem (Zwoliński 1933, 1993). Podczas kolejnego, znacznego ubytku masy lodowej w jaskini w październiku 1950 roku S. Zwoliński z towarzyszami spenetrowali dolne komory jaskini, dostając się do nich ciasnym przełazem na końcu Wielkiego Korytarza - w miejscu gdzie istniał &bdquo;przewiew&rdquo; stwierdzony już w latach dwudziestych (Ciekawe badania. . . 1950, Zwoliński 1951a, 1951b, 1953, 1961, 1987). Na początku lat pięćdziesiątych do jaskini wniesiono maszt, kt&oacute;ry jak wynika z literatury nie był wykorzystany podczas eksploracji, a służył jedynie do cel&oacute;w szkoleniowych i fotograficznych (Burchard 1957). W jesieni 1990 roku eksplorację Wielkiego Komina rozpoczęli grotołazi poznańscy. W trakcie biwaku w dniach 31 październik&nbsp;&ndash; 2 listopad 1990 r. A. Pistkowski i O. Iwanejko osiągnęli Okno S (Ssak) i Okno W&nbsp;&ndash; eksplorowano Matecznika oraz wypatrzono Okno w Stropie i Okno Wschodnie. W dniach 7&ndash;9 listopada 1990 r. P. Cyprych i Iwanejko) eksplorowali Ssak, rozpoczęli też eksplorację Meandra Geograf&oacute;w. W dniach 31 grudnia 1990&ndash;3 stycznia 1991 r. R. Matuszczak, R. Wiśniewski, Iwanejko i M. Sprutta) eksplorowali Meander Geograf&oacute;w, Ssak i Dziuplę, a w dniach 20&ndash;22 lutego 1991 r. Cyprych i Iwanejko eksplorowali w Ssaku.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia posiada bogatą dokumentację fotograficzną. Fotografie Zwolińskich z lat 1923 - 1951 dokumentujące poziom lodu znajdują się w Muzeum Tatrzańskim. W. Siarzewski posiada dokumentację form lodowych i poziomu lodu z lat 1978 - 2002. <br />Pierwszy opis i plan jaskini opublikował T. Zwoliński (1923). P&oacute;źniej jaskinia jest wymieniana i opisywana we wszystkich przewodnikach tatrzańskich. Opis inwentarzowy i plan (ten ostatni wg Zwolińskiego) jaskini, datowany na 24 lipca 1952 r. publikuje Kowalski (1953a). Szkicowy plan i przekr&oacute;j partii odkrytych w Wielkim Kominie publikuje Iwanejko (1991). Uaktualniony opis inwentarzowy jaskini wraz z zestawionym planem zamieścił w &bdquo;Inwentarzu jaskiń tatrzańskich&rdquo; Siarzewski (Jaskinie TPN 1994).<br />Plan zestawiony w oparciu o pomiary z 1986 roku wykonane metodą niwelacji technicznej (teodolit T-30 PZO) i opracowane na ich podstawie przez Rygielskiego i Wieliczkę, plan i przekr&oacute;j w skali 1:100 (Rygielski, Siarzewski, Wieliczko 1995, Rygielski, Siarzewski 1996). Plan ten uzupełniono o Komorę pod Lodem wg planu Zwolińskiego (1933) i materiały Iwanejki (1991) prezentujące partie nad Wielkim Kominen (o charakterze orientacyjnym). W 1996 r. ten plan jaskini ze szkicem Komory pod Lodem ogłosił Rachlewicz.<br />Dane dotyczące wysokości otworu npm. podano wg. pomiaru wykonanego 19 listopada 2008 instrumentam GPS. Dane zaktualizował W. Siarzewski (2009 r.). Wsp&oacute;łrzędne geograficzne otworu w oparciu o mapę topograficzną Tatr wydawana przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.gov.pl/">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013).</p>
+<p>Plan opracował W. Siarzewski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ossowski G. 1883 (przytacza informację g&#243;rali o grocie lodowej w Wąwozie Krak&#243;w); Pawlikowski J.G. 1887 (pod nazwą Dziura Lodowa opisuje jej położenie i obserwacje utwor&#243;w lodowych); Eljasz-Radzikowski S. 1896 (wymienia: Lodowa Jaskinia pod Czerwonym Wierchem); Chmielowski J. 1907 (pod nazwą Dziura Lodowa cytuje informacje za Pawlikowskim); 1922. Zebranie członk&#243;w PTT. Gazeta Zakopiańska 2, nr 43: 3. (wzm. o odnalezieniu groty lodowej); [Zborowski J., Stecki K.] 1922 (informacja o odnalezieniu groty lodowej w Kamiennem w Ciemniaku); Gadomski, A. 1923a (położenie , opis i geneza lodu); Gadomski A. 1923b (informacja o zwiedzaniu, lodowczyk jaskiniowy); Świerz M. 1923 (informacja o odkryciu Groty Lodowej, lokalizacja i kr&#243;tki opis); Zwoliński T. 1923 (informacja o odnalezieniu jaskini, położenie, opis, geneza lodu. Plan, przekr&#243;j i fot.); Zwoliński T. 1924 (wzmianka o pomiarach temperatury); Chrobak L. 1925 (uwagi na temat genezy lodu); Gadomski A. 1925 (podsumowanie informacji o zjawiskach lodowych w jaskini); Goetel W. 1925 (uwagi na temat genezy lodu w jaskini); Zwoliński T. i S. 1925. (dojście, położenie, opis); Gadomski A. 1926 (podsumowanie informacji o zjawiskach lodowych w jaskini); Kreutz S. 1932 (wzmiankuje, fotografie); Danysz-Fleszarowa R. 1933 (wymienia); Wrzosek A. 1933 (geneza lodu, geneza jaskini); Zwoliński S. 1933 (odkrycie Nowego Korytarza i komory pod lodem, opis pokrywy lodowej, uzupełniona wersja planu); Ciekawe badania grot tatrzańskich. 1950. Il. Kurier Polski, nr 298. Bydgoszcz. (nowe odkrycia); Gradziński R. 1951 (geneza, potrzeba ochrony jaskiń lodowych); Kowalski K. 1951 (o występowaniu nocka wąsatka); Zwoliński S. 1951a (zagrożenia wynikające z nadmiernej penetracji); Zwoliński S. 1951b (położenie, historia penetracji, odkrycie dolnych partii, nowa wersja planu); Zwoliński S. 1951c (odkrycie i pomiary dolnych kom&#243;r); Berezowski S. 1953 (położenie, wahania poziomu lodu, plan); Kowalski K. 1953a (opis inwentarzowy jaskini, plan); Kowalski, K. 1953b (najwyższe stanowisko nocka wąsatka); Kowalski, K. 1953c (wzm. najwyższe stanowisko nocka wąsatka) Kowalski K. 1953g (historia odkrycia); Zwoliński S. 1953c (opis, ubytki pokrywy lodowej, nowa wersja planu); Kowalski K. 1955a (obserwacje mikroklimatyczne, geneza lodu, wyniki badań faunistycznych); Kowalski, K. 1955b (geneza zalodzenia); Zwoliński S. 1955b (o genezie jaskini i pokrywy lodowej); Gradziński R., Kowalski K. 1959 (opis, przekr&#243;j, fotografia); W&#243;jcik, Z. 1960b (geneza jaskini); Gradziński R., W&#243;jcik Z. 1961a (charakterystyka form lodowych); Rudnicki J. 1961 (geneza lodu, plan); Zwoliński S. 1961, (opis, historia eksploracji, poglądy na genezę, plan, fotografie); Kowalski K. 1962a (kr&#243;tka charakterystyka jaskini, fotografia); Kowalski K. 1965 (opis dojścia, charakterystyka jaskini pod względem naukowym i turystycznym, fotografia); Jaworowski Z. 1966 (badania zawartości ołowiu w lodzie); W&#243;jcik Z. 1966a (geneza jaskini); Jaworowski Z. 1968, (zmiany koncentracji ołowiu w lodzie w ostatnim stuleciu); W&#243;jcik Z. 1968 (uwagi o genezie); W&#243;jcik Z. 1969a (położenie, dane morfometryczne, położenie na mapie geologicznej, geneza lodu); Wołoszyn B.W. 1970 (o szczątkach nocka wąsatka z Nowego Korytarza); Pulina M. 1971 (wzmianka o badaniach lodu); Pulinowa Z.M., Pulina M. 1972 (charakterystyka morfometryczna, mikroklimatyczna i typy form lodowych i kriogenicznych); W&#243;jcik Z. 1978c (geneza); Głazek J. i in. 1979a (o genezie jaskini); Mapa Geologiczna Tatr Polskich 1: 30 000 1979 (lokalizacja); Chardez D., Delhez F. 1981 (wymienia pierwotniaki i bakterie znalezione w jaskini); Rygielski W., Wieliczko P. 1988 (pomiary geodezyjne, por&#243;wnanie zmian w szacie lodowej w okresie 1923-1986); Rygielski W. i in. 1988 (wyniki badań glacjologicznych pokrywy lodowej); Iwanejko O. 1991. Lodowa w Ciemniaku. Eksplorancik 1(17): 9-10 (odkrycia w Wielkim Kominie, schematyczny plan i przekr&#243;j); Nowosad A. i in. 1992 (charakterystyka jaskini, wyniki badań kości nietoperzy); Jagielska A., Strzelczyk J. 1993 (stwierdzenie nowego gatunku nietoperza); Zwoliński S. 1993 (odkrycie Nowego Korytarza i komory pod lodem); Siarzewski W. 1994 (warunki istnienia jaskiń lodowych i ich typologia); Jaskinie TPN 1994 (opis inwentarzowy i plan jaskini); Kepel A. 1995 (występowanie Vespertilio murinos); Rygielski W. i in. 1995 (wyniki pomiar&#243;w mikroklimatycznych i badań glacjologicznych lodu); Głazek J. 1996 (przegląd badań realizowanych w jaskini); Rygielski W., Siarzewski W. 1996 (wyniki pomiar&#243;w mikroklimatycznych i badań glacjologicznych lodu); Rachlewicz G. 1996 (obserwacje poziomu lodu, zejście do Komory pod Lodem); Siarzewski W. 1996 (warunki termiczne w jaskiniach lodowych); Siarzewski W. 1996a (zagrożenia i ochrona jaskini lodowej); Siarzewski W. 1996b (warunki klimatyczne jaskiń lodowych); Rydel J., Bogdanowicz W. 1997 (występowanie w jaskini nietoperza z gatunku Mopek – można odczytać, że dotyczy wsp&#243;łczesnego występowania tego gatunku, co jest informacją błędną); Siarzewski W. 1999 (waloryzacja jaskini); Piksa K. 1998 (występowanie Myotis mystacinus i Eptesicus nilsonii); Piksa K., Nowak J. 2000 (występowanie nietoperzy w jaskiniach); Piksa K., Nowak J. 2001 (występowanie w osadach kości nietoperzy - Mopek); Siarzewski W. 2002a (historia poznania i eksploracji); Piksa K., Nowak J. 2002 (zimowanie nietoperza mroczka pozłocistego); Siarzewski W. 2002b (zagrożenia i ochrona jaskini); Szukała P. 2010 (zmiany masy lodu); Szukała P. 2011 (zmiany miąższości lodu).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Siarzewski, W. 1978 (zmiany pokrywy lodowej w jaskini); Siarzewski, W. 1981 (geneza lodu w jaskini, opis monograficzny); Sprutta, M., Raźniecki, A. 1988 (wyniki pomiar&#243;w mikroklimatycznych i obserwacji pokrywy lodowej); Sprutta, M., Raźniecki, A. 1991 (typologia lodu i wyniki pomiar&#243;w składu chemicznego r&#243;żnych form lodowych); [Siarzewski W., Zwolińska, Z.] 1986 (Archiwum domowe Zwolińskich, teka XXIII zawiera: szkic terenowo pomiarowy z 29. 10. 1922, plan jaskini w skali 1:200, ok. 1923 niedokończony plan barwny w skali 1:200, ok. 1923 przekr&#243;j jaskini w skali 1:200, ok. 1923 kalka planu w skali 1:200, szkic pomiarowy Nowego Korytarza, szkic pomiarowo - terenowy dolnych partii z 5. 10. 1950 r.); Grodzicki, J. i in. 2000, (zmiany antropogeniczne); Piksa, K., [1997-2001] (liczebność nietoperzy); Robotowska, A. 2002 (pokrywa lodowa); Nowak, J. 2005 (charakterystyka nietoperzy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Wiesław Siarzewski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1217)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1218)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

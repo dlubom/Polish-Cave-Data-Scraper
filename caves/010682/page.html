@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10682">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10682;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "498179,23".replace(',', '.') + "," + "208131,84".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10682','Jaskinia Dująca'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Dująca
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-04.47
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;58′29,00″, φ: 49&#176;44′26,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Brenna (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                cieszyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                989
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                17,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                17,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    498
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Stoł&#243;w (1035 m n.p.m.), SE zboczu Stołowa, Horodowska Polana, Beskid Śląski.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od ostatniego przystanku PKS (pętla) w Szczyrku-Biłej idziemy żółtym szlakiem turystycznym na Przełęcz Karkoszczonkę. Dalej idziemy oznaczoną na żółto-czerwono nartostradą, aż ponownie dochodzimy do żółtego szlaku turystycznego łączącego Stołów z Trzema Kopcami. Stąd szlakiem idziemy ok. 35 m w kierunku Stołowa i ok. 20 m na W. Otwór znajduje się w sosnowym młodniku. Dojście łatwe, zwiedzanie głównego ciągu łatwe.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r wejściowy to 4 m studzienka o wymiarach 0,8x1,1 m. Dalej poprzez kr&oacute;tki Korytarzyk Wejściowy dochodzimy do rozwidlenia. Na N, po paru metrach dochodzimy do niewielkiej, litej salki (Skalna Poręba) skąd bierze początek skrajnie ciasna, 5 m Studnia Głębokie Gardło. Tuż przed nią przy spągu, po SE stronie jest wejście do kilkumetrowej, opadającej w d&oacute;ł Smukłej Szczeliny (przełaz często jest zasypany kamieniami i gliną spadającą z Korytarzyka Wejściowego). Natomiast w kierunku W, poprzez 1,5 m prożek dostajemy się do niewielkiego rozwidlającego się korytarza.</p>
+<p>Na E po pokonaniu 1 progu znajduje się niska, zawaliskową sala.</p>
+<p>Na S korytarz łączy się poprzez szczeliny w zawalisku z kominem w Korytarzyku z Kominkiem. Natomiast szczelina na N (Pięterko Stasia) zakręca ku W by po paru metrach zakończyć się zawaliskiem.</p>
+<p>Wracamy do rozwidlenia w Korytarzyku Wejściowym. Wchodzimy w NW szczelinę - Korytarzyk z Kominkiem. Po paru metrach dochodzimy do ww. kruchego, 3,5 m komina. Kierując się szczeliną dalej na NW dochodzimy do rozgałęzienia. Na N schodzimy 2 m studzienką. Znajdujemy się w litej szczelinie o przebiegu NW-SE. Kierujemy się na SE. Poprzez 2 m pr&oacute;g do g&oacute;ry, Maćkowy Zacisk i taki sam pr&oacute;g w d&oacute;ł dochodzimy do Ciągu Twardzieli - litej, wysokiej ale ciasnej szczeliny, kt&oacute;ra po paru metrach tworzy pętlę, łącząc się z dnem Studni Głębokie Gardło.</p>
+<p>Wracamy do rozgałęzienia. Na S poprzez zaciskowy przełaz zakończony 2 m progiem można zejść do kilkumetrowej szczeliny zwanej Glizdą.</p>
+<p>Ponownie wracamy do rozgałęzienia. Kierujemy się Korytarzykiem z Glizdą, kt&oacute;ry jest kontynuacją Korytarzyka z Kominem. Dochodzimy do dużej, nieregularnej sali - G&oacute;rnej Strzaskanej Izby. Ma ona charakter zawaliskowy, na jej dnie zalegają duże bloki skalne.</p>
+<p>Stąd na N poprzez trudny zacisk można wejść do Izbisi - podłużnej, litej salki.</p>
+<p>Na W, w kr&oacute;tkim korytarzyku znajduje się wąska, zagruzowana szczelina łącząca G&oacute;rną Strzaskaną Izbę z Dolną. My natomiast schodzimy wygodną, 2 m studzienką znajdującą się w S części sali.</p>
+<p>Znajdujemy się w Dolnej Strzaskanej Izbie. Kierujemy się na W-NW poprzez przełaz utworzony z wielkich want. Za przełazem w E rogu małej salki znajduje się przewieszona studzienka prowadząca do Wysokiej Izby a w SW części salki, za wantą można wejść do parumetrowej szczeliny, kt&oacute;ra dwoma, ciasnymi studzienkami łączy się ze szczeliną poniżej.</p>
+<p>Z Dolnej Strzaskanej Izby kierując się cały czas na W-NW dochodzimy do Balkonu Guana Nietoperzowego. Stąd schodzimy 3 m progiem do Wysokiej Izby. Jest to obszerna szczelina z dużymi wantami zalegającymi na spągu. W kierunku W-NW poprzez niewielki przełaz można wejść do Mlecznego Zaułka - kilkunastometrowego, niezbyt obszernego ciągu zakończonego zawaliskiem. Wcześniej w rozszerzeniu szczeliny mijamy dwa rozgałęzienia. Pierwsze prowadzi ku S, poprzez zacisk do Litej Izby, natomiast drugie, podw&oacute;jne ku S poprzez studzienkę doprowadza nas do niewielkiej kom&oacute;rki, natomiast na E rozwija się kilkumetrowa, lita, wysoka szczelina. W jej połowie można przedostać się poprzez zacisk do szczeliny kierującej się na NW, kt&oacute;ra po paru metrach zwężą się i skręca na SW. Wracamy do Wysokiej Izby. Tuż pod Balkonem Guana Nietoperzowego poprzez 2,5 m prożek w d&oacute;ł znajduje się wejście do kilkumetrowej, litej szczeliny kt&oacute;ra łączy się z Litą Izbą dwoma, bardzo ciasnymi, prostopadłymi szczelinami.</p>
+<p>Wracamy do Wysokiej Izby. Kierujemy się nią na SE, aż do rozwidlenia. Tutaj Wysoka Izba łączy się z r&oacute;wnoległą, r&oacute;wnie dużą szczeliną znajdującą się po jej SW stronie - Litą Izbą. Tak jak szczelina obok ta r&oacute;wnież ma lite ściany i dno zasłane wielkimi blokami skalnymi. Wspinamy się 1,5 m prożkiem i wchodzimy do Litej Izby. Tuż za progiem, ku E można wejść do kr&oacute;tkiego korytarza zakończonego prostopadłą szczeliną. Na S szczelina wypada w rejonie połączenia Izb natomiast na N, po paru metrach urywa się balkonem w Wysokiej Izbie.</p>
+<p>Wracamy do Litej Izby. W jej połowie po NE stronie, poprzez 2 m pr&oacute;g łatwo można się dostać do Dolnej Strzaskanej Izby. Lita Izba zakończona jest prostopadłą szczeliną, kt&oacute;ra ku E łączy się z ciągiem doprowadzającym pod Balkon Guana Nietoperzowego, a na W, schodząc 3 m progiem dostajemy się do dw&oacute;ch, r&oacute;wnoległych, ciasnych szczelin zwanych Szparami. Pierwsza z nich prowadzi poprzez trudny zacisk do Mlecznego Zaułka, natomiast druga, ślepa połączona jest z pierwszą dwoma przełazami. Jeden znajduje się przy spągu natomiast drugi pod stropem.</p>
+<p>Wracamy do połączenia Litej i Wysokiej Izby. Na E poprzez przełaz dostajemy się do dużej szczeliny biegnącej na SE - Mamuciej Sieni. W jej początkowych partiach, po NE stronie znajdują się 2 wejścia do Mamuciego Strychu. Pierwsze 6 m nad spągiem a drugie&nbsp; 7 m.</p>
+<p>Mamuci Strych to niezbyt obszerna szczelina, rozwijająca się r&oacute;wnolegle do Mamuciej Sieni.</p>
+<p>W tej ostatniej po przejściu paru metr&oacute;w, po S stronie za dużą wantą znajduje się wejście do Lewych Piwnic. 3-metrowa studzienka doprowadza nas do niskiej salki. Stąd na NW rozwija się niski, kilkumetrowy, ślepo zakończony korytarzyk. Natomiast na SE poprzez niewielką studzienkę dostajemy się do sali, skąd na NW r&oacute;wnież można wejść w kilkumetrowy, niski korytarz.</p>
+<p>Wracamy do Mamuciej Sieni. Po paru metrach, gdy korytarz wznosi się można niewielkim przełazem zejść do Prawych Piwnic. Są to niewielkie partie utworzone na dw&oacute;ch, krzyżujących się szczelinach. W szczelinie wysuniętej najbardziej na S znajduje się najniższy punkt w jaskini (-17,5 m).</p>
+<p>Wracamy do Mamuciej Sieni. Kierujemy się cały czas szczeliną na SE. Po pokonaniu jednego prożku z want dochodzimy do znajdującego się po S stronie, następnego 1,5 m progu. Dalej ku SE znajduje się Nietoperzowa Szczelina. jest to w większości ciasna, lita szczelina. Jej początkową część można przejść zar&oacute;wno dołem jak i niewielkim korytarzem zlokalizowanym w g&oacute;rnej części szczeliny. Z jej początku można r&oacute;wnież wejść poprzez kolejne, 1,5 m prożki do korytarza zwanego Balkonem. Na SE kończy się on zawaliskową salą, natomiast na NW po kilku metrach wpada 4,5 m progiem do Mamuciej Sieni.</p>
+<p>Wracamy do połączenia Litej Izby z Wysoką Izbą.</p>
+<p>Idziemy korytarzem na S, kt&oacute;ry po paru metrach opada i kończy się zawaliskiem. Wcześniej poprzez balkonik w N części korytarza dochodzimy do skalnego filara. Można przejść na E poprzez zacisk lub wygodniejszą szczeliną w jego S części. Zaraz za filarem na E można wejść do kr&oacute;tkiej szczeliny - Przedsieni. Natomiast kierując się w d&oacute;ł, na SE, po E stronie mijamy kolejne wejście do wyżej wspomnianej szczeliny, a na NW kr&oacute;tki, ślepy korytarzyk.</p>
+<p>Dochodzimy do rozgałęzienia. Ta część jaskini nazywa się Jackowe Dreszcze. Na NW, w d&oacute;ł rozwija się kilkumetrowy, zawaliskowy i ślepy korytarzyk. W tym samym kierunku, ale w g&oacute;rę, wspinając się 3 m progiem można wejść do kilkumetrowego korytarza, też ślepo zakończonego. Ku SE po paru metrach można zejść ciasną studzienką wpadającą do gł&oacute;wnego ciągu, natomiast najwygodniejsza droga wiedzie poprzez studzienkę zorientowaną na E i opadający w d&oacute;ł niski korytarz. Zaraz za ponownym połączeniem korytarzy ciąg rozdwaja się.</p>
+<p>W g&oacute;rę, ku S, można wejść do Grzybkowego korytarza -&nbsp;kilkumetrowej, w większości litej i obszernej szczeliny. Idąc nią na SE po S stronie za 1 m progiem mijamy ślepy korytarzyk i dochodzimy do rozgałęzienia. Na N korytarz łączy się z Partiami Pisorza. Dalej korytarz przechodzi w Łajdacką Sień. W rozszerzeniu szczeliny mijamy studzienkę, kt&oacute;ra r&oacute;wnież wypada w Partiach Pisorza i dochodzimy do wielkiej wanty. Przeciskamy się dołem lub g&oacute;rą wanty, tutaj korytarz robi się ciaśniejszy i kończy się dwiema odnogami.</p>
+<p>Wracamy do rozgałęzienia w Jackowych Dreszczach. Schodzimy niewielką studzienką na SE. Znajdujemy się w Łupkowym Korytarzu. Dochodzimy nim do rozgałęzienia. Na SW jest pierwsze połączenie z Grzybkowym Korytarzem. W tym samym kierunku znajduje się r&oacute;wnież r&oacute;wnoległa szczelina, kt&oacute;ra po paru metrach łączy się z naszą drogą. My idziemy jeszcze parę metr&oacute;w na SE, i gdy szczelina skręca na S, przełazem przy spągu przedostajemy się do rozszerzenia. Znajdujemy się w Partiach Pisorza. Idziemy szczeliną na S-SE. Po N stronie mijamy balkonik, z kt&oacute;rego poprzez prożek można wspiąć się do zawaliskowej salki. Stąd poprzez prożek do g&oacute;ry jest połączenie z Łajdacką Sienią. Przed nami znajduje się Mokry Korytarz. Szczelina do g&oacute;ry zakończona jest niewielkim przebiciem do dolnej szczeliny. Ta natomiast po paru metrach wklinowuje się w skały. Wcześniej ku NW powyżej 1,8 m prożka znajduje się kr&oacute;tkie rozgałęzienie.</p>
+<p>Jaskinia osuwiskowa, powstała w piaskowcach warstw godulskich środkowych, w strefie płaszczowiny śląskiej. Dno buduje rumosz skalny i bloki dużych rozmiar&oacute;w. Miejscami występuje glina (Pięterko Stasia, Korytarz z Kominkiem). W jaskini występują małe stalagmity i stalagnaty (obecnie większość została ułamana i wyniesiona), grzybki (Korytarz Grzybkowy) oraz nacieki błotne (m.in. Mokry Korytarz).</p>
+<p>Jaskinia jest wilgotna, wyczuwa się silny przewiew w studni wejściowej. Światło sięga do dna studni wlotowej. W Mokrym Korytarzu występuje intensywny deszcz podziemny.</p>
+<p>W otworze bujnie rosną trawy, paprocie i mchy.</p>
+<p>W partiach wstępnych zaobserwowano pająki (<em><strong>Meta menardi</strong></em>), much&oacute;wki, ćmy i ślimaki. W Skalnej Porębie i na dnie Głębokiego Gardła można znaleźć grube gałęzie, dodatkowo na dnie tej ostatniej studni znajdują się zwierzęce szczątki (najprawdopodobniej dzika). Jaskinia jest jednym z większych siedlisk nietoperzy z rodziny podkowc&oacute;w (<em><strong>Rhinolophus hipposideros</strong></em>).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini w 2004 r. odkryli W. Kuczok i M. Pawełczyk. 12.11.2005 r. ekipa w składzie S. Kuczok, W. Kuczok i M. Pawełczyk eksploruje ok. 30 m wstępnych partii. 15.11.2005 r. wyżej wymieniona ekipa powiększona o W. Porębskiego i K. Przewłokę po pokonaniu Studni Głębokie Gardło odkrywa ok. 300 m gł&oacute;wnego ciągu jaskini. W latach 2005 i 2006 poznano jaskinię do obecnego stanu. W eksploracji brali udział także J. Wiśniewski i Ł. Wojdała.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację jaskini sporządzili R. Klimara i A. Wr&oacute;bel w 2013 i 2014 r. Pomiary wykonano za pomocą zestawu Distox + PDA.</p>
+<p>Plan opracował R. Klimara.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pawełczyk M. 2006a (opis odkrycia i eksploracji, częściowy opis jaskini); Pawełczyk M. 2006b (plan, opis jaskini); Urban J. i in 2006a,b (wzmianka o naciekach); Sujka G. 2006b (nacieki); Jaskinie Polskich Karpat Fliszowych 2016a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Rafał Klimara
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11388)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(11389)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

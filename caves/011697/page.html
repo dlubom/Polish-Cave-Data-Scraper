@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11697">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11697;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "557595,53".replace(',', '.') + "," + "259869,63".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11697','Jaskinia Mała'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Mała
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko małe, Schronisko Małe w Jamkach, Schronisko Małe
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02b.158
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′26,31″, φ: 50&#176;12′11,62″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                403
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                31
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    20
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Wąw&#243;z Jamki, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Idąc wąwozem od Doliny Sąspowskiej po osiągnięciu wylotu bocznego Wąwozu Dzikowiec należy skręcić ze ścieżki, przejść na prawy stok i podejść do największej w tym rejonie grupy skalnej. W jej wschodniej części, u podstawy skał, ponad pochyłym progiem skalnym o wysokości 1,5 m znajdują się otwory jaskini.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r zachodni (1.) jest obszerny, o szerokości 1 m i wysokości 1,5 m; otw&oacute;r wschodni (2.) ma szerokość 0,8 m i wysokość 2 m. Za każdym z otwor&oacute;w znajduje się prowadzący w głąb, zwężający się korytarz. Korytarze te są połączone prostopadłym ciągiem.</p>
+<p>Jaskinia powstała w wapieniu jury g&oacute;rnej. Przebieg korytarzy jest uwarunkowany przebiegiem szczelin ciosowych, natomiast kształt korytarzy przebiegiem szczelin ciosowych i powierzchni międzyławicowych. Na ścianach jaskini rozwinięte są boczne rozmycia. Jaskinia ma genezę krasową. Zachowane formy świadczą o jej powstaniu w warunkach freatycznych i jej p&oacute;źniejszym przemodelowaniu w warunkach wadycznych. W rejonie otwor&oacute;w spąg skalny pokryty liśćmi; w głębi namulisko gliniaste. W jaskini występuje naciek grzybkowy.</p>
+<p>Mikroklimat zależny od warunk&oacute;w panujących na powierzchni. Światło sięga kilkanaście metr&oacute;w w głąb. Jaskinia w głębszych częściach zupełnie ciemna.</p>
+<p>W rejonie otwor&oacute;w na ścianach występują zesp&oacute;ł epilitycznych sinic i glon&oacute;w (J. Czerwik-Marcinkowska i T. Mrozińska, 2009), a także porosty i mchy, a w otworze wschodnim także paprocie (<em>Asplenium trichomanes</em>). Na spągu w otworze zachodnim paprocie (<em>Asplenium ruta-muraria</em>) i rośliny nasienne (<em>Cardaminopsis</em> sp., <em>Galium odoratum</em>, <em>Geranium robertianum</em>, <em>Impatiens parviflora</em>, <em>Mycelis muralis</em>, <em>Viola reichenbachiana</em>) a we wschodnim paprocie (<em>Asplenium trichomanes</em>, <em>Dryopteris filix-mas</em>) i rośliny nasienne (<em>Cardaminopsis</em> sp., <em>Mycelis muralis</em>).</p>
+<p>W jaskini stwierdzono obecność much&oacute;wek i pająk&oacute;w (19.11.1994 r.). E. Sanocka-Wołoszynowa (1981) podaje dziewięć gatunk&oacute;w pająk&oacute;w i trzy gatunki kosarzy (w tym rzadkiego <em>Ischyropsalis hellwigi hellwigi</em>) występujące w Schronisku Małym, kt&oacute;rego nazwą określano uprzednio dwa niezależne obiekty &ndash; Jaskinię Małą i Schronisko przy Jaskini Krakowskiej J.Olk.I-02b.159. E. Sanocka prowadziła badania nad pajęczakami (Sanocka-Wołoszyn 1973; Sanocka -Wołoszynowa 1981; Sanocka 1990), natomiast J. Czerwik-Marcinkowska i T. Mrozińska (2009) badały zesp&oacute;ł naskalnych sinic i glon&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od dawna. Prawdopodobnie pierwszą wzmiankę podaje K. Wr&oacute;blewski (1900), kt&oacute;ry dwa otwory jaskini traktuje jako dwa osobne obiekty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zinwentaryzowana 25.09.1946 r. przez K. Kowalskiego. Następnie została skartowana 28.04.1967 r. przez A. Kobyłeckiego z pomocą A. Tokarskiego (A. Kobyłecki &ndash; inf. pisemna, 2020 r.) i uwzględniona w wykazie A. Kobyłeckiego (1972). Ponownie skartowana 02.05.1984 r. przez D. Lisonia z pomocą L. Lisonia. Wymieniona w wykazach M. Szelerewicza i A. G&oacute;rnego (1986) oraz M. Szelerewicza (1990d). Autorzy ci traktują Jaskinię Małą jako jeden obiekt z położonym obok i nie połączonym z nią Schroniskiem przy Jaskini Krakowskiej, i podają sumaryczną długość obu obiekt&oacute;w. Obserwacje terenowe zebrał M. Gradziński 19.11.1994 r. Uwzględniona w inwentarzu Gradzińskiego i in. (1995a) z planem D. Lisonia, błędnie podpisanym jako plan autorstwa m Czepiela. Zinwentaryzowana ponownie 03.11.2019 r. przez M. Gradzińskiego i M. Wawrykę-Drohobyckiego. Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego, a przy pomocy odbiornika Garmin GPSmap 62 ustalono wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Wawryka-Drohobycki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wr&#243;blewski K. 1900, 1907 (wzmiankuje traktując dwa otwory jako dwie odrębne jaskinie; Czarnowski S.J. 1911, 1912b (położenie, kr&#243;tki opis); Kowalski K. 1951 (zinwentaryzowana łącznie ze Schroniskiem przy Jaskini Krakowskiej jako jeden obiekt, opis, plan, lokalizacja na mapie); Kobyłecki A. 1972 (wymieniona w wykazie, podana łączna długość Jaskini Małej i Schroniska przy Jaskini Krakowskiej); Sanocka-Wołoszyn E. 1973 (informacje o występowaniu kosarzy, prawdopodobnie odnoszą się do Jaskini Malej lub, ewentualnie, do Schroniska przy Jaskini Krakowskiej); Sanocka-Wołoszynowa E. 1981 (informacje o występowaniu pajęczak&#243;w, wymienia gatunki pająk&#243;w i kosarzy, informacje prawdopodobnie odnoszą się do Jaskini Małej lub, ewentualnie, do Schroniska przy Jaskini Krakowskiej); Czepiel M. 1984 (opis, plan, jaskinia zinwentaryzowana łącznie z położonym obok Schroniskiem poniżej Jaskini Krakowskiej jako jeden obiekt); Lisoń D. 1984 (wzmianka o zinwentaryzowaniu); Szelerewicz M., G&#243;rny A. 1986 (wymieniona w wykazie, podana długość jest łączną długością Jaskini Malej i Schroniska przy Jaskini Krakowskiej, lokalizacja na mapie); Sanocka E. 1990 (wzmianka o występowaniu kosarza Ischyropsalis hellwigi, prawdopodobnie odnosząca się do Jaskini Małej lub, ewentualnie, do Schroniska przy Jaskini Krakowskiej); Gradziński M. i in. 1995a (opis i plan inwentarzowy, lokalizacja na mapie); Nowak J. i in. 2002 (informacja o braku nietoperzy); Błoszyk J., Rozwałka R. 2008 (wzmianka o występowaniu kosarzy, prawdopodobnie odnoszą się do Jaskini Malej lub, ewentualnie, do Schroniska przy Jaskini Krakowskiej); Czerwik-Marcinkowska J., Mrozińska T. 2009 (analiza zespołu epilitycznych glon&#243;w, wykaz gatunk&#243;w); Śliwiński W. 2016 (uwagi dotyczące nazewnictwa); Gradziński M. i in. 2020 (opis i plan inwentarzowy, lokalizacja na mapie, pełna bibliografia).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13592)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1 
+                    </a>
+                    <a onclick="showImageInfo(14634)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>
