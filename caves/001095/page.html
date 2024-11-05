@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1095">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1095;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563104,43".replace(',', '.') + "," + "153931,27".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1095','Jaskinia Zimna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Zimna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Duda, Jaskinia Biała, Biała nad Łukami
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-08.08
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;52′02,52″, φ: 49&#176;14′58,67″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                WSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Jaskinia Biała) - ku SW, 1260 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1120
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                125
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                156
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                176
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    5335
+                </div>
+                <div style="min-height: 15px;">
+                    740
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                392
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Położenie dolnego otworu (Jaskinia Zimna): na prawym orograficznie zboczu Doliny Kościeliskiej, w skałkach Organ&#243;w. Położenie otworu g&#243;rnego systemu (Jaskinia Biała) wg Z. Tabaczyńskiego (Jaskinie TPN 2004): „pod turnią Rękawica na wschodnim zboczu Doliny Kościeliskiej o nazwie Organy&quot;.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Dnem doliny dochodzimy w pobliże skały zwanej Sową. Stąd skręcamy na lewo, na znakowaną ścieżkę sprowadzającą z otworu Jaskini Mroźnej. Z platformy przed tym otworem wygodna  perć wiedzie pod  skałkami na  prawo  (ku S) około 20 m, wprost do otworu Jaskini Zimnej (z dna doliny 20 minut). Otwór położony jest w progu prawego (or.) ograniczenia żlebu przecinającego całe zbocze. Dojście bez trudności. 
+Dojście do górnego otworu prowadzi czarnym szlakiem jak do dolnego otworu jaskini Zimnej. Następnie skręcamy w prawo i podchodzimy stromymi ściankami i zachodami pod Rękawicę (miejscami III). Niski trójkątny otwór znajduje się w środkowej części przewieszonej ściany RękawicyZwiedzanie systemu wymaga użycia sprzętu wspinaczkowego oraz sprzętu do pokonywania przeszkód wodnych, w tym syfonów. 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Szczelinowy otw&oacute;r dolny ma kształt tr&oacute;jkąta (około 2,5x2,5 m). Za otworem stromo opada ku NEE korytarz rozwinięty na pochyłej szczelinie. W jego prawej ścianie widać p&oacute;łkę skalną o wysokości do 2 m, kt&oacute;rą można obejść zaklinowaną między ścianami wantę. Kilkanaście metr&oacute;w od otworu, tuż przed żelazną kratą przegradzającą korytarz, na lewo, nad 3,5 m progiem, odgałęzia się wąska, kr&oacute;tka szczelina. Za kratą, na prawo do g&oacute;ry, widać dwa filary skalne, wydzielające odnogi o charakterze ucha skalnego. Z wąskich szczelin na ich przedłużeniu często ścieka woda, zimą tworzą się tu potężne pokrywy lodowe. Dalej gł&oacute;wny ciąg wiedzie w d&oacute;ł przez mały prożek z want i zakręca na prawo, do najniższego punktu jaskini ( -16 m) odległego od otworu o trzydzieści parę metr&oacute;w. Sięga dotąd stożek osypującego się z otworu gruzu wapiennego z domieszką gleby i gliny. Za niskim przełazem obszerny, myty korytarz nazywany Przebieralnią wiedzie do g&oacute;ry. Przechodzi on w wysoką na około 10 m i szeroką do 2 m Wielką Szczelinę o długości ponad 40 m. Jej pochyloną, prawą ścianę rzeźbią miejscami żłobki krasowe, kt&oacute;rymi w wilgotnych okresach spływa woda. Na ścianach widać polewy kalcytowe i wsp&oacute;łcześnie tworzące się nacieki grzybkowe. Dno pokrywa gruz autochtoniczny.</span></p>
+<p><span>Docieramy do rozwidlenia. Można iść na wprost niskim, wznoszącym się ciągiem lub wygodniej, nieco na prawo, przez prożek z want, wąskim lecz wyższym korytarzem. Łączą się one zaraz w niewielkiej, ale wysokiej Starej Komorze &ndash; dawnym końcu jaskini. Ku E ze Starej Komory prowadzi ciasna szczelina uchodząca do Salki przed Zapałkami. Eksploratorzy wanty w strefie przekopu podpierali belkami, nazywając je zapałkami. Dalej droga wiedzie prosto przez kilka ciasnych przełaz&oacute;w, aż do Małej Komory o płaskim, gruzowo-gliniastym dnie. Przed nią na lewo, w d&oacute;ł odchodzi kr&oacute;tka odnoga zamknięta zawaliskiem. Z komory na prawo, nieco do g&oacute;ry, odgałęzia się boczny korytarz, kt&oacute;ry zakręca niebawem ku W, biegnąc wstecz ponad 20-metrową szczeliną , r&oacute;wnoległą do ciągu gł&oacute;wnego. W komorze niegdyś znajdował się pr&oacute;g z want.</span></p>
+<p><span>Za Małą Komorą, w zwężeniu korytarza, podczas roztop&oacute;w i dużych opad&oacute;w, powstaje płytkie jeziorko nazwane Jeziorkiem Sadyst&oacute;w. Można je obejść zapieraczką w g&oacute;rnej części szczeliny. Dalej wchodzimy do niewielkiej kom&oacute;rki zasłanej blokami skalnymi. Do tego miejsca sięga zimą l&oacute;d. Opadający stąd korytarz prowadzi do depresji o zamulonym dnie. Często występuje tu jeziorko zasilane podziemnym deszczem znad zawaliska. W tej okolicy lewą ścianę korytarza zdobi piękna szata naciekowa. Za ciasnymi przełazami, jakie wydziela filar skalny, idziemy do g&oacute;ry po dużych wantach (dawniej tworzyły one pr&oacute;g), a następnie na d&oacute;ł przez mały prożek i dalej obszernym ciągiem o gliniasto-gruzowym dnie. Odchodzi stąd szczelinowy komin w kierunku Jaskini Naciekowej. Nieco wcześniej omijamy dwie boczne szczeliny po prawej stronie.</span></p>
+<p><span>Gł&oacute;wny ciąg skręca na prawo i ciasnym przesmykiem prowadzi do obszernej (około 8x8 m), wysokiej Salki z Przepływem, nazwanej przez odkrywc&oacute;w Jadalnią, a potem Salą Strzelistą. Powstała ona na skrzyżowaniu szczelin NW-SE i NE-SW. Płaskie, gliniaste dno rozcina pogłębione podczas eksploracji koryto okresowego potoku, kt&oacute;ry wpada do 5-metrowej studzienki w szczelinie odchodzącej z salki ku NE. Poniżej studzienki szczelina staje się wkr&oacute;tce zbyt ciasna do przejścia. Inną, r&oacute;wnoległą do niej szczelinę kończy niewielki kominek. Przy zachodnim skraju salki leżą duże wanty, oberwane ze stropu. W SE krańcu Salki z Przepływem utworzyło się płytkie jeziorko. Pokonujemy je prawą stroną, przeciskając się po kamieniach pod obniżeniem stropu. Za jeziorkiem znajduje się następna, mniejsza salka, rozwinięta na podobnych co poprzednia kierunkach tektonicznych. Dalej gł&oacute;wny ciąg zakręca gwałtownie ku SSW. Idziemy wysokim, szczelinowym korytarzem o gliniasto-gruzowym dnie z okresowymi kałużami. Przecina go poprzeczna, kr&oacute;tka szczelina. Po 20 m korytarz zakręca ku S, a nieco dalej ku NE i zaraz ku SW. Od tego zygzaku odchodzi kilka odgałęzień, gł&oacute;wnie o charakterze komin&oacute;w:</span></p>
+<p><span>a) na wprost (ku S), 5 m nad podstawą ściany, jest pochyły, kilkunastometrowy komin (krucho);</span></p>
+<p><span>b) za zakrętem ku NE w stropie korytarza widać otw&oacute;r przegrodzony filarkiem skalnym. &nbsp;Prowadzi&nbsp; on do około 10-metrowego,&nbsp; pionowego komina o kształcie ciasnej (0,4 m) rury;</span></p>
+<p><span>c) na następnym zakręcie (ku SW) na lewo, nad 2-metrowym prożkiem, odgałęzia się kr&oacute;tka, pozioma i ślepa odnoga; </span></p>
+<p><span>d) na przeciwko ostatniej odnogi &ndash; na prawo, &nbsp;5 m &nbsp;nad dnem korytarza, jest okno w ścianie, kt&oacute;re wiedzie do około 30-metrowego szczelinowego komina (IV+, V &ndash; krucho). Według niekt&oacute;rych informacji komin ten ma połączenie z kominem opisanym na początku zygzaka.</span></p>
+<p><span>Idziemy dalej ku SW Korytarzem przed Jeziorkami z płytkimi, stałymi zbiornikami wody na dnie. Doprowadza on do najgłębszego z jeziorek &ndash; Jeziorka z Zakrętem o długości około 20 m. Szczelina tego korytarza ma charakter piętrowy. W jej g&oacute;rnym ciągu występuje bogata szata naciekowa (polewy, stalaktyty, stalagmity, makarony, mleko wapienne). G&oacute;rnym ciągiem można obejść jeziorka, pokonując końcową część drogi szeroką zapieraczką.</span></p>
+<p><span>Za Jeziorkiem z Zakrętem szczelina na wprost zwęża się i po około 8 m jest niedostępna. Droga wiedzie przed zwężeniem na lewo i zaraz na prawo. Wkr&oacute;tce opadający łagodnie korytarz zmienia charakter &ndash; jest myty, o profilu zaokrąglonym. Nazwano go Błotnym Korytarzem (wcześniejsza nazwa to Korytarz Mułowy) ze względu na zalegającą tu grubą warstwę gliny jaskiniowej tworzącej garb rozmyty przy ścianach przez okresowo płynący strumień. Na początku tego korytarza, po prawej stronie, nad małym progiem widać r&oacute;wnoległe przebicie &ndash; kr&oacute;tką, szczelinową odnogę. Błotny Korytarz pochyłym, 1,6-metrowym progiem, opada do obniżenia przed Ponorem. W tym rejonie, r&oacute;wnież po prawej stronie, biegnie r&oacute;wnoległy ciąg oddzielony kilkoma filarami od gł&oacute;wnego. Ponor tworzy gliniasty lej wchłaniający wodę z Błotnego Korytarza i z głębi jaskini. Okresowo, z powodu nadmiaru wody lub zatkania Ponoru, tworzy się jeziorko lub syfon, jego ściany pokryte są błotem. Błotny Korytarz&nbsp;podczas roztop&oacute;w bywa zalany po strop (jego ściany, a miejscami i strop, pokrywa warstwa gliny). Za Ponorem wznoszący się korytarz prowadzi do wysokiej Sali pod Progiem, r&oacute;wnież zalewanej do kilku metr&oacute;w wysokości. Salę ogranicza pochyły, skalny Błotny Pr&oacute;g (7 m, V), z kt&oacute;rego zwykle spływa struga wody. Rzeźbią go żłobki krasowe. Nad progiem widać otw&oacute;r kr&oacute;tkiej, bocznej szczeliny. Gł&oacute;wny korytarz wiedzie ku wschodowi do Komory nad Progiem, nazywanej też Salą Gotycką, a p&oacute;źniej Salą z Choinką.</span></p>
+<p><span>W stropie Komory nad Progiem, w jej zachodnim skraju, 4 m nad dnem, widać obszerne okno, do kt&oacute;rego można dostać się przerzucając linę przez mały mostek skalny w tym oknie. Odchodzi stąd Kręty Korytarz o długości ponad 195 m (Koisar &ndash; 1968b &ndash; nazywa go Piaskowym Korytarzem). Wznosi się on początkowo stromo ku W, następnie zakręca ku NE i po kilkunastu metrach zawraca ku SW. Dalej, po ponad 40 m zakręca ku p&oacute;łnocy. Za komorą z dwoma oknami wiodącymi do bocznej odnogi, korytarz przybiera charakter szczeliny, kt&oacute;ra za naciekową kom&oacute;rką jest bardzo wysoka i wąska. Miejscami można wspiąć się w niej szczelinowymi kominami ponad 15 m. Pokonujemy 6-metrowy pr&oacute;g, za kt&oacute;rym korytarz kontynuuje się. Na lewo odchodzi w d&oacute;ł boczny ciąg zakończony zamulonym syfonem. Za tą odnogą Kręty Korytarz prowadzi do g&oacute;ry, a następnie, za 10-metrowym kominem, opada pochyłą studnią do zamulonego końca. W tym rzadko odwiedzanym ciągu zachowała się piękna szata naciekowa &ndash; grube&nbsp; pokłady&nbsp; mleka&nbsp; wapiennego,&nbsp; polewy &nbsp;naciekowe,&nbsp;&nbsp;stalaktyty i stalagmity.</span></p>
+<p><span>Wracamy do Komory nad Progiem. Ku E ogranicza ją Pr&oacute;g z Wantą, kt&oacute;ry na razie omijamy. Pod wielką wantą w tym progu, przez wąskie przejście docieramy do około 20-metrowego, szczelinowego korytarza o dnie zalanym wodą. Jeziorko można przebyć po kamieniach i niską p&oacute;łką przy prawej ścianie. Dalej wspinamy się 2-metrowym progiem na prawo, do wyższego poziomu korytarza zwanego na tym odcinku Szczeliną Zapieraczkową. Jego dolna część o piaszczystym dnie zalanym wodą jest zbyt wąska do przejścia. W g&oacute;rnym ciągu występują ładne nacieki (polewy, stalaktyty i stalagmity). Po ponad 20 m schodzimy zn&oacute;w na dno obszerniejszego tu korytarza. Namulisko stanowi rumosz i wanty. Niebawem docieramy do pięknie sklepionej, owalnej Sali Gotyckiej (około 6x4 m) z głębokim (około 1 m) jeziorem. Jej ściany pokrywa mleko wapienne. Dalej, po przejściu kilku krok&oacute;w suchym dnem, zn&oacute;w zaczyna się głębokie jezioro. Korytarz zakręca na prawo (ku południowi). Za zakrętem kr&oacute;tki, suchy odcinek ciągu, z wielkim głazem po prawej stronie, oddziela to jezioro od najgłębszego, końcowego jeziora, przechodzącego ku wschodowi w Syfon Zwolińskich. Ten kilkumetrowy, płytki syfon można przebyć metodą nurkowania swobodnego lub dojść do niego z drugiej strony zjeżdżając Wielkim Kominem z Komory z Mostami. W syfonie korytarz zakręca. Dalej wznosi się ku SW obszerny ciąg o ścianach pokrytych mlekiem wapiennym i gruzowym dnie. Po ponad 20 m na prawo odchodzi boczny korytarzyk, a nieco dalej na wprost, za 1,5-metrowym prożkiem z want, jest mała lecz wysoka Komora pod Wielkim Kominem (zwana też Komorą pod Kominami). Z komory nieco na prawo w d&oacute;ł wiedzie wąski korytarz zakończony salką z głębokim jeziorem o długości kilkunastu metr&oacute;w. Jest ono oddzielone wąską groblą od Syfonu Ogazy (długość około 6 m). Za syfonem ciągnie się jezioro. Lewa, pochylona ściana korytarza tworzy rodzaj p&oacute;łki skalnej. Kr&oacute;tki odcinek suchego ciągu, biegnący ku wschodowi, oddziela jezioro od następnego, długiego na około 9 m &ndash; o przebiegu SSW, zakończonego Syfonem Warszawiak&oacute;w o długości kilkunastu metr&oacute;w i głębokości do 9 m. Po przebyciu części tego syfonu, widać Korytarz Muszlowy, odchodzący do g&oacute;ry i zwężający się w zamuloną szczelinę.</span></p>
+<p><span>Wracamy do Komory pod Wielkim Kominem. Wiedzie stąd do g&oacute;ry szczelinowy (nie ujęty na planie) korytarz, kt&oacute;ry opada następnie do szczeliny uchodzącej nad jeziorkiem przed Syfonem Ogazy. Wspinamy się na południową ścianę Komory pod Wielkim Kominem, będącą początkiem Wielkiego Komina. Po ponad 20 m, z małej p&oacute;łki, po prawej stronie odchodzi kr&oacute;tka, boczna szczelina. Z p&oacute;łki 5-metrowy, gładki pr&oacute;g wyprowadza na platformę. Stąd na prawo w d&oacute;ł odchodzi boczny, kilkunastometrowy korytarzyk zakręcający zn&oacute;w na prawo. Z platformy na lewo przez pr&oacute;g z wielkich want wchodzimy do długiej i wysokiej G&oacute;rnej Komory. Wysoko, w N ścianie, widać okna uchodzące z Czarnego Korytarza. Na jej dnie zalega stożek z want i pokruszonych polew naciekowych. Od S G&oacute;rną Komorę zamyka gładki, kilkunastometrowy Pr&oacute;g Masztowy (najwyższy odcinek Wielkiego Komina), wiodący do Komory z Mostami.</span></p>
+<p><span>Wracamy do Komory nad Progiem. Z jej E krańca wspinamy się z lewej strony po wielkich wantach zaklinowanych w szczelinie korytarza na 13-metrowy Pr&oacute;g z Wantą (IV). Dalej szczelina o gruzowo-gliniastym dnie nazwana Czarnym Korytarzem lekko opada, a następnie wznosi się stromo skośnym progiem. Pokonujemy ją zapieraczką, a następnie idąc nieco w d&oacute;ł docieramy do Sali pod Czarnym Kominem. Od wschodniego skraju sali biegnie nieco na lewo kr&oacute;tki, boczny ciąg rozdwojony na końcu. Z sali na prawo wiedzie Czarny Komin o deniwelacji 29 m, długi na około 34 m. Nad pierwszą, najtrudniejszą częścią komina (IV+) znajduje się pozioma P&oacute;łka z Krzesełkiem. Można dojść w jej pobliże (3 m poniżej) ciasną szczeliną zaczynającą się w stropie Czarnego Korytarza (w okolicy skośnego progu), kt&oacute;ra prowadzi także wyżej, w rejon Progu Naciekowego, przez tzw. Śliski Pr&oacute;g. Z p&oacute;łki wyraźnym zacięciem docieramy do obszernej naciekowej platformy, z kt&oacute;rej wiedzie w g&oacute;rę Pr&oacute;g Naciekowy zakończony 2,5-metrowym Szklanym Prożkiem (IV) &ndash; najwyższą częścią Czarnego Komina. Wchodzimy do kr&oacute;tkiego korytarza o płaskim dnie, pokrytym polewą naciekową. Po prawej stronie omijamy duży stalagmit. Około 8 m dalej korytarz opada do obszernego i głębokiego Czarnego Jeziorka, nad kt&oacute;rym po prawej stronie widać duży most skalny rozdzielający je na dwie części (odkrywcy p&oacute;łnocną część jeziorka nazwali Jeziorkiem z Drabiną, ponieważ używano tu drewnianej drabiny, a południową część Czarnym Jeziorkiem; od około 15-20 lat to miejsce nazywane bywa częściej Beczką). Trawersujemy kilka metr&oacute;w do mostu (III) i przechodzimy przez niego na SE stronę, wznoszącą się 4,5 m nad lustrem wody. Za mostem wiedzie szczelinowy korytarz r&oacute;wnoległy do poprzedniego. Ku NE ciągnie się dalsza część Czarnego Korytarza, a ku SSW Biały Korytarz.</span></p>
+<p><span>Do Czarnego Korytarza najwygodniej jest przepłynąć pontonem pod mostem, można też zejść tam z mostu zapieraczką nad wodą. Obszerny ciąg wznosi się. Po kilkunastu metrach pokonujemy 3,8-metrowy pr&oacute;g, a dalej w stropie widać 5-metrowy kominek. Docieramy do Salki ze Stalaktytem o ładnej szacie naciekowej. Skręcamy na prawo do Komory pod Mostem (jest w niej most skalny). Z tego rejonu odchodzą trzy odnogi. Pierwsza, o płaskim dnie ma 9 m, znajdują się tu polewy naciekowe. Druga ma 2 m długości, a trzecia (8 m długa) opada znad niewielkiego progu i zakończona jest 2,8-metrową studzienką. Skręcamy zn&oacute;w na prawo (ku SW). Niebawem ku p&oacute;łnocy (po prawej stronie) zawraca bardzo ciasny korytarz rozwidlający się po kilku metrach. Jego lewa odnoga uchodzi przed Salką ze Stalaktytem. Ściany tego korytarzyka pokrywają czarne, miękkie nacieki (prawdopodobnie z domieszką manganu). Nieco dalej na lewo (ku NE) do g&oacute;ry wiedzie ciasny, kilkunastometrowy ciąg z kominkiem o skomplikowanych kształtach przypominających korkociąg. Gł&oacute;wny korytarz tych partii prowadzi w d&oacute;ł i po 26 m urywa się pionowym progiem, uchodzącym wysoko w ścianie G&oacute;rnej Komory w opisanym uprzednio Wielkim Kominie. Kilka metr&oacute;w wcześniej, na prawo, odgałęzia się nad kilkumetrowym progiem boczny korytarzyk uchodzący r&oacute;wnież do G&oacute;rnej Komory, nieco wyżej. Opisany ciąg, rzadko odwiedzany, jest myty na szczelinach. Zachowały się w nim grube pokrywy mleka wapiennego oraz stalaktyty, stalagmity i polewy naciekowe. Miejscami obecne są nacieki o czarnej barwie. Zapewne dzięki nim ten odcinek korytarza nazwano Czarnym, chociaż prawie cały ciąg jest biały.</span></p>
+<p><span>Wracamy na most nad Czarnym Jeziorkiem. Idziemy stąd na prawo (ku SSW), do Białego Korytarza. Pokonujemy w nim małe prożki w g&oacute;rę i w d&oacute;ł, zygzakowaty zakręt na lewo z większym prożkiem i nieco dalej 2,5 m pr&oacute;g w d&oacute;ł. Z kom&oacute;rki pod tym progiem wiedzie wąska szczelina z płytkimi, okresowymi jeziorkami. Docieramy nią pod 8-metrowy Biały Komin (III+) o ścianach pokrytych mlekiem wapiennym. Komin uchodzi zaciskiem do szczelinowego korytarza o kierunku ku NE, rozszerzającego się niebawem w dwie okrągłe kom&oacute;rki. Na dnie drugiej z nich okresowo gromadzi się woda. Idziemy stąd na prawo, przez prożek nad jeziorkiem, trawersujemy nad następnym małym jeziorkiem i docieramy w końcu do prożka uchodzącego w ścianie prostopadłej szczeliny. Jaskinia zmienia tu charakter. Do tego punktu ściany mają dużą ilość wymyć, są pokryte naciekami (gł&oacute;wnie mlekiem wapiennym), dno &ndash; gruzowo-gliniaste. Prostopadły ciąg jest wysoką, wąską szczeliną. Miejscami widać na jej ścianach zagłębienia wirowe. Idziemy stromo w d&oacute;ł, następnie nieco do g&oacute;ry pokonując część drogi zapieraczką nad małymi jeziorkami. Omijamy niewielkie boczne odgałęzienia po obu stronach. Prawe z nich wznosi się stromo, a następnie opada do małego jeziorka. Szczelinę kończy 10-metrowy Pr&oacute;g Masztowy, kt&oacute;ry opada do najniższej platformy w Komorze z Mostami, tuż nad ujściem Progu Masztowego wiodącego z Wielkiego Komina. Dalszą drogę można przebyć kilkoma wariantami: </span></p>
+<p><span>a) przetrawersować nad progiem do mostu skalnego widocznego po prawej stronie i znad niego zjechać do Sali Biwakowej, </span></p>
+<p><span>b) dostać się trawersem do Ucha Igielnego, kt&oacute;re r&oacute;wnież widać znad Progu Masztowego na prawo. Tym (lub niżej położonym) uchem skalnym docieramy nad pr&oacute;g opadający poniżej wspomnianego mostu do Sali Biwakowej (z dolnego ucha schodzimy łatwo 5 m).</span></p>
+<p><span>Rozległa Sala Biwakowa o kształcie zbliżonym do podkowy powstała na przecięciu kilku szczelin tektonicznych. Zaczyna się obszerną, wysoką na kilkanaście metr&oacute;w komorą, opadającą ku NE. Jej dno zasłane jest wantami i gruzem skalnym. Na wprost komora kończy się niedostępnymi szczelinami, na prawo zaś opada stromymi płytowymi prożkami. Sprowadzają one do podobnej komory o wydłużonym ku SW kształcie i płaskim, gruzowo-gliniastym dnie. W SW krańcu Sali Biwakowej stała niegdyś drewniana chatka zwana &bdquo;Benedyktynką&rdquo; (stąd inna, popularna nazwa sali &ndash; &bdquo;Chatka&rdquo;). Z tego miejsca na lewo w g&oacute;rę wiedzie około 3-metrowy pochyły prożek, nad kt&oacute;rym znajduje się małe, zawieszone jeziorko ze stałym dopływem wody z wąskiej szczeliny. Nieco na lewo od prożka, 13-metrowy, pochyły pr&oacute;g (III) prowadzi w głąb jaskini. Powyżej progu, w prawo biegnie korytarz o dnie pokrytym wantami. Zakręca on ku SW i doprowadza po ponad 25 m do Wideł. Koisar (1968b) opisuje jeszcze jeden kr&oacute;tki korytarz łączący pr&oacute;g nad Chatką z korytarzem przed Widłami (nie uwzględniony na planie).</span></p>
+<p><span>Od Wideł na wprost ku SW wiedzie droga przez Salę za Stołem do Sali Złomisk (tzw. dolny wariant dojścia do tej sali). Dosyć wąski, lecz wysoki korytarz, o dnie pokrytym głazami, doprowadza nad 3-metrowy skalny pr&oacute;g (pionowy w dolnej części), opadający do Sali za Stołem o niewielkim, gruzowym dnie. Dalsza droga wiedzie przez 6-metrowy pr&oacute;g pod skalną płytę zwaną Stołem, na kt&oacute;rą lepiej nie wchodzić. Można jednak nie schodzić na dno sali, lecz strawersować jej lewą ścianę na pochyły balkon i z niego korytarzem (możliwe dwa warianty) dostać się do połączenia z drogą prowadzącą przez dno Sali za Stołem. Na zakręcie wariantu wiodącego przez balkon, na lewej ścianie odchodzi w lewo, w g&oacute;rę boczny korytarz z kałużą wody i ładnym wżerem korozyjnym na prawej ścianie, niedaleko końca. </span></p>
+<p><span>Trzy warianty drogi z Sali za Stołem łączą się w wysokim, szczelinowym korytarzu o gruzowym dnie (miejscami z gliną). Jego dno opada, a następnie wznosi się. W najwyższym miejscu opada z tyłu, z g&oacute;ry, prawie 10-metrowy komin łączący się z drogą przez Korytarz pod Łukami. Schodzimy nieco, omijamy otw&oacute;r pod prawą ścianą, kt&oacute;ry prowadzi do Studni Kuczyńskiego, a następnie trawersujemy p&oacute;łką na lewej ścianie, pokonując po drodze 2 m wysoki prożek (po prawej stronie rozwiera się szczelina Studni Kuczyńskiego). P&oacute;łka wznosi się stopniowo, doprowadzając do &nbsp;Sali Złomisk (w tym miejscu dochodzi z g&oacute;ry ciąg przez Korytarz pod Łukami. </span></p>
+<p><span>Zasłane głazami dno Sali Złomisk wznosi się do podn&oacute;ża jej lewego odgałęzienia, kt&oacute;rym można podejść stromo w g&oacute;rę, aż do zawracającego wstecz, wznoszącego się korytarzyka, opadającego następnie do sali 6-metrowy progiem. Idąc wprost w d&oacute;ł do końca sali, możemy wejść jeszcze przez 3-metrowy prożek do zakończonego ślepo, wysokiego korytarzyka o szerokości 0,8-0,6 m, z zaciskiem 0,35 m. Sala Złomisk jest jednym z końc&oacute;w jaskini. Można z niej jednak jeszcze cofnąć się do rzadko odwiedzanego ciągu Zamulonych Studni.</span></p>
+<p><span>Z p&oacute;łnocnego krańca Sali Złomisk schodzimy zacieraczką kilka metr&oacute;w na dno szczelinowego korytarza przebiegającego poniżej Studni Kuczyńskiego (lub nieco dalej zjeżdżamy szczeliną tej studni) i idziemy opadającym ku N szczelinowym korytarzem do 6,5-metrowej studzienki. Poniżej niej ciąg rozdwaja się. Obie odnogi uchodzą do przestronnej sali (prawa - 14,3 m pionowym progiem, lewa - systemem mniejszych prog&oacute;w). Z sali dwoma małymi prożkami schodzimy do następnego rozszerzenia, a za nim 5-metrowym progiem do pochyłej, zabłoconej szczeliny wiodącej ku N. Kończy ją zamulony syfon, w kt&oacute;rym okresowo zbiera się woda stagnująca długo. W połowie Zamulonych Studni odchodzi w stropie kilkudziesięciometrowa rura pokonana przy użyciu spit&oacute;w, wiodąca w kierunku Korytarza pod Łukami.</span></p>
+<p><span>Wracamy do Wideł. Idąc w kierunku końca jaskini (w lewo), schodzimy przez 2-metrowy prożek z want i po kilku metrach stajemy pod wiodącym w prawo do g&oacute;ry, 6-metrowym skalnym progiem, kt&oacute;rym wspinamy się do efektownego Korytarza pod Łukami. Obszerny i wysoki (do 8 m) korytarz o dnie pokrytym gruzem i głazami, wznosi się stromo. Po prawej stronie, pod ścianą, widać wąski wlot studzienki (ślepej, a może łączącej się z ciągami przez Salę za Stołem?). Idziemy do rozdwojenia korytarza i stąd lewym odgałęzieniem, gdyż prawe, wychodzące wyżej ramię, łączy się z nim kilkanaście metr&oacute;w dalej przez 6-metrowy pr&oacute;g. Dno pokryte piaskiem wznosi się jeszcze nieco, a następnie stromo opada do miejsca, gdzie w lewo przez strome progi (razem około 10 m, w odcinkach 6,5 i 3,0 m) można zjechać do ciągu przez Salę za Stołem (pierwsze ze wzmiankowanych już połączeń). Idąc dalej docieramy do miejsca, gdzie następuje ponowne rozdwojenie ciągu. W lewo, w d&oacute;ł możemy zjechać około 16 m do Sali Złomisk. Natomiast w prawo i w g&oacute;rę, przez 2-metrowy prożek wchodzimy do położonych wyżej i rozwiniętych na tych samych szczelinach korytarzyk&oacute;w z prożkami i kominkami, przekraczających tu poziom ponad +100 m w stosunku do otworu. Jeden z korytarzy (a właściwie dwa warianty połączone studzienką) opada wstecz do korytarza, będącego kontynuacją Korytarza pod Łukami, uchodząc w jego stropie pomiędzy oboma przebiciami w d&oacute;ł (do ciągu z Sali za Stołem i do Sali Złomisk). Inne korytarzyki kończą się zwężeniami (na og&oacute;ł niedostępnymi, chociaż nie wykluczone, że w niekt&oacute;rych przypadkach może istnieć możliwość ich pokonania). W jednym z ciasnych korytarzyk&oacute;w prowadzących na południe występują kości nietoperzy. </span></p>
+<p><span>W tym rejonie, już po sporządzeniu planu Jaskini Zimnej, grotołazi krakowscy w 1985 r. wyeksplorowali około 150 m korytarzy (około 345 m wg Z. Tabaczyńskiego &ndash;Jaskinie TPN 2004). Partie nazwane &bdquo;Pod Łukami&rdquo; łączą się z Jaskinią Białą i uchodzą aktualnie drugim otworem systemu na powierzchnię. Mogą one częściowo pokrywać się z opisanym powyżej systemem szczelinowych korytarzyk&oacute;w, wychodzących ponad poziom +100 m. (Opis ciąg&oacute;w od Wideł przez Salę ze Stołem i Korytarz pod Łukami do Sali Złomisk i powyżej niej &ndash; według R. M. Kardasia).</span></p>
+<p><span>Opis wg Z. Tabaczyńskiego (Jaskinie TPN, t.11, 2004): <em>&bdquo;Partie te, biegnąc w g&oacute;rę w kierunku południowo-zachodnim,&nbsp;&nbsp; kończyły się zagruzowanym korytarzem. Zawieszone w stropie wanty skutecznie uniemożliwiały dalszą eksplorację. W wyniku nawiązanej z początkiem 2003 r. wsp&oacute;łpracy STJ KW Krak&oacute;w i Speleoklubu Tatrzańskiego, udało się ustalić miejsce w kt&oacute;rym ciąg wychodzi na powierzchnię. Znajdowała się tam niewielka nyża, kt&oacute;rej nadano nazwę <strong>Jaskinia Biała</strong>. Po kr&oacute;tkim, wąskim i błotnistym odcinku (błoto wymieszane z mlekiem wapiennym, kt&oacute;re ma kolor kremowy lub biały - stąd nazwa otworu &bdquo;Jaskinia Biała&ldquo;) korytarz przechodzi w obszerną, wysoką szczelinę o szerokości od 1,5 do 3 m. Jej ściany pokrywa warstwa mleka wapiennego. Po około 120 m szczelinę przecina strefa zawaliskowa. Napotykamy tu duże płyty skalne dzielące korytarz, a następnie zawalisko, w kt&oacute;rym pomiędzy luźnymi wantami znajduje się ciasne połączenie z niżej położonym Korytarzem pod Łukami, biegnącym ku　N. &rdquo; </em></span></p>
+<p><span><em><span>&bdquo;Dojście od Sali ze Stołem prowadzi trzydziestometrowym, pochyłym kominem w Korytarzu Pod Łukami, nad Salą ze Stołem. Doprowadza on do wymytego korytarza o wysokości ok. 3,5 m. Korytarz rozwinięty jest na tej samej szczelinie, co komin o kierunku SSW. Po ok. 20 m dochodzimy do pęknięcia o przebiegu SW-NE. Dalsza droga prowadzi kr&oacute;tką&nbsp;pionową szczeliną ok. 5 m w g&oacute;rę. Dochodzimy do najwyższego piętra &bdquo;Partii pod Łukami&rdquo;. Idąc korytarzem w kierunku NE, przechodzimy przez mocno &bdquo;strzaskany&rdquo;chodnik, w dw&oacute;ch miejscach przedzielony zawaliskiem. Po około 80 m jego przekr&oacute;j ulega zmianie, tworzy wysoką na ok. 5 m, rozmytą, soczewkowatą szczelinę. Na dw&oacute;ch odcinkach korytarz pokonujemy zapieraczką. Po pokonaniu pierwszej, kr&oacute;tszej szczeliny, po lewej stronie odchodzi w g&oacute;rę kr&oacute;tki, niski korytarz, biegnący r&oacute;wnolegle, łączy się on z gł&oacute;wnym ciągiem. Po pokonaniu drugiego odcinka zapieraczki korytarz stromo opada, kończąc się zamuloną szczeliną.&rdquo;</span></em></span></p>
+<p><em><span>&bdquo;Wracamy do miejsca w kt&oacute;rym rozpoczęliśmy zwiedzanie najwyżej położonego korytarza Partii pod Łukami. Ściany są tu myte, spąg rozcina pęknięcie łączące korytarz z niżej położonymi partiami jaskini. W kierunku SE korytarz biegnie ku powierzchni. </span></em></p>
+<p><em><span>Po ok. 4 m dochodzimy do zawaliska wypełniającego tą część korytarza. Pomiędzy zaklinowanymi wantami przechodzimy do niewielkiej salki położonej 4 m wyżej. Od tego miejsca jaskinia zmienia charakter. Do samej powierzchni korytarz&nbsp;ma charakter wielkiego rozpęknięcia szerokiego na 1,5 m do 3 m. Szczelina ta o wysokości od 2 m do kilkunastu metr&oacute;w, w środkowej części rozdzielona jest mostem. W końcowej części, na odcinku ok.50 m, spąg korytarza wznosi się stromo do otworu&nbsp; 2 - Jaskini Białej. Partie przyotworowe wypełnia zawalisko zmieszane z gliną.&rdquo; </span></em></p>
+<p><span>Wracamy do Wideł. Od odejścia Korytarza pod Łukami idziemy opadającym lekko ku NE, obszernym gł&oacute;wnym ciągiem. Miejsce to nazwano Salą przed Korkociągiem. Wspinamy się prawą stroną 4-metrowego, przewieszonego Prożka Burcharda (V). Nad nim kr&oacute;tki korytarzyk prowadzi w d&oacute;ł, do ciasnego przełazu, często zalewanego przez wodę, kt&oacute;rą można zlewarować (okresowy Syfonik Krakowski). Dalej ku NE wiedzie kilkudziesięciometrowy Korkociąg Krakowski, wznoszący się małymi kominkami w stromej szczelinie, zmieniającej kierunek co kilka metr&oacute;w. Ten ciasny (średnio 0,8 m szerokości), niewygodny ciąg uchodzi oknem w Sali Galeriowej (Sali za Korkociągiem), 6,5 m nad jej dnem. Obszerna, długa na ponad 20 metr&oacute;w sala, opada ku NE i kończy się zamuleniem, a wyżej jej dno pokrywają wanty i gruz wapienny zmieszany z gliną. Ku NW, stromo do g&oacute;ry, odchodzi 60-metrowy Korytarz Galeriowy. Jego sklepienie jest łukowe, a dno rozcina głęboka, wąska szczelina, pozostawiając przy ścianach skalne p&oacute;łki. Z dna sali wspinamy się 2,5-metrowym progiem na prawą p&oacute;łkę. Idziemy nią w głąb korytarza, kt&oacute;ry w połowie długości zmienia charakter &ndash; strop obniża się, a nierozcięte już dno pokrywa gruz i wanty, spiętrzone na końcu korytarza w mały pr&oacute;g. Nad nim wchodzimy do Sali nad Korytarzem Galeriowym, rozwiniętej na szczelinie przebiegającej ukośnie. Sala ma skomplikowaną konfigurację. W prawo do g&oacute;ry, w jej zakończeniu, po stromej ścianie, czy raczej przez pr&oacute;g naciekowy (IV), można się wspiąć do Korytarza za &Oacute;semką, kt&oacute;ry zwiedzimy p&oacute;źniej. Mamy kilka możliwości zejścia niewielkimi (około 2 m) prożkami do błotnistego korytarza, prowadzącego ku SW, przez ciasny przełaz nad okresową kałużą, do Sali Błotnych Wulkan&oacute;w. Stąd zaraz na początku odgałęzia się na lewo prawie poziomy Korytarz Niewidzialnej Wody (około 46 m długości), mający dwie studzienki na początku. W jego zakończeniu, po prawej stronie znajduje się jeziorko ze skalnym dnem, oddzielone od lewej części korytarza skalnymi filarami.</span></p>
+<p><span>Wracamy do Sali Błotnych Wulkan&oacute;w i idziemy nią ku zachodowi. Za 2,8-metrowym progiem zakręca ona na prawo oraz wznosi się obszernym ciągiem o rozciętym dnie. Salę kończą dwie ślepe szczeliny (w lewej, za zaciskiem i prożkiem w d&oacute;ł, jest błotnisty syfonik). Z sali przechodzimy przez zacisk na lewo do g&oacute;ry, do korytarza zwanego &Oacute;semką (od kształtu widocznego przekroju), kt&oacute;rym docieramy do rozwidlenia pod około 3-metrowym progiem naciekowym.</span></p>
+<p><span>Z rozwidlenia wstecz wiedzie Korytarz za &Oacute;semką. Rozpoczyna się on stromą pochylnią do g&oacute;ry, za kt&oacute;rą prowadzi korytarz o łagodnych spadkach, z boczną, kr&oacute;tką szczeliną, odgałęziającą się na prawo. Znajdują się tu ładne nacieki (stalaktyty, stalagmity, stalagnaty, polewy i mleko wapienne). W namulisku znaleziono kości nietoperzy, oznaczone przez B. W. Wołoszyna (1963, 1970). Korytarz za &Oacute;semką przebiega powyżej uprzednio opisanego ciągu, stanowiąc g&oacute;rne piętro i opada do Sali nad Korytarzem Galeriowym opisanym wcześniej progiem.</span></p>
+<p><span>Wracamy do rozwidlenia za &Oacute;semką. Przed progiem na prawo odgałęzia się Korytarz Rubinowy. Jego gł&oacute;wny ciąg ma 145 m długości. Idąc nim, po około 10 m trafiamy na boczny ciąg odchodzący na prawo, kt&oacute;ry po kilkunastu metrach zn&oacute;w łączy się z naszym korytarzem. Dalej dochodzimy do rozszerzenia o zamulonym dnie, za kt&oacute;rym na lewo biegnie boczny ciąg, rozgałęziony po kilku metrach na opadający korytarzyk i drugi, wiodący przez mały prożek do g&oacute;ry. Od tego ostatniego na wprost, nad 2,5-metrowym progiem, wiedzie ślepa szczelina, a na prawo w d&oacute;ł, przez prożek, można dotrzeć nad studzienkę. Na lewo od niej odchodzi wąska szczelina.</span></p>
+<p><span>Idąc&nbsp;dalej&nbsp;Korytarzem&nbsp;Rubinowym docieramy do ślepej, 14-metrowej studni, w kt&oacute;rej na głębokości 11,5 m odgałęzia się kr&oacute;tka odnoga, także zakończona ślepo. Za trawersem studni wiedzie prawie poziomo korytarz o gruzowo-glinastym dnie, kt&oacute;ry jest zamknięty wznoszącym się nieco stożkiem nasypowym, ze śladami namytego z powierzchni humusu. Znaleziono tu kości kuny (Koisar 1968b).</span></p>
+<p><span>Wracamy do rozwidlenia w ciągu gł&oacute;wnym jaskini. Dalsza droga wiedzie ku SW nad progiem w rozwidleniu. Idziemy lekko do g&oacute;ry, prostym, obszernym korytarzem, o prawie płaskim, gruzowo-gliniastym dnie. Po drodze przechodzimy przez kilka małych prożk&oacute;w i mijamy niewielkie, boczne szczeliny oraz kominki i płytkie studzienki. W ciągu tym występuje bogata szata naciekowa. Po około 130 m, za zygzakowatym zakrętem na prawo, korytarz kontynuuje się i po dalszych ok. 40 m doprowadza w końcu do Sali Długiej. Według B. Koisara (1968b): &bdquo;<em>Dno sali nachylone jest w głąb jaskini. Lewa ściana jest pokryta polewą naciekową. Tuż przed płatem polewy w prawo odchodzi boczny korytarzyk w dnie kt&oacute;rego znajduje się ślepa studnia. Po przekroczeniu tej niegłębokiej studni rozdwaja się on, by po kilku metrach połączyć się z szerszym korytarzem odchodzącym na prawo za zawaliskiem głaz&oacute;w dzielących Salę Długą na dwie części. Ten szerszy korytarz po połączeniu z poprzednio opisanym zakręca gwałtownie na lewo i łączy się 2,5 m progiem opadającym w d&oacute;ł z korytarzem idącym z Krakowskiego Okna do Syfonu Maurycego&rdquo;.</em> (Korytarze te nie są umieszczone na planie).</span></p>
+<p><span>Przed p&oacute;łnocnym krańcem Sali Długiej, za poprzecznym garbem skalnym, na prawo w ścianie, widać obszerne Okno Krakowskie. Stąd wiedzie bardzo stromo w d&oacute;ł Dolny Ciąg Partii Wrocławskich &ndash; szczelinowy korytarz z małymi prożkami. Docieramy nim do niewielkiej Komory przed Syfonem Maurycego, opadającej 1,3-metrowym progiem do jeziorka przed syfonem. Syfon wypełnia glina i woda. Komora ma muliste dno, na kt&oacute;rym zachował się błotny wulkan w postaci gliniastej kuli około 0,5 m średnicy, z małym lejkiem na szczycie, utworzonym przez kapiącą wodę. Za ten płytki i ciasny syfon długości około 2 m, można dotrzeć od drugiej strony (z Sali Maurycego), bez pokonywania go.</span></p>
+<p><span>Według B. Koisara (1968b): &bdquo;<em>Od Okna Krakowskiego idąc dalej korytarzem kontynuującym się na kierunku S-N, tak jaki i Sala Długa, mijając po prawej stronie niewielki korytarzyk obejściowy, r&oacute;wnoległy do gł&oacute;wnego ciągu, dociera się do niewielkiego progu wprowadzającego w Korkociąg Wrocławski, zwany r&oacute;wnież II Korkociągiem. Łączy on obie strony zamulonego, gł&oacute;wnego ciągu korytarzy, w kt&oacute;rym jeżeli zejdzie się do ciasnej studzienki położonej w prawo za progiem, uzyskać można kontakt głosowy. Przebieg jego jest bardziej skomplikowany od Korkociągu I (Korkociąg Krakowski), choćby ze względu na to, że średnica jego wynosi początkowo 50 cm, rozszerzając się stopniowo do 80 cm. Korytarz ma wyraźny związek ze szczelinami, przebieg jego jest kręty, odcinki proste nie przekraczają 3 m, jeden z odcink&oacute;w stanowi niewielkie jeziorko trudne do przebycia bez zamoczenia. Ku wnętrzu jaskini opada on progiem do zamulonego gł&oacute;wnego korytarza, kt&oacute;ry początkowo jest bardzo ciasny i wymaga pełzania. Łączna długość korkociągu wynosi 26 m.</em></span></p>
+<p><em><span>Podążając szerokim gł&oacute;wnym korytarzem, po kilku metrach, w zagłębieniu lewej ściany korytarza, obserwować można bardzo dobrze zachowane stanowisko kopalnych, scementowanych żwir&oacute;w allochtonicznych o miąższości powyżej 1 m.</span></em></p>
+<p><em><span>Nieco dalej, z gł&oacute;wnego korytarza g&oacute;rnego ciągu Partii Wrocławskich, odchodzą w prawo dwie boczne szczeliny, łączące się po kilku metrach i doprowadzające nad&rdquo;</span></em><span> progi w d&oacute;ł (5 m i 1,6 m), sprowadzające do Dolnych Partii Wrocławskich &ndash; do Sali Maurycego, o zamulonym dnie. Ku wschodowi prowadzi ona do Syfonu Maurycego, a ku NNE odgałęzia się obszerny Piaszczysty Korytarz (wysłany piaskiem allochtonicznym), zakończony po około 28 m kom&oacute;rką. W jej lewej ścianie widać dwa okna (na wysokości 2 i 4 metr&oacute;w). Drugie z okien wiedzie do korytarza nie ujętego na planie.</span></p>
+<p><span>Wracamy do gł&oacute;wnego korytarza w G&oacute;rnym Ciągu Partii Wrocławskich. Ku NNE opada obszerny korytarz zakończony 15-metrową Studnią Maurycego, pochyloną ku NW. Za trawersem studni znajduje się most skalny, wydzielający 4-metrowy korytarzyk. Pod studnią ciąg kontynuuje się, przechodząc w coraz wyższą szczeliną o zamulonym dnie i ścianach pokrytych grubą warstwą gliny. W tej szczelinie (jest to prawdopodobnie Zabłocona Szczelina I), nad głazem zaklinowanym na wysokości 5 m, odchodzi ślepy, myty korytarz z kominkiem w stropie, kt&oacute;ry będzie opisany dalej. R&oacute;wnież w przeciwną stronę biegnie korytarz, po kilkunastu metrach urywający się małym prożkiem. Dalej zmienia on kierunek prawie o 180&deg; i opada pochyłym progiem do wąskiej, szczelinowej salki. Z wnęki w jej lewej ścianie biegną dwa ciągi. Pierwszy z nich jest ciasny, początkowo biegnie stromo w g&oacute;rę. Przez korytarzyki i salki z naciekami doprowadza po około 30 m do wąskiej, niedostępnej szczeliny. Drugi, szerszy ciąg biegnie w d&oacute;ł, a po około 20 m kończy go Zabłocona Szczelina II.</span></p>
+<p><span>Z opisanej poprzednio szczelinowej salki idąc na wprost przez prożek i w d&oacute;ł można zejść do Zabłoconej Szczeliny III, kt&oacute;rej dno pokrywa gliniaste namulisko, uchodzące w ciasnym, niedostępnym przelewie.</span></p>
+<p><span>Wracamy do ślepego korytarzyka nad głazem. Wspomniany uprzednio kominek w jego stropie wyprowadza po kilku metrach do wyższego piętra szczeliny, kontynuującej się ku N. Korytarzem biegnącym na wprost można dojść do studni nad zabłoconą szczeliną &ndash; prawdopodobnie jest to g&oacute;rna część Zabłoconej Szczeliny III.</span></p>
+<p><span>W prawo biegną odgałęzienia wyprowadzające nad r&oacute;wnoległą Zabłoconą Szczelinę IV, kilkanaście metr&oacute;w nad jej dnem. Do tej szczeliny woda dopływa z p&oacute;łnocy, natomiast pozostałe szczeliny są wchłonami wody spływającej z Partii Wrocławskich. Łączna długość opisanych partii za Studnią Maurycego wynosi około 110 m. Większość korytarzy nie jest udokumentowana, na planie zamieszczono jedynie szkic gł&oacute;wnego ciągu. Opis Zabłoconych Szczelin został sporządzony na podstawie publikacji K. Wittmana (1985).</span></p>
+<p><span>Wracamy nad Studnię Maurycego. W pobliżu jej południowej krawędzi wspinamy się 35 m w g&oacute;rę (V?) do ujścia Partii nad Maurycym. Początkowo korytarz wiedzie lekko do g&oacute;ry (ku SSW), skręca na lewo (ku SE) i opada, zawracając zaraz na NNE. Na następnym zakręcie w prawo wznosi się prawie pionowym kominem i zn&oacute;w skręca na prawo, ku południowi. Za kolejnym zakrętem na prawo staje się prawie poziomy, a na dnie gromadzi się woda. Osiągamy tu najwyższy punkt jaskini Zimnej &ndash; około160 m powyżej otworu. Dalej ciąg biegnie generalnie ku południowi. W obie strony odchodzą od niego boczne odnogi (lewa powraca po kilku metrach). Następna odnoga odchodząca w prawo i r&oacute;wnież wracająca do gł&oacute;wnego korytarza, ma dwa boczne odgałęzienia po prawej stronie. W miejscu połączenia na lewo odchodzi korytarz. Partie nad Maurycym kończy zawalisko. Ich gł&oacute;wny ciąg ma 186 m długości według (budzących wątpliwości) pomiar&oacute;w J. Szarana z 1980 r., a około 100 m wg szacunku J. Jachymskiego i M. Sygneta. Opis sporządzono na podstawie informacji J. Szarana.</span></p>
+<p><span>Jaskinia Zimna powstała w wapieniach triasu środkowego i malmo-neokomu serii wierchowej jednostki Organ&oacute;w, w większości w jej g&oacute;rnym elemencie, Synklinie Organ&oacute;w (Grodzicki 1969, 1978a). Tylko Korytarz pod Łukami i korytarz łączący go z Salą Biwakową przebiega w obrębie niższego elementu tektonicznego &ndash; Antykliny Upłazu Miętusiego. Kontakt pomiędzy tymi elementami ma charakter kopulasto wygiętej powierzchni nasunięcia &ndash; jego upad w p&oacute;łnocnej części wynosi 29&deg;N, podczas gdy upad części południowej wynosi 19&deg;S. Jedynie trias środkowy, ujawniający się pomiędzy widocznymi w jaskini powierzchniami tego nasunięcia (a budujący przestrzeń, w kt&oacute;rej rozwija się Korytarz pod Łukami) należy do dolnego elementu tektonicznego jednostki Organ&oacute;w (Antykliny Upłazu Miętusiego) i ma bieg i upad wynoszący 40&deg;/60&deg;S. Korytarz pod Łukami od Korkociągu do Sali Złomisk przebiega w obrębie tego nasunięcia &ndash; jego dalszy przebieg ku zachodowi obcięty jest zlustrowaną powierzchnią uskoku 55&deg;/80&deg;S, kt&oacute;ry generuje duże zawalisko, blokujące dalszy ciąg jaskini ku zachodowi. Pozostałe korytarze g&oacute;rnego piętra jaskini rozwijają się w obrębie wapieni triasu środkowego i malmo-neokomu, należących do wyższego elementu &ndash; Synkliny Organ&oacute;w &ndash; i znajdujących się w kontakcie sedymentacyjnym. Biegi w obrębie tych utwor&oacute;w wynoszą 20-50&deg;, a upady oscylują od 35&deg; do 75&deg; ku N. Dolne piętro jaskini w całości przebiega w wapieniach triasu środkowego.</span></p>
+<p><span>W genezie g&oacute;rnego piętra jaskini gł&oacute;wną rolę odegrały szczeliny ciosowe o niewielkim pierwotnym rozwarciu (rzędu milimetr&oacute;w). Większość korytarzy tego piętra ma kształty przekroju, świadczące o kształtowaniu ich przez wody płynące pod ciśnieniem. W genezie korytarzy dolnego piętra jaskini udział tektonicznie szeroko rozwartych szczelin jest znacznie większy, a wiele z korytarzy tego piętra ma zachowane pierwotne, tektoniczne kształty &ndash; szczeg&oacute;lnie dobrze widoczne we wstępnej części jaskini i w Jaskini Mroźnej, kt&oacute;ra stanowiła część systemu (Rudnicki 1960, 1967; Grodzicki 1970, 1991). Na ukształtowanie przebiegu korytarzy tego piętra miały wpływ liczne, pionowe uskoki, promieniście zbiegające się ku dolinie, kt&oacute;rych powstanie związane jest z ewolucją morfologii doliny na przełomie trzeciorzędu i plejstocenu (Grodzicki 1969). Oba piętra jaskini stanowiły drogę odpływu w&oacute;d do Żlebu pod Wysranki &ndash; g&oacute;rne uformowało się w g&oacute;rnym trzeciorzędzie (W&oacute;jcik 1966a, 1968; Rudnicki 1958, 1967; Grodzicki 1970, 1991), dolne bądź na przełomie trzeciorzędu i plejstocenu (Rudnicki 1967; Grodzicki 1970, 1980), bądź w dolnym plejstocenie (W&oacute;jcik 1966a, 1968). W&oacute;jcik (1966a, 1968) zalicza Jaskinię Zimną do, wyr&oacute;żnianego przez siebie, V i VII piętra jaskiń tatrzańskich, uważając, że powstawała ona w strefie zr&oacute;wnań syfonalnych. Z kolei J. Rudnicki (1967) przypisuje jaskini genezę związaną z wędr&oacute;wką prog&oacute;w erozyjnych w obrębie Doliny Kościeliskiej. J. Grodzicki (1970, 1991), uważa, że Jaskinia Zimna powstawała w całkowicie odmiennej morfologii &ndash; gdy nie istniała jeszcze Dolina Kościeliska, a ewolucja jaskini jest związana z formowaniem się tej doliny i wywołanymi tym nieciągłymi odkształceniami g&oacute;rotworu. Wg Kicińskiej (2000) asymetria form korozyjnych wskazuje na dwa kierunki paleocyrkulacji: w g&oacute;rnych partiach jaskini ku Żlebowi pod Wysranki, a w dolnych &ndash; do Doliny Kościeliskiej.</span></p>
+<p><span>W jaskini występują osady klastyczne, chemiczne i organogeniczne. Osady klastyczne występują powszechnie w obu jej piętrach. Osady drobnoklastyczne, stanowiące osady w&oacute;d przepływających przez jaskinię, osiągają największe miąższości w syfonalnych obniżeniach korytarzy; J. Bieroński (1970) podaje za M. Grześkowiak dwa profile osad&oacute;w z dolnego piętra jaskini. Według Z. W&oacute;jcika (1960a, b, 1966a, 1968) osady g&oacute;rnego piętra osadzały się w dw&oacute;ch etapach &ndash; w starszym dominowała sedymentacja materiału gruboklastycznego, a po okresie erozji osadzał się materiał drobnoklastyczny. W g&oacute;rnym piętrze, w osadach grubo klastycznych, znajduje się przeważająca ilość zlepieńc&oacute;w autochtonicznych i kwarcu allochtonicznego, w osadach dolnego piętra, poza kwarcem występują miejscami obficie margle albu i pokruszone polewy naciekowe. Osady drobnoklastyczne składają się gł&oacute;wnie z allochtonicznego kwarcu oraz margli albu, piaskowc&oacute;w triasowych i autochtonicznych wapieni. W dolnym piętrze w osadach spotyka się niewielką ilość granit&oacute;w i gnejs&oacute;w, gł&oacute;wnie we frakcji 2,0 &ndash; 1,02 mm, gdzie sporadycznie osiąga wartość 23 %. Zdaniem autora świadczy to o niewielkim odsłonięciu trzonu krystalicznego w g&oacute;rnych partiach Doliny Kościeliskiej, w okresie formowania się jaskini. Z zapełnianiem osadami syfonalnych obniżeń korytarzy g&oacute;rnego piętra J. Rudnicki (1960) wiąże formowanie się &bdquo;korkociąg&oacute;w&rdquo; &ndash; odcink&oacute;w omijających zamulone syfony.</span></p>
+<p><span>W jaskini powszechnie występują zawaliska, związane z uskokami. J. Grodzicki (1969) wyr&oacute;żnia dwie generacje zawalisk &ndash; starsze, pokryte cienką warstewką mułu i młodsze, związane ze wsp&oacute;łczesnymi przesunięciami wzdłuż uskok&oacute;w, o świeżym wyglądzie. </span></p>
+<p><span>Szatę naciekową jaskini stanowią r&oacute;żnorodne nacieki twarde, występujące w obu piętrach jaskini i mleko wapienne. W partiach przyotworowych są to nacieki grzybkowe, związane wg R. Gradzińskiego i R. Unruga (1960) z zasięgiem strefy wymarzania. W głębszych partiach jaskini nacieki występują w postaci stalagmit&oacute;w, stalaktyt&oacute;w, polew naciekowych i draperii. Spotyka się je w g&oacute;rnych częściach korytarzy dolnego piętra (nad jeziorkami), w Czarnym Kominie oraz w okolicach Korytarza Galeriowego. Tu powszechnie spotyka się grube na kilkanaście centymetr&oacute;w polewy naciekowe, często odpęknięte od ścian w wyniku młodszych od nich przesunięć tektonicznych (W&oacute;jcik, Zwoliński 1959, Grodzicki 1969). Niewątpliwie występują w jaskini co najmniej dwie generacje naciek&oacute;w twardych &ndash; starsza z nich to wspomniane, grube polewy naciekowe, często z czystego, bezbarwnego kalcytu. W 1978 r. pobrane zostały ich pr&oacute;bki do badań wieku bezwzględnego (Kardaś 1980d). Młodsze nacieki są formami na og&oacute;ł drobnymi i występują gł&oacute;wnie w dolnym piętrze jaskini. W Białym Kominie i jego okolicach występują grube pokrywy mleka wapiennego, silnie nasycone wodą, o brązowych powierzchniach &ndash; obecnie znacznie zniszczone przez zwiedzających jaskinię. R. Gradziński i Z. W&oacute;jcik (1961a) opisują z okolic Ponoru i Sali Błotnych Wulkan&oacute;w nacieki cementacyjne mułowe w kształcie stożk&oacute;w wulkanicznych.</span></p>
+<p><span>Osady organogeniczne występują w okolicy &Oacute;semki w g&oacute;rnym piętrze jaskini. Stanowią je nagromadzenia kości i czaszek nietoperzy, o r&oacute;żnym stopniu sfosylizowania (Wołoszyn 1963a). Stosunkowo świeże są czaszki nietoperzy <strong><em>Myotis myotis </em></strong>i <strong><em>Myotis mystacinus</em></strong>, natomiast wśr&oacute;d czaszek sfosylizowanych są <strong><em>Plecotus auritus</em></strong>, <strong><em>Myotis dasycneme</em></strong><em>,<strong> Myotis bechsteinii </strong></em>i <strong><em>Myotis myotis</em></strong>.</span></p>
+<p><span>Światło sięga do pierwszego zakrętu wstępnego korytarza. Mikroklimat jaskini charakteryzuje się dwoma strefami (Pulina 1974, 1960b). Strefa mikroklimatu dynamicznego sięga około 500 m w głąb jaskini, głębiej panuje mikroklimat statyczny. Temperatury mierzone w latach 1951-1952 (Kowalski 1953a) w końcowej części strefy mikroklimatu dynamicznego wynosiły średnio 3,4&deg;C przy amplitudzie rocznej 1,6&deg;C (Salka z Przepływem). Temperatury w głębi jaskini, mierzone w latach 1958-61 (Pulina 1960b) w strefie mikroklimatu statycznego wynosiły od 4,2&deg;C (Benedyktynka) do 5,1&deg;C (Sala Długa).W jaskini obserwuje się silny przepływ powietrza, osiągający wartość 2-4 m&sup3;/sec (Pulina 1960b, 1974).W obrębie strefy mikroklimatu dynamicznego zalodzenie sięga około 200 m w głąb jaskini &ndash; l&oacute;d polewowy obserwowano w czasie mroźnych zim aż do przełazu zwanego &bdquo;pod Zapałkami&rdquo;(aktualnie &ndash;2009 r. &ndash; obserwuje się polewy lodowe aż do kom&oacute;rki za Jeziokiem Sadyst&oacute;w). W zimie, w przyotworowej partii jaskini powszechnie występują bogato rozwinięte formy lodowe &ndash; stalaktyty, stalagmity, draperie lodowe, kolumny lodowe, polewy i pokrywy lodowe (Pulina 1971, Pulinowa i Pulina 1974). Szata lodowa utrzymuje się w jaskini nawet do lipca.</span></p>
+<p><span>Jaskinia jest wilgotna, licznie występują stałe jeziorka, szczeg&oacute;lnie w dolnym piętrze jaskini, kt&oacute;re od zachodu zamyka seria dużych syfon&oacute;w. Głębokie, szczelinowe jeziorka występują też w g&oacute;rnym piętrze (Czarne Jeziorko, Niewidzialna Woda). Stan wody w jaskini zależy od warunk&oacute;w atmosferycznych na powierzchni. W okresach nasilonych opad&oacute;w i (szczeg&oacute;lnie) roztop&oacute;w, w dolnym piętrze formują się liczne okresowe jeziorka, z kt&oacute;rych największe &ndash; Ponor &ndash; osiąga długość kilkudziesięciu metr&oacute;w, blokując drogę w głąb jaskini. Stała, dość pokaźna struga wody przepływa przez Salkę z Przepływem, ginąc w ciasnej, niedostępnej szczelinie. Cechy fizyko-chemiczne w&oacute;d w jaskini badali W. i A. Chodorowscy (1959). Według nich temperatury wody w jeziorkach we wstępnej części jaskini (do 350 m od otworu) zmieniały się w cyklu rocznym od 2,1&deg;C w zimie do 3,8&deg;C latem, natomiast w głębi jaskini charakteryzowały się stałą temperaturą, wynoszącą 4,2&deg;C. Podają oni także szczeg&oacute;łowe wyniki badań twardości og&oacute;lnej, węglanowości oraz chemizmu w&oacute;d. Badania chemizmu w&oacute;d prowadził także M. Pulina w latach 1958-1965. Wyniki ich nie były publikowane i znajdują się w prywatnym archiwum autora. Przeprowadzone barwienia (Dąbrowski 1964, 1967a; Dąbrowski i Rudnicki 1967) wykazały, że wody przepływające przez Salkę z Przepływem pojawiają się na powierzchni w niewielkim wywierzysku, nieco powyżej Bramy Kraszewskiego. Deszcz podziemny, o nasileniu zależnym od warunk&oacute;w atmosferycznych na powierzchni, spotyka się w kilku punktach jaskini i jest z reguły związany z wielkimi szczelinami w stropie (np. w szczelinowym korytarzu pod Czarnym Kominem).</span></p>
+<p><span>Roślinność zielona , obficie występująca w otworze jaskini (szczeg&oacute;lnie po jego prawej stronie) była badana przez Żmudę (1916a,b). W trakcie terenowych prac inwentaryzacyjnych OW PTPNoZ w sierpniu 1979 r. T. Bielska zebrała i oznaczyła następujące gatunki (mszaki oznaczyła J. Mickiewicz):</span></p>
+<p><span>kwiatowe &ndash; <strong><em>Viola biflora </em></strong>L., <strong><em>Arabis halleri </em></strong>L., <strong><em>Pinguicula alpina </em></strong>L., <strong><em>Campanula polymorpha </em></strong>Witasek, <strong><em>Carex firma</em></strong> Host, <strong><em>Swertia perennis</em></strong> L., <strong><em>Poa alpina </em></strong>L., <strong><em>Belidiastrum michelii</em></strong> Cass., <strong><em>Chrysosplenium alternifolium </em></strong>L., <strong><em>Primula elatior</em></strong> Grubf., <strong><em>Senecio nemorensis </em></strong>L.,<em> <strong>Thalictrum aquilegiifolium</strong> </em>L.,<em> <strong>Delphinium oxysepalum</strong> </em>Borb. et Pax,<em> <strong>Soldanella carpatica</strong> </em>Vierh., <strong><em>Veronica aphylla </em></strong>L., <strong><em>Androsace chamaejasme </em></strong>Wulf.;</span></p>
+<p><span>paprocie &ndash;&nbsp;<strong><em>Cystopteris fragilis </em></strong>Bernh., <strong><em>Asplenium viride</em></strong> Huds.;</span></p>
+<p><span>mszaki &ndash;<em> <strong>Cephalozia bicuspidata</strong> </em>(L.) Dum, <strong><em>Haplozia lanceolata</em></strong> M&uuml;ll., <strong><em>Orthothecium rufescens </em></strong>Br. eur., <strong><em>Mnium orthorrynchum </em></strong>Br. eur., <strong><em>Eurhynchium swartzii</em></strong> Hobkirk, <strong><em>Timmia austriaca</em></strong> Hedw., <strong><em>Barbula</em></strong> sp.</span></p>
+<p><span>Poza tym we wstępnym korytarzu w pobliżu otworu na ścianach występują liczne glony i porosty. W wodach jeziorek, szczeg&oacute;lnie we wstępnej partii jaskini, stwierdzono obecność bakterii rodzaj&oacute;w <em><span><strong>Thiobacillus</strong>, <strong>Azobacter</strong>, <strong>Staphylococcus</strong>, <strong>Sarcina</strong>, <strong>Vibrio</strong>, <strong>Flavabacterium</strong>, <strong>Pseudomonas</strong> </span></em>i <strong><em>Achromobacter</em> </strong>(Fischer 1959, 1963; Chodorowscy 1960), <strong><em>Bacillus </em></strong>sp. <em>i <strong>Saprospira </strong></em>sp. (Chardez i Delhez 1981) oraz grzyb&oacute;w glonowatych <strong><em>Arcella discoides </em></strong>i <strong><em>Centropyxis aculeata</em></strong> (Doroszewski 1960).</span></p>
+<p><span>Badania fauny wodnej wykazały występowanie w jeziorkach jaskini wiciowc&oacute;w (Chodorowscy 1960), wymoczk&oacute;w <strong><em>Colpidium camphylum </em></strong>St., <strong><em>Colpidium colpoda </em></strong>Ehrb. i <strong><em>Colpoda duodenaria </em></strong>T. F. (Doroszewski 1960), skorupiak&oacute;w <strong><em>Niphargus tatrensis</em></strong> Wrześniowski (Kowalski 1953a, 1955a; Micherdziński 1956; Chodorowscy 1960) i <strong><em>Acanthocyclops langidoides</em></strong> var. <strong><em>clandestinus</em></strong> (Chodorowscy 1960) oraz skąposzczet&oacute;w z rodziny <em>Euchytraeidae</em> - E. Gadzińska (1974) opisuje nowy gatunek <strong><em>Cernosvitoviella parviseta</em></strong>, a E. Dumnicka (1977) opisuje anomalie tych wazonkowc&oacute;w oraz wymienia występowanie <strong><em>Euchytraeus dominicae </em></strong>(Dumnicka 1981). D. Chardez i F. Delhez (1981) wymieniają z jeziorek Zimnej pierwotniaki <strong><em>Cercomonas longicauda </em></strong>Dujardin, <strong><em>Bodo celer </em></strong>Klebs, <strong><em>Monas socialis </em></strong>Klebs, <strong><em>Acanthomoeba castellani</em></strong> Volkomsky. <strong><em>Centropyxis sylvatica</em></strong> (delf.) Thomas. Ponadto M. Pr&oacute;szyńska (1963) opisuje występowanie skorupiak&oacute;w Copapoda (Cyclopoida). Według K. Kowalskiego (1955a) w jaskini występują następujące gatunki bezkręgowc&oacute;w: <strong><em>Meta menardi</em></strong> (Latr.) &ndash; <em>Araneae</em>; <strong><em>Liobunum rupestre </em></strong>(Herbst) &ndash; Opiliones; <strong><em>Ceratophysella armata</em></strong> (Nicolet), <strong><em>Onychiurus armatus </em></strong>(Tullberg.), <strong><em>Onychiurus</em> <em>fimetarius</em></strong> (auct.) Stach, <strong><em>Isostoma hiemalis </em></strong>Sch&ouml;tt, <strong><em>Isostoma fennica </em></strong>(Reuter) i <strong><em>Arrhopalites pygmaeus</em></strong> (Wankel &ndash; Collembola;<em> <strong>Scoliopteryx libatrix</strong> </em>(L.), <strong><em>Bomolocha obesalis</em></strong> Tr., <strong><em>Triphosa dubitata </em></strong>L. &ndash; Lepidoptera; <strong><em>Stenophylax permistus </em></strong>Mac Lachlan &ndash; Trichoptera; <strong><em>Exephantes hilaris </em></strong>Bravenhorst &ndash; Hymenoptera; <strong><em>Theobaldia alascaensis</em></strong> Ludlow, <strong><em>Culex pipiens </em></strong>L.,<strong> <em>Thelida atricornis </em></strong>Meigen, <strong><em>Eccoptomera emarginata </em></strong>Loew., <strong><em>Eccoptomera pallescens </em></strong>Meigen, <strong><em>Amoebaleria caesia</em></strong>&nbsp; Meigen, <strong><em>Amoebaleria spectabilis</em></strong> (Loew.), <strong><em>Helomyza modesta </em></strong>(Meigen),<strong> <em>Crumomyia (Stratioborbus) nitida </em></strong>(Meigen) &ndash; Diptera. Z kręgowc&oacute;w Kowalski (1955a) wymienia<em> <strong>Martes martes</strong> </em>(L.) &ndash; Carnivora i nietoperze <strong><em>Plecotus auritus </em></strong>(L.), <strong><em>Eptesicus nilssonii </em></strong>(Keyserling), <strong><em>Myotis myotis</em></strong> (Borkhausen), <strong><em>Myotis mystacinus</em></strong> (Leisler), a B. W. Wołoszyn (1961, 1963, 1970) ponadto wymienia <strong><em>Myotis bechsteinii, Myotis nattereri </em></strong>i <strong><em>Myotis dasycneme</em>. </strong></span></p>
+<p><span>Piksa (1995) wymienia następujące gatunki nietoperzy: </span><strong><em>Myotis mystacinus</em></strong> (Leisler), &nbsp;<strong><em>Myotis myotis</em></strong> (Borkhausen, 1779), <strong><em>Myotis nattereri</em></strong> (Kuhl 1817), <strong><em>Plecotus auritus </em></strong>(L.),<em></em><strong><em> Eptesicus nilssonii</em></strong><span> (Keyserling); w innej pracy (</span><span>Piksa,1998) ponadto: <strong><em>Myotis bechsteinii</em></strong></span>.<span> Piksa i Nowak (2000) zaliczają jaskinię jako jedno z największych hibernakul&oacute;w nietoperzy w Tatrach (100 sztuk). Piksa i Wołoszyn (2001) wymieniają: </span><strong><em>Myotis myotis</em></strong> (Borkhausen, 1779), <strong><em>Myotis bechsteinii,</em></strong><strong><em> Myotis mystacinus</em></strong> (Leisler), <strong><em>&nbsp;Myotis brandtii, </em></strong><strong><em>Myotis dasycneme</em></strong>, <strong><em><span>Myotis daubentonii</span></em></strong>,<strong><em><span> Eptesicus nilssonii</span></em></strong> (Keyserling). <span>Piksa i Nowak (2004) podają wyniki monitoringu nietoperzy prowadzonego w latach 1997-2004.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>M. Bac i K. Grochocka (1965) prowadziły badania geologiczne masywu, geologię jaskini badał J. Grodzicki (1969, 1978, 1991). Prace nad poznaniem genezy oraz wieku prowadzili J. Rudnicki (1958a, b, 1967), Z. W&oacute;jcik (1960a, 1966a, 1968) oraz J. Grodzicki (1969, 1970, 1991), wypowiadając się także o jej ewolucji. Osady zbadał Z. W&oacute;jcik (1960a,b, 1966a, 1968), a nacieki grzybkowe opisali R. Gradziński i R. Unrug (1960). O szacie naciekowej pisali R. Gradziński i Z. W&oacute;jcik (1961a), młode przesunięcia tektoniczne badali Z. W&oacute;jcik i S. Zwoliński (1959), J. Rudnicki (1958a, 1967) i J. Grodzicki (1969, 1970). Badania wsp&oacute;łczesnych proces&oacute;w geomorfologicznych przeprowadziła M. Grześkowiak (1962). Pomiary mikroklimatyczne wykonywali K. Kowalski (1953a) i M. Pulina (1960, 1974), kt&oacute;ry opisał strefy mikroklimatu jaskini. Stosunki wodne w jaskini badali T. Dąbrowski (1961, 1964, 1967a) oraz T. Dąbrowski i J. Rudnicki (1964, 1967), a własności fizykochemiczne wody w jaskini opisali W. i A. Chodorowscy (1959). <br />Zjawiska lodowe badał M. Pulina (1960a, 1971) oraz M. Pulinowa i M. Pulina (1972). Szatę roślinną opracowywał A. Żmuda (1916a,b), a w latach 1974-79 &ndash; w czasie prac inwentaryzacyjnych OW PTPNoZ &ndash; T. Bielska. E. Fischer (1959, 1963) wymienia bakterie występujące w jeziorkach jaskini, a hydrofauną zajmowali się W. Micherdziński (1956), W. i A. Chodorowscy (1958, 1960), M. Doroszewski (1960), E. Gadzińska (1974), E. Dumnicka (1977, 1981). Faunę badali K. Kowalski (1953a,b,c, 1955a, 1959b), B.W. Wołoszyn (1963, 1964, 1970) oraz A. Skalski (1969). W 1959 r. T. Janasz, E. Kołkiewicz, J. Rabek i Z. W&oacute;jcik opublikowali monografię jaskini we francuskim czasopiśmie Speleon, praktycznie niedostępnym w Polsce. W 1980 r. w dniach 20-29 grudnia były prowadzone badania wpływu mikroklimatu jaskini na organizm człowieka w trakcie specjalnie zorganizowanego biwaku (Chabracka, Krośkiewicz 1981).<br /> W p&oacute;źniejszym okresie badania prowadzili: Kicińska, D. 2000 &ndash; o paleokierunkach cyrkulacji w&oacute;d; Kicińska (2004a) &ndash; paleoprzepływy, uwagi o genezie; Nowicki (2004) &ndash; ewolucja w świetle datowania naciek&oacute;w; M. Gradziński i in. (2005) &ndash; uwagi o genezie; G. Barczyk (2008) &ndash; badania systemu wywierzyskowego Lodowego Źr&oacute;dła. Piksa (1995, 1998), Piksa i Wołoszyn (2001), Piksa i Nowak (2000, 2004) &ndash; monitoring nietoperzy, Szczygieł J. (2015a) - neotektonika.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r Jaskini Zimnej znany był juhasom, myśliwym i poszukiwaczom skarb&oacute;w od dawna. Już w XIX wieku prowadziła tu wyraźna perć, a grota miała g&oacute;ralską nazwę &bdquo;Duda&rdquo;. W 1882 r. zwiedził ją G. Ossowski z przewodnikiem do rozdwojenia korytarza. W 1883 r. opisał on drogę i wnętrze oraz wspomniał o obecności lodu. Około 1885 r. J. G. Pawlikowski w towarzystwie g&oacute;rali (między innymi M. Sieczki) dotarł do Starej Komory &ndash;jak w&oacute;wczas sądzono &ndash; do końca groty. W 1887 r. wykonał on pomiary i opisał jaskinię, nadając jej nową nazwę Groty Zimnej. W roku 1888 Towarzystwo Tatrzańskie poprawiło perć wiodącą do otworu, a nieco p&oacute;źniej została ona oznakowana.</span></p>
+<p><span>W 1913 r. T. i S. Zwolińscy wraz z wynajętymi pracownikami przekopali ciasną szczelinę za Starą Komorą, a 3 lipca 1936 podjęli pr&oacute;bę zwalenia drągami wielkich głaz&oacute;w, blokujących dalszą drogę. </span></p>
+<p><span>1 września 1936 r. wysadzili je z pomocą robotnik&oacute;w W. Goryckiego i R. Palucha, używając materiał&oacute;w wybuchowych. Przejście ubezpieczono następnego dnia belkami nazywając to miejsce &bdquo;Pod Zapałkami&rdquo;. W Salce z Przepływem, nazywanej w&oacute;wczas Jadalnią, było jeziorko zagradzające dalszą drogę. Wtedy też wykopano istniejący do dziś r&oacute;w, odwadniający ciasny przełaz za salką. Tego dnia odkrywcy dotarli do szczeliny przed Błotnym Korytarzem. </span></p>
+<p><span>8 września 1936 r. Zwolińscy wraz z Goryckim dotarli aż do syfonu (nazwanego p&oacute;źniej ich nazwiskiem), a w dniach 13 i 14 września wykonali pomiary odkrytych partii. </span></p>
+<p><span>W dniu 20 marca 1938 r. E. Winiarski i S. Zwoliński, po 1, 5 godziny czerpania wody z syfonu, odsłonili prześwit umożliwiający przejście i doszli do Komory pod Wielkim Kominem. S. Zwoliński na pływakach własnej konstrukcji przepłynął następne jezioro, docierając do następnego syfonu, kt&oacute;rego nie udało się już wyczerpać.</span></p>
+<p><span>Dalsza eksploracja możliwa była dopiero po wojnie. W 1950 r. Zwolińscy podjęli pr&oacute;bę znalezienia obejścia syfon&oacute;w &ndash; zwiedzili wtedy boczne odnogi. </span></p>
+<p><span>18 lutego 1950 r. S. Zwoliński i E. Winiarski podjęli pr&oacute;bę wspinaczki w Wielkim Kominie. </span></p>
+<p><span>Na początku marca 1952 r. S. Zwoliński i E. Winiarski z robotnikami (S. Kobiałka, S. Stanek i Z. i S. Majerowie, kt&oacute;rzy w literaturze występują r&oacute;wnież jako Majerczykowie) przy pomocy drabiny dostali się do Krętego Korytarza, badając go na odcinku 150 m (prawdopodobnie do okna w ciasnej, wysokiej szczelinie). </span></p>
+<p><span>W latach 1953-1954 rozegrał się wyścig eksploracyjny pomiędzy grupą krakowskich i zakopiańskich grotołaz&oacute;w. </span></p>
+<p><span>W lutym 1953 r. zesp&oacute;ł krakowski pod kierunkiem K. Kowalskiego, po wyczerpaniu Syfonu Zwolińskich, dotarł do platformy w Wielkim Kominie (do G&oacute;rnej Komory). Warto wspomnieć, iż czerpanie syfonu poprzedzone było przenurkowaniem go wdniu 3.02 1953 r. w specjalnie do tego celu skonstruowanym skafandrze klasycznym (aktualnie wystawiany jest on w Muzeum Nurkowania w Warszawie). Było to pierwsze w Polsce nurkowanie jaskiniowe.</span></p>
+<p><span>17 marca 1953 r. zakopiańczycy (w składzie jak w poprzedniej wyprawie) pod kierunkiem S. Zwolińskiego pokonali Pr&oacute;g z Wantą i po zwaleniu wielkich głaz&oacute;w przedostali się do Czarnego Korytarza. Stąd S. Zwoliński, S. Majer i S. Stanek początkowo wspinając się, a wyżej przy pomocy drabiny, osiągnęli platformę w Czarnym Kominie. </span></p>
+<p><span>W sierpniu 1953 r. zakopiańczycy, kierowani przez S. Zwolińskiego (L. Ćwiertniak, K. Stecki (jr.), E. Winiarski i L. Ziembiec) pokonali g&oacute;rną część Czarnego Komina (przy pomocy techniki hakowej) oraz Czarne Jeziorko. W&oacute;wczas dotarli pod Biały Komin. </span></p>
+<p><span>We wrześniu 1953 r. kierowana przez K. Kowalskiego grupa krakowska w składzie T. &nbsp;Bernhardt, &nbsp;P. &nbsp;Burchard, &nbsp;A.&nbsp; Chodorowski &nbsp;(z &nbsp;Warszawy), &nbsp;O. Czyżewski, W. &nbsp;Danowski,&nbsp; M. &nbsp;Doroszewski, &nbsp;R. Gradziński, M. Kuczyński, A. Ostrowicz, L. Ostrowicz, A. Radomski, W. Starzecki, W. Szymczakowski, J. Tomaszewski i E. Warchalewski przebyła przy pomocy masztu najwyższą część Wielkiego Komina &ndash; gładką, pionową ścianę. </span></p>
+<p><span>24-25 stycznia 1954 r. zakopiańczycy: L.&nbsp; Ćwiertniak,&nbsp; J. &nbsp;Frączek, M Hyziński, J. Orawiec, E. Winiarski i S. Zwoliński, zbadali Czarny Korytarz za Czarnym Jeziorkiem, docierając tamtędy do odnalezionej nieco wcześniej przez krakowian platformy w Wielkim Kominie. </span></p>
+<p><span>W lutym 1954 r. trzecia wyprawa krakowska (o składzie zbliżonym do poprzedniej) w Sali Biwakowej zbudowała z listew i desek obitych papą chatkę, zwaną &bdquo;Benedyktynką&rdquo;,&nbsp; kt&oacute;ra&nbsp; mogła&nbsp; służyć jako solidna baza do dalszej eksploracji. W czasie tej wyprawy przeszukano korytarze aż po Salę Złomisk, a także odkryto Korkociąg Krakowski, docierając następnie do Korytarza Rubinowego. </span></p>
+<p><span>W dniach 23 lutego - 1 marca 1954 r. kolejna wyprawa zakopiańczk&oacute;w w składzie L. Ćwiertniak, K. Habowski, J. Orawiec, K. Stecki i S. Zwoliński odkryła Korytarz pod Łukami.</span></p>
+<p><span>18-21 marca&nbsp;1954&nbsp;r.&nbsp;wyprawa&nbsp;zakopiańczyk&oacute;w&nbsp;w&nbsp;tym&nbsp;samym&nbsp;składzie, licząca ponadto J. Frączka i R. Winiarskiego, odkrywa ciąg do zamulonego syfonu (od Studni Kuczyńskiego po Zamulone Studnie). Wykonano w&oacute;wczas pomiary gł&oacute;wnego ciągu g&oacute;rnych partii jaskini.</span></p>
+<p><span>W 1955 r. podczas małych wypraw STJ Zakopane uzupełniano pomiary oraz dokonano szeregu drobnych odkryć w bocznych ciągach.</span></p>
+<p><span>W dniach 19 marca i 16 września 1955 r. w wyprawie STJ Zakopane pokonano Biały Komin i przebyto drogę od niego do połączenia z wylotem Wielkiego Komina.</span></p>
+<p><span>W grudniu 1956 r., w ramach wyprawy SW przygotowującej się do pokonania syfonu nazwanego p&oacute;źniej Marwoj w Jaskini Miętusiej,&nbsp;dw&oacute;ch nurk&oacute;w wykonało pr&oacute;bne nurkowanie swobodne z aparatami ISA-M-48 w Syfonie Zwolińskich Jaskini Zimnej (Bulik, 2004). </span></p>
+<p><span>2 stycznia 1958 r. podjęto pr&oacute;bę pokonania syfon&oacute;w w dolnym ciągu metodą nurkowania swobodnego. Podczas wyprawy Komisji Taternictwa Jaskiniowego KW z Krakowa S. Ogaza i W. Maczek przeszli za syfon, nazwany p&oacute;źniej Syfonem Ogazy, docierając do następnego syfonu. Na skutek awarii sprzętu Ogaza został uwięziony między syfonami. Po 45 godzinach akcji ratunkowej z udziałem m.in. płetwonurk&oacute;w Speleoklubu Warszawskiego, TOPR, wojska i koleg&oacute;w, uwięzionego Ogazę udało się wydobyć żywego.</span></p>
+<p><span>W lutym 1957 r. Sekcja Grotołaz&oacute;w AKT Wrocław zorganizowała wyprawę, kt&oacute;ra działała z biwaku w Sali za Korkociągiem (Sali Galeriowej). P. Habič (Jugosławia), M. Pulina (SG AKT) i J. Rudnicki (Speleoklub Warszawski) odkryli wtedy Partie Wrocławskie pokonując trudny Korkociąg Wrocławski. Po zakończeniu akcji spalił się wieloosobowy śpiw&oacute;r, powodując wypełnienie korytarzy dymem. Spowodowało to kilkudniową akcję ratunkową.</span></p>
+<p><span>W lutym 1961 r. wrocławska wyprawa, kierowana przez J. F. Rabka, podjęła eksplorację Komina Maurycego (stwierdzono jego ślepe zakończenie) oraz Piarżystych Most&oacute;w w Partiach Wrocławskich, a M. Pulina prowadził badania naukowe. </span></p>
+<p><span>26 grudnia 1965 &ndash; 3 stycznia 1966 r. odbyła się wsp&oacute;lna wyprawa Speleoklubu Warszawskiego PTTK i Warszawskiego Klubu Płetwonurk&oacute;w, kt&oacute;ra pokonała Syfon Warszawiak&oacute;w, następny za Syfonem Ogazy, odkrywając jednocześnie kilkadziesiąt metr&oacute;w dotychczas nieznanego ciągu. Jako nurkowie w wyprawie uczestniczyli: J. Bzowski, J. Grodzicki, J. Giżejewski, J. S. Lebecki, R. Lebecki, W. Roszczynko, A. Sroczyński, M. Woźniewski. </span></p>
+<p><span>W dniach 24-27.03.1966 r. następna wyprawa Speleoklubu Warszawskiego badała możliwości odkrycia nowych partii za Syfonem Warszawiak&oacute;w. W czasie akcji nurkowej w Syfonie Ogazy zginął R. Lebecki. W przeprowadzonej akcji ratowniczej brali udział komandosi, GOPR i członkowie wyprawy (J. Bzowski, J. Grodzicki, J. Giżejewski, J. S. Lebecki, W. Roszczynko, A. Sroczyński oraz M. Woźniewski).</span></p>
+<p><span>W 1967 r. L. Pacuła i H. Walczak (z Mysłowic) przedłużyli o kilkanaście metr&oacute;w boczny ciąg, odchodzący na prawo od Małej Komory oraz o kilka metr&oacute;w &ndash; boczny korytarzyk, odchodzący od Sali pod Czarnym Kominem.</span></p>
+<p><span>Na przełomie 1967/1968 roku, w czasie wyprawy Zespołu Podwodnego SW PTTK, J. Bzowski, J. Giżejewski i A. Sroczyński spenetrowali ciąg za Syfonem Warszawiak&oacute;w i stwierdzili, że stromy i ciasny Korytarz Muszlowy po przebiegu kilku metr&oacute;w zwęża się w szczelinę nie do przejścia.</span></p>
+<p><span>Na przełomie 1970 r. i 1971 r. grotołazi SW PTTK wykonali trawers nitowy nad Studnią Maurycego. M. Rutkowski dotarł do okna, nad kt&oacute;rym znalazł most skalny wydzielający 4-metrowy korytarzyk, zakończony ślepą szczeliną. Stwierdzono także możliwość wspinaczki nad studnią. W czasie trwania wyprawy, podczas kręcenia filmu w dolnych partiach jaskini, zdarzył się wypadek. Na ekipę runął około 4-metrowy pr&oacute;g z wyżej położonej, zamulonej depresji ciągu.</span></p>
+<p><span>W 1976 roku jeden z uczestnik&oacute;w wyprawy wrocławskiej obsunął się ze ściany w rejonie Sali ze Stołem i odni&oacute;sł poważne obrażenia. Uratowano go dzięki błyskotliwej akcji GOPR.</span></p>
+<p><span>W 1980 r. w trakcie wyprawy SW PTTK J. Banasiak, J. Jachymski i J. Reginia pokonali pr&oacute;g nad Studnią Maurycego, odkrywając Partie nad Maurycym. Wykonali także szkic nowych partii (Burkacki, W. 1980).</span></p>
+<p><span>Nieco p&oacute;źniej (też w 1980 r.) ciąg szkieletowy gł&oacute;wnego korytarza tych partii sporządził J. Szaran (SW PTTK). Podczas wyprawy wykopano r&oacute;wnież kilka metr&oacute;w w Korytarzu Rubinowym (na jego końcu).</span></p>
+<p><span>W 1981 r. M. Rekus (SW PTTK) sprawdził metodą nurkowania swobodnego Niewidzialną Wodę. Okazało się, że jest to jeziorko.</span></p>
+<p><span>W 1981 r. członkowie SW PTTK podjęli pr&oacute;bę rozebrania zawaliska końcowego w Partiach nad Maurycym przy pomocy materiał&oacute;w wybuchowych (z miernym rezultatem).</span></p>
+<p><span>W 1981 (lub 1982) roku (według informacji ustnej W. Matejuka) grotołazi ze Speleoklubu Dąbrowa G&oacute;rnicza wspięli się kilkadziesiąt metr&oacute;w rurą odchodzącą w połowie Zamulonych Studni (w biegnącym w d&oacute;ł ciągu od Studni Kuczyńskiego), idącą w stronę Korytarza pod Łukami. </span></p>
+<p><span>Około 1985 r., w czasie eksplorowania Jaskini Naciekowej, grotołazi zakopiańscy wspinali się w kominie korytarza przed Salką z Przepływem w celu połączenia opisywanej jaskini z Jaskinią Naciekową (bez rezultatu).</span></p>
+<p><span>W latach 1984-1985 taternicy jaskiniowi ze Speleoklubu PTTK Gliwice (K. Chromy, K. Ganowicz, J. Jaszczyszyn, D. Macioszek, K. Nowak, A. Pan&oacute;w, W. Rusiecki, R. Widacki, M. Wilczyński, K. Wittman) wyeksplorowali Partie za Studnią Maurycego &ndash; tzw. Zabłocone Szczeliny (I, II, III i IV). Szczeliny te zostały częściowo udokumentowane. Opis i plan tego fragmentu jaskini zamieścił Wittman (1985).</span></p>
+<p><span>12 stycznia 1985 r. grotołazi z STJ KW Krak&oacute;w (A. Amirowicz i S. Pańszczyk) odkryli i skartowali ok. 150 m korytarzy podchodzących w pobliże powierzchni, kt&oacute;re zostały nazwane Partiami nad Łukami. Nie jest pewne, czy częściowo partie te nie pokrywają się ze skartowanymi w 1980 r. przez R. M. Kardasia lub nawet ciągami znanymi dużo wcześniej grotołazom zakopiańskim. Problem ten był sprawdzany ponownie w 1987 r., uzupełniono w&oacute;wczas pomiary (niestety, brak tamtej dokumentacji).</span></p>
+<p><span>W marcu 1997 r. W. Bolek pokonał w Syfonie Warszawiak&oacute;w pochylnię i dotarł do zwężenia syfonu (Bolek, 1997b).</span></p>
+<p><span>W grudniu 1997 r. K. Starnawski w Syfonie Warszawiak&oacute;w pokonał za zwężeniem&nbsp;na końcu pochylni 7 m nowego korytarza, osiągając głębokość 9 m (Luty, 1998a).</span></p>
+<p><span>W 1988 r. S. Kotarba i M. Rachwał (KKTJ) wyeksplorowali ok. 10 m obejścia Czarnego Komina. Podchodzi ono teraz pod Pr&oacute;g Naciekowy. Odcinek ten nazwano Śliskim Progiem (Kronika 1988a).</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Opis wg Tabaczyńskiego (Jaskinie TPN, t.11, 2004): <em>&bdquo;Opisane powyżej partie Pod Łukami były znane grotołazom z Sekcji Taternictwa Jaskiniowego KW Krak&oacute;w, co najmniej od początku lat 60-tych (pierwsze pomiary 17-18.01.1960 wykonali R.Kujat i J. Wrzak). Kolejne pomiary przeprowadzono w początku lat osiemdziesiątych (7-8.02.1981 R. Kujat i J. Wrzak). Wyniki tych prac nie były publikowane. Dopiero po powt&oacute;rzeniu pomiar&oacute;w dnia 20 czerwca 2003 r. przez zesp&oacute;ł w składzie: M. Nawrot, T. Tomaszek (obaj STJ KW Krak&oacute;w), Z. Tabaczyński (ST Zakopane) odnaleziono starszą dokumentację. Obecna dokumentacja opiera się na pomiarach wykonanych w 2003 r.&rdquo; </em></span></p>
+<p><em><span>&bdquo;Historia odkrycia otworu <strong>Jaskini Biała</strong>: w wyniku przeprowadzonych w grudniu 2002 r. akcji do jaskini Zimnej (w składzie: P. Ramatowski, R. Grzywa, M. Nawrot, T. Tomaszek &ndash; STJ KW Krak&oacute;w i Z. Tabaczyński &ndash; Speleoklub Tatrzański), udało się ustalić miejsce lokalizacji g&oacute;rnego otworu na powierzchni terenu. 20 stycznia 2003 r. zesp&oacute;ł w składzie: P. Ramatowski, R. Grzywa, M. Nawrot, T. Tomaszek (STJ KW Krak&oacute;w) i Z. Tabaczyński (Speleoklub Tatrzański) potwierdza istnienie połączenia z jaskinią Zimną. 20 czerwca 2003 r. M. Nawrot, T. Tomaszek, Z. Tabaczyński sporządzają dokumentację tej części jaskini.&rdquo;</span></em><span> O eksploracj w Partiach nad Łukami i odkryciu g&oacute;rnego otworu pisze też Tomaszek (2003). </span></p>
+<div>&nbsp;</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan dolnych partii jaskini (wykonany przez S. Zwolińskiego) oraz ich opis inwentarzowy zamieścił K. Kowalski (1953a). B. Koisar (1968b) przedstawił opracowany przez siebie plan uzupełniony o g&oacute;rne piętra jaskini (skartowane podczas wyprawy STJ KW w 1962 r. pod kierownictwem T. Paluszkiewicza) oraz odkrycia w dolnym ciągu (według szkicu J. Grodzickiego). Zamieścił też opis inwentarzowy znanych w&oacute;wczas ciąg&oacute;w. Dane zaktualizowała I. Luty (2009).<br />Plan i przekr&oacute;j opracowała Izabella Luty, wykorzystując następujące materiały:<br />a) materiały zgromadzone w ramach prac zespołu inwentaryzacji jaskiń OW PTPNoZ i zestawione na planie w skali 1:400 (pomiary wykonano przy pomocy busoli geologicznych Meridian i Freiberg, zestawu Suunto i taśmy parcianej):<br />&ndash; Gł&oacute;wny ciąg jaskini (otw&oacute;r &ndash; Syfon Zwolińskich, Pr&oacute;g z Wantą &ndash; Sala Biwakowa &ndash; Korytarz Galeriowy &ndash; Korytarz za &Oacute;semką &ndash; Okno Krakowskie) oraz Czarny Korytarz, Salka ze Stalaktytem, Wielki Komin i korytarz między syfonami, ciąg przez Salę Błotnych Wulkan&oacute;w wraz z Korytarzem Niewidzialnej Wody, Rubinowy Korytarz, Dolny Ciąg Partii Wrocławskich &ndash; według pomiar&oacute;w I. Luty wykonanych w latach 1978-1980 przy wsp&oacute;łpracy m.in. J. Bednarka, A. Gruzy, W. Guzickiego, M. Kardasia, E. Kuźniak, M. Kwiatkowskiego, Z. Krośkiewicza, A. Nyckowskiego). <br />&ndash; Ciąg do Sali Złomisk (od Wideł przez Salę za Stołem, Korytarz pod Łukami), partie nad Salą Złomisk oraz G&oacute;rny Ciąg Partii Wrocławskich (do Studni Maurycego i Syfonu Maurycego) &ndash; według pomiar&oacute;w R. M. Kardasia wykonanych w latach 1978-1980 przy wsp&oacute;łpracy licznych os&oacute;b, przede wszystkim R. Kardaś, M. Połońskiego i A. Wawrzyszczaka.<br />&ndash; Ciąg od Studni Kuczyńskiego do Zamulonego Syfonu &ndash; szkic wykonany na podstawie niekompletnych pomiar&oacute;w z 1980 r. przez I. Luty. <br />b) inne materiały:<br />&ndash; Plan i ciąg pomiarowy Krętego Korytarza opracowany w 1989 r. w skali 1:200 przez G. Albrzykowskiego i J. Paziewskiego.<br />&ndash; Plan fragmentu Partii za Studnią Maurycego zamieszczony przez K. Wittmana (1985).<br />&ndash; Plan fragmentu Partii za Studnią Maurycego, sporządzony w 1985 r. w skali 1:400 przez W. Szymanowskiego i innych . Z tego planu wykorzystano też częściowo rysunek morfologii fragment&oacute;w innych partii.<br />&ndash; Ciąg szkieletowy (niedowiązany) Partii nad Maurycym wykonany w 1980 r. przez J. Szarana oraz szkic tych partii według J. Jachymskiego i M. Sygneta z 1980 r.<br />&ndash; Ciąg przez Syfony Ogazy i Warszawiak&oacute;w według opisu i szkicu J. Grodzickiego, zamieszczonego przez Koisara (1968b).<br />Uzupełnienia nie uwzględnione na załączonym planie jaskini, wykonane przez I. Luty po opublikowaniu go (Jaskinie TPN 1995): na odcinku otw&oacute;r &ndash; Ponor &ndash; w 1995 r.; pomiary w Korytarzu Rubinowym &ndash; w 2005 r.; plan ciągu od Studni Kuczyńskiego do Zamulonego Syfonu &ndash; 9.11.2009 r. przy wsp&oacute;łpracy G. Karasińskiego i J. Skiby. Wsp&oacute;łrzędne geograficzne otworu w oparciu o mapę topograficzną Tatr wydawana przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.gov.pl/">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013). Lokalizacja jaskini na tej mapie jest błędna. Według informacj z maja 2014 r otrzymanej od Z. Tabaczyńskiego g&oacute;rny otw&oacute;r jaskini (Jaskinia Biała) znajduje się na wysokości1283 m, czyli o 23 m wyżej, niż podawana&nbsp; w oryginalnej wersji jej planu.Plan zestawiony przez I. Luty w 1995 r. został uzupełniony o Jaskinię Białą i partie Pod Łukami wg Z. Tabaczyńskiego (Jaskinie TPN, 2004).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ossowski G. 1883a (opis drogi i jaskini pod nazwą Duda); Pawlikowski J. G. 1887 (opis, pomiary); Chmielowski J. 1907 (opis i pomiary wg Pawlikowskiego); Świerz M. 1912 (wzmianka); Żmuda A. 1915a (opis roślinności przyotworowej); Żmuda A. 1916a (ditto); Świerz M. 1919, 1921, 1923 (wzmianki); Gadomski A. 1924 (wzmianka o występowaniu lodu); Zwoliński T. 1924 (informacje o odkryciach, fotografia korytarza); Zwolińscy T. i S. 1925 (dojście i opis); Gadomski A. 1926 (wzmianka o występowaniu lodu); Zwolińscy T. i S. 1927 (dojście i opis); Świerz M. 1927 (wzmianka); Zwolińscy T. i S. 1930 (dojście i opis); Wrzosek A. 1933 (wzmianki); Danysz-Fleszarowa R. 1933 (wymienia obie nazwy jako odrębne jaskinie); Szokalski J. 1934 (dojście i opis); Wiśniewski T. 1935 (oznaczenia mch&#243;w); Zwoliński T. 1937 (dojście i opis); Zwoliński T. 1946 (dojście i opis, wzmianka o odkryciach); Zwoliński T. 1947 (wzmianka); Zwoliński T. 1948 (dojście i opis); Zwoliński T. 1949 (o odkryciach w 1938 r.); Zwoliński T. 1951 (dojście i opis); Kowalski K. 1951d (o badaniach zoologicznych i meteorologicznych); Kowalski K. 1951g (wzmiankuje); Gradziński R. 1951 (ditto); Gradziński R. 1953a (o wyprawach Z1, Z2 i Z3); Kowalski K. 1953a (plan, opis inwentarzowy); Kowalski K. 1953b (występowanie nocka wąsatego); Kowalski K. 1953e (bibliografia); Kronika 1953 (o wyprawie Z2); Kuczyński M. 1953 (informacja o eksploracji); Zwoliński S. 1953a (informacja o eksploracji w kominach); Kowalski K. 1954b (o odkryciach); Kuczyński M. 1954 (o odkryciach); Zwoliński S. 1954a (o eksploracji); Zwoliński S. 1954b (plan, przekr&#243;j, zdjęcia); Burchard P. 1955a (relacja z akcji nurkowej); A. R. [Radomski A.] 1955 (o odkryciach); Kuczyński M. 1955 (relacja z wyprawy Z4); [Kowalski K.] 1955c (bibliografia); Umiński T. 1955 (o eksploracji krakowskiej w latach 1953-54); Zwoliński S. 1955a (informacja o odkryciach); Chodorowski A. 1956 (własności fizyczne w&#243;d); Kuczyński M., Gradziński R. 1956 (o chatce biwakowej); Kuczyński M., Starzecki W. 1956 (charakterystyka sprzętu nurkowego użytego w jaskini); Stecki K. 1956 (o eksploracji w latach 1954-55); Umiński T. 1956 (informacje o wyprawach Z1, Z2, Z3, i Z4); Burchard P. 1957 (opis wyprawy i odkryć); Gradziński R., Radomski A. 1957 (o mleku wapiennym); Szymczakowski W. 1957 (o zanieczyszczeniach); Burchard P. 1958 (beletrystyczny opis wyprawy i odkryć); Chodorowski A. 1958 (opis akcji ratowniczej); Chodorowscy W. i A. 1958 (o faunie wodnej); Gradziński R. 1958 (o wyprawach w latach 1956-57); Gradziński R. 1958b (o wypadku w Syfonie Ogazy); Rudnicki J. 1958a, 1958b (o genezie); Zwoliński S. 1958 (dojście, opis jaskini); Burchard P., Kowalski K. 1959 (historia, zdjęcia); Chodorowscy W. i A. 1959 (własności fizykochemiczne wody); Fischer E. 1959 (bakterie); Gradziński R., Kowalski K. 1959 (historia eksploracji, plan); Janasz T. i in. 1959 (monografia); Kowalski K. 1959b (o faunie); W&#243;jcik Z. 1959b (opis geomorfologiczny); W&#243;jcik Z. 1959c (o nurkowaniu w 1958 r.); W&#243;jcik Z. 1959f (plan, przekr&#243;j, historia badań); W&#243;jcik Z., Zwoliński S. 1959 (neotektonika); Burchard P. 1960 (o historii eksploracji);
+Chodorowscy W. i A. 1960 (hydrofauna); Doroszewski M. 1960 (o wymoczkach i grzybach); Gradziński R., Unrug R. 1960 (o naciekach grzybkowych); Pulina M. 1960 (dane hydrologiczne i morfologiczne); Pulina M. 1960a (mikroklimat); Pulina M. 1960b (wzmiankuje o historii badań, genezie, wieku); Rudnicki J. 1960 (geneza korkociąg&#243;w); Sak A., Szapliński A. 1960 (og&#243;lna charakterystyka, plan, o występowaniu nietoperzy); W&#243;jcik Z. 1960a (osady); W&#243;jcik Z. 1960b (osady); W&#243;jcik Z. 1960c (wzmianka); W&#243;jcik Z. 1960g (hipoteza o połączeniu z Jaskinią Naciekową); Zwoliński S. 1960 (historia eksploracji); Wołoszyn B.W. 1961 (fauna kręgowc&#243;w, nietoperze); W&#243;jcik Z. 1961a (o naciekach); W&#243;jcik Z., Gradziński R. 1961 (o naciekach); Zwoliński S. 1961 (opis, plan, przekr&#243;j, historia poznawania); Kowalski K. 1962a (og&#243;lne informacje); Kowalski K. 1962b (fauna ssak&#243;w); Fischer E. 1963 (bakterie); Wołoszyn B.W. 1963 (fauna); Dąbrowski T. 1964 (hydrografia); Dąbrowski T., Rudnicki J. 1964 (krasowe przepływy); Jodłowski S. 1964 (informacje o pomiarach, badaniach naukowych i odkryciach); Wołoszyn B.W. 1964 (fauna subfosylna); Bac M., Grochocka K. 1965 (geologiczna budowa masywu); Kowalski K. 1965 (wzmianka); Grodzicki J. 1966a (o wypadku nurkowym oraz odkryciach); Kronika 1966b (eksploracja w syfonach); W&#243;jcik Z. 1966a (osady, geneza i wiek); Zwoliński T. 1966 (lokalizacja); Dąbrowski T., Rudnicki J. 1967 (hydrografia krasowa); Rudnicki J. 1967 (geneza, ewolucja, wiek); [Kobyłecki A.] 1968 (wzmiankuje o stanowiskach fauny); Koisar B. 1968 (opis i szkic partii za Syfonem Warszawiak&#243;w); Koisar B. 1968b (plan i opis inwentarzowy); W&#243;jcik Z. 1968 (geneza, wiek, osady); Zwoliński S. 1968 (og&#243;lna charakterystyka); Giżejewski J. 1969a (o eksploracji syfon&#243;w); Uchmański B. 1969c (o historii eksploracji); Bieroński J. 1970 (podaje charakterystykę geologiczną, klimatyczną); Grodzicki J. 1970 (geneza, wiek, ewolucja); Pulina M. 1970 (o historii badań, genezie, wieku i mikrokliamcie); Wołoszyn B. W. 1970 (fauna kręgowc&#243;w, gł&#243;wnie nietoperzy); XV lat…, 1970 (wzmianki o historii eksploracji); Pulina M. 1971 (zjawiska lodowe); Szabunio A. 1971 (o kartowaniu i odkryciach); Skalski A. 1971 (wzmianka o faunie); Głazek J. i in. 1972 (wzmianka); Pulinowa M., Pulina M. 1972 (zjawiska lodowe); Gadzińska E. 1974 (hydrofauna); Pulina M. 1974a (mikroklimat); Pulina M. 1974b (wzmiankuje przy rozważaniach o denudacji chemicznej); W&#243;jcik Z. 1974a (o wskaźnikowej roli przy badaniach ruch&#243;w pionowych); W&#243;jcik Z. 1974b (o wieku); Kropiwnicka M., Burkacki M. 1976 (wzmianka); Sałyga K. 1976 (opis wypadku i akcji ratowniczej); Tatry Polskie  1976 (lokalizacja otworu na mapie); W&#243;jcik Z. 1976b (informacje o badaniach naukowych); Dumnicka E. 1977 (hydrofauna); Kropiwnicka M., Burkacki M. 1977c (wzmianka o faunie); Grodzicki J. 1978a (tektonika, litostratygrafia); W&#243;jcik Z. 1978c,d (wzmianki); Bac-Moszaszwili M. i in. 1979b (wzmianki o żwirach trzeciorzędowych); Burkacki M. 1979b (o pomiarach); Głazek J. i in. 1979a (og&#243;lna charakterystyka); Głazek J. i in. 1979b (wzmianka); Sałyga K. 1979 (o wypadku i akcji ratowniczej); Burkacki W. 1980 (o odkryciach w Studni Maurycego); Kardaś R. M. 1980d (informacje o pobraniu naciek&#243;w do badań wieku); Kardaś R. M. 1980h (informacja o pomiarach); Bąk A. 1981 (eksploracja w zawalisku końcowym); Burkacki M. 1981 (o eksperymencie medycznym i eksploracji); Chabracka J., Krośkiewicz Z. 1981 (o eksperymencie medycznym); Chardez D., Delhez F. 1981 (wymieniają bakterie i pierwotniaki); Dumnicka E. 1981 (wymienia skąposzczety); Stecka Z. 1981 (wzmianka o historii eksploracji); W&#243;jcik Z. 1982 (o genezie); Kardaś R.M. 1983e (dane morfometryczne); TATRY POLSKIE 1984 (lokalizacja na mapie); Gradziński R. i in. 1985a,b (dane morfometryczne, plan, przekr&#243;j i lokalizacja otworu na mapie); Kardaś R.M. 1985a (wzmianka o postępach eksploracji); Wittman K. 1985 (odkrycia w Studni Maurycego); Kardaś R.M. 1986h (wzmianka o postępach eksploracji w 1985 r.); Kardaś R.M. 1986i (dane morfometryczne); Kronika 1986c (o odkryciu partii nad Łukami); Amirowicz A. 1988 (o udokumentowaniu partii nad Łukami); Baryła J. 1988b (wzmianka o wysadzeniu zawaliska); Kronika 1988a (postępy eksploracji); Kubin R. 1989 (eksploracja, plan Krętego Korytarza); Grodzicki J. 1991 (geneza, ewolucja); Zwoliński S. 1993 (o historii eksploracji, przekr&#243;j wstępnych partii); Jaskinie TPN 1995 (plan, przekr&#243;j i opis inwentarzowy); Gradziński M. 1995b (o nieścisłościach dokumentacji); Głazek J., Grodzicki J. 1996 (wzmianki o geologii i genezie jaskini); Bolek W. 1997b (odkrycia w Syfonie Warszawiak&#243;w, nowy plan syfon&#243;w, przekr&#243;j Syfonu Warszawiak&#243;w); Luty I. 1998a (eksploracja K. Starnawskiego w Syfonie Warszawiak&#243;w);   Tomaszek M. 1998 (przenurkowanie nowych 7 m w ostatnim syfonie); Piksa K. 1998 (nietoperze);  Nowak J. 1998b (liczenie nietoperzy – 55 osobnik&#243;w); Bielska T., Mickiewicz, J. 2000 (flora); Kicińska D. 2000 (o paleokierunkach cyrkulacji w&#243;d); Piksa K., Nowak J. 2000 (nietoperze);   Gradziński M. 2001 (dane o eksploracji); Piksa K., Wołoszyn B. 2001 (nietoperze); Wiśniewski W.W. 2002b (nurkowanie w 1953 r.); Tomaszek T. 2003a (g&#243;rny otw&#243;r jaskini, eksploracja w Partiach nad Łukami); Bulik J. 2004 (o pr&#243;bnym nurkowaniu w 1956 r.); Kicińska D. 2004a (paleoprzepływy, geneza); Luty I. 2004 (eksploracja); Piksa K., Nowak J. 2004 (monitoring nietoperzy w latach 1997-2004); Nowicki T. 2004 (ewolucja w świetle datowania naciek&#243;w); Gradziński M. i in. 2005 (uwagi o genezie); Kicińska D. 2005 (paleoprzepływy, geneza, osady, wiek naciek&#243;w); Kronika – jaskinie 2005, (dokumentacja zanieczyszczeń jaskini dla TPN); Barczyk G. 2008 (badania hydrogeologiczne systemu wywierzyskowego, schematyczny plan, charakterystyka); Gradziński M. i in. 2009 (wzmianki o genezie i ewolucji); Szczygieł J. 2015a (badania nad przejawami neotektoniki). 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Grześkowiak M. 1962 (wsp&#243;łczesne procesy geomorfologiczne); Koisar B. 1967 (plan 1:400); Pacuła L., Walczak H. 1967 (szkice ciąg&#243;w); Grodzicki J. 1969 (geneza, tektonika); Grodzicki J. 1969b (ciąg pomiarowy od Ponoru po Okno Krakowskie); Matejuk W. 1985 (informacja o odkryciach); Szymanowski W. 1985 (plan gł&#243;wnego ciągu 1:400); [Siarzewski W., Zwolińska Z.] 1986 (plany, przekroje, szkice terenowe i ciąg pomiarowy); Albrzykowski G. 1989 (plan Krętego Korytarza); Grodzicki J. i in. 2000 (zmiany antropogeniczne). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty, Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3683)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(570)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

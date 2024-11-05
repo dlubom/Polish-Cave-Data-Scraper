@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10931">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10931;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "544881,15".replace(',', '.') + "," + "255682,98".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10931','Sztolnia Galmanowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Sztolnia Galmanowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-10.30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;37′43,00″, φ: 50&#176;09′60,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Krzeszowice (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Dolina Eliasz&#243;wki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                382
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                9,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                18,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    546
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Czerna, Dolina Czernki, wzg&#243;rze Bełk, SW stoki wzg&#243;rza Bełk, stare wyrobiska; Park Krajobrazowy Dolinki Krakowskie; Obszar NATURA 2000 Czerna.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Wejście do sztolni znajduje się ok. 180 m na W od muru klasztoru w Czernej przy stacji drogi krzyżowej i ok. 120-125 m na SE od Jaskini pod Bukami (szkic sytuacyjny A. Górnego i M. Szelerewicza (2007). W roku 2009 otwór sztolni został zamknięty kratą przez Polskie Towarzystwo Przyjaciół Przyrody "pro Natura"z siedzibą we Wrocławiu w ramach projektu "Ochrony podkowca małego w Polsce" (Szelerewicz 2010). Niedługo po tym fakcie grotołazi przekopali przejście w dnie Studni z Naciekami, łącząc ją z Galmanową Sztolnią. Jaskinia podlega szczególnej ochronie jako miejsce lęgowe (i zimowania) nietoperzy i jest niedostępna w okresie zimowym.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Według A. G&oacute;rnego i M. Szelerewicza (2007 - opis zamieszczono in extenso) Galmanowa Sztolnia <em>&bdquo;...to labirynt naturalnych korytarzy i wyrobisk o długości 540 m. Tyle wynosi liczba zmierzonych pr&oacute;żni, przedstawionych na załączonym planie. Zaznaczyć tu należy, że wykonano pomiary dostępnych ciąg&oacute;w, bez podejmowania ryzykownych pr&oacute;b odgruzowywania korytarzy. Korytarze kopalni przebiegają na osi zach&oacute;d-wsch&oacute;d, wzdłuż zbocza doliny. Otw&oacute;r znajduje się w stromym zboczu wzg&oacute;rza, szeroki na 5 m i obniżony przez nasyp powstały z osypującego się zbocza. Nad nim, odsłonięta jest 1,5 m ścianka drobnoławicowych dolomit&oacute;w z żyłkami limonitu z markasytem.</em></p>
+<p><em>Do wnętrza prowadzi 12 metrowy Korytarz Wstępny utworzony częściowo w płytach dolomitu, wapieniach i zlepieńcu śr&oacute;dformacyjnym. Na spągu leżą duże bloki, kt&oacute;re odpadły od stropu. W ich sąsiedztwie, w kierunku NW prowadzi 6 metrowy korytarz początkowo wybrany w wapieniu między ławicami. Dochodzi on do pionowego pęknięcia, kt&oacute;rego ściany pokrywają masywne polewy naciekowe. Wyczuwany jest tutaj silny przewiew. W latach 60-tych XX w. mieszkał tutaj miejscowy oryginał-pustelnik.</em></p>
+<p><em>Na końcu korytarz doprowadza do poprzecznej Wysokiej Szczeliny, 4 metrowej wysokości o przebiegu NW-SE. Strop tworzą zablokowane bloki skalne, polewy naciekowe i korzenie drzew. Ściany zabezpieczone są kasztami skalnymi i zniszczoną obudową drewnianą. Z tego korytarza, na wsch&oacute;d, otwiera się wejście do Sztolni Gł&oacute;wnej, będącej najobszerniejszym chodnikiem kopalni. Jest to chodnik poszukiwawczy wybrany w latach 40-tych XX w.</em></p>
+<p><em>Przedłużeniem Korytarza Wstępnego, za krzyżująca się z nim Wysoką Szczeliną jest kilkadziesiąt metr&oacute;w niskich i krętych chodnik&oacute;w, wybranych na dw&oacute;ch poziomach. Na jego początku 2 m nad dnem znajduje się wejście do r&oacute;wnoległego ciągu, kt&oacute;ry doprowadza do kolejnego pionowego pęknięcia i niewielkiej, naturalnej salki z kilkumetrowym kominkiem o ścianach pokrytych bogatą szatą naciekową, kt&oacute;rą tworzą masywne polewy. W kierunku p&oacute;łnocno-wschodnim kończą się zaciskiem w naturalnym rozmyciu międzyławicowym, aktualnie nie do przejścia. Łączą się one ze Sztolnią Gł&oacute;wną w połowie jej długości.</em></p>
+<p><em>Bezpośrednio w otworze i kilka metr&oacute;w za nim znajdują się ujścia korytarzy prowadzące w kierunku południowym do piętrowego systemu łączących się ze sobą niskich, kruchych wyrobisk kilkudziesięciometrowej długości. W prowadzącym w stronę powierzchni korytarzu g&oacute;rnego poziomu znajduje się kilka otwor&oacute;w strzałowych. Łączą się one r&oacute;wnież z Wysoką Szczeliną w miejscu, gdzie dochodzi do niej ciąg Niskich Wyrobisk.</em></p>
+<p><em>Sztolnia Gł&oacute;wna to prosty chodnik biegnący z zachodu na wsch&oacute;d ponad 90 m długości ok. 1,5 m szerokości i do 2 m wysokości. Wybrany w całości w dolomicie bez obudowy, jedynie miejscami ściany wzmocnione zostały obudową kamienną. W korytarzu, 10 m od wejścia do niej, na dnie leżą duże bloki, kt&oacute;re wypadły z bocznej ściany w latach 80 tych XX w. Sztolnia doprowadza do naturalnej komory o wymiarach 6 x 3 m o wysokości do 2,5 m, kt&oacute;rą pierwotnie całkowicie wypełniał ilasty osad z limonitem i tlenkami manganu. Bezpośrednio przed końcową komorą w kierunku NW odchodzi obszerny naturalny 20 metrowy korytarz nieco zmieniony przez prace wydobywcze, a w kierunku S, znajduje się wejście do najdłuższego ciągu naturalnych pr&oacute;żni i niskich wyrobisk.</em></p>
+<p><em>W rejonie tym na powierzchni terenu znajduje się duży lej z zasypanym szybem z　drewnianą obudową. Pod koniec Sztolni Gł&oacute;wnej, na spągu znajdują się dwa stałe jeziorka, kolejne jest położone w korytarzu odchodzącym na NW.</em></p>
+<p><em>Korytarze odchodzące na S przed końcem sztolni to freatyczne rury i rozmycia międzyławicowe o charakterze anastomoz&oacute;w. Są one w znacznej mierze wypełnione gliniastymi osadami z limonitem, galmanami z żyłkami i ziarnami galeny miejscami scementowane naciekowym kalcytem. Po ok. 20 m w kierunku południowym dochodzimy do Salki z Progiem. Z jej dna odchodzi meandrujący korytarz w kierunku wschodnim zakończony ślepym wyrobiskiem, a ku zachodowi kr&oacute;tki odcinek korytarza doprowadza do Niskich Wyrobisk. W kierunku zachodnim łączą się one ze Sztolnią Gł&oacute;wną i Wysoką Szczeliną, a na południe poprzez Salkę ze Szczeliną, kończą się blisko powierzchni, w　rejonie nieczynnego łomu na zboczu.</em></p>
+<p><em>W rejonie połączenia Niskich Wyrobisk z Wysoką Szczeliną na ścianach widoczne są ślady urabiania skały przez wypalanie drewna i &bdquo;odbijania żelazkiem&rdquo;&hellip;</em></p>
+<p><em>Lewe orograficznie zbocze Doliny Czernki, gdzie występują opisywane obiekty [Sztolnia Galmanowa, Jaskinia pod Bukami] ma w tym miejscu ok. 90 m wysokości i ma złożoną budowę geologiczną (Alexandrowicz 1957, Bogacz 1977). W podłożu i na zboczu doliny od dna występują tu wapienie węglowe dolnego karbonu i piaskowce warstw miękińskich g&oacute;rnego karbonu. Są one sfałdowane i poprzecinane uskokami, a dominującą strukturą tektoniczną jest fleksura Czernej. Na tych utworach leżą niezgodnie, horyzontalnie osady triasu oraz jury środkowej i g&oacute;rnej. Trias to osady piaszczyste i marglisto-dolomityczne retu o miąższości ok. 25 m i wapienia muszlowego reprezentowane przez wapienie i　dolomity warstw gogolińskich. Na nich leżą piaski, wapienie piaszczyste i oolityczne jury środkowej miejscami na wierzchołku wzg&oacute;rza płaty margli i wapieni jury g&oacute;rnej. Osady od karbonu po trias są na wschodnim zboczu Czernki w r&oacute;żnym stopniu są zdolomityzowane i okruszcowane rudami żelaza, cynku i ołowiu. Z minerał&oacute;w żelaza występują tutaj hematyt, piryt, markasyt, goethyt i limonit, ołowiu &ndash; galena, cerusyt, anglezyt, cynku &ndash; smitsonit, hydrocynkit, hemimorfit. Minerały te tworzą w złożach występujących w tym terenie mieszaninę tworząc galmany o barwie ż&oacute;łtej i czerwonej. Galena występuje samodzielnie tworząc skupienia ziarniste, gniazda lub kilkucentymetrowe żyłki. Większe nagromadzenia tworzył limonit i markasyt (Kuźniar 1930). Często występują nagromadzenia tlenk&oacute;w manganu.</em></p>
+<p><em>Złoże, kt&oacute;re było eksploatowane w kopalniach: Sztolni Galmanowej i Jaskini pod Bukami, ma formę gniazd i żył powstałych przez wt&oacute;rne wypełnienie pustek krasowych. Można go sklasyfikować jako hydrotermalne, powstałe w wyniku działania niskich temperatur (teletermalne) p&oacute;źniej przeobrażone.</em></p>
+<p><em>Cały g&oacute;rotw&oacute;r przecina sieć pionowych pęknięć o kierunku NW-SE, kt&oacute;re mają założenia w tektonice paleozoicznej odnowionej przez młodszą kenozoiczną&hellip;</em></p>
+<p><em>Sztolnia Galmanowa i Jaskinia pod Bukami charakteryzują się podobnym kształtem i　wielkością naturalnych form krasowych. W obu pr&oacute;żniach występuje zapewnie ta sama generacja szaty naciekowej&hellip;</em></p>
+<p><em>Z licznych dawniej kopalń, dzisiaj są dostępne sztolnia przecinająca korytarze Jaskini pod Bukami i Sztolnia Galmanowa&hellip; Sztolnia w jaskini dostępna jest obecnie otworem powstałym na skutek zawalenia się w niej jednej ze ścian w latach 60-tych XX w. i od tego czasu jest miejscem wysypywania śmieci przez okolicznych mieszkańc&oacute;w podobnie jak otwory wejściowe Jaskini pod Bukami i Sztolni Galmanowej. Śmieci wypełniły otwory dw&oacute;ch pierwszych prawie całkowicie tak, że przez wiele lat jaskinia była niedostępna. Dopiero w 2006 roku dzięki akcji podjętej przez Speleoklub Brzeszcze i Nadleśnictwo w　Krzeszowicach usunięto z otwor&oacute;w śmieci&hellip;</em></p>
+<p><em>W całej Sztolni Galmanowej wyczuwalny jest ruch powietrza, miejscami silny. Wilgotność jest duża, poza jeziorkami, w gł&oacute;wnym ciągu liczne są kałuże, a w wielu miejscach intensywnie kapie woda&hellip;</em></p>
+<p><em>Podczas kartowania stwierdziliśmy w sztolniach dość liczną populację nocka małego łącznie kilkadziesiąt okaz&oacute;w&hellip;"</em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><em>"Trudno określić kiedy w opisywanych sztolniach prowadzona była eksploatacja. Okres rozkwitu kopalnictwa w tym rejonie datowany jest na XV i XVI wiek (Molenda 1963). Pierwszą znaną wzmianką o kopalnictwie z Czernej jest poświadczenie eksploatacji w　dobrach Tęczyńskich w Czernej z 1556 roku (Molenda 1963). P&oacute;źniej po okresie zastoju od XVIII odżywa g&oacute;rnictwo, a przedmiotem eksploatacji są gł&oacute;wnie galmany i rudy żelaza. W szczytowym okresie produkcji w 1912 r. w Czernej wydobyto 15 tys. ton rud limonitowych, 55 ton galman&oacute;w i 39 ton galeny (Zakrzewski 1970). Eksploatację w Czernej zakończono w latach 30-tych XX w. Prace badawcze i eksploatacyjne w tym terenie prowadzili Niemcy latach 40-tych XX w., a latach 60-tych Przedsiębiorstwo Geologiczne z Krakowa wykonało prace, w wyniku kt&oacute;rych nie stwierdzono występowania w tym terenie zł&oacute;ż o znaczeniu przemysłowym.</em></p>
+<p><em>W terenie tym działało szereg kopalń, z kt&oacute;rych największe to kopalnia Katarzyna k. Lgoty, R&oacute;ża na N od Nowej G&oacute;ry oraz J&oacute;zef i Sylwester w Czernej (G&oacute;recki 2001), lecz nie są to kopalnie, kt&oacute;rych sztolnie opisujemy. Sztolnie w Jaskini pod Bukami i Galmanowa wzmiankowane są dopiero w &bdquo;Jaskiniach Wyżyny Krakowsko-Wieluńskiej&rdquo;, gdzie w spisie w Dolinie Czernki wymieniona jest Sztolnia Galmanowa, figurująca tam pod nazwą Duża Kopalnia&hellip;&hellip;</em></p>
+<p><em>Poznano kilka szyb&oacute;w, w kt&oacute;rych zawaliska uniemożliwiały dalszą penetrację. Najgłębszy z nich miał 25 metr&oacute;w. Znaleziono też szyb mający ok. 60 metr&oacute;w głębokości. Znajdował się on nieopodal leśnicz&oacute;wki w przysi&oacute;łku Zakopane (ok. 1 km na N od Galmanowej Sztolni). Był to szyb wentylacyjny największej w tej okolicy kopalni&hellip;&hellip; Gł&oacute;wnym celem pozostała eksploracja Jaskini pod Bukami i poznanie rozległej tak zwanej Sztolni Galmanowej, do kt&oacute;rej KKTJ zorganizował szereg wyjazd&oacute;w. Zebrano w&oacute;wczas liczne pr&oacute;bki minerał&oacute;w rudnych z hałd i starych wyrobisk, kt&oacute;re zostały wykorzystane w　badaniach prowadzonych przez Przedsiębiorstwo Geologiczne w Krakowie i naukowc&oacute;w z AGH, mających na celu określenie perspektyw poszukiwania rud cynku i ołowiu w tym terenie (Zakrzewski 1970, Pieczonka 1979). Wyniesiono w&oacute;wczas dwa duże nacieki (polewy), kt&oacute;re można dziś oglądać na wystawie &bdquo;Zjawiska Krasowe&rdquo; na AGH."</em></p>
+<p>&nbsp;</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><em>"Pierwszy plan Galmanowej Sztolni w skali 1:200 wykonany został w 1994 r. przez Rafała i Piotra Tatarucha, uczni&oacute;w Technikum Geologicznego w Krakowie, w ramach wykonywania przez nich pracy dyplomowej (Głuch, Tataruch, 1994). Kolejny, sporządził Paweł Pawełczyk w 1998 r. (Pawełczyk, 1998). Oba są schematyczne, pomijają znaczną część korytarzy, mają błędnie wskazany kierunek p&oacute;łnocy.</em></p>
+<p><em>Prezentowany tutaj plan został sporządzony podczas pięciu wyjazd&oacute;w w marcu i kwietniu 2007 r. Wykonano też pomiary powierzchniowe określające wzajemne położenie Sztolni Galmanowej, Jaskini pod Bukami, dawnego szybu i Studni z Naciekami nad Sztolnią</em>.&rdquo; (Szkic zamieszczony przy planie Jaskini pod Bukami J. Olk.I-10.29).</p>
+<p>Pomiary do planu Sztolni Galmanowej wykonał zesp&oacute;ł w składzie: M. Dudzik, A. Grubiel, A. G&oacute;rny, A. Kurek, M. Pruc i M. Szelerewicz.</p>
+<p>Po przekopaniu przejścia z dna Studni z Naciekami do Sztolni Galmanowej w 2009 r. długość Galmanowej Sztolni, jak też jej deniwelacja zwiększyły się o kilka metr&oacute;w (nie zostały uwzględnione na planie) - inf. A. G&oacute;rnego (2015). Wsp&oacute;łrzędne geograficzne ustalił A. Polonius w 2015 r., kt&oacute;ry także wykonał zdjęcie otworu.</p>
+<p>Plan opracował M. Szelerewicz (zmienione).</p>
+<p>Według artykułu A.G&oacute;rnego i M. Szelerewicza (2007) oraz M. Szelerewicza (2010) i　informacji A. G&oacute;rnego oraz A. Poloniusa&nbsp; (2015 r.) opracował Jerzy Grodzicki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kuźniar Cz. 1930 (charakterystyka zł&#243;ż limonitu i markasytu w Czernej); Alexandrowicz S.W. 1957 (budowa geologiczna okolic Czernej); Molenda D. 1963 (historia g&#243;rnictwa kruszcowego do połowy XVI w.); Zakrzewski M. 1970 (mineralizacja kruszcowa); Molenda D. 1972 (kopalnie rud ołowiu w XVI-XVIII w.); Bogacz K. 1977 (geologia i tektonika); Szelerewicz M., G&#243;rny A. 1986 (wzmiankują pod nazwą Duża Kopalnia); Motyka J., Rochowczyk F., Szuwarzyński M. 1996 (morfologia kawern w triasowych skałach węglanowych); Pawełczyk P. 1998  (plan, błędnie wskazany kierunek N);  G&#243;rny A., Szelerewicz M. 2007 (szkic sytuacyjny, plan, opis); Szelerewicz M. 2010 (informacja o założeniu kraty); Jaskinie Wyżyny Olkuskiej 2016 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Gołuch R., Tataruch P. 1994 (pierwszy plan sztolni w skali 1:200, błędnie wskazany kierunek N).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Grodzicki, Mariusz Szelerewicz, Andrzej G&#243;rny, Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11820)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(11824)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10930">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10930;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "544832,01".replace(',', '.') + "," + "255771,81".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10930','Jaskinia pod Bukami'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia pod Bukami
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-10.29
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;37′40,56″, φ: 50&#176;10′02,89″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Krzeszowice (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Dolina Eliasz&#243;wki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku g&#243;rze.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                395
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    344
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Czerna, Dolina Czernki; Park Krajobrazowy Dolinki Krakowskie; Obszar NATURA 2000 Czerna.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jadąc drogą z Krzeszowic do Gorenic dojeżdżamy do skrzyżowania dróg na granicy Czatkowic i Czernej. Droga w prawo biegnie dalej do Gorenic. My jedziemy w lewo (a właściwie na wprost) w kierunku Nowej Góry i Ostrężnicy. Jadąc przez Czerną sprawdzamy numery domów i zaraz za budynkiem o numerze 128 skręcamy w prawo, w bardzo wąską asfaltową drogę biegnącą stromo pod górę. Jadąc „tak jak asfalt prowadzi” dojeżdżamy do domu rekolekcyjnego Sióstr Karmelitanek Dzieciątka Jezus. W tym miejscu w lewo (na północ) odchodzi leśna droga a na skrzyżowaniu stoją tablice informujące, że wchodzi się na teren rezerwatu przyrody i w obszar NATURA 2000. Około 150 m od skrzyżowania po prawej stronie znajduje się zamknięty metalową płytą, otwór jaskini. Opis obejmuje 2 jaskinie (Jaskinię pod Bukami I o długości 210 m i  Jaskinię pod Bukami II o długości 134 m).<br/>Jaskinia jest położona na terenie Parku Krajobrazowego Dolinki Krakowskie, jednocześnie znajduje się w rezerwacie Dolina Eliaszówki oraz w obszarze NATURA 2000 Czerna (PLH 120034), który utworzono specjalnie w celu ochrony siedlisk nietoperzy w obiektach podziemnych tego terenu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><em></em>Według Szelerewicza i G&oacute;rnego (1986):<em> &bdquo;W najbliższym sąsiedztwie w wieku XIX i　w　początkach XX w. eksploatowano rudy galmanu w kilku kopalniach, gdzie kanały krasowe r&oacute;wnież wypełnione były kruszcami. W odległości 100 m na SE znajduje się otw&oacute;r największej z nich, w kt&oacute;rej dostępne korytarze mają około 500 m długości. Z uwagi na zagrożenie zawałowe nie należy jej zwiedzać.</em></p>
+<p><em>Niewielki otw&oacute;r wejściowy o średnicy 1 m opada 6 metrową studnią, kt&oacute;rej ściany pokrywa zwietrzała polewa naciekowa. Z dna studni biegnie w kierunku SE korytarz doprowadzający poprzez zacisk do szczeliny szerokości 1 m. Jaskinie tworzą ciągi powstałe na r&oacute;żnych poziomach tej szczeliny, opadające progami do głębokości 25 m. Z korytarza przebiegającego na poziomie -9 m prowadzi ku N stromo opadający, 6-metrowy korytarzyk, kt&oacute;ry poprzez zawalisko (aktualnie nie do przebycia) doprowadza do niewielkiej salki ze studnią i ciągiem o charakterze rury krasowej długości kilkunastu metr&oacute;w. Na tym rozszerzeniu kończy się sztolnia kopalni.</em></p>
+<p><em>Sztolnia kopalni jest prostym tunelem 30-metrowej długości, powstałym przez rozszerzenie korytarza krasowego wypełnionego rudami. Jego strop stanowi płaska płyta, a ściany w większości ułożone są z kamieni. W niekt&oacute;rych miejscach spotykamy fragmenty naturalnej ściany z wyeksploatowanymi żyłami galmanu i limonitu. Wejście do kopalni, przez kt&oacute;re odbywał się transport urobku, jest obecnie zasypane; aktualnie do sztolni wchodzi się otworem w połowie jej długości, w miejscu gdzie przecina ją krasowy korytarz. Początkowo jest on w miarę szeroki, choć niski. Po kilku metrach łączy się z inną sztolnią kopalni, bardzo spękaną i noszącą ślady zawał&oacute;w (pominięta na planie). Od tego miejsca prowadzi bardzo wąski, powstały na szczelinie korytarz , przechodzący w ciasną, niedostępną szczelinę o stromo opadającym dnie....&rdquo;</em></p>
+<p><em>&bdquo;Pr&oacute;żnia powstała na pęknięciach tektonicznych o przebiegu NW-SE, w częściowo zdolomityzowanych wapieniach środkowego triasu. Jaskinię tworzą dwa r&oacute;wnoległe pęknięcia połączone sztolnią starej kopalni. W kopalni eksploatowano limonit i galman. Rudy te wypełniały poziome pęknięcia międzyławicowe, rozmyte przez wody krasowe, a　poszerzone w czasie eksploatacji.</em></p>
+<p><em>Szata naciekowa występuje w dolnych partiach jaskini w formie polew, naciek&oacute;w kaskadowych i stalaktyt&oacute;w. Na polewach wytworzyły się nietypowe nerkowe narośla. Nad studnią położoną na przedłużeniu sztolni występuje kilkunastocentymetrowej grubości żyła krystalicznego kalcytu. Polewy wykazują silne spękania, a nawet odpadają, co jest konsekwencją wstrząs&oacute;w powodowanych robotami strzałowymi w pobliskim kamieniołomie w Czatkowicach. W trakcie wykonywania dokumentacji fotograficznej stwierdzono występowanie zjawiska fosforescencji: nacieki oświetlone silnym światłem lampy błyskowej promieniowały zanikającym odblaskiem.&rdquo;</em></p>
+<p>W 1997 roku pojawiła się informacja o odkryciu Jaskini pod Bukami II. Autorzy odkrycia (M. Wiśniewski i P. Ostrowski) podają, że wejście znajduje się około 15 m od Jaskini pod Bukami I, poniżej na stoku. Ponieważ autorzy ci nie wykonali planu a tylko przekr&oacute;j (niedowiązany do znanego i opisanego wcześniej punktu), trudno się zorientować we wzajemnym położeniu Jaskini pod Bukami I i II. Z opisu wynika, że jaskinie mają wsp&oacute;lne wejście przez chodnik starej kopalni.</p>
+<p>Opis nowo odkrytych partii wygląda następująco: <em>&bdquo;Początek stanowią dwa ciągi. Idąc na wprost dostaniemy się do systemu niskich salek z charakterystycznym płaskim stropem, kt&oacute;re w dw&oacute;ch miejscach łączą się z niższym piętrem. Drugi ciąg to wąski, opadający kaskadowo korytarz w kt&oacute;rym, poprzez zacisk ZII i dwie niewielkie studzienki, osiągamy dolne piętro. Zaklinowane bloki skalne tworzą tutaj dwa poziomy, kt&oacute;re w kilku miejscach łączą się ze sobą. Ze względu na niewielką szerokość szczeliny (25-60 cm) jest on dość uciążliwy w zwiedzaniu. W końcowej części podnosi się on stromo do g&oacute;ry i doprowadza do tzw. Korytarza Z Perłowym Jeziorkiem. Ten fragment jest najobszerniejszą i　najładniejszą częścią całej jaskini. Końcową część tego korytarza tworzy niewielka salka na dnie kt&oacute;rej znajduje się małe jeziorko, a w nim perły jaskiniowe, oraz duża ilość innych ciekawych naciek&oacute;w. &hellip;.Szata naciekowa jest dość bogata. Reprezentują ją gł&oacute;wnie nacieki kaskadowe, draperie, stalaktyty, stalagmity i mleko wapienne. W końcowej części występują r&oacute;wnież bardzo rzadko spotykane perły jaskiniowe.&rdquo;</em></p>
+<p>Nowo odkryte partie o długości 134 m nazwano Partiami Bezrobotnych.</p>
+<p>Według informacji ustnych uzyskanych od Andrzeja G&oacute;rnego, obie jaskinie bez wątpienia stanowią jeden obiekt podziemny i tak należy go traktować. Ponieważ nie istnieje aktualny plan jaskini, w publikacji wykorzystano plan pochodzący z 1986 roku (Szelerewicz i G&oacute;rny).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia (Pod Bukami I) została odkryta wiosną 1967 roku, kiedy to w obecności S.　Boronowskiego obsunęła się ziemia odsłaniając studzienkę wejściową. Jaskinię zwiedzono wtedy do głębokości -25 m. Korytarze stanowiące przedłużenie jaskini od wymienionego poziomu zostały wyeksplorowane w 1968 r. przez A. G&oacute;rnego i R. Siwulaka, a boczne odgałęzienie z kopalni odkryli w roku 1970 A. G&oacute;rny i W. Wiśniewski.</p>
+<p>Eksploracja w &bdquo;Jaskini pod Bukami II&rdquo; rozpoczęła się 19.02.1997 roku, kiedy po kilkugodzinnych pracach w zawalisku w salce nad studzienką M. Wiśniewski i P. Ostrowski przy użyciu technik specjalnych otwierają przejście do nowych partii. Podczas następnej akcji ten sam zesp&oacute;ł dociera do Korytarza z Perłowym Jeziorkiem.</p>
+<p>Od czasu odkrycia wejścia, do studzienki leżącej bezpośrednio przy drodze miejscowa ludność permanentnie wyrzucała śmieci komunalne. Przez pewien czas wejście było całkowicie niedostępne z powodu zawalenia odpadkami. Kilkakrotne pr&oacute;by &bdquo;przekopania się&rdquo; do wnętrza kończyły się ponownym zasypaniem. W 2006 podjęto akcję całkowitego oczyszczenia studzienki i zamknięcia jej metalową płytą, uniemożliwiającą wsypywanie śmieci do otworu (Pest 2006, 2006a).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została zinwentaryzowana w 1972 roku przez Andrzeja G&oacute;rnego.</p>
+<p>Pomiary wykonał A. G&oacute;rny.</p>
+<p>Plan opracowali M. Szelerewicz i A. G&oacute;rny.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Szelerewicz M., G&#243;rny A. 1986 (plan i opis, nadany numer); Kurek A. 1995 (wymienia, podaje wymiary); Wiśniewski M., Ostrowski P. 1997 (przekr&#243;j, kr&#243;tki opis); Gradziński M., Szelerewicz M. 2004 (wymieniona, podane wymiary); Pest R. 2006a (informacja o oczyszczeniu wejścia i zamknięciu jaskini); G&#243;rny A., Szelerewicz M. 2007 (szkic Jaskini pod Bukami); Pest R. 2007 (informacja o jaskini); Jaskinie Wyżyny Olkuskiej 2016 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11818)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r (studnia wlotowa)
+                    </a>
+                    <a onclick="showImageInfo(12065)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan, przekr&#243;j, szkic lokalizacyjny
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

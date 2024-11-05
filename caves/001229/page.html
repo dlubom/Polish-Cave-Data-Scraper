@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1229">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1229;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566266,52".replace(',', '.') + "," + "153771,47".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1229','Jaskinia nad Korytem'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia nad Korytem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia pod Schodkami, Siwarowa, Siwarowa Dziura
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-12.10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′38,87″, φ: 49&#176;14′52,29″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku E, 1618,7 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1622,62
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                380
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                8,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                12,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    60
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W lewym orograficznie zboczu Doliny Małej Łąki, w stoku Zagonnej Turni, około 120 m ku SE od Siwarowej Przełęczy. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Niebiesko znakowanym szlakiem wiodącym zboczem Skoruśniaka docieramy do źródełka w Żlebie Wodniściak: Stąd nieco na lewo i do góry perciami zwierzęcymi idziemy przez gęsty las do Przełęczy Siwarowej, dalej przez młodniki ku SE, do małej turniczki obrywającej się w stronę Doliny Małej Łąki, położonej po lewej (or.) stronie Żlebu Kamiennego. Z siodełka oddzielającego tą turniczkę od pierwszych skałek Zagonnej Turni kierujemy się kilka metrów ku SE i dalej niewyraźnym żlebkiem na południe, aż do skałki w kształcie zęba (ma ona około 20 m wysokości). Na prawo od niej, u podnóża niewysokiej ścianki znajduje się północno-zachodni otwór jaskini. Jest on ukryty w trawach, niewidoczny nawet z bliska. Do otworu wschodniego, położonego za żebrem skalnym, pod dużym okapem, dochodzimy przez jaskinię - uchodzi on na trawiastą płasienkę położoną w ścianach Zagonnej Turni. Otwór ten widoczny jest z dna Doliny Małej Łąki. Dojście i zwiedzanie bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r 1 (p&oacute;łnocno-zachodni) ma 4,5 m&nbsp;szerokości i od 0,4 do 1 m&nbsp;wysokości, a otw&oacute;r 2 (wschodni) ma 1,5&nbsp;m szerokości i 1,2 m wysokości. Od otworu 1 biegnie stromo w d&oacute;ł szeroki, na początku niski korytarz-pochylnia, od kt&oacute;rego w g&oacute;rnej części odchodzi na lewo kr&oacute;tka, ślepa odnoga. Gł&oacute;wny korytarz opada do komory o poziomym dnie (około 4,5 m szerokości i 1,5 m wysokości). Od wschodu komorę ogranicza pochyły, 2 m&nbsp;pr&oacute;g z want, przed kt&oacute;rym na prawo (ku SW) odchodzi ciasny Korytarz Ślimaczy o długości 11,5 m, zakończony ślepo. Korytarz Ślimaczy wznosi się stromo do zacisku, za kt&oacute;rym opada nier&oacute;wnomiernie, kilkakrotnie zakręcając. </span></p>
+<p><span>Nad progiem w komorze rozciąga się obszerna salka o wymiarach 7,5x4,5 m&nbsp;Stąd na prawo, przez ciaśniejszy przełaz z lustrem tektonicznym na prawej ścianie, przechodzimy do następnej sali. Ma ona kształt tr&oacute;jkąta o boku 7 m. Od południowego krańca sali odgałęzia się ślepa odnoga, ze wschodniego skraju biegnie 5 m&nbsp;korytarz uchodzący otworem nr 2&nbsp; na powierzchnię.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmo-neokomu łuski Turni Rabowskiego (seria wierchowa). Gł&oacute;wny ciąg ma charakter zawaliska powstałego na dw&oacute;ch szczelinach tektonicznych. W zwężeniu między salkami widać fragment lustra tektonicznego (273</span>̊/73̊<span>N). Ściany i strop są zwietrzałe, bez naciek&oacute;w. Namulisko przy otworach tworzy gł&oacute;wnie gleba, głębiej występuje rumosz wapienny i duże wanty oberwane ze stropu, a&nbsp;w&nbsp;bocznych odgałęzieniach&nbsp;&ndash; glina piaszczysta. Domieszkę w osadach stanowią kości nietoperzy oraz odchody kozic. </span></p>
+<p><span>Światło odbite dociera do całego gł&oacute;wnego ciągu, zupełnie ciemny jest Korytarz Ślimaczy. Wilgotność i przewiew między otworami zależne są od warunk&oacute;w atmosferycznych. Bujnie rozwijają się rośliny kwiatowe; sięgają one do około 5 m&nbsp;od otworu 1 i nieco płycej od otworu 2. M. Kropiwnicka oznaczyła niekt&oacute;re z występujących tu gatunk&oacute;w. Z okolic otworu NW wymienia następujące kwiatowe: <strong><em>Archangelica officinalis</em></strong><em>,<strong> Aconitum callybotryon</strong>,<strong> Adenostyles alliriae</strong>, <strong>Primula elatior</strong>,<strong> Viola biflora</strong>,<strong> Arabis alpina</strong>,<strong> Rhodiola</strong>,<strong> rosea</strong>,<strong> Saxifraga punctata</strong>, <strong>Chrysosplenium alternifolium</strong>,<strong> Arabis halleri</strong>,<strong> Myosotis alpestris</strong></em>;z okolic otworu E<strong>&nbsp;&ndash; <em>Aconitum callibotryon</em></strong><em>,<strong> Delphiniumoxysepalum</strong>, <strong>Adenostylesalliariae</strong>,<strong> Myostis alpestris</strong>,<strong> Primula elatior</strong>,<strong> Chrysosplenium alternifolium</strong>,<strong> Viola biflora</strong>,<strong> Arabis alpina</strong>,<strong> Arabis Halleri</strong>, <strong>Saxifraga punctata</strong>,<strong> Chrysanthenum alpinum. </strong></em>Głębiej występują mchy i porosty, a także paprocie, wątrobowce i glony. </span></p>
+<p><span>Faunę reprezentują nietoperze, owady, a przy otworze ślimaki; widać też ślady przebywania kozic. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Jaskinia została odkryta 22 czerwca 1959 r. przez grotołaz&oacute;w zakopiańskich: M.&nbsp;Kruczka i S. W&oacute;jcika. W dniu 7 lipca 1959 r. ww. oraz M. Cetnarską i W. Habil odkryli Korytarz Ślimaczy. Pierwszą wzmiankę o odkryciu zamieścił Rudnicki (1959b), a opis groty opublikował Habil (1961). </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ w 1975 r. wykonano szkic położenia otworu na podstawie ciągu busolowego przeprowadzonego pod kierownictwem P. Kulbickiego. W dniu 11 sierpnia 1985 r. dokumentację jaskini sporządziła I. Luty przy wsp&oacute;łpracy M. Kropiwnickiej (M.&nbsp;Kropiwnicka oznaczyła też florę okołootworową). Pomiary przeprowadzono busolą geologiczną Meridian i taśmą parcianą. Pomiary sytuacyjno-wysokościowe położenia otworu wykonał w dniu 17 sierpnia 1981 r. zesp&oacute;ł Naukowego Koła Geodet&oacute;w AGH pod kierownictwem W. Borowca. Dane zaktualizowała I. Luty (2009). W lipcu 2018 r. wsp&oacute;łrzędne otworu skorygował F. Filip.<br /></span></p>
+<p>Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Rudnicki J. 1959b (wzmianka o odkryciu pod nazwą Jaskinia pod Schodkami); W&#243;jcik Z. 1960b (wzmianka, lokalizacja na szkicu pod nazwą Jaskinia pod Schodkami); W&#243;jcik Z. 1960g (informacja o odkryciu, błędna długość); [Krygowski W.] x.y. 1961 (wzmianka o odkryciu); Habil W. 1961 (opis położenia i jaskini pod nazwą Jaskinia nad Korytem, szkic położenia otworu); W&#243;jcik Z. 1966a, 1968 (wzmianki, niekt&#243;re dane morfometryczne, lokalizacja na mapkach, używa nazwy Siwarowa); Burkacki M., Kropiwnicka M. 1976 (wzmianka o pracach inwentaryzacyjnych); Borowiec W. i in. 1977,1878 (dane morfometryczne); TATRY POLSKIE 1984 (błędna lokalizacja na mapie 1:10000); Gradziński R. i in. 1985a (niekt&#243;re dane morfometryczne, lokalizacja na mapie); Luty I. 1988 (nowe dane morfometryczne, lokalizacja na mapie i rysunku ściany, dane historyczne); Cywiński W. 1995 (położenie); Jaskinie TPN 2000 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, S. 1959 – sprawozdanie (wzmianka o odkryciu oraz przeprowadzeniu pomiar&#243;w); W&#243;jcik, S. – Inwentarz (wymienia).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(717)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

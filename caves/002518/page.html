@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2518">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2518;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "528727,7871".replace(',', '.') + "," + "312075,6717".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2518','Jaskinia Wierna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Wierna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.I-05.54
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;24′24,10″, φ: 50&#176;40′29,90″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Niegowa (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                myszkowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                385
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1027
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                140
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Dolina Wiercicy, Ostrężnik.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się w pobliżu osady Ostrężnik, w zachodnim zboczu wzgórza, ograniczającego osadę od wschodu. Z przysiółka należy podejść ścieżką w kierunku wschodnim wzdłuż granicy lasu bukowego. Potem przez las, lekko trawersując zbocze, w stronę skałki, będącej kulminacją tej części zalesionego grzbietu. Otwór jaskini znajduje się kilkanaście metrów przed skałką, obok pnia dużego buka, w wąskiej rozpadlinie małych, słabo widocznych wychodni skalnych.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                      <p><span>Otwór jaskini jest sztucznie poszerzoną rozpadliną skalną, o szerokości około 0,5 m i długości 1,2m. Po kilku metrach szczelina przechodzi w ciasną studzienkę, która po 2 m wypada 4-metrowym progiem do Sali Wytrwałych. Sala, o wymiarach 15x4 m i wysokości do 4m, powstała w wyniku obrywu pomiędzy dwoma blisko siebie przebiegającymi szczelinami. Dno sali stanowi zawalisko. W części, gdzie zbudowane jest ono z dużych głazów, można między nimi przecisnąć się kilka metrów w głąb. Na stropie i ścianach sali pojawiają się niewielkie formy naciekowe (makarony, stalaktyty, draperie, polewy z mleczka wapiennego). W północnej części sali urywają się dwie szczelinowe studzienki. </span></p>  <p><span>Lewa studnia, węższa, sprowadza do Partii Dąbrowskich. Spod studni szczelinowy korytarz, o dnie zasłanym blokami skalnymi i rumoszem, wiedzie do Sali Trójkątnej. Ma ona wymiary 12x3 m i do 2,5 m wysokości, jest pozbawiona nacieków, ma charakter zawaliskowy. Tu ciąg rozdwaja się. W kierunku północno-zachodnim odchodzi 60-metrowy, szczelinowy korytarz, o ścianach wypreparowanych przez stagnującą wodę. Dno tego ciągu zalega namulisko gliniaste. W ścianach widoczne są, licznie występujące, buły krzemienia oraz skamieniałości. Korytarz prowadzi do najdalej na zachód wysuniętej części jaskini – ciasnego ciągu, nazwanego Incydentem Zachodnim. Z Sali Trójkątnej w kierunku północnym prowadzi wysoki korytarz, którego dno miejscami pokryte jest pięknymi, śnieżnobiałymi polami ryżowymi i niewielkimi nieckami z wodą. Korytarz ten po około 25 m, przez wąski i niski przełaz, wpada do poprzecznej, wysokiej szczeliny o ścianach pokrytych wspaniale wykształconymi naciekami grzybkowymi oraz efektownymi polewami. W kierunku zachodnim szczelina ta spiętrza się 4-metrowym progiem, wprowadzającym w przypowierzchniowe zawalisko. Widoczne tu są korzenie drzew. W kierunku wschodnim szczelina doprowadza do Sali z Wantą. Sala ta jest wydłużona, z dużym blokiem skalnym pośrodku, o pięknym, wypłaszczonym przez przepływ wody stropie, zdobnym największym w jaskini nagromadzeniem niezbyt długich makaronów. Leży ona na osiowym pęknięciu Jaskini Wiernej. W kierunku północnym odchodzi od sali kilkunastometrowej długości ciasnawa szczelina - Zaułek Północny. Z Sali z Wantą w dół i w kierunku południowym odchodzi dolne piętro, które przez zawalisko przedostaje się do Niskiej Sali. Sala o powierzchni 12x8m, utworzona w wyniku obrywu na warstwie ławicowej, w zasadniczej części jest niska (średnia wysokość 1m), o stropie z najładniejszymi w jaskini gniazdami stalaktytów. W zachodniej części przebiega przez nią szczelinowy komin o wysokości do 12 m. Niska Sala leży w centralnej części jaskini i jest jakby zwornikiem labiryntowego układu korytarzy. Można do niej także dotrzeć szczelinowym korytarzem, zaczynającym się pod Studnią Triumfu, a następnie jednym z trzech niskich przełazów w kierunku wschodnim. Z Niskiej Sali rozciągają się w stronę wschodnią najładniejsze naciekowo rejony jaskini - Korytarz Naciekowy oraz Partie Jurajskiego Klubu Jaskiniowego. Partie J.K.J. rozwijają się głównie w kierunku północnym. W nich leży najniższy dotychczas osiągnięty punkt jaskini – 30 m. </span></p>  <p><span>Z Niskiej Sali w kierunku południowym przechodzimy do Sali Rysia. Ma ona wymiary 20 x 4  m. Znaleziony w niej został kompletny szkielet rysia, zalany naciekiem. Największą ozdobą są okazałe stalagmity, sięgające 30 cm wysokości i tworzące efektowny rząd. Za Salą Rysia rozciągają się szczelinowe korytarze , które niejednokrotnie krzyżując się między sobą rozciągają się jeszcze na ok. 70 m ku S i docierają aż pod powierzchnię, o czym świadczą występujące tu brody i korzenie drzew. Partie te są stosunkowo ciasne (Labiryncik, Przepierzenie), jedynie Korytarz Południowy jest obszerniejszy, o ścianach pokrytych polewą naciekową.</span></p>  <p><span>Środowisko geograficzne Jaskini Wiernej było badane w 1991 roku przez R. Gałuszkę. Poniżej przedstawiono kilka syntez i wniosków z tego opracowania:</span></p>  <p><span>● Jaskinia powstała w serii wapieni skalistych jury górnej i wapieni organodetrytycznych z krzemieniami.</span></p>  <p><span>● Jest utworzona przez system poziomych korytarzy, rozwiniętych na pionowych szczelinach tektonicznych o układzie SE-NW. Szczeliny te są w niektórych miejscach (Korytarz Południowy, Incydent Zachodni, Zaułek Północny) dobrze widoczne w postaci wnęki stropowej.</span></p>  <p><span>● Korytarze jaskini pokrywają formy freatyczne jak i wadyczne, świadczące o tym, że rozwinęła się ona w strefie saturacji (poziomo skierowany, burzliwy przepływ) a następnie była modelowana w warunkach swobodnego przepływu wody w strefie aeracji.</span></p>  <p><span>● Główna faza rozwoju przypada na schyłek trzeciorzędu. Obecnie jest jaskinią nieaktywną, odizolowaną od zwierciadła wód podziemnych.</span></p>  <p><span>● Wyróżniono trzy typy korytarzy: </span></p>  <p><span>1/ Powstałe na spękaniach międzywarstwowych. Korytarze posiadają zrównany strop i niewysokie ściany, charakterystyczne dla erozji bocznej (np. początek Korytarza Naciekowego). </span></p>  <p><span>2/ Powstałe na szczelinach tektonicznych, biegnących prostopadle do spękań międzywarstwowych. Korytarze te są wysokie i stosunkowo wąskie (erozja pionowa), o asymetrycznym przekroju (np. Korytarz Południowy, Przepierzenie, Zaułek Północny).</span></p>  <p><span>3/ Powstałe w miejscu krzyżowania się ze sobą szczelin tektonicznych i spękań międzywarstwowych. Tak utworzyły się główne sale jaskini.</span></p>  <p><span>● Korytarze były tworzone przez wody allochtoniczne (płynące z zewnątrz) i autochtoniczne. Te pierwsze mają spore rozmiary, są szerokie, o zrównanym stropie (Korytarz Południowy). Często posiadają kształt trójkątny, z wyraźnymi bocznymi, poziomymi rozmyciami ścian (Przepierzenie, Pod Skałkę, Incydent Zachodni). Korytarze powstałe dzięki wodom autochtonicznym są przeważnie wysokie i wąskie, lekko meandrujące (Studnia Tryumfu, Lewa Studnia). Obecnie korytarze górnego piętra jaskini uległy zawaleniu, zaś te z dolnego piętra zostały zapełnione przez namuliska i nacieki.</span></p>  <p><span>● Opisano kilka form erozyjnych: </span></p>  <p><span>1/ Kotły wirowe są najczęściej spotykaną formą rzeźby stropowej, szczególnie w Niskiej Sali i Zaułku Północnym. Najczęściej są rozmieszczone wzdłuż osi korytarza. Mają maksymalną głębokość do 30 cm.</span></p>  <p><span>2/ Poziome rozmycia ścian tworzą charakterystyczny gruszkowaty przekrój w korytarzu łączącym Niską Salę z Salą z Wantą i w Zaułku Północnym.</span></p>  <p><span>3/ Zagłębienia wirowe tworzą owalne formy o głębokości do 3 cm na ścianach u wylotu Korytarza Południowego do Sali Rysia.</span></p>  <p><span>4/ W górnej części Studni Tryumfu i Lewej Studni występują żłobki szczelinowe i zagłębienia korozyjne.</span></p>  <p><span>● Nacieki kalcytowe są największą ozdobą Jaskini Wiernej. Opisano tu 4 grupy nacieków: pokrywy naciekowe (nacieki na ścianach, kaskady, misy martwicowe, perły jaskiniowe), stalaktyty (makarony, normalne, zdeformowane, heliktyty, draperie, zasłony), stalagmity (typowe, zgrubiałe u góry, kolumny) i nacieki typu „kamiennego mleka” (pokrywy, pola ryżowe, misy martwicowe). Największe nagromadzenie form naciekowych ma miejsce w środkowej części jaskini, zwłaszcza w Korytarzu Naciekowym. Występujące tu kolumny dochodzą 1,5 m. wysokości, kaskady sięgają 2 m., pola ryżowe przekraczają powierzchnię 3 m kwadratowych. W Niskiej Sali są charakterystyczne „gniazda stalaktytów”. Jest ich tu 6,  a w każdym naliczono około 30 stalaktytów, sięgających maksymalnie 30 cm długości. W Sali Rysia znajduje się sporo dość dużych stalagmitów, tworzących efektowny wał, o długości 3 m, biegnący środkiem sali. Największe mają 0,5 m wysokości. W dużych powierzchniowo misach martwicowych wykształciły się perły naciekowe. W Sali z Wantą jest duże nagromadzenie współcześnie powstających makaronów, sięgających 15 cm długości. W Białej Studni i Korytarzu Naciekowym występują pola ryżowe i pokrywy typu „kamiennego mleka”. W północnej części Korytarza Naciekowego powszechnie występują heliktyty. Ściany Korytarza Południowego, Grzybiarni i Partii Dąbrowskich są pokryte naciekiem grzybkowym. Wiek nacieków ocenia się na około 4,5 tys. lat. W skalnych osadach znaleziono także odłamki znacznie starszych nacieków, datowanych na około 45 tys. i 50 tys. lat.</span></p>  <p><span>● Na spągu sal i korytarzy licznie występują osady. Są to przede wszystkim przytransportowane przez wodę czerwone piaski ilaste i gliny. Występują one na dużej powierzchni, szczególnie w dolnym piętrze. W Partiach J.K.J. miąższość piasków sięga 1,5 m. Zazwyczaj są one przykryte kilkucentymetrową warstwą gliny. Prawie w całej jaskini występują osady grawitacyjne typu autochtonicznego. Tworzą je przede wszystkim gruzy wapienne, potrzaskane fragmenty nacieków i duże bloki skalne. Najwięcej jest ich w Sali Wytrwałych, gdzie osiągają miąższość 7 m. Osady organiczne, w postaci brekcji i guana nietoperzowego znaleziono w Niskiej Sali i pod Studnią Tryumfu. Na spągu Sali Rysia leżał prawie kompletny szkielet rysia, częściowo zalany polewą naciekową. Jego wiek oceniono na około 1000 lat. Część kości, w tym czaszka, zostały zabezpieczone i są przechowywane w Instytucie Systematyki i Ewolucji Zwierząt PAN w Krakowie.</span></p>  <p><span>● Woda występuje w jaskini w postaci deszczu podziemnego, skapującego ze stalaktytów i nierówności stropu oraz kałuż w misach martwicowych i na dnie korytarzy. Średnia temperatura wody jest zbliżona do temperatury powietrza i wynosi około 8,3º C. Średnia roczna temperatura powietrza w jaskini wynosi 8,1º C i jest wyższa od średniej rocznej temperatury tego terenu o 1,2º C. Wraz ze wzrostem odległości i głębokości od otworu średnia roczna temperatura obniża się, poczynając od Sali Wytrwałych, gdzie wynosi 8,8º C a kończąc na Partiach J.K.J., gdzie wynosi 7,8º C. W jaskini nie zaobserwowano wtargnięcia mrozu do wnętrza, ani wytworzenia jakichkolwiek form lodowych.</span></p>  <p><span>● Wilgotność względna w jaskini oscyluje w granicach od 88% do 95%. Jej przebieg jest związany z przebiegiem temperatur. Wraz z ich wzrostem rośnie wilgotność. Po zamontowaniu klapy w otworze stwierdzono, że wilgotność wzrosła o kilka procent w całej jaskini.</span></p>  <p><span>● W jaskini stwierdzono dwa typy cyrkulacji powietrza, związane z porami roku: </span></p>  <p><span>1/ zimową: powietrze wypływa na zewnątrz. W dniu 9 grudnia 1991 w szczelinie wyjściowej zanotowano prędkość przepływu około 3 m/sek., </span></p>  <p><span>2/ wiosenno-letnio-jesienną: przepływy powietrza w jaskini są bardzo słabe i bez wyraźnego kierunku.</span></p>  <p><span>● Światło naturalne sięgało pierwotnie do głębokości około 4 m, jednak po zamknięciu jaskini jego zasięg zmniejszył się do około 2 m. Obejmuje tylko część szczeliny wejściowej.</span></p>  <p><span>● W jaskini wyróżniono trzy strefy mikroklimatyczne: </span></p>  <p><span>1/ strefa statyczna, w której wahania temperatury w ciągu roku są mniejsze od 1ºC i wilgotność jest stała i najwyższa (Dno, Partie J.K.J., Niska Sala, Korytarz Południowy), </span></p>  <p><span>2/ strefa przejściowa, w której wahania temperatury w ciągu roku wynoszą około 1ºC i wilgotność jest stała lecz o nieco niższej wartości (Studnia Tryumfu, Partie Dąbrowskie). Stwierdzono tu wyraźny przepływ powietrza,</span></p>  <p><span>3/ strefa dynamiczna, o największych wahaniach temperatury, sięgających 2,8ºC, i zróżnicowanej wilgotności względnej od 88 do 94% (Sala Wytrwałych). </span></p>  <p><span>W jaskini zimują nietoperze. Stwierdzono tu m.in. takie gatunki jak nocek duży <strong><em>Myotis myotis</em></strong> (08 lutego 1991 – 4 osobniki), nocek Natterera <strong><em>Myotis nattereri</em></strong> (08 lutego 1991 – 2 os.), nocek rudy <strong><em>Myotis daubentonii</em></strong> (08 lutego 1991 - 1 os.), nocek wąsatek <strong><em>Myotis mystacinus/brandtii</em> </strong>(22 lutego 1992 – 1 os.), podkowiec mały <strong><em>Rhinolophus hipposideros</em></strong> (22 lutego 1992 – 1 os.) i jako rzecz wyjątkowa – podkowiec duży <strong><em>Rhinolophus ferrumequinum</em></strong> (22 lutego 1992 -1 os.).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Kompleksowe opracowanie geograficzne obejmujące opis geologiczno morfologiczny i warunki klimatyczne przeprowadził Gałuszka (1992). Występowanie nietoperzy badali Postawa, Węgiel i Zygmunt (1994).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Miejscowa ludność od dawna obserwowała wyraźny wywiew powietrza, wydobywający się z wejściowej szczeliny przy niskich temperaturach i pokrywający pobliskie drzewa efektowną szadzią. W dniu 2 stycznia 1976 r. Z. i M. Rysieccy ze Speleoklubu Katowice, jako pierwsi grotołazi zwrócili uwagę na ten problem (Meander 1, 1976). W maju 1976 r. członkowie tego klubu – K. Irzyk, S. Janota i Z. Rysiecki rozpoczęli poszerzanie ciasnej szczeliny wejściowej. Prace te zostały zakończone w dniu 20 października 1990 r. przez ten sam zespół, uzupełniony o B. Łabanowicza z Katowickiego Klubu Speleologicznego i A. Porębskiego ze Speleoklubu Dąbrowa Górnicza. W tym dniu odkryto ok. 500 m. korytarzy, w tym Salę Niską i Salę Rysia. Tydzień później zespół Speleoklubu Dąbrowa Górnicza - A. Porębski, W. Porębski i D. Piętak odkryli około 150 metrów korytarzy w Partiach Dąbrowskich. 21 kwietnia 1991 roku członkowie Jurajskiego Klubu Jaskiniowego z Krakowa - T. Szczęśniak i S. Herod znaleźli wejście do Partii J.K.J., odkrywając ok. 120 m. korytarzy. Tydzień później ten sam zespół, uzupełniony przez Z. Rysieckiego i M. Wilka (KKS), przedłużył te partie o kolejne 100 m.<br />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Pomiary jaskini sporządził Z. Rysiecki w listopadzie 1990 r. i maju 1991 r. Dane zaktualizował J. Zygmunt w 2009 r.<br />Plan opracował Z. Rysiecki.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Rysiecki Z. 1976 (wzmianka); Gałuszka R. 1992 (oprac.  geograficzne); Rysiecki Z. 1990 (informacja); Rysiecki Z. 1991 (plan, opis); Postawa T. i in. 1994 (badania nietoperzy); Stefaniak K. i in. 2009d (dane morfometryczne, kr&#243;tka charakterystyka, zakres badań); Tyc A. 2009a (wzmiankuje w aspekcie genezy); Jaskinie Wyżyny Częstochowskiej 2011a  (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Czepiel M., Zygmunt J. 2001 (dokumentacja).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Zbigniew  Rysiecki, Jerzy Zygmunt
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2033)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

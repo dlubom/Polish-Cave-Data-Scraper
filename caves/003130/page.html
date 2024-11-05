@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3130">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3130;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "694630,29".replace(',', '.') + "," + "188701,73".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3130','Szczelina Lipowicka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Szczelina Lipowicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bn-09.04
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 21&#176;41′27,00″, φ: 49&#176;32′04,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Dukla (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krośnieński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                podkarpackie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Obszar Natura 2000 Osuwiska w Lipowicy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku E; 3 - ku NE; 4 - ku E; 5 - ku g&#243;rze; 6 - ku g&#243;rze; 7 - ku W; 8 - ku SW; 9 - ku SW; 10 - ku SW; 11 - ku E; 12 - ku g&#243;rze.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                400
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    105
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Niski, Lipowica, SE zbocza Kielan&#243;wki (559,8 m n.p.m.), w osuwisku p&#243;łnocnym.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od przystanku PKS Lipowica-Kamieniołom idziemy około 400 m w kierunku Dukli. Wkrótce widzimy po lewej ścianę skalną. Obchodzimy ją po prawej, za budynkiem, a przed ruinami. Idziemy stromo pod górę, gdzie zbocze wkrótce łagodnieje. Dalej jeszcze około 100 m, nieznacznie w górę (na W), po czym dochodzimy do okazałej ściany niszy osuwiskowej. Poniżej niej znajduje się rozpadlina z charakterystycznym wielkim okapem w ścianie Gangusiowej Turni. Okazałe otwory 1, 2, 3, 4 znajdują się w ścianie Gangusiowej Turni, pozostałe otwory w dnie rozpadliny. Dojście bez trudności, zwiedzanie jest uciążliwe (ciasno) i wymaga miejscami wspinaczki (trudności IV, lina nie jest konieczna).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r 1 stanowi okazały okap, ze zwalonymi pod nim wantami. Po stronie SW znajduje się niewielka wnęka, a w stropie zaciskowy (Z1) kominek, do kt&oacute;rego można dostać się wspinaczką (trudności IV). Prowadzi on do 4 m długości korytarzyka zw. Anclem. Obok kominka wejście (na wysokości 2,5 m) do Korytarza Spadochroniarzy. Korytarz ten ma długość 7 m, we wstępnych partiach jest zaciskowy (Z2), po czym rozszerza się do 0,4 m. Największa wysokość wynosi 1,7 m. Kończy się on niedostępną szczeliną do powierzchni, wychodzącą w rejonie otworu 3.<br /> Na tej samej szczelinie co Korytarz Spadochroniarzy, lecz poniżej, znajduje się Korytarz Płetwonurk&oacute;w. Największa wysokość korytarza wynosi 3,5 m, szerokość początkowo 0,3 m, dalej do 1,5 m. Po około 3 m w kierunku SE odchodzi szczelina do otworu 2. Po następnych 2 m dochodzimy do 3,0 m wysokości progu, pod kt&oacute;rym znajduje się wejście do około 2 m długości korytarzyka. Nad progiem znajduje się salka, skąd w kierunku NE do otworu 3, natomiast w kierunku NW, poprzez 2,0 m wysokości pr&oacute;g schodzimy do kolejnej salki (szerokość 1,0 m, wysokość do 2,0 m). Stąd korytarz skręca na E i poprzez pochylnię dochodzimy do rozgałęzienia: w SE dochodzimy do 1,0 m głębokości studzienki, natomiast w kierunku E do 2,0 m głębokości studni. Stąd idziemy do okazałego otworu 4. <br /> Wspomniane studzienki doprowadzają do podłużnej sali (szerokość do 1,5 m, wysokość do 2,0 m). Stąd w kierunku NE korytarz, do kt&oacute;rego uchodzi kominek (1,8 m wysokość) doprowadzający do otworu 5. Partie te mają około 9 m długości i noszą nazwę Korytarza Czołgist&oacute;w. W połowie tego korytarza znajduje się pochylnia do g&oacute;ry, kt&oacute;ra z kolei doprowadza do rozszerzenia, gdzie znajdują się otwory 6 i 7. Natomiast pochylnią w d&oacute;ł schodzimy do Komory Trep&oacute;w. Długość sali wynosi około 3 m, szerokość do 2,0 m, wysokość do 2,0 m. Stąd przechodzimy do kolejnej salki (wysokość 1,0 m), gdzie znajdują się otwory 8, 9, 10 i 11. Z Komory Trep&oacute;w w kierunku E biegną r&oacute;wnoległe korytarze: pierwszy kończy się po około 4 m ciasną szczeliną, drugi poprzez zacisk (Z1) doprowadza do korytarza, z kt&oacute;rego w kierunku E znajduje się przejście do niskiej salki zw. Izbą Żołnierską. Salka ta kończy się dwoma szczelinami. Z korytarza przed Izbą Żołnierską przez niewygodne przełazy, dochodzimy do otworu 12.<br /> Jaskinia osuwiskowa, powstała w piaskowcach cergowskich. Jej powstanie wiąże się z licznymi osunięciami w ostatnich kilkudziesięciu latach (największe 13 maja 1957 r.) , powstałymi wskutek działania kamieniołom&oacute;w. Jest to więc obiekt bardzo młody. Dno pokrywają szczątki roślinne, rumosz, a rejonie otworu 1 także okazałe bloki skalne.<br /> Jaskinia z powodu licznych otwor&oacute;w i szczelin do powierzchni, jest w całości wymrażana. Głębsze partie posiadają mikroklimat statyczny, zimny. Światło dzienne oświetla prawie całą jaskinię, za wyjątkiem Komory Trep&oacute;w oraz Izby Żołnierskiej. Jest dość wilgotna. Stwierdzono pająki i motyle, a w Korytarzu Spadochroniarzy znaleziono guano nietoperzy. Flora nie była obserwowana.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Gerlach, Pokorny i Wolnik (1958) wspominają o powstaniu w osuwisku w 1957 r. szczelin i studni. R&oacute;wnież Janiga (1974) pisze o istnieniu kilku jaskiń na wschodnim stoku Kilanowskiej. Możliwe, że informacje te Szczeliny Lipowickiej. Z powodu okazałych otwor&oacute;w była znana ludności miejscowej, lecz z powodu ciasnoty nie była raczej zwiedzana.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zinwentaryzowana została 19 grudnia 1992 r. przez T. Mleczka i B. Szatkowskiego (Speleoklub Dębica). Pomiary wykonano busolą geologiczną Freiberg i taśmą parcianą. 13 maja 2009 r. T. Mleczek (Stowarzyszenie Speleoklub Beskidzki) dokonał aktualizacji planu i opisu.<br />Plan opracował T. Mleczek.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Gerlach, T., Pokorny, J., Wolnik, R. 1958. (wzmianka o szczelinach i studniach, fotografia otworu niezidentyfikowanej jaskini); Janiga S. 1974 (wzmianka o kilku jaskiniach na Kilanowskiej, geneza); Wiśniewski W.W. 1992 (wzmianka); Wiśniewski W.W. 1993b (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G. 1994 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G. 1995 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza); Wiśniewski W.W. 1996a (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych);Wiśniewski W.W. 1996d (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych): Wiśniewski W.W. 1996e (ujęta w wykazie jaskiń Beskidu Niskiego autorstwa T. Mleczka, lokalizacja na mapie autorstwa T. Mleczka, fotografia otworu autorstwa T. Mleczka); Wiśniewski W.W. 1997 (dane morfometryczne, plan jaskini autorstwa T. Mleczka, lokalizacja na mapie autorstwa T. Mleczka); Jaskinie Polskich Karpat fliszowych 1998 (plan i opis inwentarzowy); Klassek G., Mleczek T. 1998 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Mleczek T. 1999a (ujęta w wykazie najdłuższych jaskiń Kilanowskiej, lokalizacja na mapie, topografia, mikroklimat, możliwość połączenia ze Gangusiową Jamą, fotografia otworu); Klassek G., Mleczek T. 1999 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Luboński P. (red.) 1999 (wzmianka, lokalizacja na mapie); Alexandrowicz Z., Poprawa P. (red.) 2000 (wzmianka); Klassek G., Mleczek T. 2000 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Krukar W. 2000 (wzmianka); Subik P. 2000 (wzmianka); Klassek G., Mleczek T. 2001 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Suski R. 2001a (ujęta w wykazie najdłuższych i najgłębszych jaskiń Beskidu Niskiego); Beskid Niski. Przewodnik dla prawdziwego turysty 2002 (wzmianka, lokalizacja na mapie, fotografia otworu); Klassek G., Mleczek T. 2002 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Mleczek T. 2002a (dane morfometryczne, geneza, mikroklimat); Mleczek T. 2002b (kr&#243;tki opis, plan, fotografia otworu, lokalizacja na mapie); Klassek G., Mleczek T. 2003 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G. 2004 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2004 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Mleczek T. 2004b (wzmianka); Beskid Niski 2005 (wzmianka, og&#243;lna lokalizacja na mapie); Klassek G., Mleczek T. 2005 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2006 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Urban J., Margielewski W., Alexandrowicz Z., Mleczek T. 2006 (wzmianka); Beskid Niski. Przewodnik dla prawdziwego turysty 2007 (wzmianka, lokalizacja na mapie, fotografia otworu); Klassek G., Mleczek T. 2007. (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych): Klassek G., Mleczek T. 2008b (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T., 2009 (ujęta w wykazie najdłuższych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2010 (ujęta w wykazie najdłuższych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2011 (ujęta w wykazie najdłuższych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2012 (ujęta w wykazie najdłuższych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2014 (ujęta w wykazie najdłuższych jaskiń polskich Karpat fliszowych); Zatorski M., Franczak P., Mleczek T. 2015 (waloryzacja).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tomasz Mleczek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2648)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

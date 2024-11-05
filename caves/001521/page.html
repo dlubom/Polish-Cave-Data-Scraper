@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1521">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1521;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565617,17".replace(',', '.') + "," + "152961,52".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1521','Jaskinia Lodowa Miętusia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Lodowa Miętusia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Lodowa Szczelina, Jazz Club, K-3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.29
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′06,27″, φ: 49&#176;14′26,31″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NNE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1589,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                245
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                11
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    85
+                </div>
+                <div style="min-height: 15px;">
+                    46
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, Wielka Świst&#243;wka, w środkowej części ściany Kazalnicy Miętusiej, na przecinającej ją wybitnej p&#243;łce będącej przedłużeniem III p&#243;łki Twardych Spad&#243;w w kierunku trawiastych zachod&#243;w Progu Mułowego. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z licznych możliwości dostania się na półkę, dwie mają praktyczne znaczenie jako drogi dojścia do jaskini. Wariant pierwszy dojścia: Doliną Miętusią dochodzimy do Wielkiej Świstówki (jak do Schronu pod Twardymi Spadami T.E-11.35). Wspinamy się dolnym spiętrzeniem Progu Mułowego (III, 1-1,5 wyciągu), a następnie ukośnym zachodem w prawo docieramy do półki tnącej poziomo ścianę (bez trudności). Mijamy leżące w górze nad półką otwory Komina w Kazalnicy T.E-11.031 i Śnieżnego Avenu T.E-11.30. W miejscu, gdzie półka zwęża się dochodząc do filara i zaczyna obniżać, w zagłębieniu pod ścianą znajduje się niewielki otwór jaskini. Dojście trudne (III), użycie sprzętu wspinaczkowego konieczne. 
+Zwiedzanie jaskini zasadniczo jest łatwe, trudności zależą jednak od stanu lodu. Przy dużym zalodzeniu mogą występować lodowe zaciski, a nawet może dojść do zupełnego zablokowania przejścia. Zejście pod lód wymaga pokonania zapieraczką lodowego prożka (II–III), a potrzeba użycia liny zależy tu od stanu lodu.
+Wariant drugi: z Doliny Miętusiej docieramy na III półkę Twardych Spadów (jak do Górnych Kominów T.E-11.27 i Zielonych Kominów T.E-11.14). Trawersujemy dalej szerokim, porośniętym roślinnością zachodem wznosząc się, a następnie obniżając w stronę filara Kazalnicy Miętusiej. Przy dojściu do kantu filara zachód przechodzi w wąską półkę (bez trudności, asekuracja nie jest konieczna, ale wskazana ze względu na ekspozycję). Od jej największego zwężenia wznosimy się (nieco szerzej) docierając po kilkunastu metrach do platforemki przy otworze jaskini. Dojście dość trudne (II), miejscami bardzo eksponowane, sprzęt asekuracyjny wskazany (zwłaszcza przy powrocie tą trasą), chociaż nie jest bezwzględnie konieczny.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <div>
+<p><span>Od otworu niskim, pochyłym tunelikiem o dnie pokrytym gruzem skalnym czołgamy się w d&oacute;ł, docierając po 9 m do wygodniejszego miejsca, gdzie w g&oacute;rę, ponad 2 m prożkiem odchodzi zakończona naciekiem szczelina (nie widać jej ostatecznego zakończenia). Korytarz rozszerza się tutaj w rodzaj salki o gruzowym dnie, za kt&oacute;rą rozpoczyna się l&oacute;d. Dalej wiedzie szeroki, wygodny korytarz, czy też salka (Lodowy Korytarz) o lodowym dnie. <br />W jego południowo-wschodniej części, ponad czterometrowym progiem, znajduje się wejście do &bdquo;Korytarza do wanty&rdquo;. Ma on charakter korkociągu dość stromo pnącego się w g&oacute;rę, wielokrotnie zmieniającego kierunek. Jego szerokość zmienia się od 0,3 m do około 1 m. Po około ośmiu metrach (tuż przed miejscem, w kt&oacute;rym znajdowała się wanta zamykająca dalsze przejście), znajduje się zacisk (ZII) uciążliwy na wyjściu. Za nim, po czterech metrach, stajemy w Salce na Rozdrożu, z kt&oacute;rej korytarz rozchodzi się w dw&oacute;ch kierunkach. <br />W kierunku południowo-zachodnim za trudnym zaciskiem (ZIII) korytarz rozszerza i opada pięciometrową studzienką do salki, kt&oacute;ra przez niedostępny przełaz łączy się z g&oacute;rną częścią pochylni idącej w g&oacute;rę za szczeliną na przedłużeniu Lodowego Korytarza (około +9 m w stosunku do otworu)<br />Wracamy do &bdquo;Salki na rozdrożu&rdquo;. W kierunku wschodnim ciągnie się w g&oacute;rę meander wysoki na około 1,5 - 2 m i szerokości od 0,4 m do 0,7 m, z niewielkimi prożkami. Po dziesięciu metrach znajduje się trudny zacisk, kt&oacute;rego dotychczas nie udało się przejść.</span></p>
+<p><span>Wracamy do Lodowego Korytarza. L&oacute;d pokrywający dno Lodowego Korytarza kończy się w jego najniższym punkcie (występuje tam rumosz). Tu w prawo odchodzi niski korytarzyk, natomiast na wprost, ponad p&oacute;ł metrowym prożkiem, znajduje się wąska wylodzona szczelina, długości trzech, czterech metr&oacute;w. Za nią korytarz rozszerza się i rozwidla. W g&oacute;rę na NE ciągnie się trzy metrowa, lodowa pochylnia, zablokowana w stropowej części całkowicie lodem, zaś na SW korytarz biegnie kilka metr&oacute;w dość stromo w d&oacute;ł. W najniższym jego punkcie znajduje się szczelina niedostępna dla człowieka. Stwierdzono w niej silny wywiew. <br />Wracamy do rozwidlenia. Z najniższego punktu czołgamy się w prawo niskim korytarzykiem, po chwili trafiając na l&oacute;d. Następujący 3,5 m dalej pochyły, lodowy pr&oacute;g daje się pokonać zapieraczką, jednakże przy silniejszym wytopieniu może być potrzebna lina.<br /></span><span>Przedstawiona w opisie konfiguracja jaskini ulega znacznym zmianom w zależności od stanu zalodzenia (ze względu na silne wahania jego poziomu).</span></p>
+<p><span>Eksploratorzy Studni w Kazalnicy Miętusiej (T.E-11.12) stwierdzili połączenie głosowe pomiędzy najwyższym punktem tej jaskini (zalodzony korytarzyk nad Toporową Studnią) a Jaskinią Lodową Miętusią (Fuja 1998b).</span></p>
+<p><span>Jaskinia stanowi system bez wyraźnych ślad&oacute;w działalności wody (występują one tylko w pierwszym bocznym kominku z zaciskiem), założony prawdopodobnie na strefie spękań tektonicznych w obrębie wapieni robaczkowych, a być może częściowo także podściełających je dolomit&oacute;w płytowych anizyku jednostki Organ&oacute;w (seria wierchowa, fałd Czerwonych Wierch&oacute;w). W nie zalodzonych fragmentach jaskini dno pokrywa rumosz i bloki skalne. Woda występuje gł&oacute;wnie w postaci lodu, kt&oacute;rego ilość ulega znacznym wahaniom. Wypełnia on dno korytarza i tworzy ściany, a nawet strop wchodzących pod korek lodowy korytarzy oraz okresowo pokrywa miejscami ściany w postaci lodospad&oacute;w. Siarzewski (1994) wzmiankuje też o okresowym występowaniu stalaktyt&oacute;w lodowych oraz zasypywaniu śniegiem partii przyotworowych.</span></p>
+<p><span>Jaskinia ma mikroklimat zimny dynamiczny. Latem występuje bardzo silny przewiew powietrza od wnętrza ku otworowi. Światło sięga jedynie do początkowych partii wstępnego korytarzyka. </span></p>
+<p><span>Roślinność nie występuje. W jaskini przebywają owady i muchy. Zaobserwowano je w rejonie kominka zakończonego zaciskiem za wstępnym korytarzykiem, a ćmy w dolnych partiach pod lodowym prożkiem.</span></p>
+<p><span>Historia eksploracji wiąże się ze zmianami stanu zalodzenia jaskini. Zmiany te powodowały znaczne modyfikacje jej topografii. W pierwszym okresie eksploracji był on na tyle wysoki, że posuwano się pod samym stropem stosunkowo obszernych po wytopieniu korytarzy, a także szczelinami pomiędzy ścianami skalnymi a lodem. Pokonywano w związku z tym nie istniejące podczas wykonywania niniejszej dokumentacji zaciski skalne (w zwężeniu pod stropem) i lodowe, kt&oacute;re rozkuwano. Wobec tak znacznych zmian konfiguracji jaskini trudno dokładnie ustalić i opisać osiągnięte w poszczeg&oacute;lnych latach miejsca</span></p>
+<p><span>Opis jaskini&nbsp;&ndash; wg P. Sienkiewicza (2013), Dolnych Partii i pozostałych informacji&nbsp;&ndash; wg R.M. Kardasia (Jaskinie TPN 1996).</span></p>
+</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Historia eksploracji wiąże się ze zmianami stanu zalodzenia jaskini. Zmiany te powodowały znaczne modyfikacje jej topografii. W pierwszym okresie eksploracji był on na tyle wysoki, że posuwano się pod samym stropem stosunkowo obszernych po wytopieniu korytarzy, a także szczelinami pomiędzy ścianami skalnymi a lodem. Pokonywano w związku z tym nie istniejące podczas wykonywania niniejszej dokumentacji zaciski skalne (w zwężeniu pod stropem) i lodowe, kt&oacute;re rozkuwano. Wobec tak znacznych zmian konfiguracji jaskini trudno dokładnie ustalić i opisać osiągnięte w poszczeg&oacute;lnych latach miejsca.<br /><br />Odkrycie jaskini jest związane z eksploracją wspinaczkową ściany Kazalnicy, prowadzoną przez L. Nowińskiego. Według informacji W.W. Wiśniewskiego nastąpiło to w lipcu 1963 r. L. Nowiński i R. Rodziński (KW Krak&oacute;w) wyeksplorowali w&oacute;wczas pierwsze 12 m jaskini. Można więc przypuszczać, że osiągnęli oni rejon pierwszego, bocznego odgałęzienia - kominka (obecnie, przy braku lodu, głębokość &ndash;3,0 m). W następnych latach&nbsp;&ndash; do 1969 r.&nbsp;&ndash; L. Nowiński poznał jaskinię aż po Korytarz do Wanty (wg informacji I. Luty). Podczas poszukiwawczej wyprawy Speleoklubu Warszawskiego PTTK (3 września&ndash;5 października 1970 r.) Przeprowadzono trzy akcje, poświęcone rozkuwaniu lodowych zacisk&oacute;w. Posunięto się w&oacute;wczas około 5 m w głąb masywu, osiągając całkowicie zalodzoną salkę, nazwaną Syberią, kt&oacute;rej lewą ścianą spływał lodospad. Za salką znajdował się nie pokonany w&oacute;wczas zacisk lodowy, za kt&oacute;rym korytarz, niemal w całości wypełniony lodem, kontynuował się na całej, widocznej z salki przestrzeni około 5 m. W pracach tych, kierowanych przez M. Rutkowskiego, brali udział m.in. M. Gientka, I. Gmaj, Z. Krawczyk, I. Luty, W. Przybyszewski, M. R&oacute;życzka, J. Tatarek. Osiągnięty w&oacute;wczas punkt znajdował się na obszarze Lodowego Korytarza między punktami &ndash;5,0 i &ndash;7,2 według niniejszej dokumentacji. Jak wynika ze szkicu W. Przybyszewskiego, l&oacute;d zaczynał się wtedy pod pierwszym bocznym kominkiem (&ndash;3,0 m). Otw&oacute;r jaskini został wtedy zakryty w nadziei, że spowoduje to wytopienie lodu.<br />W 1975 r. (Pod koniec września, prawdopodobnie od 25 do 1 października) w jaskini działali uczestnicy wyprawy Krakowskiego Klubu Taternictwa Jaskiniowego, kierowanej przez A. Ciszewskiego. Stan lodu był w&oacute;wczas wyższy niż przedstawiony w niniejszej dokumentacji. Ze szkicu A. G&oacute;rnego (archiwum W.W. Wiśniewskiego) wynika, że bocznym kominkiem nad punktem -3,0 spływał język lodu, a wejście do Korytarza Lodowego znajdowało się nad 1,5 m progiem. Szkic nie obejmuje niestety dalszych partii i trudno jest ustalić najdalszy punkt w&oacute;wczas osiągnięty. Według informacji uzyskanych od A. Ciszewskiego punkt ten znajdował się tuż przed końcem Korytarza Lodowego. Mimo relacji o odkryciu kilkunastu metr&oacute;w ([Kronika] 1976) należy sądzić, że nie przekroczono stanu poznania z 1970 r.&nbsp;&ndash; prawdopodobnie stan poznania jaskini por&oacute;wnywano z wynikami eksploracji L. Nowińskiego; wyniki eksploracji prowadzonej przez Speleoklub Warszawski mogły być nieznane wobec dość og&oacute;lnego brzmienia informacji, opublikowanej jedynie w (trudno dostępnej w&oacute;wczas) Wiercicy.<br />Według informacji I. Luty w dniu 6 lipca 1976 r. stan lodu był znacznie wyższy, niż w latach poprzednich&nbsp;&ndash; dno było pokryte śniegiem i lodem już od otworu, a w rejonie punktu &ndash;5,0 korytarz był całkowicie zablokowany lodem. Jednak w sierpniu tego roku l&oacute;d ustąpił na tyle, że ekipa z Sekcji Grotołaz&oacute;w AKT Wrocław (kierowana przez T. Brysia, uczestniczyło około 10 os&oacute;b) bez trudności weszła do partii pod lodem, odkrywając około 18 m nowych partii i osiągając dno jaskini (&ndash;14 m). Zaatakowano r&oacute;wnież niezwykle trudny Zacisk z Wantą, za kt&oacute;ry przedostał się tylko W. Augustyn, odkrywając około 30 m korytarzy i osiągając najwyższy punkt jaskini (informacja W. Augustyna). Partie te nie zostały pomierzone.</p>
+<p>We wrześniu 2013 r A. Brzoza&nbsp;&ndash; WKTJ, H. Cieplak, D. Gratkowska, P. Gratkowski, P. Sienkiewicz &ndash; wszyscy STJ KW-Krak&oacute;w w trakcie kilku wejść usunęli wantę w Korytarzu z Wantą i&nbsp;odkryli około 29 m nowych partii oraz&nbsp; kilkanaście metr&oacute;w w przedłużeniu Korytarza Lodowego.&nbsp;Stwierdzili też, że stan lodu uniemożliwia przedostanie się do Dolnych Partii skartowanych w 1979 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W dniu 3 września 1979 r. korzystając z najniższego z dotychczas znanych poziomu lodu, zesp&oacute;ł inwentaryzacyjny OW PTPNoZ (R.M. Kardaś i I. Luty) w&nbsp; sporządził dokumentację jaskini z wyjątkiem partii za Zaciskiem z Wantą.<br />W kolejnych latach stan lodu ponownie był tak wysoki, że uniemożliwiał osiągnięcie końca Lodowego Korytarza (relacja A. Sadowskiej z wejścia w dniu 1 września 1984 r. oraz I. Luty z końca sierpnia 1994 r.).<br />Jedyny do czasu inwentaryzacji OW PTPNoZ opublikowany opis jaskini wraz z lokalizacją na fotografii opracowali B. Koisar i Ch. Parma (1971). prezentowana w t. 6 Jaskinie TPN (1996)&nbsp;dokumentacja jaskini została wykonana w oparciu o pomiary busolą geologiczną Meridian, klinometrem Freiberg i taśmą parcianą. Położenie otworu określiły pomiary wykonane 14 sierpnia 1981 r. przez zesp&oacute;ł Koła Naukowego Geodet&oacute;w AGH kierowany przez W. Borowca. Dane zaktualizował R.M. Kardaś (2009 r.).</p>
+<p>8 09.2013 r. &nbsp;P. Sienkiewicz (2013) wraz z towarzyszami (&nbsp;A. Brzoza, H. Cieplak, D. Gratkowska i&nbsp;P. Gratkowski) pomierzył dostępną w&oacute;wczas część jaskini i opublikował plan oraz opis jaskini &nbsp;(jej dostępnej części). <br />Plan (na podstawie plan&oacute;w R.M.Kardasia i P. Sienkiewicza)&nbsp;zestawił J.&nbsp;Grodzicki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Rutkowski M. 1970a (wzmianka o eksploracji pod nazwą Lodowa Szczelina); Koisar B., Parma Ch. 1971 (kr&#243;tki opis, dane morfometryczne, lokalizacja na fotografii); [Kronika] 1976 (wzmianka o eksploracji 1975 r.); Borowiec W. i in. 1977, 1978 (dane morfometryczne); Kropiwnicka M. 1979 (wzmianka o stanie lodu – pod nazwą Lodowa Szczelina); Kozik A. 1983a (wzmiankuje jako jaskinię lodową dynamiczną); Orłowski J. 1983 (wzmianka o eksploracji w 1975 r.); Burkacki M. i in. 1984 (wzmianka o eksploracji w 1970 r.); TATRY POLSKIE 1984 (lokalizacja na mapie – bez nazwy); Gradziński R. i in. 1985a (dane morfometryczne, lokalizacja); Kardaś R.M. 1985f (dane morfometryczne, historia eksploracji); Kardaś R.M. 1986f (historia eksploracji – uzupełnienie); Kardaś R.M. 1989 (dane morfometryczne, lokalizacja); Siarzewski W. 1994 (dane o zjawiskach lodowych); Jaskinie TPN 1996 (plan, przekr&#243;j, opis inwentarzowy); Fuja, D. 1998b (wzmiankuje o istnieniu kontaktu głosowego ze Studnią w Kazalnicy Miętusiej); Baścik M, 2001 (wzmiankuje o występowaniu lodu, dane morfometryczne); Sienkiewicz P. 2013 (plan, opis jaskini i eksploracji).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Rutkowski M. 1970 (opis, położenie – pod nazwą K-3 – Lodowa Szczelina); Rutkowski M. ... (lokalizacja na fotografii z 1971 r.– symbol K-3); Przybyszewski W. 1970 (szkic planu, przekroju podłużnego i przekroj&#243;w poprzecznych - pod nazwą K-3 Szczelina Lodowa); Parma Ch., ... (lokalizacja na fotografii pod nazwą Lodowa Miętusia); G&#243;rny A. 1975a (szkic wstępnych partii).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Piotr Sienkiewicz, Rafał M. Kardaś
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1017)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1018)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

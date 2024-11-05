@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F12228">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 12228;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "585795,06".replace(',', '.') + "," + "172994,12".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('12228','Jaskinia Michała Archanioła'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Michała Archanioła
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko w Pustelni
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                P-02.12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Pieniny
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;10′59,85″, φ: 49&#176;25′06,08″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Nowy Targ (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                nowotarski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Południowomałopolski Obszar Chronionego Krajobrazu
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                długość jaskini wraz z zabudową 3,6 m
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                730
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1,40
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Skalice Spiskie, Skałka Pustelnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Obiekt znajduje się w południowym zboczu Skałki Pustelni na południe od Czerwonej Skały, na posesji należącej do Zgromadzenia Sióstr Niepokalanego Poczęcia Najświętszej Maryi Panny na skrzyżowaniu ulic Długiej i Pod Skałką.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obiekt jest zabudowanym okapem skalnym, trudno oszacować pierwotną długość naturalnej pustki z powodu zabudowy na cele mieszkalne. Za długość naturalnego obiektu przyjęto przestrzeń ograniczoną z trzech stron ścianami oraz stropem skalnym, co nie odzwierciedla rzeczywistych wymiar&oacute;w, długość łącznie z zabudową 3,6 m. Do obiektu wchodzimy przez drzwi w jedynej zewnętrznej frontowej ścianie w kt&oacute;rej znajduje się r&oacute;wnież niewielkie okienko, całość obsypana jest ziemią. Po zabudowie obiekt dzieli się na dwie części: dobudowanego pomieszczenia wstępnego i małej zabudowanej naturalnej pustki, kt&oacute;ra mogła być częściowo przemodelowana przez człowieka. Po przekroczeniu drzwi znajdujemy się w pomieszczeniu o łukowatym betonowym stropie (widać ślady drewnianego szalunku), długości 2,2 m, szerokości około 2 m i wysokości od 2 do 1,9 m. Pomieszczenie to jest wpasowane w niewielki obiekt jaskiniowy, posiada częściowo naturalne skalne ściany oraz część stropu. W p&oacute;łnocnej murowanej ściance wstępnego pomieszczenia znajduje się przejście, kt&oacute;re prowadzi do naturalnej pustki. Przyglądając się dobudowanym ścianom i oglądając strop można stwierdzić, że maksymalny wysięg okapu m&oacute;gł wynosić co najmniej 2 m, a ścian nawet do 3 m. Zasięg skały można odczytać z przekroj&oacute;w na planie. Strop jest betonowy, łukowaty z śladami drewnianego szalunku, niemalowany. W p&oacute;łnocnej części obiektu wpasowany w skałę. Posadzka jest betonowa. Ściany oraz strop w N części obiektu są skalne. Mur zbudowany jest z lokalnego materiału wapiennego. Do budowy muru wykorzystano też cegłę jednak jest materiałem bardzo rzadkim, kilka sztuk cegły widoczne jest w zasadzie tylko koło okna. Na ścianach, na odpadającym tynku zachowały się resztki niebieskiej farby, kt&oacute;rą były pokryte murowane fragmenty ścian, jak r&oacute;wnież fragmenty litej skały, na kt&oacute;rej widać skąpe ślady malowania. Wyposażeniem pomieszczenia jest mały, murowany piecyk z blachą, obecnie mocno zniszczony. Na ścianach u początku sklepienia znajdują się sentencje pisane na twardniejącej zaprawie. Na ścianie zachodniej (palcem?): B&Oacute;G M&Oacute;J I WSZYSTKO MOIE! Na ścianie wschodniej (ostrym narzędziem): KT&Oacute;Ż JAK B&Oacute;G ! MI-CHA-EL zaraz za sentencją wizerunek słońca, w kt&oacute;rego tarczę wpisany jest gołąb, na pierwszy rzut oka jest r&oacute;wnocześnie oczami i nosem tarczy słońca. Zabudowana naturalna pustka ma wymiary 1,4 m długości, 1,2 szerokości, 1,9 wysokości. W stropie ze szczeliny między pakietami skalnymi wystaje korzeń. U podstawy NW ściany niedostępna szczelina.</p>
+<p>Obiekt znajduje się w skale Pustelni, serii czorsztyńskiej zbudowanej z białych wapieni krynoidowych i wapienia czorsztyńskiego.</p>
+<p>Jest znacznie przemodelowany, wydaje się, że ma genezę grawitacyjno-wietrzeniową, był także modelowany przez procesy krasowe, jest to prawdopodobne oglądając widoczne ściany skalne w pomieszczeniu wstępnym. Pustka mogła być sztucznie powiększona.</p>
+<p>Spąg stanowi gruz skalny, wśr&oacute;d kt&oacute;rego znaleziono mocno zardzewiały stary młotek bez styliska, dno garnka, gw&oacute;źdź, wieko od słoika, pieniek, zbutwiałe kawałki deski oraz pod gruzami zakopaną lalkę pacynkę. Ze szczeliny znajdującej się u podstawy NW ściany wysypuje się niebieskawa glinka.</p>
+<p>Na ścianach lokalnie skąpy, zwietrzały naciek grzybkowy. Na p&oacute;łnocnej ścianie znajdują się kryształy kalcytu. Pojedyncze ostrosłupy kalcytu dochodzą do wysokości 1 cm.</p>
+<p>Obiekt w części przyotworowej widny, słabe światło rozproszone dociera do naturalnej pustki.</p>
+<p>Obiekt posiada mikroklimat dynamiczny o czym czytamy we wspomnieniach Mieczysławy Faryniak, kt&oacute;ra mieszkała w &bdquo;jaskini&rdquo; przez siedem miesięcy podczas gdy ukrywała u siebie małżeństwo żydowskie. Autorka wspomnień pisze iż w zimie w &bdquo;jaskini&rdquo; było ciepło natomiast w lecie zimne powietrze wydobywające się z jej wnętrza uniemożliwiało komfortowe jej zamieszkanie. Wejście w zimie często zasypywał śnieg tak że trzeba było się z niej odkopać. Obiekt został zabudowany przed II wojną światową (po roku 1936). 29 lipca 2007 odnotowano temperaturę wewnątrz obiektu +13,3&ordm;C, a na zewnątrz +23,8&ordm;C. Obiekt jest raczej suchy.<br /><br />Florę pomieszczenia wstępnego reprezentują glony delikatnie zazieleniając małe fragmenty ścian. W naturalnej pustce nie zaobserwowano flory.</p>
+<p>Faunę pomieszczenia wstępnego reprezentują zaobserwowane: kosarze Opiliones, komary Culicidae. Faunę naturalnej pustki reprezentują kosarze Opiliones (dwa gatunki), pająki Araneae (dwa gatunki), komary Culicidae, paśnik jaskiniowiec <em>Triphosa dubitata</em>, pająki z gatunku <em>Meta Menardi</em><strong><em>,</em></strong> zaobserwowano także w kilku miejscach ślady guana prawdopodobnie nietoperza.</p>
+<p>Z obiektem tym związana jest ciekawa historia pobytu w Dursztynie Mieczysławy Faryniak, urodzonej w Kętach (1907-1990). Bezinteresownie prowadziła ochronkę dla dzieci z Dursztyna, podczas okupacji niemieckiej ukrywała rodzinę żydowską. Nazwa obiektu Jaskinia Michała Archanioła jest udokumentowana, tak nazwała obiekt Mieczysława Faryniak, w swoich wspomnieniach używa nazwy jaskinia rzadziej jaskinka. Inne nazwy obiektu: Grota Michała Archanioła, Schronisko w Pustelni, Jaskinia u Zakonnic. Mieczysława Faryniak pisze o istnieniu &bdquo;wklęsłości&rdquo; pod skałką, kt&oacute;rą w p&oacute;źniejszym czasie zabudowała &bdquo;dopasowując na jaskinię&rdquo;. Świadczy to o istnieniu przed zabudową naturalnego niewielkiego obiektu. W swoich wspomnieniach opisuje też Jaskinię w Dziurowej Skale.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obiekt ten znał prawdopodobnie Krzysztof Birkenmajer nazywając niewielką skałkę Pustelnią, lecz o samym obiekcie nic nie wspomina (Birkenmajer, 1958). Wzmianka o obiekcie w archiwum Si&oacute;str Niepokalanek (Faryniak, 1960). Obiekt we wspomnieniach opisuje osoba w nim zamieszkująca od listopada 1944 r. do czerwca 1945 r. (Faryniak, 1975). O obiekcie wspomina Waniczek, 2016.</p>
+<p>W 2019 r wymieniana przez Baryła i in.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiar wykonał w lipcu 2007 roku A. Kapturkiewicz.<br />Plan opracował A. Kapturkiewicz.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Birkenmajer K. 1958 (budowa geologiczna skałki); Faryniak M. 1960 (wspomnienia Mieczysławy Faryniak mieszkającej w jak to sama nazwała jaskini); Faryniak M. 1975 (informacje o mikroklimacie i obiekcie we wspomnieniach); Kapturkiewicz A. 2007a (kr&#243;tka informacja); Kapturkiewicz A. 2007b (plan i opis); Waniczek K. 2016 (wspomina); Baryła J. i in. 2019b (wymieniane, zaznaczone na mapie)
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Kapturkiewicz
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(14192)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(14191)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

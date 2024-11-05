@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1069">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1069;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559012,37".replace(',', '.') + "," + "153404,53".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1069','Kamienne Mleko'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Kamienne Mleko
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-04.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′39,78″, φ: 49&#176;14′43,08″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1096
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                15,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                14,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                30,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    430
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na lewym orograficznie zboczu Doliny Chochołowskiej, w Wyżniej Bramie Chochołowskiej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Dnem doliny docieramy do leśniczówki w Wyżniej Bramie Chochołowskiej. Dalej, omijając dom od N, trafiamy na perć prowadzącą na początku nieco na prawo do góry. Idziemy nią około 30 m do rozwidlenia, następnie pod SE ścianą Olejarni na lewo, stromo do góry, przez gęsty las, aż do poszukiwanego otworu wielkiej nyży wstępnej, z której odchodzą korytarze w głąb jaskini. Dojście bez trudności, zwiedzanie dość trudne, kominki – bardzo trudne; miejscami bardzo ciasno.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r nyży wstępnej ma ponad 10 m szerokości i ponad 3 m wysokości. Sięga ona w głąb skały na 3,6 m, od jej NW krańca odchodzi kr&oacute;tka, ślepa szczelina. W NE części nyży znajdują się dwa ciasne otwory, położone blisko siebie, wiodące w głąb jaskini. </span></p>
+<p><span>Wchodzimy lewym (zachodnim) szczelinowym, ukośnym otworem (0,5x1,4 m). Za nim ciasny korytarz, w znacznej części myty,&nbsp;prowadzi do niewielkiej komory. Z niej ciąg skręca na prawo, ku NE. Wspinamy się przez pochyły prożek do szczelinowego korytarza (1,3xok.5 m). Nad prożkiem na lewo, ku NW, za ciasnym otworem, odgałęzia się stromo do g&oacute;ry pochylony komin o przekroju rury, zakończony okrągłą kom&oacute;rką (+8,1 m). W jego g&oacute;rnej części są stalaktyty i spore stalagmity, a ściany całego komina pokrywa gruba warstwa mleka wapiennego.</span></p>
+<p><span>Wracamy do ciągu gł&oacute;wnego. W dnie korytarza pojawia się wąska szczelina (0,15 m), kt&oacute;ra po kilku metrach rozszerza się tworząc śliski pr&oacute;g (2,2 m). Schodzimy nim do Komory pod Progiem. Stąd na lewo odchodzi kr&oacute;tka ślepa odnoga, natomiast wstecz, początkowo na dolnym poziomie wąskiej szczeliny, biegnie bardzo ciasny korytarzyk z zaciskami, kt&oacute;ry uchodzi w pierwszej komorze gł&oacute;wnego ciągu. Tuż obok tego korytarzyka, r&oacute;wnolegle przebiega nieco szerszy ciąg, kt&oacute;ry zakręca na skrzyżowaniu szczelin w lewo. Docieramy nim do poprzecznie przebiegającego, niskiego korytarza. Na prawo, po około 20 m uchodzi on ciasnym otworem w nyży wstępnej (wychodząc pokonujemy zacisk nad wantą), a na lewo &ndash; wracamy nim do ciągu gł&oacute;wnego. Ciągiem tym idziemy prosto, ku NNE (mijamy odnogę odchodzącą na lewo, kt&oacute;ra niebawem zakręca na prawo, staje się niska &ndash; 0,3 m lecz szeroka &ndash; 2,2 m, uchodzi w dalszej części ciągu gł&oacute;wnego) i schodzimy małym prożkiem z want (0,9 m) do niewielkiej salki między prożkami. Na lewo zakręca ciąg gł&oacute;wny, a na wprost następny prożek (1,4 m) wiedzie w kierunku Mlecznych Rur.</span></p>
+<p><span>Spod ostatniego prożka (1,4 m) ciasną, opadającą nieco rurą docieramy do poprzecznej szczeliny, kt&oacute;ra za małą studzienką wznosi się, następnie opada. Na zakręcie w lewo schodzimy progiem, pod kt&oacute;rym po prawej stronie wstecz odgałęzia się opadająca stromo rura, zakończona zawaliskiem (-7,3 m). Od tego progu biegnie nieco obszerniejszy ciąg Mlecznych Rur. Zakręca on kilkakrotnie na poprzecznych szczelinach, opada i wznosi się, są w nim małe prożki. Docieramy do rozwidlenia. Na prawo (ku SE) wspinamy się 2-metrowym progiem, nad kt&oacute;rym opada stroma pochylnia skalna podcięta następnym progiem, spod kt&oacute;rego wiodą trzy drogi: </span></p>
+<p><span>1) wstecz opada rura o średnicy 1 m, zakończona okrągłą kom&oacute;rką zamkniętą gliniastym namuliskiem (błotny syfon, w kt&oacute;rym często stagnuje woda); </span></p>
+<p><span>2) poprzecznie do pochylni biegnie w d&oacute;ł ciasna rurka. Po kilku metrach trafiamy na małą studzienkę. Przechodząc nad nią korytarzem do g&oacute;ry, za zaciskiem i małym prożkiem w d&oacute;ł (0,7 m)&nbsp;jest owalna salka o ścianach pokrytych mlekiem wapiennym i gliniasto-mlecznym dnie. W jej stropie widać&nbsp;cienkie końc&oacute;wki korzeni drzew, są też owady. Ze studzienki w d&oacute;ł biegnie ciasny ciąg zakręcający kilkakrotnie, kt&oacute;rym docieramy do najniższego punktu jaskini (-15,8 m). Stąd wspinamy się bardzo ciasnym szczelinowym kominkiem (3 m). Nad nim na prawo i zaraz ku S biegnie w kierunku powierzchni terenu kr&oacute;tki, zwężający się korytarzyk z przewiewem;</span></p>
+<p><span>3) spod pochylni na wprost idziemy do g&oacute;ry piarżystym korytarzem z wąską szczeliną w stropie, kt&oacute;ry rozszerza się w Salkę Fikro. Wspinamy się stąd na lewo szeroką na około 2 m, śliską pochylnią o skalnym dnie. Nad nią biegnie na lewo (ku W) mleczna, ciasna szczelina, kt&oacute;ra ma przebicie w stropie ww. piarżystego korytarza. Szczelinę tą pokonujemy w poziomie zapieraczką, następnie po zejściu przez dwa małe prożki (ostatni z zaciskiem) docieramy pod 2-metrowy pr&oacute;g na rozwidleniu.</span></p>
+<p><span>Wracamy do salki między prożkami w ciągu gł&oacute;wnym, kt&oacute;ry biegnie stąd ku W. Idąc nim mijamy odgałęzienie na prawo &ndash; opadającą ślepą rurę, a nieco dalej, na lewo &ndash; ww. szeroką odnogę. Za łagodnym zakrętem ku NW najobszerniejszy w jaskini, myty korytarz o ścianach pokrytych mlekiem kamiennym i naciekami twardymi po 10 m prowadzi nas do rozszerzenia, gdzie 6-metrowym trudnym kominem, w przekroju owalnym, wspinamy się do g&oacute;rnego piętra jaskini. </span></p>
+<p><span>Nad kominem rozpoczynają się 3 ciągi: </span></p>
+<p><span>1) pierwszy z nich to myty korytarz z rynną w dnie, wiodący do g&oacute;ry ku SW, a następnie ku S. Odchodzi od niego korytarzyk (ucho skalne &ndash; nieco mniej ciasny wariant) oraz kr&oacute;tkie odgałęzienie na lewo, za kt&oacute;rym coraz ciaśniejszy ciąg zakręca dwukrotnie i kończy ślepo na poprzecznej szczelinie. Wzdłuż niej rozwinęły się ku SW i NEE kr&oacute;tkie odnogi, a od ostatniej ku S stromo wznosi się ciasna, soczewkowata szczelina &ndash; najwyższy punkt jaskini (+14,5 m); </span></p>
+<p><span>2) ku NW opada lekko kilkumetrowy korytarz zakończony kr&oacute;tkimi odnogami biegnącymi ku SW i NE; </span></p>
+<p><span>3) z kr&oacute;tkiego korytarza skierowanego ku NEE wiedzie do g&oacute;ry ku SE ciasny meandrujący myty ciąg z zaciskiem i dwoma prożkami. Na końcu zmierza on ku S i staje się zbyt ciasny, aby przejść (+12,0).</span></p>
+<p><span>Wracamy do ciągu gł&oacute;wnego. Spod komina idziemy korytarzem ku NW. Za dużym blokiem skalnym na prawo uchodzi mała studzienka, w przekroju kolista, a ciąg gł&oacute;wny zmierza ku W. Omijamy niebawem odejście na lewo sprowadzające pod wyżej opisany komin, a na prawo &ndash; niepozorne wejście w zawalisko (Zawał). Po kilkunastu metrach korytarz opada ku N i za pochyłym progiem zakręca ku NW, do błotnistego, syfonalnego obniżenia. Za nim szczelina wznosi się i po kilku metrach kończy ślepo. </span></p>
+<p><span>Wracamy do wejścia w Zawał. Po pokonaniu go (ciasne przejścia między wantami) docieramy do obszerniejszej Sali po Zawale. Stąd na lewo wiedzie korytarz zakończony 4-metrowym kominkiem, a ku N &ndash; dwa przełazy (zachodni &ndash; o skalnym dnie, wschodni &ndash; o dnie gruzowym), opadające do poprzecznego ciągu. Ku W zakręca on po kilku metrach w lewo na poprzecznej szczelinie i za zaciskiem zamyka go zawalisko; ku E na wprost r&oacute;wnież zakończony jest zawaliskiem, natomiast nieco przed końcem odgałęzia się od niego w d&oacute;ł rura o średnicy 1 m, pokryta mlekiem wapiennym. Przechodzi ona w korytarz ze szczeliną w dnie głęboką na 1,3 m, za kt&oacute;rą ciąg wznosi się zn&oacute;w i zakręca na lewo, ku W, do zacisku. Za zaciskiem docieramy do niewielkiej Ostatniej Salki, z kałużą na dnie.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmo-neokomu &bdquo;znad schroniska&rdquo; spągowej jednostki wierchowej. Wg Nowaka (2009b) Sala po Zawale powstała prawdopodobnie na granicy wapieni i łupk&oacute;w. Zdaniem Z. W&oacute;jcika (1966a) rozw&oacute;j jaskini był związany z zahamowaniem erozji podczas glacjał&oacute;w. W obrębie Wyżniej Bramy Chochołowskiej jest ona przykładem wyr&oacute;żnianego przez W&oacute;jcika (1966a) IV pietra jaskiń rozwiniętego tu fragmentarycznie. </span></p>
+<p><span>Korytarze w większości są myte na szczelinach, niekt&oacute;re mają charakter rur freatycznych. </span></p>
+<p><span>Ściany pokrywa gruba warstwa mleka wapiennego, są też stalaktyty, stalagmity, polewy naciekowe, a także nacieki grzybkowe. W jaskini występują strefy zawalisk; największa z nich to Zawał. Dno jest gliniasto-gruzowe, miejscami &ndash; skalne, bez osad&oacute;w. W osadach spotyka się kości nietoperzy. W&oacute;jcik (1960a, 1960b, 1966a) przeprowadził badania osad&oacute;w obok &bdquo;studzienki&rdquo; i w &bdquo;kominku końcowym, w pobliżu jego wylotu&rdquo;. Żwirowiska allochtoniczne mają skład zbliżony do osad&oacute;w potoku wsp&oacute;łczesnego. Mogą pochodzić z rozmytych moren okresu G&uuml;nz. Zawartość materiału autochtonicznego w osadzie dochodzi do 34%. Namulisko najwyższego piętra jaskini zostało rozmyte i przemieszczone do środkowego pietra, gdzie występuje znaczna ilość materiału scementowanego (piaskowce, pokruszone nacieki i polewy). W syfonalnych częściach widoczne są piaski kwarcowe i glina jaskiniowa. Pr&oacute;bki osad&oacute;w przechowywane są w Muzeum Ziemi PAN w Warszawie. </span></p>
+<p><span>Światło sięga do kilku metr&oacute;w od otwor&oacute;w. Wyraźny przewiew obserwuje się między otworami i w ciągach Mlecznych Rur. Jaskinia jest dość wilgotna, występują w niej kałuże o stałym charakterze (np. w Ostatniej Salce) oraz okresowe (np. w Komorze pod Progiem). Wymarzanie sięga do Komory pod Progiem.</span></p>
+<p><span>Roślinność zielona obficie rozwija się w nyży wstępnej. </span><span>Florę okołootworową zebrała w 1977 r. T. Bielska w ramach badań OW PTPNoZ. Obejmuje ona następujące gatunki: </span></p>
+<p><span>kwiatowe &ndash; <strong><em>Rhodiola rosea</em></strong> L., <strong><em>Saxifraga aizoon</em></strong> Jacq., <strong><em>Sempervivum soboliferum </em></strong>Sims., <strong><em>Poa alpina</em></strong> L., <strong><em>Festuca tatrae</em></strong> Degen, <strong><em>Arabis halleri</em></strong> L., <strong><em>Poa nemoralis</em></strong> L., <strong><em>Silene inflata </em></strong>SB. </span></p>
+<p><span>mszaki (oznaczone przez J. Mickiewicz) &ndash; <strong><em>Anomodon viticulosus</em></strong> Hook et Tmyl., <strong><em>Neckera crispa</em></strong> (L. ) Hedw., <strong><em>Homalothecium sericeum</em></strong> Br., <strong><em>Homalia trichomanoides</em></strong> (Schreb. ) </span><span>B. S. G., <strong><em>Madotheca platyphylla </em></strong>Du, <strong><em>Encalypta contorta</em></strong> (Wulf. ) Lindb., <strong><em>Metageria pubescens</em></strong> Raddl., <strong><em>Radula complanata </em></strong>(L) Dum. </span></p>
+<p><span>Faunę reprezentują nietoperze oraz&nbsp;w pobliżu otwor&oacute;w &ndash;&nbsp;licznie reprezentowany zesp&oacute;ł owad&oacute;w trogloksenicznych. </span><span>Kowalski (1953a) podaje: &bdquo;<em>W głębi ślady nietoperzy, na ich kale występują owady bezskrzydłe&rdquo;.</em> Kowalski (1955a) zebrał okazy: </span></p>
+<p><em>Lepidoptera</em><span>&ndash;<strong><em> Triphosa dubitata</em></strong></span> L.</p>
+<p><em>Trichoptera</em>&ndash;<span> <strong><em>Stenophylax permistus</em></strong> Mc. Lachlan ,</span></p>
+<div>a Skalski (1967):</div>
+<p><em>Coleoptera</em>&ndash;<span> <strong><em>Choleva glauca</em></strong> Britt. </span></p>
+<p><em>Diptera</em><span> &ndash;<span style="font-style: italic;"><span style="font-weight: bold;">E</span></span><strong><em>ccoptomera pallescens</em></strong> Meig., <strong><em>Ameobaleria amplicornis</em></strong> Czerny, <strong><em>Limosina sp</em></strong>.</span></p>
+<p><span>Nowak (</span><span>2009b) wymienia następujące gatunki nietoperzy zimujących w jaskini:</span><strong><em> Myotis myotis, </em></strong><strong><em>Myotis nattereri, </em></strong><strong><em>Myotis mystacinus</em></strong><span>/<strong><em>brandtii, Myotis daubentonii, Plecotus auritus.</em></strong></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obserwacje geologiczne i geomorfologiczne oraz badania składu żwirowisk przedstawił W&oacute;jcik (1960a, 1960b, 1966a, 1967a, 1968). R. Gradziński i W&oacute;jcik (1961) opisali charakterystyczne dla jaskini formy naciekowe z mleka wapiennego. W&oacute;jcik i Zwoliński (1959) badali młode przesunięcia tektoniczne. Zesp&oacute;ł student&oacute;w geografii pod kierownictwem Z. Zwolińskiego z Zakładu Geomorfologii Instytutu Badań Czwartorzędu UAM w Poznaniu przeprowadził około 1980 r. badania geomorfologiczne i wprowadził poprawki do planu jaskini. Goch (1966) wzmiankuje o badaniach flory przyotworowej, przeprowadzonych przez T. Szota. Florę okołootworową zebrała w 1977 r. T. Bielska w ramach badań OW PTPNoZ Bielska, Mickiewicz 2000). Badania fauny przeprowadzili w jaskini K. Kowalski (1955a), A. Skalski (1967), wieloletni monitoring nietoperzy &ndash; K. Piksa i J. Nowak (Nowak 2009b). O minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin pisali Szczygieł J. i in. (2020a).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta w dniu 14.06.1933 r. przez S Zwolińskiego, J. Zahorskiego i K. Niechaja. Zwiedzili oni w&oacute;wczas ciąg gł&oacute;wny. Pierwszą wiadomość o odkryciu podał S. Zwoliński (1933). Niekt&oacute;re nowe korytarze Mlecznych Rur odkrył K. Kowalski w r. 1950 r., jeszcze dalsze wraz z W. Danowskim w r. 1951 (Kowalski, 1953a). Z dokumentacji, jaką przedstawia Kowalski (1953a), wynika że nie dotarł do końca korytarzyk&oacute;w położonych nad kominem i innych końc&oacute;wek ciąg&oacute;w, nie znał też partii za Zawałem (brak p&oacute;źniejszych informacji kto i kiedy je odkrył). Salkę Fikro i jej kontynuację odkryli w listopadzie 2005 r. J. Nowak i Rafał Suski. Ostatnią Salkę odkrył w grudniu 2007 r. J. Nowak, a w marcu 2008 r. I. Luty poznała odgałęzienie biegnące do g&oacute;ry ku powierzchni w Mlecznych Rurach oraz ciasne końc&oacute;wki kilku innych ciąg&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis inwentarzowy datowany na 31.08.1951 r. zamieścił Kowalski (1953a). W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ P. Kulbicki i M. Małek w dniu 13.07.1975 r. przeprowadzili pomiary sytuacyjno-wysokościowe położenia otworu metodą ciągu azymutalno-taśmowego. Nową dokumentację jaskini (bez partii za Zawałem) wykonała I. Luty przy wsp&oacute;łpracy Piotra Fity, Aleksandry Chruściel, Kamila Bieleckiego, Adeli Marchewki, Bogusława Zalewskiego i Pawła Burkackiego, podczas kilku akcji od marca do grudnia 2008 r., uzupełniając obserwacje całej groty w 2009 r. Nie wiedząc o powstawaniu planu, pomiary jaskini przeprowadził w grudniu 2008 r. J. Nowak przy wsp&oacute;łpracy Michała Romańskiego i Sylwii Gołosz. Nowak (2008c) podał informację o dokonaniu drobnych odkryć oraz własnych pomiarach jaskini. W innej pracy (Nowak 2009b) zamieszcza nowy plan i opis jaskini. Dane zaktualizowała I. Luty (2009). Wsp&oacute;łrzędne geograficzne otworu w oparciu o mapę topograficzną Tatr wydawana przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.gov.pl/">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013).<br />Plan opracowała I. Luty na podstawie pomiar&oacute;w własnych; partie za Zawałem &ndash; na podstawie planu Nowaka (2009b), z uzupełnieniami I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zwoliński S. 1933 (wiadomość o odkryciu i opis); Kowalski K. 1953a (plan i opis); Kowalski K. 1955a (oznaczenia fauny, podaje długość i wysokość n.p.m.); W&#243;jcik Z., Zwoliński S. 1959 (młode przesunięcia tektoniczne); W&#243;jcik Z. 1960a (osady); Kostrzewski A. 1960 (og&#243;lny opis); Zwoliński S. 1961 (wzmianki dotyczące historii, geneza, s. 33, 191, 201); Gradziński R., W&#243;jcik Z. 1961 (formy naciekowe); W&#243;jcik Z. 1966a (osady, geneza); Goch B. 1966 (wzmianka o badaniu flory); Dąbrowski T. 1967b (hydrografia, przepływy); Skalski A. 1967 (oznaczenia fauny); W&#243;jcik Z. 1968 (rozw&#243;j geomorfologiczny); Kozik A. 1972 (dane morfometryczne); Solicki T., Koisar B. 1973 (wzmiankują w kontekście badań Wywierzyska Chochołowskiego); Borowiec W. i in. 1977 (dane morfometryczne); Gradziński R. i in. 1985a (dane morfometryczne); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10 000); Wiśniewski W.W. 1988 (wzmianka o grocie wg dawnych informacji Mączki); Jaskinie TPN,  1991 (plan, przekr&#243;j i opis inwentarzowy); Zwoliński S. 1993 (o odkryciu i eksploracji jaskiń w Turni Olejarni w latach 1932-44); Bielska T., Mickiewicz J. 2000 (flora); Nowak J. 2008c (informacja o dokonaniu odkryć i pomiar&#243;w); Nowak J. 2009b (plan i opis, informacje o odkryciach); Szczygieł J. i in. 2020a (o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Zwoliński S. 1932-1944 (opis położenia otworu, wnętrza jaskini, szkic).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(541)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2160">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2160;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "516446,1432".replace(',', '.') + "," + "323420,2647".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2160','Jaskinia w Zielonej G&#243;rze'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia w Zielonej G&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.I-01.10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;14′00,00″, φ: 50&#176;46′39,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Olsztyn (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                częstochowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Zielona G&#243;ra
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                316
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                6
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                6
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    140
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Wzg&#243;rza Częstochowskie, Kusięta, Zielona G&#243;ra.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    1. Z Olsztyna należy udać się na północ, w kierunku wsi Kusięta, asfaltową drogą znakowaną czerwonym szlakiem. Mijamy charakterystyczne zgrupowanie Gór Towarnych, trawersujemy wieś i biegnącą wzdłuż niej linię kolejową w kierunku widocznego w odległości 2 km na zachód zalesionego wzgórza – Zielonej Góry.
+2. Dogodne dojście prowadzi z przystanku PKP w Kusiętach Nowych (linia Częstochowa - Kielce). Należy wędrować czerwonym szlakiem turystycznym, 2 km w kierunku Częstochowy. Leżące blisko linii PKP zalesione wzgórze to Zielona Góra (dawniej nazywana Gołą Skałą), będąca rezerwatem przyrody. 
+Szlak wyprowadza na porośnięty bukowym lasem grzbiet góry. Idąc wzdłuż południowej ściany wychodni skalnych, po 50-ciu metrach dochodzi się do otworu jaskini, położonego u podnóża małej skałki. 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                      <p><span>Otwór jaskini ma kształt półkolisty, szerokości 2 m i wysokości 1,3 m. Spąg pokryty jest w tym miejscu namuliskiem piaszczysto-próchniczym. Za nim prowadzi krótki i dość niski, 11-metrowy korytarzyk. W części zachodniej ma on niską, boczną odnogę, o długości ok. 5m, do której można się dostać przez ciasny przełaz za kamieniem. </span></p>  <p><span>Korytarz doprowadza do rozległej sali. Ma ona wymiary 12x12 m oraz wysokość do 2 m. Od strony północnej pozorną ścianę tej komory tworzy „las” grubych kolumn naciekowych, pomiędzy którymi można wejść do następnej, mniejszej (10x8 m) salki. Pierwotnie stanowiły one jedną całość. Szata naciekowa jest tutaj bardzo dobrze rozwinięta choć mocno zniszczona. Występuje głównie pod postacią stalagnatów oraz wielkich połaci polew naciekowych. Jest ona jednak poobtłukiwana i okopcona łuczywami oraz palonymi wewnątrz ogniskami. W wielu miejscach można zauważyć świeże, współczesne wytrącenia kalcytu, co daje nadzieję na częściowe odtworzenie niepowtarzalnego piękna jaskini. </span></p>  <p><span>W końcowej części „drugiej” salki, między blokami, jest ukryte wąskie, pionowe przejście do następnej, końcowej komory. Ma ona podobny charakter, choć wydaje się być mniejszą, głównie dzięki ukośnej, zalanej polewą płycie po prawej stronie. Spąg, pomiędzy tą płytą a ścianą, jest pokryty rumoszem i blokami wapiennymi. We wschodniej ścianie tej salki jest ukryte zaciskowe przejście do małej, ok. 10-metrowej, ślepej komórki.. W jednej z wnęk znajduje się obłe i stromo pochylone, dość ciasne przejście do małej i ślepej, zawaliskowej komórki. Znajdują się tutaj ciasne korytarzyki, o łącznej długości ok. 15 m, stopniowo zawalone kamiennym rumoszem. Prawdopodobnie łączą się one z leżącym po północnej stronie wzgórza Schroniskiem w Zielonej Górze.&nbsp;Jaskinia powstała </span>w wapieniach jurajskich.</p>  <p><span>Warto zacytować opis jaskini, opublikowany w roku 1937 przez Maślankiewicza: „... <em>od strony południowej znajduje się jaskinia, dobrze stosunkowo zachowana, w głównej mierze dzięki trudności dostępu, którą powoduje niskie i niezbyt szerokie wejście (...) Ciągnie się ona w kierunku z północy na południe. Niskim korytarzem, o wysokości 1 do 2 metrów a szerokości 2 do 3 metrów, dostajemy się do obszernej lecz niskiej komory, w której zachowało się kilka słupów o wysokości 60 - 80 cm, przy szerokości dwudziestu kilku cm. Ze stropu zwisają liczne stalaktyty, lecz przeważnie są poodbijane, ponieważ ta pierwsza część jaskini, jako najdostępniejsza, jest najczęściej zwiedzana. W odległości kilkunastu metrów od wejścia widać gruby słup o średnicy ok. 1,5 m, podpierający niskie sklepienie. Na końcu tej pieczary znajduje się jak gdyby ściana utworzona z pozrastanych słupów, w której jest kilka otworów prowadzących do następnej groty. Przez największy z nich, o wys. 1 metra i szer. ok. 1/2 m, przedostajemy się do drugiej komory, która jest popodpierana kilkunastu pięknymi słupami stalakto-stalagmitowymi. Wysokość tej groty wynosi ok. 1,5 metra. Ilość słupów musiała być dawniej większa, o czym świadczą gdzieniegdzie ślady wyłamania i odłamki, znajdujące się na ziemi. Prócz stalaktytów zwisających z niskiego stropu, z dołu wychodzą ku górze groniaste stalagmity. Grubość słupów była niewątpliwie jednym z czynników, które ocaliły tę grotę od zniszczenia. Przez bardzo wąski otwór dostajemy się do trzeciej, największej pieczary, której poziom w stosunku do poprzednich obniżony jest o 3 metry. Ta pieczara zawalona jest w znacznej części gruzem kawałków wapieni</em>...&nbsp;” </span></p>  <p><span>Kowalski (1951) podaje w swoim inwentarzu: <em>„Największą osobliwością jaskini są liczne słupy naciekowe zbudowane, jak widać na okazach przełamanych, z porowatego, niekrystalicznego nacieku. Ta ich budowa była zapewne przyczyną, że nie zostały wyeksploatowane przez poszukiwaczy kalcytu. Powierzchnia ich jest szara na skutek zakopcenia lub brunatna. W pierwszej komorze ściany są ogładzone, w końcowej raczej nierówne, bez śladów działania wody. Namulisko w pierwszej komorze piaszczyste z dużą domieszką próchnicy i małą ilością kamieni, bez widocznych kości, obfite, rozkopywane. Dalej na dnie głazy.”</em></span></p>  <p><span>Jaskinia jest wilgotna, często ze stagnującą wodą, która po deszczach może spływać od strony otworu. Odbite światło dzienne sięga pierwszej sali. </span></p>  <p><span>W jaskini sporadycznie zimują nietoperze. Wg Pucka (1983), znajdowało się tutaj, wysunięte najdalej na północ, stanowisko podkowca małego <strong><em>Rhinolophus hipposideros</em></strong>. W latach późniejszych obserwowano tylko pojedyncze osobniki nocka dużego <strong><em>Myotis myotis</em></strong> i gacka brunatnego <strong><em>Plecotus auritus</em></strong>. Jaskinia bywa penetrowana przez borsuki <strong><em>Meles meles</em></strong>, o czym świadczą obserwowane w latach 80-tych tropy tych zwierząt.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                      <p><span>Jaskinia z pewnością była znana od dawna, lecz pierwsza wzmianka została opublikowana w 1931 r. przez Rafalskiego. Pierwszą dokumentację wykonał&nbsp;Błaszczyk w 1932 roku, w postaci planu i fotografii nacieków. Pięć lat później Maślankiewicz zamieścił doskonały, ciągle aktualny opis jaskini (cytowany przez Kowalskiego w 1951 r.). Opublikował także trzy fotografie, przedstawiające kolumny naciekowe w pierwszej i drugiej komorze. W 1938 r. Hyla tak pisał: „... <em>W lesie znajdują się nadto nagie skałki o różnych dziwacznych kształtach, jak np. tak zwane „kowadło diabelskie”, oraz wejście do groty na jej zboczu zachodnim</em>...”.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <span>Jaskinia została zinwentaryzowana przez Kowalskiego (1951) pod nr 500. W roku 1986 jej zaktualizowany opis został opublikowany przez Szelerewicza i Górnego. Załączony tam plan opracował J. Zygmunt, na podstawie pomiarów J. Kulawika, M. Różyckiego, K. Lamcha i J. Zygmunta, wykonanych w dniu 28 maja 1983 r. Dane zaktualizował J. Zygmunt w 2009 r. <br /></span>  <span>Aktualnie prezentowany plan opracował N. Szober, na podstawie własnych pomiarów, wykonanych w październiku 2003 r.</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    : Rafalski J. 1931(wzmianka); Błaszczyk, 1932 (opis, plan, fotografie); Maślankiewicz K. 1937 (opis fotografie); Hyla W. 1938 (wzmianka); Kowalski K. 1951 (opis, plan); Pucek T. 1983 (nietoperze); Szelerewicz M., G&#243;rny A. 1986 (opis, plan); Szelerewicz M. 1988 (wzmianka); Sznober N. 2004b (opis, plan)  Zygmunt J. 2003  (wykaz jaskiń); Stefaniak K. i in. 2009d (błędne dane morfometryczne, kr&#243;tka charakterystyka, zakres badań); Tyc A. 2009b (w aspekcie ochrony przyrody); Jaskinie Wyżyny Częstochowskiej 2011a  (plan i opis inwentarzowy); Zygmunt J. 2013 (replika planu - zmniejszony, z niewielkimi zmianami - i  opisu (skr&#243;conego)  z t.1 Jaskinie Wyżyny Częstochowskiej, fot. otworu i wnętrza jaskini, pod nr inwentarzowym wg własnego podziału autora).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Zygmunt J. i in. 2000 (dokumentacja).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Zygmunt
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1682)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=95" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1652">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1652;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563509,46".replace(',', '.') + "," + "152076,34".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1652','Jaskinia Psia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Psia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.F-09.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;52′21,50″, φ: 49&#176;13′58,44″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1410
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                180
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                57,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                62
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1076
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Kościeliska, na lewym orograficznie zboczu Wąwozu Krak&#243;w, w jego środkowej części, w stoku Żaru. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Hali Pisanej idziemy żółtym szlakiem do Wąwozu Kraków. Dnem wąwozu idziemy do charakterystycznego rozszerzenia nazywanego Rynkiem, dalej niewyraźną percią omijającą górne progi wąwozu. Prowadzi ona najpierw na prawo, nieco wstecz (ku W), do góry, u podnóża strzelistej turni nazywanej Basztą, następnie żlebem ku SE. Pod ścianą ograniczającą lewą (or.) stronę żlebu widzimy najpierw mały, trójkątny otwór Jaskini Zakosistej, z silnym wywiewem, a nieco dalej – Schronu z Watrą. Mijamy te otwory i wznosimy się dalej, wprost w górę żlebem, zostawiając po lewej stronie przełączkę, na którą skręca perć obchodząca progi wąwozu. Około 25 m nad Jaskinią Zakosistą przechodzimy zwężenie i kontynuujemy podejście coraz szerszym, mniej wyraźnym i coraz słabiej wciętym żlebem, aktualnie porośniętym lasem. Jeżeli poruszamy się jego prawą (lewą or.) stroną, po osiągnięciu wysokości około 100 m ponad wzmiankowanym zwężeniem, trawersujemy kilkanaście metrów w lewo, przez słabo zarysowaną grzędę, która niepostrzeżenie oddzieliła nas od równie słabo zaznaczającej się lewej (prawej or.) gałęzi żlebu. Można też wcześniej ponad zwężeniem kierować się w lewo i iść mijając z lewej strony niewielkie skałki. Żleb spiętrza się nieco i po prawej (lewej or.) stronie lewego ramienia (czyli właściwie u podnóża dzielącej oba ramiona grzędy) pod niewielką, osłoniętą drzewami skałką znajduje się duży, lecz nie rzucający się w oczy otwór jaskini. Dojście łatwe (idąc wąwozem próg o trudności II), zwiedzanie – trudności II, wymaga użycia sprzętu do zjazdu i wychodzenia po linie.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Duży otw&oacute;r jaskini prowadzi do zagłębiającej się pod skałkę pochylni. Zaraz na wstępie, ponad gł&oacute;wnym korytarzem (nad 2,5-metrowym progiem) odchodzi w g&oacute;rę 5-metrowy korytarzyk o gliniastym dnie, kt&oacute;rego zasypany koniec stanowi najwyższy punkt jaskini (+4,8 m). Tuż za nim, po prawej stronie, pod ścianą, od gł&oacute;wnej pochylni odchodzi rozgałęziony ciąg tzw. I piętro czy I poziom jaskini. Z wstępnej, niskiej nyży wczołgujemy się na prawo, w d&oacute;ł, korytarzykiem o dnie pokrytym rumoszem i większymi głazami. Docieramy do wydłużonej salki o wysokości miejscami nieco przekraczającej 2 m.&nbsp;Jej dno stanowi rumosz wapienny i głazy. Po lewej stronie znajduje się wejście do wąskiego, mytego meanderka, sprowadzającego na II piętro jaskini. Na prawo, w d&oacute;ł, odgałęzia się kr&oacute;tki, myty korytarzyk. Idąc na wprost omijamy dużą wantę, za kt&oacute;rą strop obniża się. Dalej znajduje się następna salka częściowo myta, a w części potrzaskana, o wysokości sięgającej od 3 do 5 m (na końcu). Zakręca ona ostro w lewo, a jej dno pokrywają r&oacute;żnych rozmiar&oacute;w wanty i gruz skalny. Na końcu salki dno opada stromo w prawo. Przez niski przełaz między wantami i pochyłym stropem przedostajemy się w d&oacute;ł do zaułka ciągu, gdzie występują nieliczne nacieki.</span></p>
+<p><span>Wracamy do wyżej wspomnianego wąskiego, mytego meanderka odgałęziającego się z pierwszej salki ciągu na lewo. Ma on przeciętną wysokość około 1,5 m i szerokość 0,3&ndash;0,5 m.&nbsp;Dno opada łagodnie i pokryte jest gruzem, miejscami gliną, a w dw&oacute;ch miejscach polewami naciekowymi. Po około 10 m, w lekkim rozszerzeniu (0,7 m), korytarzyk jest przedzielony mostem skalnym. Przechodzimy nad nim. Meanderek osiąga za mostem największą wysokość (około 2,5 m). Dalej przeczołgujemy się pod nagłym obniżeniem stropu (0,3 m) i stajemy na skraju coraz stromiej opadającej, mytej studni. Jej łączna głębokość wynosi 21 m.&nbsp;G&oacute;rny odcinek ma niewielki przekr&oacute;j (przeciętnie 1,1&ndash;1,3x0,6&ndash;0,7 m) i podzielony jest niewielkimi p&oacute;łeczkami, stopniami oraz przecięciami. Dolna część (nieco ponad 10 m) staje się coraz obszerniejsza i wyprowadza na strop tzw. Gł&oacute;wnej Komory II piętra jaskini, przy jej NW ścianie. Przejście to wymaga liny (do asekuracji przynajmniej w g&oacute;rnej części), przy czym brak stałych punkt&oacute;w jej zawieszenia.</span></p>
+<p><span>Prowadząca od otworu pochylnia o dnie wyścielonym glebą i gruzem skalnym po kilku metrach urywa się stromym, a w dolnej części pionowym progiem o łącznej wysokości 20 m (poręczuje się jednak r&oacute;wnież i dojście pochylnią; dawniej z rosnącego przy otworze smreka, kt&oacute;rego już nie ma). Zjeżdżamy do leżącej pod progiem Gł&oacute;wnej Komory. Jest to obszerna i rozgałęziona sala o dnie pokrytym gruzem skalnym, a miejscami wantami. W miejscu gdzie skończyliśmy zjazd możemy cofnąć się pod wstępną pochylnię, do zaułka sali, kończy się on 2,5-metrowym prożkiem i położonym nad nim ciasnym, 1,5-metrowym kominkiem.&nbsp;W lewej ścianie zaułka znajdują się dwa kr&oacute;tkie, ślepe korytarzyki. Pod przeciwną w stosunku do linii zjazdu ścianą widać w stropie komory wylot opadającej z I poziomu, opisanej powyżej studni. Skręcając w prawo trafiamy do szerokiego korytarza, na początku kt&oacute;rego schodzimy przez nieduży prożek z want. Dno stopniowo zaczyna się wznosić i kilkanaście metr&oacute;w dalej korytarz kończy się salką z niewielkimi naciekami. Ma ona dwa zablokowane głazami i gruzem odgałęzienia. Z lewego odgałęzienia można dostać się do położonej nad nim maleńkiej salki.</span></p>
+<p><span>Gł&oacute;wny ciąg II piętra (poziomu) jaskini prowadzi w lewo od zjazdu do Gł&oacute;wnej Komory. Idąc nim obchodzimy z lewej lub prawej strony wielkie wanty. Po ich minięciu wchodzimy w obszerny korytarz o szerokości od 4 do 6 m i wysokości około 5 m.&nbsp;Dno korytarza pokryte jest gruzem, głazami i dużymi wantami, a ściany są nieco spękane i nie występują na nich nacieki. We wstępnej części korytarza, w lewej ścianie, na wysokości 1 m, znajduje się niewielkie owalne wejście do dolnych partii jaskini (poziom III, IV, V). Kilka metr&oacute;w dalej korytarz przegradza 2,5-metrowy pr&oacute;g z dużych want. Za progiem, na środku korytarza jest wielka wanta (4x2 m), pod kt&oacute;rą znajduje się pr&oacute;żnia o charakterze salki między nią a podściełającymi mniejszymi głazami (prawdopodobnie sztucznie wygrzebana).</span></p>
+<p><span>W odległości 25 m od progu strop obniża się. Na prawo odchodzi stąd kr&oacute;tki boczny ciąg. Stromo w d&oacute;ł opada myta pochylnia z niewielkimi prożkami, kt&oacute;ra po ostrym skręcie wstecz wyprowadza nad 3-metrowy pr&oacute;g (potrzebna pętla). Pr&oacute;g opada do salki (4x6 m) o dnie pokrytym gruzem.&nbsp;Występuje w niej nieco naciek&oacute;w, m. in. spory stalagmit na spękanej polewie oraz nacieki grzybkowe. Dno opada w kierunku zaułka salki, w kt&oacute;rym poniżej pokrytego polewą naciekową prożka wykonany jest wkop w drobnym rumoszu. Jest to najniższy punkt jaskini poza korytarzami V piętra (49,2 m). Z wyższej części salki odchodzi niski, wznoszący się korytarzyk, zasypany na końcu namuliskiem. </span></p>
+<p><span>Od miejsca, gdzie skręciliśmy do ciągu bocznego, gł&oacute;wny korytarz II poziomu kontynuuje się jeszcze około 10 m w dotychczasowym kierunku, kończąc się za obniżeniem stropu ślepym zaułkiem o charakterze niedużej salki. Wcześniej pod wzmiankowanym obniżeniem skręcamy na lewo, do g&oacute;ry i przez jeden z dw&oacute;ch przełaz&oacute;w dostajemy się do wysokiej kopulastej sali o rozmiarach 9x5 m.&nbsp;Pokryte drobnym rumoszem dno wznosi się stromo w kierunku widniejącego pod ścianą niskiego przełazu, za kt&oacute;rym znajduje się owalna boczna salka o wymiarach 3,5x4 m i wysokości 2,5 m. </span></p>
+<p><span>Naprzeciwko przełaz&oacute;w doprowadzających do Kopulastej Sali jej ścianę tworzy 4,5-metrowy&nbsp;stromy pr&oacute;g, kt&oacute;ry pokonujemy bez użycia liny. Wyżej znajduje się około 10-metrowy duży korytarz o szerokości od 4 do 5 m i wysokości 3 m.&nbsp;Dno korytarza pokryte jest gruzem, głazami i gliną. Najpierw wznosi się ono, a następnie opada do<strong> (Uzupełnienie 2019 r., P. Graczyk)&nbsp;</strong>ciasnego przełazu. Dno przełazu jest płaskie i stanowi je polewa naciekowa. Po 4 metrach rozpoczyna się obszerny korytarz, będący początkiem Partii Poznańskich. Jego dno pokryte jest średniej wielkości kamieniami, na lewej ścianie widoczne są polewy naciekowe. Po 25 m <strong>korytarz</strong> nieco zwęża się i rozdziela na dwie odnogi. Prawa jest ślepa, lewa prowadzi do dalszych partii. Po kolejnych 20 metrach korytarz ponownie rozdziela się. Prawa część kończy się ślepo, lewa zwęża się i tworzy ciasny, pięciometrowy przełaz o przekroju tr&oacute;jkąta i dnie pokrytym kamieniami i gliną. 5 metr&oacute;w za przełazem ciąg rozdziela się. W prawo, lekko do g&oacute;ry prowadzi do Sali Żeberek, na wprost &ndash; do Studni Dobry Początek.<br />Przechodzimy pomiędzy wantami do Sali Żeberek. Sala ma wymiary około 6 na 14 m. Jej dno w całości pokryte jest r&oacute;żnej wielkości kamieniami (od kilku centymetr&oacute;w do kilkumetrowych want). W zachodniej części sali, nad p&oacute;łką, znajduje się ślepy komin o wysokości 7 m. Idąc na wsch&oacute;d dochodzimy nad kilkumetrowy pr&oacute;g. Znad progu, w lewej ścianie sali, widoczne jest niewielkie okienko, do kt&oacute;rego można dostać się wąską p&oacute;łką. Rozpoczyna się tam 10-cio metrowy korytarz, kt&oacute;ry skręca w lewo i wypada nad Studnią Dobry Początek od strony wschodniej.<br />Wracamy do Sali Żeberek nad pr&oacute;g. Trawersując prawą stroną (konieczna lina), dochodzimy do pochylni Gołoborza Szatana. Jest to ruchomy piarg o długości 20 metr&oacute;w. Jego g&oacute;rne zakończenie stanowią duże wanty zaklinowane między stropem a spągiem (wyczuwalny przewiew między wantami). W dolnej części znajduje się 5-cio metrowy pr&oacute;g, a pod nim zawalisko. Miejsce to jest niebezpieczne z uwagi na osypujące się kamienie oraz kruchość ścian i stropu w g&oacute;rnej części Gołoborzy.<br />Wracamy do rozwidlenia Sala Żeberek - Studnia Dobry Początek. Podążając na wsch&oacute;d, po siedmiu metrach stajemy nad Studnią Doby Początek. Ma ona 17 metr&oacute;w głębokości, w g&oacute;rnej części średnio metr szerokości i kilka metr&oacute;w długości. W dolnej rozszerza się, dno ma wymiary 4 na 12 m. W południowo zachodniej części dna studni, między wantami znajduje się wejście do ciasnego, 10-cio metrowego, zawaliskowego ciągu. W południowo wschodniej części znajduje się kr&oacute;tki korytarzyk, zablokowany zawaliskiem (prawdopodobnie pochodzącym z dna Gołoborzy Szatana) <strong>P. Graczyk 2019</strong>.</span></p>
+<p><span>Wracamy do Kopulastej Sali, w jej ścianie znajduje się wejście do jeszcze jednego ciągu bocznego. Ciasny, szczelinowy otw&oacute;r prowadzi do wysokiego korytarza. Dno szczeliny urywa się 3-metrowym&nbsp;progiem (pokonujemy go bez pomocy liny). Spękane ściany szczeliny oraz strop pokryte są naciekami w postaci stalaktyt&oacute;w i polew, a na jej dnie występują stalagmity i polewy. Za 3-metrowym&nbsp;progiem dno korytarza wznosi się, a za spiętrzonymi wantami jest &bdquo;przełączka&rdquo;, za kt&oacute;rą dno ponownie opada do rozgałęzienia ciągu. Na wprost wiedzie kr&oacute;tka, ślepa odnoga. Ponad nią przez 1,4-metrowy prożek wchodzimy do kontynuującego się ciągu, rozwiniętego na tej szczelinie. Po 3 m przeciskamy się przez niebezpieczny przełaz pod odpękniętą od stropu płytą (grozi przygnieceniem) do salki końcowej o zawaliskowym charakterze. Salka ma długość 7 m, a jej dno pokrywają wanty i gruz skalny. Od rozgałęzienia na prawo, w d&oacute;ł, przez niski przełaz, można zejść do niewysokiej, płaskiej salki z naciekami grzybkowymi i gruzowo-gliniastym dnie. Jej długość wynosi 11 m, szerokość 2 m i wysokość od 0,5 do 1,7 m.&nbsp;Odchodzi z niej 3-metrowe, niskie i ciasne odgałęzienie.</span></p>
+<p><span>Z Gł&oacute;wnej Komory wchodzimy do wąskiego, stromo opadającego korytarzyka, kt&oacute;ry wiedzie do niższych poziom&oacute;w jaskini. Jego owalny otw&oacute;r (0,6x0,8 m) znajduje się za dużymi wantami w południowo-wschodniej ścianie komory, nad 1-metrowym prożkiem.&nbsp;Korytarzyk tworzy rodzaj korkociągu, jest bardzo ciasny, rozwinięty na prostopadłych, rozmytych szczelinach. Sprowadza do niewielkiej kom&oacute;rki o dnie zasłanym wantami, rozpoczynającej III poziom jaskini. Na lewo (ku N) odchodzi stąd szczelinowy korytarz, rozwidlający się po kilku metrach. Każda z jego odn&oacute;g r&oacute;wnież ulega rozdwojeniu przed swym zakończeniem.&nbsp;Na prawo z kom&oacute;rki wiedzie ku E poziomy, galeriowy korytarz o szerokości 2&ndash;3 m, wysokości do 1,5 m i długości około 35 m.&nbsp;Jego ściany i dno pokrywają grube polewy naciekowe, występują tu też liczne stalagmity i stalaktyty. W rozszerzeniu korytarza, w lewej ścianie, widać kilka otwor&oacute;w prowadzących do r&oacute;wnoległego, ciasnego korytarzyka, r&oacute;wnież pokrytego naciekami.</span></p>
+<p><span>Po dojściu do poprzecznego ciągu rozwiniętego na szczelinie widać dwie studzienki uchodzące w stropie IV poziomu. Omijamy je i skręcamy na prawo do komory (3x4 m), z kt&oacute;rej niskim przełazem dostajemy się do obszerniejszego korytarza o długości ponad 20 m.&nbsp;Prowadzi on ku SW, a za studzienką przy prawej ścianie (prowadzącą do niższych partii), zakręca ku S. Ciąg ten obfituje w r&oacute;żnego rodzaju nacieki i polewy, charakterystyczne dla całego III piętra. Dno korytarza w znacznej części pokrywa gruz i nacieki.</span></p>
+<p><span>Wracamy do komory. Stąd przechodzimy nad dwiema wspomnianymi już studzienkami i kierujemy się ku NE, do wąskiej szczeliny z dużymi blokami porośniętymi naciekami grzybkowymi. Po 7 m opada ona łatwym, 3-metrowym progiem do Korytarza Gł&oacute;wnego, kt&oacute;ry stanowi IV poziom jaskini. Jest on rozwinięty na szczelinie tektonicznej o przebiegu NE&ndash;SW, ma 70 m długości, ponad 2 m wysokości i 1,5&ndash;2,5 m szerokości. Dno korytarza jest gruzowo-gliniaste, a ściany miejscami pokrywają nacieki. Posuwamy się Korytarzem Gł&oacute;wnym na prawo, ku SW, około 45 m.&nbsp;Wiedzie on prawie poziomo, a następnie do g&oacute;ry. Omijamy wznoszącą się niszę po lewej stronie i docieramy przez zawalisko głaz&oacute;w, połamanych polew i kawałk&oacute;w scementowanego namuliska do obniżenia stropu, przy kt&oacute;rym porośnięta naciekami wanta przegradza drogę.</span></p>
+<p><span>Na prawo, przez zacisk nad tą wantą docieramy do obszernej, wznoszącej się, komory zawaliskowej o długości kilkunastu metr&oacute;w. Z jej g&oacute;rnego poziomu wspinamy się po wielkich wantach na lewo, do wyżej położonej zawaliskowej Sali z Uskokiem o wymiarach 12x8 m.&nbsp;Wanty te są zaklinowane pod płaskim stropem powstałym na powierzchni uskoku tektonicznego. Południowa ściana sali, rozwinięta na uskoku, jest stromo nachylona ku p&oacute;łnocy. Na dnie sali leżą wielkie (do 3 m) bloki skalne. Nad 2-metrowym progiem w zachodniej części Sali z Uskokiem znajduje się niewielka kom&oacute;rka, od kt&oacute;rej odchodzą kr&oacute;tkie odnogi i kilkumetrowy, rozgałęziony ciąg, zamknięty naciekami. Szata naciekowa w tym zaułku jest szczeg&oacute;lnie piękna. Tworzą ją duże skupiska stalaktyt&oacute;w, stalagmit&oacute;w i kolumn, a ściany i dno pokrywają grube polewy naciekowe. Pod polewami dna zachowało się scementowane, allochtoniczne żwirowisko, z dość dużymi otoczakami skał krystalicznych. Ten fragment jaskini jest zaliczany do III poziomu.</span></p>
+<p><span>Wracamy do Korytarza Gł&oacute;wnego, do punktu w kt&oacute;rym rozpoczęliśmy jego zwiedzanie. Idziemy dalej ku NE. Po około 9 m, na lewo do g&oacute;ry widać wejścia do wyższego piętra rozwiniętego na tej samej co korytarz szczelinie oraz na r&oacute;wnoległym pęknięciu. Poszczeg&oacute;lne poziomy tego kr&oacute;tkiego, bocznego ciągu rozdzielone są zaklinowanymi wantami i łączą się z sobą.</span></p>
+<p><span>Na lewo w d&oacute;ł odchodzi kr&oacute;tki, zaraz wracający korytarz, z kt&oacute;rego odgałęzia się stromo w d&oacute;ł korytarz wiodący do V piętra jaskini. Jego dno budują duże wanty, kt&oacute;re tworzą 3,5-metrowy pr&oacute;g. Sprowadza on do zawaliskowej komory (około 9x4 m). Na lewo wstecz (ku S) odchodzą kr&oacute;tkie, ślepo zakończone szczeliny. Dalej, w zachodniej ścianie widać dwa okna będące ujściami 3-metrowego, okrężnego korytarzyka. Na prawo od okien jest przejście do następnej komory, a na prawo od niego, ku NE, wiedzie kilkumetrowy korytarzyk, kt&oacute;ry za 1,3-metrowym&nbsp;prożkiem w d&oacute;ł zwęża się znacznie.</span></p>
+<p><span>Przechodzimy wąską szczeliną (0,4x1,5 m) do komory nazwanej Białą Salą. Ma ona około 19 m długości i średnio 4 m szerokości, po kilku metrach zakręca pod kątem prostym ku NW. Na ścianach widać miejscami nacieki, m. in. z mleka wapiennego. Jej dno, zasłane rumoszem, na początku opada, a za zakrętem wznosi się. Pr&oacute;g z want w p&oacute;łnocno-zachodniej części sali wydziela w niej jakby oddzielną komorę, prawie okrągłą, o wymiarach 4x3 m i 5x2,5 m.&nbsp;Ściany pokrywa tu gruba warstwa mleka wapiennego, a dno drobny piarg o jasnej barwie i osad piaszczysto-żwirowy.</span></p>
+<p><span>Na lewo wstecz, od wejścia do Białej Sali odgałęzia się na południe szczelinowy korytarz o długości 14 m.&nbsp;W korytarzu, na prawo odchodzi kr&oacute;tka odnoga ze ślepym kominkiem.&nbsp;Korytarz zablokowany jest zawaliskiem, z kt&oacute;rego wyczuwa się silny przewiew. Tuż przed zakończeniem tego ciągu znajduje się najgłębszy punkt jaskini (57,2 m).</span></p>
+<p><span>Wracamy do Korytarza Gł&oacute;wnego. Idziemy nim na p&oacute;łnocny wsch&oacute;d i niebawem docieramy do kończącej go owalnej, mytej kom&oacute;rki o wymiarach około 6x4,2 m.&nbsp;Jej ściany pokrywa warstwa mleka wapiennego o grubości około 10 cm, wkr&oacute;tce po udokumentowaniu jaskini częściowo zniszczona przez wandali. Dno buduje tu drobny rumosz, piasek kwarcowy, a także polewy naciekowe. Dalej przechodzimy przez wąską szczelinę (0,3x0,55 m) do Długiej Sali, przechodzącej w Salę Błotnych Wulkan&oacute;w. Ich łączna długość wynosi około 25 m, szerokość &ndash; około 34 m.&nbsp;Na ścianach występuje nieco naciek&oacute;w, a dno jest gruzowo-gliniaste. </span></p>
+<p><span>W NW części Sali Błotnych Wulkan&oacute;w, na namulisku ilasto-piaszczystym utworzyły się dobrze wykształcone formy błotnych lejk&oacute;w, kt&oacute;re przypominały odkrywcom kratery wulkan&oacute;w. Formy nazwane błotnymi wulkanami w jaskini nie występują.</span></p>
+<p><span>Pod prawą ścianą Długiej Sali, w jej p&oacute;łnocno-zachodniej części odnajdujemy za dużym głazem dwa wejścia do ciasnego ciągu wiodącego stromo w d&oacute;ł. Ciąg ten, około 30-metrowy, w przekroju rurkowaty (około 0,4x0,6 m) zakręca wielokrotnie na poprzecznych szczelinach i opada systemem studzienek i pochylni. Odchodzi od niego kilka kr&oacute;tkich, ślepych odn&oacute;g. Przy końcu rozgałęzia się na dwa korytarzyki sprowadzające do tzw. Piaszczystych Syfon&oacute;w. Nagromadzony w obniżeniach piasek zamyka dalszą drogę.</span></p>
+<p><span>Z Sali Błotnych Wulkan&oacute;w, na przeciwko pola błotnych lejk&oacute;w, ku SW odchodzi kilkunastometrowy korytarz o szerokości 12 m.&nbsp;Jego ściany są kruche, prawie pozbawione naciek&oacute;w, a dno zasłane gruzem wapiennym.&nbsp;Korytarz ten ma połączenie z niżej położonym ciągiem, rozwiniętym na tej samej, pochylonej ku S szczelinie. Ciąg ten ku E wiedzie do Długiej Sali, a ku W następuje połączenie obu korytarzy w Sali na Zakręcie, utworzonej na zakolu płynącego tędy dawniej potoku. Ma ona około 25 m długości, do 5 m szerokości i ponad 3 m wysokości. Jej dno (pochylone ku zachodowi) w g&oacute;rnej części budują wanty, w dolnej, pod lewą ścianą osad jest ilasto-piaszczysty, a pod nim znajdują się otoczaki wapieni i skał krystalicznych. Osady te są nieco rozmyte. Na ścianach zakola, pokrytych brunatnym nalotem oraz na namulisku wykryto wiele napis&oacute;w wykonanych m in. przez grotołaz&oacute;w wandali z klub&oacute;w Zagłębia i Śląska. W południowo-zachodniej części sali, nad niewielkim prożkiem odgałęziają się trzy ślepo zakończone szczeliny (najdłuższa ma 6 m). Przed końcem sali, za jej zwężeniem, pod lewą ścianą odchodzi kilkumetrowy, ciasny korytarzyk zamknięty zawaliskiem&nbsp;Wyczuwa się w nim silny przewiew.</span></p>
+<p><span>Jaskinia rozwinięta jest w obrębie wapieni i dolomit&oacute;w środkowego triasu wierchowej serii autochtonicznej. Formowały ją wody przepływające pod ciśnieniem, jak r&oacute;wnież o zwierciadle swobodnym, o czym świadczą charakterystyczne formy korozyjno-erozyjne. Na uwagę zasługują poziome, galeriowe korytarze. Utwory, w kt&oacute;rych rozwinęła się jaskinia, są silnie strzaskane tektonicznie. Widoczne są w niej spękania ścian, polew naciekowych, poprzewracane stalaktyty. Występują rozległe zawaliska, a ze ścian odpadają liczne, rozległe płaty polewy naciekowej. Korytarze mają wyraźny układ piętrowy. Wyr&oacute;żnia się 5 pięter (poziom&oacute;w) korytarzy. Generalny układ spękań, na kt&oacute;rym rozwinęły się korytarze jaskini ma w przybliżeniu przebieg W&ndash;E. Jaskinia stanowi efektowny i ciekawy system pod względem budowy geologicznej.</span></p>
+<p><span>Namuliska jaskini są dosyć urozmaicone. Przeważają w nich r&oacute;żnych rozmiar&oacute;w, ostrokrawędziste, autochtoniczne osady okruchowe (gruz, głazy, wanty). Miejscami występuje też glina, żwir, piasek, a w okolicy otworu &ndash; gleba. Namuliska żwirowo-piaszczyste są lokalnie scementowane. Można wyr&oacute;żnić w nich kilka generacji. Według W&oacute;jcika (1968) źr&oacute;dłem materiału allochtonicznego osad&oacute;w żwirowo-piaszczystych są okolice Tomaniarskiego Twardego Upłazu (Kamienne Tomanowe). Na namuliskach, w niekt&oacute;rych miejscach, najdują się kości nietoperzy.</span></p>
+<p><span>Bardzo obficie i r&oacute;żnorodnie rozwinięta jest szata naciekowa. Reprezentują ją stalaktyty, stalagmity, kolumny, polewy, nacieki grzybkowe i z mleka wapiennego. Została ona szczeg&oacute;łowo opisana w pracy Ciszewskiego i in. (1988), z kt&oacute;rej warto przytoczyć kilka fragment&oacute;w charakterystyki, prostując jednocześnie zawarty w niej błędny pogląd o braku szaty naciekowej w obrębie I piętra jaskini: &bdquo;<em>Stalaktyty występują w dużym nagromadzeniu na III i IV poziomie. Miejscami, w galeriowych korytarzach II piętra</em> [zapewne pomyłka w druku, prawdopodobnie chodzi o piętro III&nbsp;&ndash; przyp. R. M. K.],<em> nagromadzenie ich jest por&oacute;wnywalne z nagromadzeniem szaty naciekowej w Jaskini Raj. Zagęszczenie wynosi ok. 50 sztuk na 1 m&sup2;. Są to gł&oacute;wnie typowe formy regularnych stalaktyt&oacute;w, szersze u g&oacute;ry i stopniowo zwężające się ku dołowi, o długości do 30 cm.&nbsp;W przeciwieństwie do innych jaskiń tatrzańskich występują tutaj duże nagromadzenia stalagmit&oacute;w. Są to w większości formy osiągające wysokość ok. 10 cm i charakteryzujące się masywną talerzowatą podstawą i stałą średnicą. Największy stalagmit ma 60 cm wysokości. W galerii uchodzącej w ścianie Sali z Uskokiem znajduje się niespotykane w naszych jaskiniach nagromadzenie kolumn i stalagmit&oacute;w, występujących w ilości kilkuset egzemplarzy! Kolumny osiągają tutaj wysokość ok. 30 cm.&nbsp;W korytarzach II, III i IV piętra występują w dużych ilościach grube polewy naciekowe, pokrywające znaczną powierzchnię ścian, a w korytarzach III poziomu całe ich dno. Wszystkie opisane formy naciekowe należą do starszej generacji szaty naciekowej. [...] Nacieki w chwili obecnej są martwe i suche oraz w znacznym stopniu zniszczone. Znaczna ich ilość zalega dno korytarzy. Polewy są silnie spękane i odpadają całymi płatami od ściany. Część stalagmit&oacute;w jest powalona, a polewy, z kt&oacute;rych wyrastają, są popękane i poprzesuwane względem siebie. [...] Młodszą generacją naciek&oacute;w występujących w Jaskini Psiej są nacieki grzybkowe tworzące się do dziś. Ten typ naciek&oacute;w pospolitych w jaskiniach tatrzańskich zasługuje na szczeg&oacute;lną uwagę, ponieważ występuje w ogromnych ilościach, znacznie przewyższających występowanie naciek&oacute;w grzybkowych w innych jaskiniach. Ponadto poza opisywanymi dotychczas pospolitymi formami występuje tutaj szereg innych, nie znanych z literatury.</em></span></p>
+<p><em><span>Nacieki grzybkowe w swej pospolitej formie pokrywają większość form naciekowych starszej generacji II, III, IV piętra jaskini. Są to formy wąskie u podstawy z kilkakrotnie szerszą zaokrągloną gł&oacute;wką. Wysokość ich waha się w granicach od 1 do 15 mm.&nbsp;Inną formą są nacieki grzybkowe, wykształcone w postaci kulek o średnicy do 2 cm, pokrywające stalaktyty III piętra jaskini. Najciekawsze formy występują w korytarzach za Kopulastą Salą. Wyr&oacute;żnić tutaj można wysmukłe palczaste formy osiągające długość 10 cm, kilkakrotnie przekraczające długość form pospolitych w naszych jaskiniach. U podstawy węższe (ok. 1 cm) są zakończone nieco szerszą, wydłużoną gł&oacute;wką. Występują one pojedynczo lub w grupach, często łącząc się ze sobą u podstawy. Inne formy są bardziej masywne, przypominające stalagmity węższe u podstawy (do 2 cm), zakończone kr&oacute;tką nieco szerszą gł&oacute;wką. Od stalagmit&oacute;w wyr&oacute;żnia je spos&oacute;b występowania, wyrastają bowiem na ścianach korytarzy i na luźnych odłamkach skał. Większość naciek&oacute;w grzybkowych wyrasta prostopadle do podłoża, niekt&oacute;re jednak grupy naciek&oacute;w są pochylone w jednym kierunku, zawsze zgodnym z kierunkiem okresowych przewiew&oacute;w cyrkulacji zimowej w jaskini. Niestety większość interesujących form naciek&oacute;w grzybkowych występujących za Kopulastą Salą została zniszczona przez nieznanych grotołaz&oacute;w, wykonujących przekop w tej części jaskini.</span></em></p>
+<p><em><span>Nacieki z mleka wapiennego stwierdzono jedynie na ścianach Korytarza Gł&oacute;wnego.</span></em><span>[występują też w Białej Sali &ndash; przyp. I. Luty] <em>Białe miękkie mleko wapienne pokrywa tutaj 10-centymetrową warstwą ściany korytarza, tworząc miejscami niewielkie nawisy (tzw. Łopaty) do 10 cm długości. Bogata reliktowa i wsp&oacute;łczesna szata naciekowa jaskini zasługuje na szersze jej opracowanie.</em>&rdquo;</span></p>
+<p><span>W jaskini brak jest większych stałych zbiornik&oacute;w i strug wodnych. Zaliczyć ją można do średnio wilgotnych. W niekt&oacute;rych partiach występują silne przewiewy. Oświetlona jest cała wstępna pochylnia oraz g&oacute;rna część 20-metrowej studni, korytarzyk nad otworem oraz początkowe partie ciągu I piętra (wstępna nyża do niskiego przełazu).</span></p>
+<p><span>Roślinność kwiatowa występuje w otworze i jego najbliższej okolicy, w dalszej części wstępnej pochylni występują mchy i glony. Faunę reprezentują owady i nietoperze. Piksa i Nowak (2002) wymieniają&nbsp;<em>Myotis bechsteinii</em> <span>&ndash; jest to najwyższe stanowisko tego nietoperza w Polsce.</span></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Gradziński, M. i in. (1997a,b) zbadali genezę rytmicznej laminacji w naciekach, a Gradziński, M. i in. (1996a,b, 1998) &ndash; mikrofacje naciek&oacute;w jaskiniowych i ich genezę, na podstawie badań polew pobranych w tej jaskini. Szczygieł J. wzmiankuje o genezie i tektonice jaskini (2015b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Historię eksploracji jaskini omawia artykuł Ciszewskiego i in. (1988) :</span></p>
+<p><em><span>&bdquo;Przez kilka lat grotołazi zakopiańscy i krakowscy prowadzili poszukiwania jaskiń na terenie Żaru. Niestety nie udało im się znaleźć żadnych większych jaskiń. Przypuszczano, że jaskinia w tym rejonie może doprowadzić do dolnych partii kolektora wodnego masywu Ciemniaka, albo przynajmniej do wyższych partii Jaskini Wodnej pod Pisaną.</span></em></p>
+<p><em><span>Dopiero w lipcu (17?) 1961 r. została odkryta pierwsza większa jaskinia w tym rejonie &ndash; Jaskinia Psia. Znaleźli ją na podstawie informacji uzyskanych od g&oacute;rali Roman Bebak, Janusz Fereński i Janusz Rabek &ndash;- grotołazi z Sekcji Grotołaz&oacute;w Akademickiego Klubu Turystycznego we Wrocławiu. Poznano wtedy ok. 200 m korytarzy I i II poziomu jaskini.&rdquo; </span></em></p>
+<p><span>W&oacute;jcik (1966a, 1969a) podaje jej długość w tym stadium eksploracji na 220 m. </span></p>
+<p><span>&nbsp;<em>&bdquo;Przejście do dalszych partii wyszukał Andrzej Kobyłecki podczas międzynarodowego obozu (29 czerwca &ndash; 8 lipca 1968 r.). W&oacute;wczas grotołazi jugosłowiańscy poznali korytarze III i IV poziomu. W Korytarzu Gł&oacute;wnym dotarli oni do zacisk&oacute;w zamykających obydwa jego końce oraz do salki przy p&oacute;łnocnym końcu Korytarza Gł&oacute;wnego, ponadto odkryli połączenie pomiędzy I a II piętrem.&rdquo;</em></span></p>
+<p><span>Wg notatki Gocha (1969) odkrycia dokonano podczas 4,5-godzinnej akcji 12-osobowego zespołu kierowanego przez M.&nbsp;Lewandowskiego w dniu 30 czerwca 1968 r., a poznano wg &oacute;wczesnej oceny 260 m nowych korytarzy. Z notatki tej znamy też nazwiska jugosłowiańskich uczestnik&oacute;w obozu: Primož Krivic, Janez Iler&scaron;ič i Marjan Juvan. Sądząc z opis&oacute;w na archiwalnym planie jaskini opracowanym przez Kobyłeckiego w akcji tej uczestniczyli przynajmniej dwaj pierwsi z wyżej wymienionych.</span></p>
+<p><span><em>&bdquo;Ostatnie odkrycia zostały dokonane przez grotołaz&oacute;w Krakowskiego Klubu Taternictwa Jaskiniowego &ndash; Andrzeja Ciszewskiego i Andrzeja G&oacute;rnego &ndash; w dniach 26 i 27 sierpnia 1972 r. Odkryli oni wtedy ok. 300 m korytarzy IV i V poziomu. Były to okolice Sali z Uskokiem od zacisku, rejon Białej Sali oraz partie przy Długiej Sali, Sali na Zakręcie, Sali Błotnych Wulkan&oacute;w i piaszczystych syfon&oacute;w. Następna akcja, w dniach 9</em><span>-<em>10 września 1972 r., przyniosła odkrycie dalszych 50 m.&nbsp;Były to partie z grzybkami.&rdquo;</em></span></span></p>
+<p><span><span>28.12.2016 Kacper Cieślawski, Piotr Graczyk i Witold Hoffmann (Wielkopolski Klub Taternictwa Jaskiniowego) po pokonaniu przełazu w korytarzu nad Salą Kopulastą odkrywają Salę Żeberek oraz Gołoborza Szatana i zatrzymują się nad Studnią Dobry Początek.</span></span></p>
+<p>30.12.2016 Kacper Cieślawski, Sonia Dudziak, Piotr Graczyk i Witold Hoffmann (wszyscy WKTJ) zjeżdżają na dno Studni Dobry Początek oraz sprawdzają kr&oacute;tki zawaliskowy ciąg odchodzący z dna studni. Sprawdzono także okno w Sali Żeberek, kt&oacute;re kr&oacute;tkim korytarzem doprowadziło nad Studnię Dobry Początek.</p>
+<p>24.04.2017 Piotr Graczyk, Michał Amborski, Bogdan Guzik (wszyscy WKTJ), Marta Czech (Speleoklub Wrocławski) i Michał Balcerak (WKTJ) sprawdzają możliwość kontynuacji ciągu w g&oacute;rnej części Gołoborzy Szatana, Piotr Graczyk wspina się do końca kominkiem w Sali Żeberek.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W sierpniu i wrześniu 1972 r. wykonane zostały pomiary pod kierownictwem A. Kobyłeckiego, kt&oacute;ry sporządził datowany na 18 września 1972 r. plan i przekr&oacute;j jaskini. W ramach prac inwentaryzacyjnych OW PTPNoZ wykonano powt&oacute;rnie pomiary jaskini w dniach 11, 17 i 18 sierpnia 1987 r. przy pomocy busoli geologicznej Meridian, przyrządu Suunto, klinometr&oacute;w Freiberg i taśmy parcianej. Pomiary wykonali R. M. Kardaś (I i II poziom) i I. Luty (III, IV i V poziom) przy wsp&oacute;łpracy M. Francuza, A. Gajewskiej, A. Paterka, K. Recielskiego, E. i R. Szczęsnych i A. Trybulca. Dane zaktualizowała I. Luty (2009). Wsp&oacute;łrzędne geograficzne otworu w oparciu o mapę topograficzną Tatr wydawana przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.gov.pl/">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013).</p>
+<p>04.01.2018 Sonia Dudziak, Witold Hoffmann i Michał Macioszczyk (WKTJ) wykonali pomiary Partii Poznańskich przy pomocy dalmierza Leica Disto A3 z modułem DistoX. Plan i przekr&oacute;j tych ciąg&oacute;w opracował Piotr Graczyk.</p>
+<p>Plan opracowali R. M. Kardaś i I. Luty. W 2019 r uzupełnił (wyr&oacute;wnując deklinację magnetyczną z 1987 r. do aktualnej) P. Graczyk.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik Z. 1966a (dane morfometryczne i geologiczne); W&#243;jcik Z. 1968 (charakter osad&#243;w); Goch B. 1969 (informacja o odkryciu nowych partii); W&#243;jcik Z. 1969a (dane morfometryczne i geologiczne, lokalizacja); XV lat w podziemiach g&#243;r 1970 (zapewne informacja o odkryciu – fide Ciszewski i in. 1988); XV lat Akademickiego Klubu Turystycznego we Wrocławiu 1972 (zapewne informacja o odkryciu – fide Ciszewski i in. 1988); [Kronika] Okres od 1.07.1972 ... 1976 (informacja o odkryciach w 1972 r.); Wiśniewski W.W. 1977f (historia eksploracji, dane morfometryczne); TATRY POLSKIE 1984 (lokalizacja); Gradziński R. i in. 1985a (dane morfometryczne i lokalizacja); Ciszewski A. i in. 1988 (Opis i charakterystyka jaskini, szata naciekowa, historia eksploracji, plan, przekr&#243;j, fot.); Kardaś R.M. 1988c (informacja o pomiarach jaskini); Jaskinie TPN 1994 (plan, przekr&#243;j i opis inwentarzowy); Cywiński W. 1996 (wzmianka o położeniu w przewodniku szczeg&#243;łowym); Gradziński M. i in. 1996a,b, 1998, 2000 (mikrofacje naciek&#243;w jaskiniowych i ich geneza, na podstawie badań polew z tej jaskini, w pracach obcojęzycznych – bez wymieniania jej nazwy); Gradziński M. i in. 1997a,b (geneza rytmicznej laminacji w naciekach); Piksa K., Nowak J. 2002 (nietoperze); Gradziński M. i in. 2005 (wzmianki o genezie); Kicińska D. 2005 (wzmianka o osadach); Szczygieł J. 2015b (tektonika i geneza); Grodzicki J. 2018 (dane morfometryczne wg stanu na 2013 r., położenie na szkicu Tatr Zachodnich)
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Kobyłecki A. 1972 Jaskinia Psia. Plan poziomy oraz rzut pionowy 1:400.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Piotr Graczyk, Izabella Luty, Rafał M. Kardaś
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2019
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12927)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12928)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

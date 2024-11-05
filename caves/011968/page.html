@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11968">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11968;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559346,86".replace(',', '.') + "," + "259188,83".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11968','Jaskinia Ciemna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Ciemna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                grota podziemna Oycowska, Kr&#243;lewska jaskinia, Jaskinia Jasna, Jaskinia Ojcowska, Ciemna Jama, jaskinia Kr&#243;lewska, jaskinia Ciemna Ojcowska, Ojcowska jama, Grota Ojcowska, Grota Ciemna Ojcowska, Jaskinia Ojcowska czyli Ciemna, skała Ciemnia, skała Ojcowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02a.152
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;49′54,29″, φ: 50&#176;11′48,95″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku S, wys. otw. 371 m n.p.m., wys. otw. nad dnem doliny 61 m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                372
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                62
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    209
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Dolina Prądnika, G&#243;ra Koronna, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od wylotu wąwozu Wawrzonowy Dół idziemy ścieżką, którą do otworu jaskini poprowadzony jest zielony szlak turystyczny i po ok. 250 m dochodzimy na obszerny taras położony przed otworem Jaskini Ciemnej. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Przedjaskiniowy taras od wschodu ograniczony jest ścianą skalną, u st&oacute;p kt&oacute;rej położne jest wejście prowadzące do gł&oacute;wnej sali i dalszych partii Jaskini Ciemnej, a od południa łukiem skalnym, pod kt&oacute;rym znajduje się obszerny dwuotworowy korytarz nazywany Tunelem. S. Kowalski (1968) stosował w odniesieniu do niego nazwę Tunel P&oacute;łnocny i uważał go za część Oborzyska Wielkiego (razem z Ogrojcem i właściwym Oborzyskiem Wielkim, kt&oacute;re zwał Tunelem Południowym). Zar&oacute;wno Tunel, jak i wejście do gł&oacute;wnej części jaskini znajdują się pod wsp&oacute;lnym okapem i dlatego są traktowane jako jeden otw&oacute;r jaskini &ndash; otw&oacute;r p&oacute;łnocno-zachodni (1.). Ma on szerokość ponad 7 m. Otw&oacute;r południowy (2.), prowadzący do Tunelu od strony Ogrojca ma szerokość 3,5 m. Tunel jest integralną częścią Jaskini Ciemnej i pierwotnie był połączony z gł&oacute;wną salą jaskini, niskim przejściem, kt&oacute;re teraz jest zamurowane. Obecnie jedyne wejście do gł&oacute;wnej sali prowadzi przez wnękę, o wysokości 1 m, położoną za otworem p&oacute;łnocno-zachodnim i przegrodzoną metalowymi drzwiami. Wiodą one do zachodniej części rozległej sali o całkowitej długości 88 m i maksymalnej szerokości 23 m. Wysokość sali przeciętnie wynosi ok. 8 m, a miejscami przekracza 10 m. W końcowej części sala się zwęża, a na jej środku znajduje się znacznych rozmiar&oacute;w filar skalny. Od tego miejsca gł&oacute;wny ciąg biegnie początkowo w prawo (ku południowemu wschodowi), a następnie w lewo (ku p&oacute;łnocnemu wschodowi). Ciąg ten jest złożony z niewielkich lecz wysokich salek, przedzielonych niskimi przełazami. W końcowej części znajduje się korytarz, obecnie niedostępny, biegnący ku p&oacute;łnocnemu zachodowi (A. G&oacute;rny &ndash; inf. ustna 2007 r.). Ma on długość ok. 10 m. Korytarz ten nie jest uwzględniony na planie jaskini.</p>
+<p>Jaskinia jest utworzona w wapieniu skalistym jury g&oacute;rnej. Na ścianach w sali widoczne są nieznacznie nachylone ku p&oacute;łnocnemu wschodowi powierzchnie międzyławicowe lub ciosowe. Część korytarzy jaskini powstała wzdłuż pionowych szczelin ciosowych (Ciętak 1935; Gradziński 1962). W wielu miejscach, zar&oacute;wno w sali, jak i w końcowym korytarzu w stropie są dobrze rozwinięte kotły, z kt&oacute;rych największe mają średnicę ponad 3,5 m. Część z nich jest uformowana na pionowych szczelinach ciosowych, lecz wiele nie nawiązuje do szczelin. Niekt&oacute;re kotły są charakterystycznie hierarchicznie rozmieszczone, to znaczy w obrębie jednej dużej formy znajduje się kilka mniejszych form niższego rzędu.<br />Jaskinia jest fragmentem większego systemu krasowego i pierwotnie stanowiła jeden system wraz z położonym w pobliżu Oborzyskiem Wielkim. Do systemu tego należał także Ogrojec, kt&oacute;ry sw&oacute;j dzisiejszy kształt zawdzięcza obrywowi stropu i zniszczeniu pr&oacute;żni krasowej przez procesy erozyjne. Powstanie jaskini związane jest z przepływem krasowym w warunkach freatycznych, na co wskazuje charakter korytarzy, a przede wszystkim liczne kotły doskonale rozwinięte w jej stropie (R. Gradziński 1962). Kotły te mogą świadczyć o powstaniu jaskini na skutek ascenzyjnego przepływu ciepłych w&oacute;d (R.A.L. Osborne 2004). Ł. Karda (w: Gradziński i in. 2011c) sugeruje wpływ w&oacute;d powodziowych na formowanie jaskini. Istnienie skorodowanych polew wskazuje, zdaniem R. Gradzińskiego (1962), że etap osuszenia jaskini i związanej z nim krystalizacji naciek&oacute;w rozdzielał dwa epizody formowania się kotł&oacute;w wirowych. Brak jest wyraźnych dowod&oacute;w na przemodelowanie pr&oacute;żni przez przepływ w warunkach wadycznych. Pewną przesłanką mogą być odsłonięte podczas wykopalisk w Tunelu, a także w Oborzysku Wielkim zagłębienia w dnie, mające zapewne charakter rynien dennych (S. Kowalski 2006). Znalezienie takich rynien w skalnym dnie sali, pod pokrywą osad&oacute;w klastycznych, mogłoby potwierdzić powyższy pogląd.</p>
+<p>Wiek jaskini jest trudny do określenia. Zapewne powstała ona przed początkiem plejstocenu. Gdyby potwierdziła się hipoteza R.A.L. Osborne&acute;a (2004) o hipogenicznym pochodzeniu jaskini, byłoby to sugestią, że jej rozw&oacute;j następował pod przykryciem nieprzepuszczalnych warstw g&oacute;rnej kredy lub miocenu, co implikowałoby odpowiednio p&oacute;źnomioceńsko-plioceński lub nawet paleogeński wiek jej powstania.</p>
+<p>Zewnętrzne części namuliska w Tunelu i partiach przyotworowych sali są humusowe. Głębiej na spągu znajdują się ogładzone głazy wapieni g&oacute;rnej jury, a miejscami także pokruszone fragmenty naciek&oacute;w. W głębszych partiach &ndash; pomiędzy głazami &ndash; namulisko gliniaste. Do lat 70. ubiegłego wieku na powierzchni osad&oacute;w występowały licznie kości i zęby niedźwiedzi jaskiniowych (<em>Ursus spelaeus </em>s.l.; R. Gradziński 1972). W sali głębokość osad&oacute;w sięga kilku metr&oacute;w i jest największa w części bliższej otworowi, gdzie przekracza 7 m i systematycznie maleje w głąb do ok. 2 m. Powyższych danych dostarczyły badania georadarowe (A. Szynkiewicz 2007; J. Karczewski i T. Ostrowski 2013), kt&oacute;re ponadto sugerują obecność zasypanych osadami sporych rozmiar&oacute;w stalagmit&oacute;w.</p>
+<p>W jaskini występują niewielkie stalaktyty oraz polewy naciekowe. W końcowym korytarzu, na prawej ścianie widoczna jest skorodowana polewa sprawiająca wrażenie rozmytej przez wodę wypełniającą cały korytarz, a nie wodę perkolacyjną. R. Gradziński (1962) uważa, że polewa ta powstała w czasie okresowego osuszenia jaskini rozdzielającego dwa epizody formowania się kotł&oacute;w wirowych. W centralnej części sali znajduje się liczna grupa stalagmit&oacute;w, wysokość największych z nich dochodzi do 1 m. Najokazalszy z nich jest popularnie nazywany &bdquo;Lwem&rdquo; z powodu swego kształtu. Część stalagmit&oacute;w zapewne aktywnie stale przyrasta, podobnie jak stalaktyty, kt&oacute;re zaobserwowano na izolatorach przedwojennej instalacji elektrycznej (R. Gradziński 1977). Ponadto w jaskini występuje naciek grzybkowy i nacieki z mleka wapiennego. W końcowym korytarzu znajdowała się okazała forma misy naciekowej zwana Kropielnicą. W rejonie przyotworowym w sezonie zimowym tworzą się r&oacute;żnorodne stalagmity lodowe (J. Klein 1992). Na ścianach w głębszych częściach jaskini występują struktury <em>vermiculation</em>.</p>
+<p>Tunel i partie przyotworowe widne. W gł&oacute;wnym ciągu światło sięga kilkunastu metr&oacute;w w głąb. W sali, w odległości 15 m od otworu, mierzone natężenie światła wynosi zaledwie 0,01% światła pełnego (J. Klein 1992). W głębi jaskinia jest zupełnie ciemna i wilgotna. Wilgotność w rejonie otworu (koło drzwi) wynosi 80%, a w głębi sięga 98% (J. Klein 1992). W wielu miejscach w głębi ze stropu kapie deszcz podziemny. Miejscami na spągu tworzą się niewielkie kałuże. W średnim składzie w&oacute;d perkolacyjnych dominują: HCO3, SO4, Ca, a ponadto ze składnik&oacute;w gł&oacute;wnych występują (w kolejności malejącego udziału) Cl, SiO2, Na, NO3, Mg i K (P. Goc 2000; A. G&oacute;rny i in. 2001; J. Motyka i in. 2002). Wody te noszą cechy zmian antropogenicznych, o czym może świadczyć m.in. podwyższona zawartość siarczan&oacute;w i azotan&oacute;w.</p>
+<p>Ruch powietrza jest bardzo ograniczony; jaskinia cechuje się statycznym mikroklimatem (J. Klein 1992). Dobowa amplituda temperatur w końcowej części sali wynosi zaledwie 0,3&deg;C, natomiast w części przyotworowej amplituda sięgała w tym samym okresie pomiarowym 1,6&deg;C (J. Klein 1992). W sezonie zimowym (luty 1967 r.) wewnątrz jaskini temperatura systematycznie rosła w miarę oddalania się od otworu. W sali wynosiła ok. 6&deg;C, a jej rozkład wskazywał na wyraźną stratyfikację &ndash; cieplejsze powietrze gromadziło się pod stropem jaskini (J. Klein 1992). W końcowej części gł&oacute;wnego ciągu temperatura wynosiła już 9&deg;C. Z głębszych części jaskini K. Demel (1918) podaje temperaturę 7,5&deg;C, a W. Szymczakowski (1953) 5,7&deg;C z centralnej części sali (pomiar z marca 1952 r.). J. Klein (1992) pomierzył w lutym 1967 r. temperaturę wody w nacieku Kropielnica, kt&oacute;ra wynosiła w&oacute;wczas 7,9&deg;C, co jest zgodne z wcześniejszymi obserwacjami Z. Ciętaka (1935).</p>
+<p>Ściany przy otworach są porośnięte przez obfity zesp&oacute;ł sinic i glon&oacute;w (J. Czerwik-Marcinkowska i T. Mrozińska 2010, 2011; J. Czerwik-Marcinkowska 2013; J. Czerwik-Marcinkowska i in. 2015a, 2015b), porosty i mchy. W otworze południowym stwierdzono także paprocie (<em>Asplenium ruta-muraria</em>, <em>A. trichomanes</em>) i rośliny nasienne (<em>Campanula rotundifolia</em>). W tym otworze na spągu występują liczne rośliny nasienne (<em>Brachypodium sylvaticum</em>, <em>Chaerophyllum temulum</em>, <em>Poa nemoralis</em>, <em>Libanotis pyrenaica</em>, <em>Solidago virgaurea</em>, <em>Tussilago farfara</em>, <em>Urtica dioica</em>, krzew <em>Corylus avellana</em> i siewki drzew &ndash; Fagus sylvatica, <em>Tilia cordata</em>). Wewnątrz jaskini na butwiejących fragmentach drewna zaobserwowano skupiska pleśni.</p>
+<p>W trakcie inwentaryzacji stwierdzono obecność motyli (ciem &ndash; Scoliopteryx libatrix i Triphosa dubitata), pająki i much&oacute;wki. Z jaskini odnotowano much&oacute;wki (K. Demel 1918; A. Klasa i A. Palaczyk 2005; A. J. Woźnica i A. Klasa 2009), skoczogonki (K. Demel 1918; A. Szeptycki 1967), ślimaki (K. Demel 1918), chruściki (K. Demel 1918), chrząszcze (K. Demel 1918), 12 gatunk&oacute;w pająk&oacute;w (E. Sanocka-Wołoszynowa 1981), jeden gatunek kosarza (E. Sanocka-Wołoszynowa 1981). Najprawdopodobniej powyższe taksony zostały znalezione w Jaskini Ciemnej, nie można jednak ostatecznie wykluczyć pochodzenia części z nich z Oborzyska Wielkiego, bowiem obie te jaskinie są często traktowane łącznie jako jeden obiekt.<br />Spośr&oacute;d bezkręgowc&oacute;w na uwagę zasługuje występowanie <em>Porrhomma egeria</em> (= <em>P. moravicum</em> &ndash; E. Sanocka-Wołoszynowa 1981), troglobiontycznego pająka, kt&oacute;rego liczebność jest określana na 4&ndash;6 osobnik&oacute;w na 1 m2 (R. Rozwałka 2008).</p>
+<p>Obecność nietoperzy w jaskini była wielokrotnie odnotowywana. Og&oacute;łem stwierdzono występowanie przedstawicieli siedmiu gatunk&oacute;w nietoperzy (J. Nowak i W. Grzywiński 2007, 2012). Zimą 2017 r. w jaskini odnotowano rekordowa liczbę 393 nietoperzy. Zesp&oacute;ł ten był zdominowany przez podkowce małe (<em>Rh</em><em>inolophus</em><em> </em><em>hipposideros</em>), kt&oacute;rych liczebność wynosiła 383 osobniki. Stawia to Jaskinię Ciemną wśr&oacute;d najważniejszych stanowisk zimowych tego gatunku w Polsce; jest to jednocześnie największe hibernakulum na terenie Ojcowskiego Parku Narodowego (W. Grzywiński i in. 2015; J. Nowak i W. Grzywiński 2017).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia Ciemna od dawna budziła szerokie zainteresowanie naukowc&oacute;w. Pierwsze rekonesansowe badania wykopaliskowe przeprowadził w jaskini J. Zawisza w 1871 r, kt&oacute;re jednak nie przyniosły zadowalających efekt&oacute;w (M. Olszyński 1871; J. Zawisza 1871). Miejsce prowadzenia wykopalisk jest nieznane, najprawdopodobniej badano w&oacute;wczas gł&oacute;wną salę jaskini. Poszukiwania archeologiczne w rejonie Jaskini Ciemnej prowadził w początku XX w. S.J. Czarnowski (1924). Koncentrował się on jednak na terenie Ogrojca i w sąsiedniej jaskini Oborzysko Wielkie. Wydaje się, że nie prowadził badań w samej Jaskini Ciemnej (r&oacute;wnież nie w Tunelu będącym jej integralną częścią). Kolejny etap badań wykopaliskowych to prace kierowane przez S. Krukowskiego prowadzone na obszarze przyotworowym podczas dw&oacute;ch sezon&oacute;w &ndash; to jest 20.08.&ndash;23.10.1918 r. i 03.09.&ndash; 04.11.1919 r. (M. Kot i in. 2019b). Szczeg&oacute;ły dotyczące tych prac zestawili D. Piotrowska 2006a; S. Kozłowski 2007; M. Kot i in. 2019b. Prace te zakończyły się tragicznym wypadkiem, kiedy to w dniu 04.11.1919 r. na skutek zawalenia się ściany wykopu zlokalizowanego w Ogrojcu zginął jeden z robotnik&oacute;w (P. Miejszczak ze Smardzowic), a drugi (A. Kozień) został poważnie ranny. Wypadek ten był przedmiotem postępowania sądowego, zakończonego ostatecznie uniewinnieniem S. Krukowskiego. Zebrane w&oacute;wczas znaleziska paleolityczne zostały wykorzystane w monumentalnym i nowatorskim opracowaniu paleolitu Polski (S. Krukowski 1939 patrz też S. Krukowski 1924). Kolejny etap badań archeologicznych to wykopaliska S. Kowalskiego, prowadzone w latach 1963&ndash;1968, kt&oacute;re objęły zar&oacute;wno przyotworowe partie Jaskini Ciemnej, jak i Ogrojec i Oborzysko Wielkie (S. Kowalski 1971, 2006). Od 2007 r. w gł&oacute;wnej sali jaskini są prowadzone badania wykopaliskowe przez Instytut Archeologii UJ we wsp&oacute;łpracy z Muzeum Archeologicznym w Krakowie oraz z Instytutem Systematyki i Ewolucji Zwierząt PAN i koordynowane przez P. Valde-Nowaka i K. Sobczyka. Wyniki tych prac były publikowane w serii interdyscyplinarnych artykuł&oacute;w przedstawiających znaleziska archeologiczne w szerszym kontekście przyrodniczym, a także w świetle datowania radiowęglowego (P. Valde-Nowak i in. 2014, 2016a, 2016b; P. Valde-Nowak 2015; B. Alex i in. 2017; J.C. Willman i in. 2019). Analizę materiału paleozoologicznego zebranego podczas badań archeologicznych prowadzili E. Niezabitowski (patrz S. Krukowski 1939), M. W&oacute;jcik (1974), A. Nadachowski (1982, 1990), P. Wojtal (2007), K. Stefaniak (2015) i A. Nadachowski i in. (2015a). Natomiast szczątki flory (w tym węgle drzewne) opracowała A. Kozłowska (1921).<br />Jaskinia Ciemna, dzięki znaleziskom paleolitycznym, jest bez wątpienia jednym z bardziej znanych stanowisk archeologicznych w Polsce. R&oacute;żnorakie informacje o zabytkach paleolitycznych z tej jaskini znajdujemy w światowej literaturze dotyczącej paleolitu, większości polskich podręcznik&oacute;w archeologii, artykułach monograficznych, wydawnictwach encyklopedycznych i popularnonaukowych, a nawet w fundamentalnym dziele N. Daviesa (1998).<br />Materiały neolityczne i młodsze opracowywali bądź omawiali T. Reyman (1936), A. Gardawski (1958, 1959), Z. Sochacki (1967, 1968, 1970), Z. Woźniak (1970, 2006), J. Kamieńska i J. K. Kozłowski (1970, 1990), A. Kunisz (1969, 1985), E. Kempisty (1970, 1973), M. Mączyńska (1970), E. Rook (1980), M. Tempelmann-Mączyńska (1985), H. Dobrzańska (2006), S. Kadrow (2006) A. Zastawny (2006), M. Wojenka (2012, 2013, 2018b), R. Liwoch (2014), J. Jędrysik (2018) oraz R. Madyda-Legutko i M. Wojenka (2020).<br />Badania geomorfologiczne prowadził w jaskini Z. Ciętak (1935). Genezę jaskini omawiał R. Gradziński (1962), a uwagi na jej temat przedstawił także R.A.L. Osborne (2004).<br />Osady klastyczne były badane przy okazji prac wykopaliskowych przez S. Krukowskiego (1924, 1939), S. Kowalskiego (1971, 2006) i T. Madeyską (1981, 1982, 1982b). A. Szynkiewicz (2007) oraz J. Karczewski i T. Ostrowski (2013) analizowali miąższość i strukturę osad&oacute;w przy pomocy georadaru. M. Gradziński i in. (1998, 2003) zajmowali się wiekiem i budową wewnętrzną szaty naciekowej, ze szczeg&oacute;lnym uwzględnieniem genezy ciemno zabarwionych lamin. Badania hydrochemiczne prowadzili G. Ficek (1979), a w ostatnich latach zesp&oacute;ł pod kierunkiem J. Motyki (P. Goc i in. 2000; A. G&oacute;rny i in. 2001; J. Motyka i in. 2002).<br />Obserwacje mikroklimatyczne wykonywał J. Klein (1992), a przy okazji innych badań także K. Demel (1918), Z. Ciętak (1935), W. Szymczakowski (1953) i G. Ficek (1979). Badania zespoł&oacute;w naskalnych glon&oacute;w prowadziły J. Czerwik-Marcinkowska i T. Mrozińska (J. Czerwik-Marcinkowska i T. Mrozińska 2011; J. Czerwik Marcinkowska 2013; Czerwik-Marcinkowska i in. 2015a). Wsp&oacute;łczesna fauna jaskini była przedmiotem badań K. Demela (1918; bezkręgowce), J. Stacha (1919a, 1919b; skoczogonki), A. Szeptyckiego (1967; skoczogonki), A. Skalskiego (1973a; bezkręgowce), E. Sanockiej-Wołoszynowej (1981; pajęczaki), A. Klasy, A. Palaczyka i A.J. Woźnicy (A. Klasa i A. Palaczyk 2005; A.J. Woźnica i A. Klasa 2009; much&oacute;wki) i R. Rozwałki (2008; pajęczaki). W latach 50. XX w. obserwacje nietoperzy prowadzili K. Kowalski i A. Krzanowski (Kowalski 1953a), następnie W. Harmata (1970, 1971, 1973b, 1981, 1992). W kolejnych sezonach były wykonywane z mniejszą regularnością (A. Kubisz 1982; J. Godawa i B.W. Wołoszyn 1990; J. Godawa 1994&ndash;1995; Jurczyszyn i Nowosad 2006). Natomiast od lat 90. XX w., w lutym każdego roku odbywa się systematyczny monitoring nietoperzy prowadzony przez liczne zespoły w ramach og&oacute;lnopolskiej akcji Dekada Spisu Nietoperzy (M. Labocha i B.W. Wołoszyn 1994; Węgiel J. i Węgiel A. 1996; K. Polowy i M. Wieczorek 2001; K. Kozakiewicz i B.W. Wołoszyn 2008) a w ostatnich latach gł&oacute;wnie przez W. Grzywińskiego i J. Nowaka z towarzyszami (J. Nowak i K. Kozakiewicz 2000, 2001; J. Nowak i in. 2002; W. Grzywiński i in. 2004, 2006, 2015; J. Nowak i W. Grzywiński 2007, 2012, 2017).<br />Jaskinia Ciemna była też miejscem pomiar&oacute;w fizycznych. S. Landau (1910) mierzył jonizację powietrza, traktując ten parametr jako wskaźnik promieniotw&oacute;rczości naturalnej. W 1935 r. D. Doborzyński (1936a,b) prowadził w jaskini eksperymenty dotyczące możliwości odbioru fal radiowych. Nazewnictwo jaskini analizowali S. Ciszewski (1887, 1891) i W. Śliwiński (1984, 1990, 2016).<br />Jaskinia była zwiedzana w ramach wielu konferencji naukowych, m.in. podczas: konferencji &bdquo;The Archaeological Cultures and the Subdivision of Early W&uuml;rm in Central Europe&rdquo; w październiku 1970 r., konferencji upamiętniającej 125 lat badań archeologicznych w Jurze Ojcowskiej i 40 lecie OPN w maju 1996 r. 31. Sympozjum Speleologicznego, w październiku 1997 r. obchod&oacute;w 50-lecie OPN i 45 Sympozjum Speleologicznego w październiku 2011 r.<br />Bliższych informacji dotyczących osad&oacute;w klastycznych wypełniających jaskinię oraz ich zawartości paleontologicznej i archeologicznej dostarczyły wykopaliska archeologiczne prowadzone od początku XX w. (S. Krukowski 1939; S. Kowalski 2006; P. Valde-Nowak i in. 2014, 2016a, 2016b; B. Alex i in. 2017). Miąższość osad&oacute;w miejscami przekracza 7 m. Najniższe warstwy są interpretowane jako powstałe w schyłkowej części przedostatniego zlodowacenia. Powyżej znajduje się warstwa gliny interglacjalnej ostatniego interglacjału i nadległy kompleks osad&oacute;w powstałych w czasie ostatniego zlodowacenia złożony z lessu ze zmienną domieszką pr&oacute;chnicy i gruzu wapiennego o r&oacute;żnym stopniu zaoblenia. W osadach stwierdzono liczne poziomy kulturowe z zabytkami archeologicznymi reprezentującymi niezidentyfikowane kultury środowego paleolitu, kulturę mustierską, lewaluaską, taubaską, mikocką (mikocko-prądnicką wg wcześniej stosowanej terminologii), a także kultury neolityczne i młodsze. Ponadto znaleziono liczne kości zwierzęce (Krukowski 1939; Nadachowski 1982, 1990; Wojtal 2007; Nadachowski i in. 2015a). Najliczniej reprezentowane były kości niedźwiedzi jaskiniowych (<em>Ursus spelaeus</em> s.l.; osobniki dojrzałe i młodociane), co sugeruje, że jaskinia była zamieszkiwana przez te ssaki. Kości nie noszą ślad&oacute;w intencjonalnych uszkodzeń mechanicznych, jednakże w warstwach kulturowych dominują kości spalone lub nadpalone (P. Wojtal 2007). Ponadto znalezione zostały fragmenty tkanek roślinnych i węgle drzewne (Kozłowska 1921). Spektakularnym znaleziskiem jest ząb neandertalczyka pochodzący z najmłodszego horyzontu mikockiego (horyzont III; J.C. Willman i in. 2019).<br />Celem ustalenia wieku izotopowego została wykonana cała seria dat metodą 14C z kości niedźwiedzia jaskiniowego, kości innych ssak&oacute;w, węgla drzewnego i niezwęglonych fragment&oacute;w roślin (P. Valde-Nowak i in. 2014; 2016a, 2016b; B. Alex i in. 2017). Otrzymane wyniki (część otrzymanych dat nie jest zgodna z porządkiem stratygraficznym) sugerują wpływ proces&oacute;w postsedymentacyjnych. Jednakże pozwoliły one na ustalenie wieku gł&oacute;wnego (najmłodszego) horyzontu kultury mikockiej na MIS 3. Starsze znaleziska przypadają na czas MIS 5 i 4, a zapewne także na MIS 6 (przed ostatnim interglacjałem), co potwierdza wcześniejsze poglądy S. Krukowskiego (1939). Przeprowadzone ostatnio badania oraz analiza danych archiwalnych umożliwiły odtworzenie przestrzennych relacji poszczeg&oacute;lnych warstw i poziom&oacute;w kulturowych w jaskini i na zewnątrz, w sąsiedztwie jej otworu.<br />W zewnętrznej warstwie namuliska znajdował się bogaty inwentarz materiał&oacute;w archeologicznych obejmujący zabytki od neolitu po czasy historyczne, a także liczne kości zwierzęce. Znaleziska te są szeroko omawiane w literaturze. Trudno jednak dzisiaj stwierdzić, zwłaszcza jedynie na podstawie analizy danych publikowanych, kt&oacute;re z wcześniej opracowywanych znalezisk rzeczywiście pochodzą z Jaskini Ciemnej, kt&oacute;re z obszaru przedjaskiniowego (włączając w to Ogrojec), a kt&oacute;re z Oborzyska Wielkiego. W literaturze archeologicznej obie jaskinie i okolice ich otwor&oacute;w zazwyczaj traktowane są jako jedno stanowisko.<br />Badania prowadzone od 2007 r. poza wyżej wspomnianymi znaleziskami paleolitycznymi dostarczyły wiele r&oacute;żnorakich zabytk&oacute;w neolitycznych i młodszych (B. Ginter i in. 2014). Znajdowały się one w najmłodszych osadach wypełniających gł&oacute;wną salę jaskini. Uwagę zawraca poch&oacute;wek dziecka stwierdzony w południowo-zachodniej części sali (P. Valde-Nowak i in. 2018). Datowanie metodą 14C wskazuje na neolityczny wiek szczątk&oacute;w, a kontekst archeologiczny sugeruje kulturę badeńską. Ponadto znaleziono liczne zabytki średniowieczne (M. Wojenka 2012), w tym ostrogi żelazne, żelazne krzesiwo, srebrną monetę z XIV w. i metalowe okucia &ndash; zapewne aplikacje pasa rycerskiego (M. Wojenka 2018a, 2018b).<br />Badany był radiowęglowy wiek niewielkich stalagmit&oacute;w, kt&oacute;rych wysokość nie przekraczała kilkunastu centymetr&oacute;w (m.in. A. Pazdur i in. 1994; A. G&oacute;rny i in. 1994; M. Gradziński i in. 2003). Wiek tych stalagmit&oacute;w jest holoceński, biorąc pod uwagę jednak ich niewielkie rozmiary można sądzić, że wspomniane duże stalagmity są z pewnością starsze. W holoceńskich stalagmitach występują laminy ciemno zabarwione przez sadze z ognisk i pochodni palonych wewnątrz jaskini (M. Gradziński i in. 1988b, 2003).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia była wykorzystywana przez okoliczną ludność jako schronienie w czasach historycznych (np. A. Grabowski 1822; Ojc&oacute;w 1827; patrz też M. Wojenka 2018a). Z końcem XVIII w. stała się atrakcją turystyczną, o czym świadczy liczne grono zwiedzających, i co zostało odnotowane w pamiętnikach (np. F. Karpiński 1788; S. Staszic 1815; A. Grabowski 1822; A. von Sydov 1830; K. Hofmanowa z Tańskich 1833; H. Kołłątaj 1842; M. Chełmiński 1843; W. Jastrzębowski 1854; L. Sczaniecki 1863; M. Karasowski 1877; A. Grabowski 1909; F. K. Prek 1959; P. A. Wiaziemski 1980). Nie można wykluczyć, że była zwiedzana w grudniu 1792 r. przez A. von Humboldta (K. Zielnica 1989, 2004). Z pewnością musiała być uważana za swego rodzaju kuriozum i miejsce szczeg&oacute;lnie godne odwiedzin, skoro zorganizowano w niej wizytę kr&oacute;la Stanisława Augusta Poniatowskiego, kt&oacute;ra miała miejsce 04.07.1787 r. (A. Naruszewicz 1787; A. Falniowska-Gradowska 1995; A. Kozibąk 2015; M. Wyżga 2016).<br />Jaskinia Ciemna stała się w XIX w. jednym z najpopularniejszych miejsc w Ojcowie. Od tego czasu wzmianki o niej są publikowane w olbrzymiej ilości przewodnik&oacute;w, poczynając od: J.W. Krasińskiego (1820, 1821), A. Grabowskiego (1822 i wydania p&oacute;źniejsze), poprzez K. Wr&oacute;blewskiego (1900, 1907), po wsp&oacute;łczesne, m.in. J. Partyki (2018a i wydania wcześniejsze). Zar&oacute;wno ryciny, jak i fotografie otworu i wnętrza jaskini były wielokrotnie drukowane w publikacjach książkowych, także w albumach, i w formie kart pocztowych. Warto zaznaczyć, że pierwsze fotografie wnętrza jaskini zostały wykonane przy świetle magnezjowym w 1905 r. (S.J. Czarnowski 1905b). Pierwsze udogodnienia &ndash; wytyczenie ścieżki do jaskini, wyr&oacute;wnanie namuliska &ndash; zostały wykonane z okazji wizyty kr&oacute;lewskiej. Na początku dwudziestolecia międzywojennego w jaskini było zainstalowane oświetlenie elektryczne.<br />Obecnie jaskinia jest w pewnym stopniu przekształcona przez działalność człowieka. Wewnątrz znajdują się barierki ogradzające grupę stalagmit&oacute;w w gł&oacute;wnej sali. Na ścianach widoczne są pozostałości instalacji elektrycznej, służącej do oświetlenia jaskini przed II wojną światową. W niszy prowadzącej do sali znajdują się wspomniane drzwi metalowe, a w Tunelu krata. Zamknięcie w miejscu dzisiejszych drzwi istniało już w początku XX w., co dokumentują publikowane w&oacute;wczas fotografie (np. S.J. Czarnowski 1907), lecz przez długie okresy drzwi były otwarte, a dostęp do jaskini nielimitowany. Przejście od Tunelu do gł&oacute;wnej sali zostało zamurowane, najprawdopodobniej na przełomie lat 80. i 90. ubiegłego wieku, a krata w Tunelu została zamontowana z powodu budowy tarasu widokowego w Ogrojcu położnym za Tunelem; taras ten został oddany do użytku 13.05.1992 r. (J. Partyka &ndash; inf. ustna 2007 r.).<br />Namulisko jaskini zostało wyr&oacute;wnane, zapewne po raz pierwszy już przed wizytą kr&oacute;la Stanisława Augusta Poniatowskiego (M. Olszyński 1871). P&oacute;źniej było rozkopywane podczas sondażowych prac J. Zawiszy w 1871 r., lecz zapewne w bardzo niewielkim stopniu (M. Olszyński 1871; J. Zawisza 1871). W latach 80. lub 90. ubiegłego wieku namulisko w końcowej części sali zostało w kilku miejscach rozkopane, najprawdopodobniej przez poszukiwaczy kości. Od 2007 r. trwają w jaskini prace wykopaliskowe; osady zostały usunięte w południowo-zachodniej części jaskini, miejscami aż do skalnego dna. A. Szynkiewicz (2007) na podstawie badań georadarowych sugeruje, że osady w sali były w kilku miejscach rozkopywane do znacznej głębokości.<br />Nacieki oraz kości niedźwiedzia jaskiniowego były z jaskini wynoszone systematycznie prawdopodobnie począwszy od czas&oacute;w pierwszych zwiedzających. Naciek Kropielnica, jeden z najbardziej okazałych element&oacute;w szaty naciekowej w jaskini, został zniszczony przez wandali w 1974 r. (M. Szelerewicz i A. G&oacute;rny 1986; J. Partyka 2018a).<br />Pierwsza wzmianka o jaskini jest zapewne pi&oacute;ra S. Piskorskiego (1691). W literaturze występuje pod wieloma nazwami. Zaznaczyć warto, że zastosowana w inwentarzu nazwa &ndash; Jaskinia Ciemna &ndash; jest po raz pierwszy użyta przez S. Staszica (1805). W części publikacji Jaskinia Ciemna jest mylona z Jaskinią Łokietka, co skutkuje powtarzaniu legendy o ukrywaniu się Władysława Łokietka w tej jaskini, dosyć częste przypisywanie jej nazwy z członem przymiotnikowym &bdquo;kr&oacute;lewska&rdquo;. Z uwagi na dosyć powszechne stosowanie nazwy takie zostały uznane za synonimiczne. Wyjątkowo do Jaskini Ciemnej użyto także, oczywiście błędnej, nazwy &bdquo;jaskinia czajowicka&rdquo; (A. Pajewski 1891).<br />Jaskinia jest udostępniona dla ruchu turystycznego. Zwiedzanie odbywa się z przewodnikiem. Jaskinia obecnie nie ma zainstalowanego oświetlenia. Do 2019 r. przewodnicy udostępniali turystom świeczki, a w 2020 r. do jaskini wprowadzono przenośne oświetlenie typu LED. Roczna frekwencja od wielu lat przekraczała 20 tys. os&oacute;b, a od 2015 r. przekracza 30 tys. os&oacute;b (J. Partyka 2017; dane niepublikowane w dyspozycji Dyrekcji OPN). W czasie dwudziestolecia międzywojennego jaskinia była zaopatrzona w oświetlenie elektryczne, a na jego potrzeby zbudowano na dnie doliny niewielką elektrownię wodną (J. Partyka 2018a).<br />Jaskinia znana od dawna. Ukształtowanie korytarzy wskazuje, że od razu była zwiedzana zdecydowana większość dostępnych obecnie korytarzy. Jedyne, niewielkie odkrycia zostały dokonane w końcu lat 60. (ok. 1967 r.) przez A. G&oacute;rnego i M. Czepiela, kt&oacute;rzy znaleźli kr&oacute;tki korytarz prostopadły do ciągu gł&oacute;wnego (A. G&oacute;rny &ndash; inf. ustna 2007 r.). Wejście do tego korytarza zostało zasypane w końcu lat 80. ubiegłego wieku.<br />Jaskinia wpisana 29.04.1924 r. przez Radę Konserwator&oacute;w do Inwentarza Zabytk&oacute;w Nieruchomych pod nr 430 (Z Ministerstwa 1924); uznana za zabytek archeologiczny nr 822 przez Wojew&oacute;dzkiego Konserwatora Zabytk&oacute;w i Wydział Kultury W.R.N. w Krakowie decyzją V/3/92/68 z dnia 18.10.1968 r. (J. Partyka i T. Stanawski 1970). Obecnie figuruje w rejestrze zabytk&oacute;w nieruchomych pod numerem 1847 jako jeden obiekt z Oborzyskiem Wielkim i Jaskinią w Leszczynie (D. Jaskanis 1988).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan jaskini sporządził Z. Ciętak (1935). Zinwentaryzowana przez K. Kowalskiego 22.05.1953 r., jako jeden obiekt wraz z Oborzyskiem Wielkim. Można sądzić jednak, że data inwentaryzacji obu tych jaskiń dotyczy ostatecznego sporządzenia planu i opisu bowiem z pisemnych relacji autora (K. Kowalski 2004, 2006) wiemy, że Jaskinia Ciemna nie została uwzględniona w pierwszym tomie inwentarza Jaskinie Polski (Kowalski K. 1951) z powodu ingerencji cenzury. Tak więc jej dokumentacja musiała być gotowa już przed 1951 r. Kolejny plan został wykonany przez Koło Naukowe Geodet&oacute;w WSR w Krakowie w dniach 15&ndash;30.07.1963 r. pod kierownictwem K. Kowalskiego. Plan ten został w uproszczonej wersji opublikowany (A. Kobyłecki 1968). Niestety oryginał planu prawdopodobnie nie zachował się do dzisiaj (A. Kobyłecki &ndash; inf. pisemna 2020 r.).<br />Kolejny plan wykonał M. Szelerewicz w 1983 r., zamieszczony w opracowaniu M. Szelerewicza i A. G&oacute;rnego (1986). Plan ten został uzupełniony w 2005 r. przez M. Szelerewicza (przekr&oacute;j) i w 2007 r. przez M. Wawrykę. Pomiary wykonano przy pomocy busoli Freiberg i taśmy pomiarowej z wł&oacute;kna szklanego. Jaskinia została r&oacute;wnież skartowana 30.04.1984 r. przez zesp&oacute;ł pod kierunkiem M. Napierały (Lisoń D. 1984). Obserwacje terenowe przeprowadzili w lipcu 2007 r. M. Gradziński i J. Baryła, a uzupełnił je M. Wawryka-Drohobycki 29.11.2019 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan i przekr&oacute;j opracował M. Szelerewicz, uzupełnione przez M. Wawrykę (wkładki na końcu tomu).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Piskorski M.S. 1691 (kr&#243;tki opis, r&#243;wnoległy tekst w języku łacińskim); Rzączyński G. 1745 (kr&#243;tki opis); Naruszewicz A. 1787 (opis, relacja z wizyty kr&#243;la Stanisława Augusta Poniatowskiego); Staszic S. 1805 (opis, wzmianka o stalaktytach, stalagmitach i kościach niedźwiedzi); Krasiński J.H.K. 1820 (opis, wzmianka o zwiedzaniu przez kr&#243;la Stanisława Augusta Poniatowskiego); Wężyk F. 1820 (literacki opis); Grabowski A. 1822 (opis, informacje o ukrywaniu się tam okolicznej ludności podczas najazd&#243;w tatarskich, przytoczony opis Staszica); Hoffmanowa K. 1833 (opis zwiedzania, podanie o ukrywaniu się Władysława Łokietka, legenda o pustelnicy, opis niesłusznie odnoszony do Jaskini Łokietka); Kołłątaj H. 1842 (opis, informacje o szacie naciekowej); Ojc&#243;w 1852 (wzmianka o stalaktytach); Jastrzębowski W. 1854 (kr&#243;tki opis); Wiślicki A. 1856 (kr&#243;tki opis); Zejszner L. 1856 (wzmianka o występowaniu kości, pomimo zastosowania nazwy „jama Ojcowska zwana Kr&#243;lewską” odnosi się najpewniej do Jaskini Łokietka); Niemcewicz J.U. 1858 (położenie, kr&#243;tki opis, wzmianka o naciekach, zwiedzeniu przez kr&#243;la Stanisława Augusta Poniatowskiego); Sczaniecki L. 1863 (wzmianka, informacja o stalaktytach i licznych kościach niedźwiedzi, informacja o zwiedzeniu); Wiślicki A. 1866 (kr&#243;tki opis); Olszyński M. 1871 (wzmianka o zwiedzaniu i o wyr&#243;wnaniu namuliska tej jaskini „dla jakiejś dworskiej uroczystości” – zapewne odwiedzin kr&#243;la Stanisława Augusta Poniatowskiego; informacja o wykonaniu płytkich, sondażowych wkop&#243;w bez pozytywnych rezultat&#243;w); Zawisza J. 1871 (wzmianka o poszukiwaniach, lokalizacja na schematycznej mapie); Kohn A. 1876 (wzmianki o kościach zwierząt); Gruszecki A. 1878 (wzmianka o występowaniu nietoperzy); Ciszewski S. 1887 (uwagi dotyczące nazewnictwa, położenie); Pajewski A. 1891 (kr&#243;tki opis, legenda o ukrywaniu się Władysława Łokietka); Czarnowski S.J. 1899 (wzmianka, lokalizacja na schematycznej mapie); Mapa, po 1900 (lokalizacja na mapie); Wr&#243;blewski K. 1900 (położenie, opis, historia poznania); Czarnowski S.J. 1905b (informacja o wykonaniu zdjęć wewnątrz jaskiń ojcowskich przy sztucznym świetle przez Wolniewicza, reprodukcja fotografii); Landau S. 1910 (wyniki pomiar&#243;w jonizacji powietrza jako miary promieniotw&#243;rczości naturalnej); Czarnowski S.J. 1911 (położenie i kr&#243;tki opis, lokalizacja na schematycznej mapie); Lencewicz S. 1912b (dane morfometryczne czaszki); Demetrykiewicz W. 1913 (wzmianka o znaleziskach oryniackich); Czarnowski S.J. ok. 1914 (lokalizacja na schematycznej mapie); Demel K. 1918 (położenie, opis i charakterystyka środowiska, wykaz oznaczonych gatunk&#243;w); Stach J. 1919b (wzmianki o występowaniu skoczogonk&#243;w, wymienione gatunki); Stach J. 1919a (wzmianki o występowaniu skoczogonk&#243;w, wymienione gatunki); Krukowski S. 1920 (wzmianka o znalezieniu czworościennej siekiery gładzonej z krzemienia woskowo-czekoladowego); Kozłowski L. 1921 (wzmianka o badaniach prowadzonych przez Krukowskiego, znalezieniu tam materiał&#243;w paleolitycznych wraz ze zwęglonymi fragmentami flory); Kozłowska A. 1921b (charakterystyka węgli drzewnych znalezionych przez Krukowskiego); Kozłowski L. 1922 (wzmianka o prawdopodobnych znaleziskach oryniackich i o materiałach archeologicznych z czasu ostatniego interglacjału znalezionych w tej jaskini razem z węglami drzewnymi); Krukowski S. 1922 (wzmianka o narzędziach krzemiennych towarzyszących ceramice gwiaździstej); Krukowski S. 1924 (opis, stratygrafia osad&#243;w, opis znalezisk archeologicznych, wzmianka o szczątkach fauny plejstoceńskiej i węglach drzewnych, profil osad&#243;w, fot. narzędzi krzemiennych); Z Ministerstwa 1924 (oficjalna informacja o uznaniu za zabytek nieruchomy nr inw. 430); Antoniewicz W. 1927 (wzmianka o znaleziskach p&#243;źnoaszelskich i mustierskich); Krukowski S. 1927 (informacja o paleolitycznych narzędziach krzemiennych ze zbior&#243;w S.J. Czarnowskiego); Antoniewicz W. 1928 (informacje o znalezieniu narzędzi p&#243;źnoaszelskich, prądnickich i p&#243;źnomustierskich, kości zwierząt, węgli drzewnych, wzmianka o neolitycznych ozdobach i siekierach miedzianych, wykorzystywaniu jaskini w czasie wczesnego średniowiecza); Szafer W. 1928b (informacje o znaleziskach archeologicznych i paleobotanicznych, wzmianka o znalezieniu ziaren zb&#243;ż błędnie wiązane z Ogrojcem koło Jaskini Ciemnej); Lilpop J. 1929 (wzmianka o znalezieniu zwęglonych fragment&#243;w dębu i modrzewia); Żurowski J. 1929a (informacje o znalezieniu narzędzi aszelskich i mustierskich, kości niedźwiedzia i hieny jaskiniowej); Żurowski J. 1929b (wzmianka o uznaniu za zabytek nr inw. 430); Staszic 1931 (opis, wzmianka o stalaktytach, stalagmitach, uwagi o genezie); Danysz-Fleszarowa R. 1933 (wymieniona); Wolf B. 1934–1937 (podaje skład wsp&#243;łczesnej fauny, dane za Demelem 1918); Ciętak Z. 1935 (położenie, opis i plan, wymieniona w wykazie, lokalizacja na mapie); Doborzyński D. 1936a (wyniki eksperymentalnego odbioru fal radiowych, kr&#243;tki opis); Doborzyński D. 1936b (ditto); Reyman T. 1936 (wzmianka o znalezieniu ceramiki siwej wraz z ceramiką średniowieczną); Kostrzewski J. 1939 (informacje o znalezieniu glinianych figurek kultury nadcisańskiej, narzędzi miedzianych kultury ceramiki promieniste i ceramiki kultury prafińskiej); Krukowski S. 1939 (szczeg&#243;łowy opis profili w rejonie otworu i w Ogr&#243;jcu, charakterystyka i opis i przynależność kulturowa znalezisk, lista stwierdzonych szczątk&#243;w fauny); Kornaś J. 1947 (wzmianka o konieczności ścisłej ochrony prawnej); Kowalski K. 1951 (liczne wzmianki o szacie naciekowej, badaniach archeologicznych, znaleziskach plejstoceńskich kości i węgli drzewnych, mikroklimacie, występowaniu nietoperzy, znaleziskach archeologicznych, pochodzeniu nazwy, zwiedzaniu przez kr&#243;la Stanisław Augusta Poniatowskiego, uznaniu za zabytek); Kowalski K. 1953a (informacje o występowaniu nietoperzy Rhinolophus hipposideros i Myotis myotis); Szymczakowski W. 1953 (wyniki eksperymentalnego badania preferendum termicznego pająka Meta menardi, uwagi o mikroklimacie jaskini); Kowalski K. 1954 (zinwentaryzowana jako jeden obiekt wraz z Oborzyskiem Wielkim, opis i plan inwentarzowy); Kowalski K. i in. 1957 (informacje o nietoperzach); Gardawski A. 1958 (charakterystyka ceramiki kultury ceramiki grzebykowej); Gardawski A. 1959 (charakterystyka ułamka naczynia kultury trzcinieckiej); Kowalski K. 1959 (informacja o występowaniu kości zwierząt plejstoceńskich, wymienione gatunki); Gradziński R. 1960 (położenie i opis, informacje o roli szczelin ciosowych w powstaniu jaskini, występowaniu kotł&#243;w wirowych, szacie naciekowej, charakterze osad&#243;w, znaleziskach archeologicznych, paleozoologicznych, fragmentach węgli drzewnych); Gradziński R. 1962 (wzmianka o braku zależności przebiegu niekt&#243;rych korytarzy od przebiegu spękań ciosowych, występowaniu kotł&#243;w wirowych, naciek&#243;w, plan i przekr&#243;j końcowego korytarza z zaznaczonymi kotłami wirowymi i szczelinami ciosowymi, wzmianki o żwirze wapiennym w głębszych partiach, przekr&#243;j rozwinięty); Kowalski S. 1963a (informacja o rozpoczęciu badań wykopaliskowych, schematyczny profil osad&#243;w); Kowalski S. 1963b (położenie, historia poznania, profil osad&#243;w, perspektywy badawcze); Bogdanowski J. 1964 (wzmianka o naturalnych walorach otoczenia jaskini jako miejsca warownego, kr&#243;tki opis rejonu przed jaskinią wraz z rekonstrukcją graficzną); Chmielewski W. 1964 (wzmianki o znalezieniu zabytk&#243;w z czasu przedostatniego zlodowacenia, informacje o znaleziskach zespołu ojcowskiego grupy prądnickiej); Kowalski S. 1964 (informacja o badaniach w 1964 r.); Klein J. i in. 1965 (wzmianka o prowadzeniu pomiar&#243;w temperatury i wilgotności, lokalizacja na schematycznym przekroju przez Dolinę Prądnika); Kostrzewski J. i in. 1965 (wzmianka o materiałach archeologicznych z okresu zlodowacenia środkowopolskiego oraz materiał&#243;w tradycji aszelskiej – noży prądnickich); Kowalski K. 1965 (znaleziska archeologiczne, mikroklimat, występowanie nietoperzy, zabezpieczenie przed niekontrolowanym zwiedzaniem, charakterystyka jaskini); Kowalski S. 1965 (wstępne wyniki badań w p&#243;łnocnej części Ogrojca i w Tunelu, opis profilu); Kowalski S. 1966 (wstępne wyniki badań w Tunelu na granicy z Ogrojcem, wzmianki o prowadzeniu wykop&#243;w w środkowej części Ogrojca i w Oborzysku Wielkim, informacja o znalezieniu narzędzi krzemiennych kultury prądnickiej i starszych, kości gryzoni i zęb&#243;w niedźwiedzi); Chmielewski W. 1966 (wzmianka o badaniach archeologicznych i znaleziskach grupy prądnickiej); Kowalski K. 1967 (wzmianka o znalezieniu w osadach szczątk&#243;w zwierząt ze zlodowacenia środkowopolskiego); Kowalski S. 1967a (analiza wybranych materiał&#243;w krzemiennych z dw&#243;ch poziom&#243;w paleolitycznych kultury prądnickiej); Sochacki Z. 1967 (informacje o znalezieniu ceramiki kultury ceramiki promienistej, charakterystyka stanowiska); Szeptycki A. 1967 (wzmianki o występowaniu skoczogonk&#243;w, wymienione gatunki); Kobyłecki A. 1968 (informacja o skartowaniu przez Koło Naukowe Geodet&#243;w przy Wyższej Szkole Rolniczej w Krakowie, uproszczony plan); Kowalski S. 1968 (kr&#243;tkie podsumowanie dotychczasowych prac autora); Bocheński Z. i in. 1968 (informacja o występowaniu kości Sicista betulina w osadach dolnoholoceńskich); Woźniak Z. 1968 (informacja o znalezieniu bogatego poziomu kulturowego ze środkowego paleolitu); Sochacki Z. 1968 (o znaleziskach kultury ceramiki promienistej); Chmielewski W. 1969a (charakterystyka znalezisk kultury mikocko-prądnickiej, lokalizacja na przeglądowej mapie); Chmielewski W. 1969b (wzmianka o występowaniu zespoł&#243;w archeologicznych w warstwie deformowanej przez procesy kongeliflukcyjne, stwierdzenie tam najmłodszych zespoł&#243;w mikocko-prądnickich, lokalizacja na mapie, korelacja poziom&#243;w kulturowych z innymi stanowiskami z Polski); Kowalski S. 1969a (analiza narzędzi krzemiennych, ilustracje narzędzi); Kowalski S. 1969b (kr&#243;tkie sprawozdanie z badań prowadzonych na granicy Tunelu i Ogrojca); Kunisz A. 1969 (informacja o znalezieniu denara Marka Aureliusza); Madeyska-Niklewska T. 1969a (opis osad&#243;w i ich korelacja z osadami Schroniska Wylotnego); Madeyska-Niklewska T. 1969b (om&#243;wienie profilu osad&#243;w, rys. profilu); Kamieńska J., Kozłowski J.K. 1970 (wzmianka o znalezieniu ceramiki z ornamentacją typu Bodrogkereszt&#250;r); Kempisty E. 1970 (wzmianka o ceramice kultury ceramiki grzebykowo-dołkowej); Kulczycka-Leciejewiczowa A. 1970 (wzmianka o znalezieniu ceramiki reprezentującej kulturę ceramiki linearnej); Mączyńska M. 1970 (analiza przedmiot&#243;w brązowych, żelaznych, ceramiki, paciork&#243;w z okresu wpływ&#243;w rzymskich, schematyczny plan stanowiska); Partyka J., Stanowski T. 1970 (informacja o uznaniu przez Wojew&#243;dzkiego Konserwatora Zabytk&#243;w i Wydział Kultury Wojew&#243;dzkiej Rady Narodowej w Krakowie za zabytek nr rejestru 822); Sochacki Z. 1970 (wymieniona jako stanowiska kultury ceramiki promienistej); Woźniak Z. 1970 (informacje o fragmentach ceramiki p&#243;źnolateńskiej, lokalizacja na schematycznej mapie); Harmata W. 1971 (informacja zaobrączkowanych Rhinolophus hipposideros); Kowalski S. 1971a (om&#243;wienie wynik&#243;w prac, wzmianka o znaleziskach neolitycznych i młodszych); Kozłowski J.K. 1971 (o znalezisku sztyletu i ceramiki bodrogkereszturskiej); Gradziński R. 1972 (opis, informacje o genezie, szacie naciekowej, osadach, znaleziskach archeologicznych, paleozoologicznych, fragmentach węgli drzewnych); Kozłowski J.K. 1972 (informacje o znaleziskach kultury prądnickiej, profil osad&#243;w); Harmata W. 1973b (informacje o obecności nietoperzy, wymienione gatunki, charakterystyka jaskini); Kamieńska J. 1973 (informacje o znalezieniu ceramiki reprezentującej grupę malicką kultury nadcisańskiej); Kempisty E. 1973 (wzmianka o ceramice); Kowalski K. 1973 (wzmianka o znalezieniu szczątk&#243;w zwierząt ze zlodowacenia środkowopolskiego i Sicista betulina z czasu regresji ostatniego zlodowacenia); R&#252;hle E. 1973 (wzmianka o znalezieniu szczątk&#243;w zwierząt ze zlodowacenia środkowopolskiego); Skalski A.W. 1973a (wykaz gatunk&#243;w bezkręgowc&#243;w); W&#243;jcik M. 1974 (om&#243;wienie plejstoceńskich szczątk&#243;w Mustela nivalis); Czepiel M. 1976 (wymieniona); Skalski A.W. 1976 (wzmianki o kotłach eworsyjnych, badaniach wykopaliskowych, śladach rozmywania naciek&#243;w); Gradziński R. 1977 (o rozmiarach gł&#243;wnej sali, występowaniu kotł&#243;w wirowych, miąższości osad&#243;w i naciekach tworzących się na dawnej izolacji elektrycznej); Kozłowski J.K., Rafalski J. 1977 (wzmianka o stwierdzeniu pająka Porrhomma egeria); Rzebik-Kowalska B. 1977 (wzmianki o występowaniu nietoperzy); Rook E. 1980 (charakterystyka stanowiska łącznie z Jaskinią Ciemną, wykaz znalezisk neolitycznych reprezentujących: ceramikę kultury ceramiki wstęgowej rytej, kultury bukowog&#243;rskiej, grupy malickiej kultury lendzielskiej, grupy pleszowskiej kultury lendzielskiej, kultury puchar&#243;w lejkowatych, kultury ceramiki promienistej, kultury boszackiej, kultury ceramiki sznurowej, ponadto neolityczne wyroby z gliny, wyroby krzemienne, wyroby kamienne, wyroby z kości i rogu); Harmata W. 1981 (informacje o zimowaniu Rhinolophus hipposideros, przebywaniu niewielkiej letniej kolonii i o spadku populacji tych nietoperzy w drugiej połowie XX w., oraz o nieznacznym wzroście po zamknięciu jaskini); Madeyska T. 1981 (historia badań archeologicznych, zbiorczy profil osad&#243;w Ogr&#243;jca wg danych S. Kowalskiego i obserwacji autorki); Sanocka-Wołoszynowa E. 1981 (wyniki badań pajęczak&#243;w, wykaz gatunk&#243;w pająk&#243;w i kosarzy, z pracy nie wynika, kt&#243;re z wyżej wymienionych pajęczak&#243;w zostały stwierdzone w Jaskini Ciemnej, a kt&#243;re w Oborzysku Wielkim); Kubisz D. 1982 (informacje o występowaniu nietoperzy, wykaz gatunk&#243;w, spadek populacji w latach 70. ubiegłego wieku); Nadachowski A. 1982 (lokalizacja na schematycznej mapie, kr&#243;tka charakterystyka i stratygrafia osad&#243;w, om&#243;wienie znalezisk szczątk&#243;w kopalnych gryzoni, wykaz gatunk&#243;w); Ruprecht A.L. 1983a (wzmianka o występowaniu nietoperzy Rhinolophus hipposideros); Ruprecht A.L. 1983b (wzmianka o występowaniu nietoperzy Myotis myotis); Ruprecht A.L. 1983c (wzmianka o występowaniu nietoperzy Myotis emarginatus); Ruprecht A.L. 1983f (wzmianka o występowaniu nietoperzy Myotis daubentonii); Śliwiński W. 1984 (uwagi o nazewnictwie); G&#243;rny A. 1985 (informacje o możliwości eksploracji, wzmianka o odkryciu „korytarza pod kropielnicą”); Kunisz A. 1985 (lokalizacja na schematycznych mapach rozmieszczenia znalezisk monet rzymskich, informacja o znalezieniu denara Marka Aureliusza); Tempelmann-Mączyńska M. 1985 (informacja o znalezieniu paciorka szklanego z czas&#243;w rzymskich); Pulina M., Tyc A. 1987 (podstawowe informacje, reprodukcja przekroju końcowej części jaskini i profilu osad&#243;w); Nadachowski A. 1988 (wzmianka o znalezieniu kości Sicista betulina); Ginter B., Kozłowski J.K. 1990 (typologia środkowopaleolitycznych noży bifacjalnych); Godawa J., Wołoszyn B.W. 1990 (dane dotyczące nietoperzy); Kamieńska J., Kozłowski J.K. 1990 (wzmianki o znaleziskach ceramiki grupy malickiej, ceramiki typu bodrogkereszt&#250;r i ceramiki grupy wyciąsko-złotnickiej, jaskinia traktowana łącznie z Oborzyskiem Wielkim); Kokurewicz T. 1990a (informacja o wzroście populacji Rhinolophus hipposideros); Kokurewicz T. 1990b (wzmianka o występowaniu Myotis emarginatus); Nadachowski A. 1990 (kr&#243;tka charakterystyka, informacja o występowaniu kości kopalnych gryzoni, wykaz gatunk&#243;w); Śliwiński W. 1990 (uwagi dotyczące nazewnictwa); Harmata W. 1992 (informacje o przelotach nietoperzy); Klein J. 1992 (analiza mikroklimatu); Madeyska T. 1992 (wymienione środkowopaleolityczne materiały); Partyka J. 1992c (informacje o badaniach Czarnowskiego i Krukowskiego, profil osad&#243;w w otworze jaskini,); Partyka J., Parma Ch. 1992 (wzmianka o znaleziskach archeologicznych); Sobczyk K. 1992 (klasyfikacja i systematyzacja prądnika na podstawie metody taksonomii numerycznej); Więckowska H. 1992 (wzmianka o badaniach); Bogdanowski J. 1993 (wzmianka o naturalnych walorach otoczenia jaskini jako miejscu warownym, położenie, kr&#243;tki opis rejonu przed jaskinią wraz z rekonstrukcją graficzną); Harmata W. 1993 (wzmianka o zwiększeniu liczebności Rhinolophus hipposideros); G&#243;rny A. i in. 1994 (antropogeniczne zabarwienie ciemnych lamin w stalagmitach, wyniki datowań radiowęglowych); Gradziński R., Gradziński M. 1994 (wzmianka o kotłach wirowych w stropie, osadach, znaleziskach archeologicznych i szacie naciekowej); Labocha M., Wołoszyn B.W. 1994 (informacje o występowaniu nietoperzy w latach 1988–1992, wykaz gatunk&#243;w); Pazdur A. i in. 1994 (wyniki datowań metodą 14C holoceńskiego); Godawa J. 1994–1995 (charakterystyka zmian liczebności nietoperzy); Kurek A., Wiśniewski W.W. 1996 (uwagi dotyczące danych morfometrycznych); Węgiel J., Węgiel A. 1996 (informacje o nieznacznym wzroście liczebności Rhinolophus hipposideros); Wołoszyn B.W. 1996 (wymieniona jako jedno z największych w Polsce zimowych stanowisk nietoperzy); Gradziński M. i in. 1997b (położenie, opis, schematyczny plan, lokalizacja na schematycznej mapie, historia poznania, charakterystyka znalezisk archeologicznych); Wiśniewski W. W. 1997h (informacje o uwzględnieniu w rękopiśmiennych opisach parafii sporządzonych w 1783 r., opis przytoczony na podstawie zachowanego regestu, wzmianka o znacznych rozmiarach i formach naciekowych, wzmianka o wykorzystywaniu przez ludność jako schronienie); Davies N. (o zabytkach neolitycznych w Jaskini Ciemnej); Gradziński M. i in. 1998b (antropogeniczne zabarwienie ciemnych lamin w holoceńskich stalagmitach, wniosek o wieloetapowym zasiedlaniu jaskini w holocenie); Jaskanis D. 1998 (wymieniona jako zabytek archeologiczny); Gradziński M. 1999 (wzmianka o występowaniu Mn–Fe ziaren obleczonych); Pazdur A. i in. 1999a (kr&#243;tka charakterystyka, wzmianka o datowaniu naciek&#243;w metodą 14C, informacje o ciemno zabarwionych laminach w naciekach, wyniki datowania); Pazdur A. i in. 1999 (skład izotopowy (C i O) wapieni z otoczenia jaskini); Goc i in. 2000 (wyniki analiz stężenia azotan&#243;w w wodach, lokalizacja na schematycznej mapie); Nowak J., Kozakiewicz K. 2000 (podsumowanie występowania nietoperzy w latach 1993–1999); Partyka J. 2000c (frekwencja w latach 1967–1997); G&#243;rny A. i in. 2001 (antropogeniczna modyfikacja składu chemicznego w&#243;d); Motyka J. i in. 2001 (wzmianka o prowadzeniu badań hydrochemicznych, lokalizacja na schematycznej mapie, wyniki analiz); Nowak J., Kozakiewicz K. 2001 (podsumowanie występowania nietoperzy, wykaz gatunk&#243;w, zmiany liczebności w latach 1951–2000); Podstawczyńska-Bienias A., Charciarek T. 2001b (wzmianki o warunkach mikroklimatycznych, sezonowe zmiany termiki); Polowy K., Wieczorek M. 2001 (zestawienie wynik&#243;w zimowych spis&#243;w nietoperzy w latach 1989– 2001, wykaz gatunk&#243;w); Węgiel A. i in. 2001 (kr&#243;tka charakterystyka, wykaz stwierdzonych gatunk&#243;w nietoperzy); Wojkowski J. 2001 (dane mikroklimatyczne zestawione na podstawie literatury); Nowak J. i in. 2002 (podstawowe parametry morfometryczne, informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Partyka J. 2002 (zestawienie frekwencji w latach 1990–2001); Gradziński M. i in. 2003 (antropogeniczne zabarwienie ciemnych lamin w stalagmitach, wyniki datowań 14C, obserwacje mikroskopowe); Doborzyńska-Głazkowa W., Głazek J. 2004 (informacje o badaniach odbioru fal radiowych prowadzonych przez Doborzyńskiego w 1935 r.); Gradziński M., Szelerewicz M. 2004 (wymieniona w wykazie); Grzywiński W. i in. 2004 (podsumowanie występowania nietoperzy, wykaz gatunk&#243;w); Kowalski K. 2004 (informacja o uniemożliwieniu przez cenzurę wydania dokumentacji inwentarzowej Jaskini Ciemnej w pierwszym tomie inwentarza Kowalski, K. 1951 z powodu jej potencjalnych walor&#243;w militarnych); Osborne R.A. L. 2004 (wzmianka o kotłach wirowych, pogląd o ich termalnej genezie); Woźnica A.J. 2004 (wzmianka o występowaniu much&#243;wek); Klasa A., Palaczyk A. 2005 (informacja o występowaniu much&#243;wek); Partyka J. 2005 (wzmianki o osadnictwie paleolitycznym, zwiedzaniu w XIX w., udostępnieniu dla ruchu turystycznego, frekwencja zwiedzających);Wołoszyn B.W. i in. 2005 (graficzne przedstawienie zmiany liczebności całej populacji nietoperzy i czterech wybranych gatunk&#243;w); Chochorowska E. 2006 (lokalizacja na schematycznej mapie stanowisk archeologicznych, wykaz zabytk&#243;w archeologicznych znajdujących się w zbiorach Muzeum Archeologicznego w Krakowie, podane numery inwentarzowe); Dobrzańska H. 2006 (wymienione znaleziska z okresu wpływ&#243;w rzymskich, wykorzystywanie jaskiń w charakterze refugi&#243;w); Grzywiński W. i in. 2006 (informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Jurczyszyn M. i Nowosad A. 2006 (informacja o stwierdzeniu nietoperzy w 1984 r., wykaz gatunk&#243;w); Kowalski S. 2006 (informacje o badaniach Krukowskiego, om&#243;wienie wynik&#243;w badań autora, plan obszaru przedotworowego z zaznaczonym położeniem wykop&#243;w badawczych, przekr&#243;j osad&#243;w); Migal W., Urbanowski M. 2006 (wzmianki o środkowopaleolitcznych „nożach prądnickich” ze śladami przekształcania i reperacji); Piotrowska D. 2006a (liczne informacje o badaniach Krukowskiego w latach 1918 i 1919, kopie list&#243;w i dokument&#243;w źr&#243;dłowych, profile osad&#243;w); Woźniak Z. 2006 (wzmianka o znaleziskach z okresu lateńskiego, lokalizacja jaskini na schematycznej); Zastawny A. 2006 (wzmianka o znaleziskach związanych z badeńskim kręgiem kulturowym); Gradziński M. i in. 2007 (opis i plan inwentarzowy, lokalizacja na mapie); Guzik C., Partyka J. 2007 (frekwencja w latach 1992–2006, lokalizacja na schematycznej mapie); Nowak J., Grzywiński W. 2007 (podstawowe parametry morfometryczne, informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Kozłowski S.K. 2007 (informacje o badaniach Krukowskiego w 1918 i 1919 r., schematyczny profil osad&#243;w); Szynkiewicz A. 2007 (wyniki profilowania georadarowego w gł&#243;wnej sali jaskini); Wojtal P. 2007 (historia badań archeologicznych, schematyczny plan z lokalizacją wkop&#243;w, opis osad&#243;w, kr&#243;tka charakterystyka znalezisk archeologicznych, charakterystyka szczątk&#243;w kopalnych dużych ssak&#243;w, wymienione taksony, informacja o dużej liczbie spalonych kości, analiza zachowanych ślad&#243;w uszkodzeń kości); Zinko J. i in. 2007 (zestawienie frekwencji w latach 1993–2006); Gradziński M. i in. 2008 (wzmianki dotyczące rozmiar&#243;w, kotł&#243;w stropowych, genezy, osad&#243;w klastycznych i naciek&#243;w, datowania naciek&#243;w, znalezisk paleontologicznych i paleobotanicznych, wieku jaskini i osad&#243;w, chemizmu w&#243;d perkolacyjnych, schematyczny plan, lokalizacja na mapie); Kozakiewicz K., Wołoszyn B.W. 2008 (informacja o występowaniu nietoperzy, wykorzystywaniu jaskini w okresie aktywności godowej oraz jako schronienie dla kolonii przejściowej samic, zmiany liczebności nietoperzy w latach 1951–2007); Palaczyk A. 2008 (wzmianka o stwierdzeniu much&#243;wek); Partyka J., Klasa A. 2008 (wymieniona, wzmianka o udostępnieniu w początku lat 90. XX w.); Rozwałka R. 2008 (informacja o liczebności Porrhomma egeria); Partyka J. 2009a (położenie, kr&#243;tki opis, schematyczny plan, fotografie); Partyka J. 2009c (wzmianka o zwiedzaniu od końca XVIII w.); Woźnica A.J., Klasa A. 2009 (lokalizacja na schematycznej mapie, informacja o występowaniu much&#243;wek, wymienione gatunki); Czerwik-Marcinkowska J., Mrozińska T. 2010 (analiza zespołu sinic i glon&#243;w, wykaz gatunk&#243;w); Witkowska B. 2010 (wątpliwości dotyczące poprawności diagnozy ceramiki kultury ceramiki sznurowej); Czerwik-Marcinkowska J., Mrozińska T. 2011 (analiza zespołu epifitycznych sinic i glon&#243;w, dane morfometryczne jaskini, schematyczny plan z zaznaczonymi miejscami opr&#243;bowania, wymienione gatunki); Dymowski A. 2011a (wymienione znalezisko denara Marka Aureliusza); Gradziński M. i in. 2011b (położenie, opis, plan, lokalizacja na schematycznej mapie, historia poznania, chemizm w&#243;d perkolacyjnych, geneza i wiek, znaczenie archeologiczne, fauna kopalna); Nowak J. 2012 (informacja o występowaniu Bufo bufo); Nowak J., Grzywiński W. 2012 (podstawowe parametry morfometryczne, informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Wojenka M. 2012 (wzmianka o badaniach Zawiszy, Krukowskiego, S. Kowalskiego i trwających obecnie, znalezieniu fragment&#243;w p&#243;źnośredniowiecznej ceramiki, średniowiecznej ostrogi żelaznej, charakterystyka metalowych okuć); Czerwik-Marcinkowska J. 2013 (analiza zespołu sinic i glon&#243;w, wykaz gatunk&#243;w, dane morfometryczne, fot. skupień sinic, glon&#243;w, wątrobowc&#243;w i mch&#243;w); Karczewski J., Ostrowski T. 2013 (wyniki badań osad&#243;w gł&#243;wnej sali metodą GPR, schematyczny plan z naniesioną linią pomiarową); Lorenc M. 2013 (wyniki datowań 14C kości Ursus spelaeus); Wojkowski J. 2013 (wzmianki o badaniach mikroklimatycznych); Żarski M. i in. 2013 (lokalizacja na mapie geologicznej w skali 1:25 000, kr&#243;tki opis, opis osad&#243;w i znalezisk paleontologicznych i archeologicznych, schematyczny plan, profil osad&#243;w); Ginter B. i in. 2014 (informacja o badaniach archeologicznych prowadzonych w gł&#243;wnej sali w 2014 r., plan i przekr&#243;j jaskini, Ogrojca i Oborzyska Wielkiego z położeniem wykop&#243;w badawczych, fot. znalezisk holoceńskich, informacje o neolitycznym poch&#243;wku dziecka, kr&#243;tka charakterystyka najciekawszych znalezisk); Liwoch R. 2014 (informacja o znalezieniu przęślika z łupka owruckiego); Valde-Nowak P. i in. 2014 (wyniki interdyscyplinarnych badań prowadzonych w gł&#243;wnej sali, historia badań, plan jaskini i Ogrojca z położeniem wykop&#243;w badawczych, opis i ilustracja profili, korelacja profili, wyniki datowań radiowęglowych, zestawienie takson&#243;w kopalnych dużych ssak&#243;w, charakterystyka znalezisk archeologicznych, wniosek o wieloetapowym zasiedlaniu jaskini od schyłku przedostatniego zlodowacenia (MIS 6), gł&#243;wny horyzont mikocki datowany na MIS 3); Czerwik-Marcinkowska J. i in. 2015a (wyniki ekologicznej analizy zespołu epifitycznych glon&#243;w, położenie i dane morfometryczne, schematyczny plan, wymienione gatunki); Czerwik-Marcinkowska J. i in. 2015b (zr&#243;żnicowanie morfologiczne i cytologiczne, i ekologia i strategia życiowa zielenicy Murtiella decolor); Grzywiński W. i in. 2015 (kr&#243;tka charakterystyka, zmiany liczebności Myotis myotis i Rhinolophus hipposideros w latach 1951–2015, informacja o występowaniu innych gatunk&#243;w nietoperzy); Nadachowski A. i in. 2015a (historia badań, stratygrafia osad&#243;w, korelacja profili z r&#243;żnych partii jaskini i obszaru przedjaskiniowego, wykaz takson&#243;w kopalnej fauny); Partyka J. i in. 2015 (wzmianka o prowadzeniu monitoringu nietoperzy, liczebność nietoperzy w latach 1995–2014); Stefaniak K. 2015 (kr&#243;tki opis, historia badań, lokalizacja na mapie, wymienione taksony kopalnych kopytnych); Wojtal P. i in. 2015 (daty 14C z kości Ursus spelaeus); Valde-Nowak P. 2015 (informacje o inwentarzu zabytk&#243;w datowanych na MIS 6, dw&#243;ch mikockich zespołach kulturowych (MIS 4) w komorze gł&#243;wnej, i poziomie kulturowym interpretowanym jako taubachien i odnoszonym do MIS 5a oraz o znaleziskach datowanych na MIS 3, wzmianka o koncepcjach „cyklu prądnickiego”); Krajcarz M.T. i in. 2016 (wzmianka o osadach lessowych w formie soczewek w gł&#243;wnej sali, wymienione gatunki kopalnych ssak&#243;w); Nadachowski A. 2016 (wzmianka o znalezieniu szczątk&#243;w ssak&#243;w); Partyka J. 2016b (wzmianka o zamieszkiwaniu przez człowieka w paleolicie); Polok M. 2016 (wzmianka o badaniach mikroklimatycznych Demela); Rydzewski J. 2016 (wzmianka znaleziskach kultury łużyckiej i z czas&#243;w rzymskich); Stefaniak K., Ratajczak U. 2016 (wzmianka o znaleziskach paleozoologicznych); Śliwiński W. 2016 (uwagi dotyczące nazewnictwa); Valde-Nowak P. i in. 2016a,b (wyniki interdyscyplinarnych badań prowadzonych w gł&#243;wnej sali w kontekście badań wcześniejszych, korelacja profili, wyniki datowań radiowęglowych, charakterystyka znalezisk archeologicznych, wniosek o epizodycznym zasiedlaniu wnętrza jaskini przez neandertalczyk&#243;w a czasowym użytkowaniu przez niedźwiedzie jaskiniowe); Alex B. i in. 2017 (charakterystyka osad&#243;w, znalezisk paleolitycznych i paleozoologicznych, lokalizacja na przeglądowej mapie, profil osad&#243;w z komory gł&#243;wnej, wykaz dat 14C); Nowak J., Grzywiński W. 2017 (podstawowe parametry morfometryczne, informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Partyka J. 2017 (informacja o udostępnieniu dla zwiedzających, frekwencja w latach 1995–2016); Tyc A. i in. 2017 (wzmianka o badaniach mikroklimatycznych); Wojenka M. 2017 (lokalizacja na schematycznej mapie, wzmianki o znaleziskach średniowiecznych); Jędrysik J. 2018 (wymieniona w wykazie stanowisk p&#243;źnej epoki brązu i wczesnej epoki żelaza, lokalizacja na schematycznej mapie); Tsonev T. 2018 (analiza narzędzi krzemiennych); Valde-Nowak P. i in. 2018 (analiza szkieletu dziecka z czasu kultury badeńskiej, lokalizacja szkieletu na planie jaskini, wyniki datowania 14C, fot.); Wojenka M. 2018a (wzmianka o prawdopodobnym biciu fałszywych monet w XVII w.); Wojenka M. 2018b (lokalizacja na schematycznej mapie, wzmianka o badaniach Zawiszy, Krukowskiego i trwających obecnie, informacja o przekopywaniu namuliska w czasach nowożytnych i zmieszaniu znalezisk neolitycznych, pochodzących z czas&#243;w rzymskich, średniowiecza i młodszych, informacja o znaleziskach średniowiecznych, hipoteza o refugialnym charakterze wykorzystania w średniowieczu); Willlman J.C. i in. 2019 (analiza zęba neandertalczyka znalezionego w warstwie 3 zawierającej artefakty mikockie, datowanej na &gt;56 tys. lat zawierającej artefakty mikockie, plan, profil, stratygrafia osad&#243;w, zestawienie wsp&#243;łtowarzyszących szczątk&#243;w fauny); Gradziński M. i in. 2020 (monograficzny opis, plan, pełna bibliografia, lokalizacja na mapie); Madyda-Legutko R., Wojenka M. 2020 (analiza ornamentowanego okucia pasa z V w., schematyczny plan jaskini z zaznaczonym położeniem wykop&#243;w archeologicznych); Partyka J. 2020 (legendy związane z jaskinią).  
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Morawski W. 1966 (analiza morfometryczna i statystyczna krzemiennych narzędzi z wykopalisk Krukowskiego plan jaskini, schematyczny profil osad&#243;w); Skowronek S. 1966 (informacja o znalezieniu monety rzymskiej); Chmielewski W. 1967 (wzmianka o badaniach Krukowskiego i znaleziskach z okresu zlodowacenia środkowopolskiego i kultury mikocko-prądnickiej); Ficek G. 1979 (własności hydrochemiczne w&#243;d infiltracji pionowej).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Beata Michalska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(14033)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(14368)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(14369)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

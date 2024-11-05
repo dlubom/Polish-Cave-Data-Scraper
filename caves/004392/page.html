@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F4392">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 4392;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559735,35".replace(',', '.') + "," + "153502,49".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('4392','Dmuchawa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Dmuchawa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Dziura Wiatru
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-05.14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;49′15,60″, φ: 49&#176;14′46,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1300
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                295
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                17,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                17,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    130
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Chochołowska, na prawym orograficznie zboczu Doliny Chochołowskiej, w Dudzińcu.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego - dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Dnem Doliny Chochołowskiej docieramy w okolice otworu Dziury nad Potokiem T.D-05.01 (około 200 m za odgałęzienie Ścieżki nad Reglami). Stąd skręcamy na lewo i podchodzimy nieznakowaną, zwykle zarośniętą ścieżką, wiodącą rozległym żlebem w Dudziniec. Przy pierwszym, niewyraźnym rozwidleniu dolnej części tego żlebu, idziemy jego główną gałęzią, nieco na prawo ku S, a przy drugim rozwidleniu skręcamy na lewo do góry, do trawiastego, stromo wznoszącego się, bocznego żlebu. Podchodzimy nim ponad 250 m aż nieco powyżej poziomu szczytu dużej turni położonej po lewej (północnej) stronie żlebu, najbliżej jego osi. Po prawej (S) stronie żlebu widać małe skałki w lesie, a na wprost, wyżej - mały prożek. Skręcamy tu na prawo i niewyraźną percią wiodącą przez las ponad skałkami docieramy po około 40 m do stromego wąskiego żlebiku rozwiniętego na szczelinie przecinającej zbocze (biegnie ona ku SE). Wspinamy się nim kilkanaście metrów i trafiamy na poszukiwany otwór położony na półce, niewidoczny z daleka. Dojście łatwe, zwiedzanie bardzo trudne, uciążliwe, niezwykle ciasno.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jest szczelinowy, ciasny, skierowany w d&oacute;ł (zaraz za nim szczelina ma 0,2 m szerokości). Opis wg Nowaka (2008c): Z przyotworowej p&oacute;łki w d&oacute;ł prowadzi ciasna, zaciskowa szczelina. Po kilku metrach zjazdu stajemy na p&oacute;łce. Wstecz prowadzi ciasna ślepa studzienka. Z tej samej p&oacute;łki można dalej zjechać do kolejnej i połączenia z głębszą częścią jaskini (zacisk) lub trawersować wzdłuż uskoku szczeliny nad pr&oacute;g i zjechać do gruzowego spągu. Dalej trawersujemy ok. 20 m mijając trzy kolejne obniżenia szczeliny, najgłębsze z nich schodzi na głębokość 17,5 m. Dalej szczelina zwęża się, a strop obniża. W g&oacute;rę prowadzi korytarzyk, kt&oacute;ry po kilkunastu metrach łączy się z dolnym, ciaśniejszym i zwykle zalodzonym wariantem. Za połączeniem szczelina dostępna jest jeszcze kilka metr&oacute;w, gdzie zatrzymuje nas Zacisk Renarda. <br /> Dmuchawa jest najniżej położoną jaskinią lodową w Tatrach. Powstała na szczelinie tektonicznej, rozsuniętej grawitacyjnie, w wapieniach malmoneokomu wierchowej serii autochtonicznej. Ściany są gładkie, występują na nich okresowo nacieki lodowe. Dno buduje autochtoniczny rumosz wapienny, większe wanty, a także l&oacute;d. Przy otworze występuje gleba, namywana r&oacute;wnież niżej, na p&oacute;łkę uskoku oraz na dno. <br /> Światło sięga do kilku metr&oacute;w. Wyczuwa się bardzo silny przewiew, latem pojawia się mgła przed otworem. <br />Wilgotność jaskini zależy od pory roku i warunk&oacute;w atmosferycznych. Ze względu na bardzo silny przewiew i dostateczną ilość wody występuje w niej l&oacute;d o trwałym charakterze. Po kilkuletnich obserwacjach zmiany zalodzenia dokładniej opisuje Nowak (2008c): Dynamika pokrywy lodowej jest bardzo duża i zależy od pory roku. Stan minimalny występuje jesienią i zimą, gdy dominuje wypływ cieplejszego powietrza, maksymalny - wiosną i latem, kiedy do wychłodzonej jaskini dostaje się woda roztopowa i deszcz. Pod otworem przez większą część roku zalega śnieg wciągnięty z powietrzem. P&oacute;źniej śnieg rekrystalizuje, a następnie topi się i znika. W głębi jaskini dominuje l&oacute;d naciekowy. Podczas stanu minimalnego l&oacute;d zalega w najgłębszych częściach szczeliny i ciaśniejszym, dolnym wariancie w drugiej części. Co ciekawe l&oacute;d utrzymuje się też pod stropem w połowie długości szczeliny. W czasie stan&oacute;w maksymalnych l&oacute;d pokrywa strop, spąg i ściany powodując, że jaskinia jest w większości niedostępna. Kilkuletnie obserwacje wskazują na stopniowy zanik stałej pokrywy lodowej. W dniu 9.11.2013 r. I. Luty stwierdziła stan lodu, kt&oacute;ry można określić jako minimalny (w odniesieniu do w. wspomnianego wyżej opisu i zaznaczeniu na przekroju). <br /> Przy otworze rozwijają się gł&oacute;wnie glony i porosty, a także mchy. <br /> Faunę reprezentują owady troglokseniczne oraz nietoperze. Nowak (2008c) wymienia: <span style="font-weight: bold; font-style: italic;">Triphosa dubitata</span> i <span style="font-weight: bold; font-style: italic;">Scoliopteryx libatrix</span>, much&oacute;wki, pająki, kosarze oraz pojedyncze nietoperze: nocki wąsatki <span style="font-weight: bold; font-style: italic;">Myotis mystacinus</span>, mroczki pozłociste <span style="font-weight: bold; font-style: italic;">Eptesicus nilssonii</span> i gacki brunatne<span style="font-weight: bold; font-style: italic;"> Plecotus auritus</span>. Na spągu znaleziono czaszki nietoperzy i gryzoni.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r odkrył z końcem sierpnia 1966 r. A. Żuchowski z p&oacute;źniejszego KW Szczecin wraz z A. Kopańskim z STJ KW Katowice i H. Gorszczyńskim (wg Wiśniewskiego 1989c). Zwr&oacute;cili oni uwagę na wypływ zimnego powietrza z zagruzowanej szczeliny zapłyniętej lodem i po trzech dniach pracy odgruzowali ją. Wiosną i we wrześniu 1967 r. zesp&oacute;ł ten kontynuował oczyszczenie szczeliny zakończone osiągnięciem zalodzonej w&oacute;wczas p&oacute;łki na głębokości 5 lub 10 m. Po odnalezieniu otworu przez W. Wiśniewskiego dalszą eksplorację podjął w dniu 31.12.1989 r. zesp&oacute;ł w składzie: A. Ciszewski, E. W&oacute;jcik, Cz. Dąbrowski, W.W. Wiśniewski oraz R. Stachnik. W&oacute;wczas R. Stachnik zszedł do dna wstępnej szczeliny i pokonał ją na długości 30 m. Eksplorację kontynuował następnego dnia, wykonał też pomiary liną i określił długość jaskini na 60 m, a głębokość na 15 m. Podczas następnych akcji R. Stachnik i Z. Rysiecki dotarli do końcowego zacisku, kt&oacute;ry udało się pokonać tylko R. Stachnikowi. Stwierdził on brak kontynuacji ciągu, a długość jaskini wg eksplorator&oacute;w wzrosła do 120 m. Kolejne pr&oacute;by przedostania się dalej prowadzono od listopada 2002 r. do listopada 2008 r. W działaniach tych brali udział: A. Ciszewski, E. W&oacute;jcik, J. Nowak (Ślusarczyk), J. Nowak, T. Snopkiewiocz, S. Gołosz, R. G&oacute;ralczyk. W dniu 15.11. 2008 r. J. Nowak i R. G&oacute;ralczyk przeprowadzili pomiary jaskini, a jej plan i przekr&oacute;j opracował J. Nowak, na przekroju zaznaczając minimalny stwierdzony stan lodu.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszą informację o opisywanym obiekcie zamieścili Koisar i Parma (1971) pod nazwą Dmuchawa. Zawarli w niej niezbyt precyzyjną charakterystykę jaskini na podstawie informacji od odkrywc&oacute;w, uwagi o lodzie oraz przypuszczenie o połączeniu z wyżej położonym systemem jaskiniowym. Odkrywcy pragnęli mieć w Tatrach miejsce nie znane innym, co spowodowało narastanie mitu jaskini widma, o kt&oacute;rej wszyscy słyszeli, ale nikt nie widział. Żuchowski (1977) opublikował opis dojścia oraz odkrycia nie wymieniając nazw, a samą jaskinię zakamuflował pod nazwą Dziura Wiatru, kt&oacute;rej długo nikt nie wiązał z Dmuchawą. Bezskutecznie poszukiwali otworu Ch. Parma, zesp&oacute;ł OW PTPNoZ, W. Siarzewski, grotołazi krakowscy i poznańscy. Snuto marzenia, że może być on wylotem Bańdziocha Kominiarskiego. Nie mogąc odnaleźć właściwego otworu, zaczęto używać błędnie nazwy Dmuchawa dla położonego niedaleko Schronu w Dudzińcu i Jaskini w Dudzińcu. Borowiec i in. (1977, 1978) zamieścili dane morfometryczne w wykazie jaskiń Tatr. Siarzewski (1978) opisując zjawiska lodowe podał charakterystykę jaskini za publikacją Koisara i Parmy. Kardaś (1983a - mat. arch.) na podstawie doniesień Parmy (mat. arch.) oraz danych z literatury podał błędną lokalizację i opis zawierający informacje dotyczące zar&oacute;wno Dmuchawy, jak i Schronu w Dudzińcu, do kt&oacute;rego Siarzewski odni&oacute;sł mylnie nazwę Dmuchawa. Gradziński i in. (1985 a) zamieścili dane morfometryczne oraz błędną lokalizację na mapie Atlasu TPN, a Wiśniewski (1988) - dane morfometryczne w spisie jaskiń Kominiarskiego Wierchu. Wiśniewski (1989c) opr&oacute;cz charakterystyki szczeliny om&oacute;wił historię odkrycia i początk&oacute;w eksploracji, wzmiankę o odnalezieniu przez niego właściwego otworu Dmuchawy, dokonał też przeglądu publikacji o jaskini, a w następnym artykule (Wiśniewski 1989d) opowiedział o eksploracji na przełomie 1989/1990 r. Siarzewski (1994) zamieścił uwagi o lodzie i jego formach, zaliczając Dmuchawę do kategorii jaskiń lodowych jednootworowych. Plan, przekr&oacute;j, opis jaskini i jej eksploracji oraz fotografie okolic otworu i wnętrza szczeliny opublikował Nowak (2008d).<br /> Podczas zwiedzania jaskini w dniu 9.11.2013 r. I. Luty (przy otworze H. Namirski) wykonała obserwacje terenowe, sfotografowała otw&oacute;r oraz określiła jego położenie przy użyciu GPS Garmin eTrex. <br />Plan i przekr&oacute;j wg J. Nowaka .</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Koisar B., Parma Ch. 1971 (charakterystyka jaskini na podstawie informacji od odkrywc&#243;w, uwagi o lodzie, przypuszczenie o połączeniu z wyżej położonym systemem jaskiniowym); Żuchowski A. 1977 (opis dojścia oraz odkrycia, przeprowadzonych prac eksploracyjnych pod nazwą Dziura Wiatru); Borowiec W. i in. 1977, 1978 (dane morfometryczne w wykazie jaskiń Tatr); Siarzewski W. 1978 (charakterystyka jaskini, uwagi o lodzie); Gradziński R. i in. 1985 a (dane morfometryczne, błędna lokalizacja na mapie); Wiśniewski W.W. 1988 (dane morfometryczne w spisie jaskiń Kominiarskiego Wierchu); Wiśniewski W.W. 1989c (historia odkrycia i początk&#243;w eksploracji, przegląd publikacji, informacja o odnalezieniu otworu); Wiśniewski W.W. 1989d (o eksploracji na przełomie 1989/1990 r.); Jaskinie TPN 1991 (dane morfometryczne, wzmianka o pr&#243;bach odszukania otworu); Siarzewski W. 1994 (uwagi o lodzie, niekt&#243;re dane morfometryczne); Nowak J. 2008d (plan i przekr&#243;j, opis, fotografie); Jaskinie TPN 2016 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Parma Ch. 1976 (dane ustne i materiały niepublikowane o położeniu, wnętrzu jaskini oraz lodzie uzyskane od odkrywc&#243;w, przekazane ok. 1976 r.); Kardaś R. M. 1983a (błędna lokalizacja i opis zawierający informacje dotyczące zar&#243;wno Dmuchawy, jak i Schronu w Dudzińcu, do kt&#243;rego Siarzewski odni&#243;sł mylnie nazwę Dmuchawa).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12255)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12256)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

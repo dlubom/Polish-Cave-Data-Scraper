@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3253">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3253;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "592175,92".replace(',', '.') + "," + "204315,79".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3253','Jaskinia Zb&#243;jecka w Łopieniu'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Zb&#243;jecka w Łopieniu
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Grota Zb&#243;jecka w Łopieniu
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bw-02.09
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;16′43,00″, φ: 49&#176;41′57,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Dobra (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                limanowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Nr 48 Woj. Nowosądeckiego z dn. 07.12.1998 r.; Dz. Urz. Woj. Nowosąd. Nr 58/98, poz. 302.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku g&#243;rze, 903 m n.p.m.; 3 - ku g&#243;rze, 906 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                903
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                18,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                1,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                20,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    433
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Wyspowy, Łopień, p&#243;łnocne zbocze Łopienia (951 m n.p.m.)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z Dobrej (PKP) idziemy zielonym szlakiem na Łopień. Dochodzimy nim na okazałą, podszczytową Polanę Mycodrówka. Tam spotykamy rowerowy szlak znakowany czerwono-białymi paskami. Idziemy tym szlakiem kilkaset metrów na NE. Wychodzimy z polany i wchodzimy do lasu. Tu dochodzimy do rozgałęzienia: w lewo odchodzą dwie drogi. Skręcamy w pierwszą z nich (na N, już bez szlaku) i po kilkudziesięciu metrach wychodzimy na zarośniętą polanę. Droga skręca na prawo, my natomiast idziemy prosto (na N), nieco w dół, zanikającą ścieżką. Po stu kilkudziesięciu metrach zauważamy rozpadliny i niewysokie ścianki skalne. Tam poniżej wśród drzew jarzębiny znajdują się otwory Jaskini Zbójeckiej w Łopieniu. Dojście bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zwiedzanie gł&oacute;wnego ciągu bez większych trudności. Natomiast przejście wszystkich partii jaskini jest uciążliwe (ciasno). Ponadto pokonanie wprost Komina Prezesa wymaga wspinaczki 10 m wysokości ścianą (ślisko, trudności II, przydatna lina). R&oacute;wnież przy przejściu studzienki (3,4 m wysokości) prowadzącej z Sali Wejściowej do Sali pod Studnią przydatna może być lina.</p>
+<p>&nbsp;Studzienka wejściowa głębokości 2,2 m (otw&oacute;r 1) sprowadza do niewielkiej, lecz wysokiej do około 3 m Sali Wejściowej. Na NW prożkiem do g&oacute;ry wysokości 1,0 m wchodzimy do korytarza długości około 3 m i wysokości 1,5 m, w kt&oacute;rego stropie znajduje się pochyły kominek (wysokość 1,0&nbsp;m) zablokowany w środku blokiem skalnym (otw&oacute;r 2). Obok znajduje się jeszcze jeden kominek (1,6 m wysokości), kt&oacute;ry dawniej doprowadzał do najdogodniejszego otworu jaskini- obecnie zawalonego (Bubula 1999, <span>Mleczek 1999d).</span></p>
+<p>Obok znajdował się Wspomniany korytarz zmienia kierunek na SSW i opadając dochodzi po około 3 m do kolejnej 1,5 m głębokości studzienki. Za nią, poniżej znajduje się opisana dalej Sala Zbłąkanych, przed studzienką na SE ciasny korytarzyk długości 2,5 m prowadzi do niewielkiej, lecz wysokiej na około 3 m, Kruchej Salki. Z niej dalej ciasnymi szczelinami do otworu 3.</p>
+<p>Otw&oacute;r 3 stanowi wąska podłużna studzienka (2,0 m głębokości), kt&oacute;rą schodzimy do korytarzyka o przebiegu SSE-WWN (3,5 m długości, 0,4-1,2 m szerokości, do 1,5 m wysokości). W połowie korytarzyka kruchą studzienką (1,3 m głębokości) schodzimy do niżej położonego korytarzyka o przebiegu W-E. Ma on długość 6 m, średnią szerokość 0,8 m i wysokość 0,4-1,4 m. W części E korytarzyk ten przekształca się w niewielką salę o wymiarach 2m na 2,5 m i wysokości o 1,5 (Komora Bodzia). W części W dolnego korytarzyka znajduje się ciasna studzienka sprowadzająca do niedostępnej szczeliny (1,7 m głębokości), za nią r&oacute;wnież zaciskowa studzienka, kt&oacute;rą można zejść do g&oacute;rnych partii Sali Zbłąkanych. Z korytarzyka przez pr&oacute;g wchodzimy natomiast do r&oacute;wnoległej szczeliny szerokości do 1 m, wysokości do 1,2 i długości 5 m, kt&oacute;ra dochodzi do opisanej wcześniej Kruchej Salki.</p>
+<p>&nbsp;Sali Wejściowej natomiast na E, schodzimy przez prożek 1,4 m wysokości do wysokiej szczeliny. z niej z kolei kierujemy się w przeciwnym kierunku (na W), do ciasnego korytarzyka długości około 3 m. Można dojść do niego r&oacute;wnież z Sali Wejściowej ciasną studzienką 2,0&nbsp;m głębokości, znajdującą się w środkowej części sali lub studnią 2,5 m głębokości znajdującą się poniżej otworu wejściowego 1. w połowie tego korytarzyka znajduje się stroma pochylnia, kt&oacute;rą schodzimy (ciasno) do położonej poniżej Sali pod Studnią. Inne dojście do tej sali prowadzi wprost ze Sali Wejściowej podłużną studzienką głębokości 3,4&nbsp;m (przydatna lina).</p>
+<p>&nbsp;Sala pod Studnią ma długość około 5 m, szerokość do 2,0 m i wysokość dochodzącą do 3 m. Odgałęzia się w niej kilka ciąg&oacute;w jaskini. w S części sali znajduje się niewygodne wejście do poprzecznego korytarza długości ok. 3 m, kt&oacute;ry doprowadza do Sali Zbłąkanych. w dnie korytarza jest r&oacute;wnież zaciskowa (Z1) Wredna Studzienka głębokości 2,0 m, kt&oacute;ra można zejść do opisanych dalej partii w rejonie Sali Dziadka. Po przeciwnej stronie wejścia do tego korytarza (na jego przedłużeniu) znajduje się około 2 m długości, ładnie urzeźbiona szczelina. z Sali pod Studnią do Sali Dziadka prowadzi też uciążliwe dojście Ciasnymi Partiami. Wejście do tych partii prowadzi studzienką 3,6 m głębokości znajdującą w p&oacute;łnocnej części Sali pod Studnią. Po zejściu studzienką znajdujemy się w&nbsp;niskim korytarzu, kt&oacute;ry opadając na NE, po 2 m łączy się z niskim korytarzem o&nbsp;przebiegu N-S. Na N korytarz ten kończy się po około 1 m, natomiast na S po 4 m łączy się ponownie z korytarzykiem pod studzienką. Stąd przechodzimy kolejną 1,0 m głębokości studzienką do poprzecznej szczeliny długości około 3 m, skąd zaciskową (Z1) studzienką głębokości 1,0 m wchodzimy do niskiego korytarzyka. Po 1,5 m zakręca on na NW i po dalszych 1,5 m wychodzi w charakterystycznej, podłużnej studni (2,0 m głębokości) znajdującej się w Sali Dziadka. Najdogodniejsze jednak przejście z Sali pod Studnią do Sali Dziadka prowadzi studzienką (2,0 m głębokości) z południowej części sali. Znajduje się ona poniżej opisywanego wcześniej wejścia do korytarza do Sali Zbłąkanych. Studzienka sprowadza do pochylni w wysokim korytarzu, kt&oacute;rym z kolei dochodzimy do jego rozgałęzienia. Stąd idąc na NW, po pokonaniu prożku 0,5 m wysokości dochodzimy do Sali Dziadka. Natomiast niski korytarz na SW, po około 2 m dochodzi do 1,0 m wysokości prożku. Przed tym prożkiem, po prawej znajduje się 1,5 m wysokości kominek, kt&oacute;ry doprowadza do r&oacute;wnoległego, ciasnego korytarzyka długości około 1,5 m. Zakończony jest on studzienką głębokości 1,5 m, kt&oacute;ra doprowadza do opisanego dalej korytarza z pochylnią. Na NE od korytarzyka znajduje się ujście opisanej wcześniej, zaciskowej Wrednej Studzienki głębokości 2,0 m, kt&oacute;rą można wyjść do korytarza pomiędzy Salą pod Studnią i Salą Zbłąkanych. Od korytarzyka na południe schodzimy do r&oacute;wnoległej szczeliny położonej za wspomnianym prożkiem 1,0 m wysokości. Tu znajduje się kolejne ważne topograficznie rozgałęzienie korytarzy. Na zach&oacute;d można przejść do wspomnianego korytarza z pochylnią prowadzącego do wyodrębniającej się z Sali Dziadka opisanej dalej Sali Pradziadka. Natomiast na SE idziemy niską szczeliną, kt&oacute;ra po około 2 m skręca raptownie na SW. Zaraz za skrętem znajduje się odgałęzienie na NW, kt&oacute;re doprowadza do pochylni. Dochodzi ona do ujścia 2,0 m głębokości Zagubionej Studzienki prowadzącej z Sali Zbłąkanych. Kierując się natomiast od skrętu korytarza dalej na SW, dochodzimy po około 3 m do 1,0 m wysokości kominka. Odchodzi też stąd ciasne przejście na NW, kt&oacute;re po około 3 m doprowadza do Sali Pradziadka. Natomiast wspomnianym kominkiem 1,0 m wysokości wychodzimy do zakrzywionej, nieregularnej szczeliny długości około 5 m. Stąd kolejnym kominkiem 1,5 m wysokości wychodzimy do SW części Sali Zbłąkanych.</p>
+<p>&nbsp;Sala Zbłąkanych ma ona szerokość do 6 m i wysokość dochodzącą do 2,5 m. W&nbsp;środkowej części przedzielona jest charakterystyczną grzędą skalną, strop też jest charakterystycznie urzeźbiony. z p&oacute;łnocnej części prowadzi wysoki korytarz, kt&oacute;ry doprowadza przez opisywaną wcześniej studzienkę (1,5 m głębokości) do korytarza idącego z Sali Wejściowej i otwor&oacute;w jaskini (prowadzi tędy najdogodniejsze dojście z Sali Wejściowej do Sali Zbłąkanych i dalej opisywanymi już partiami do Sali Dziadka). Nieco wcześniej przed studzienką, odchodzi na E wzmiankowany już korytarz prowadzący do Sali pod Studnią. Natomiast z E części Sali Zbłąkanych prowadzi wąski korytarz wysokości do 3,0 m i&nbsp;długości około 7 m. w jego środkowej części znajduje się 1,0 m głębokości studzienka, kt&oacute;rą schodzimy do r&oacute;wnoległej, niskiej szczeliny. Na jej dnie znajduje się wejście do 2,0 m głębokości Zagubionej Studzienki. W środkowej części korytarza znajduje się r&oacute;wnież wejście do 2,0 wysokości kominka, kt&oacute;rym wydostajemy się, do niskiej salki 1,5 m wysokości. w S części tej salki znajduje się 3,0 m głębokości studnia, kt&oacute;ra wychodzi nad wejściem do wspomnianego korytarza około 7 m długości prowadzącego z Sali Zbłąkanych. Natomiast w zachodniej części salki znajduje się 1,0 m głębokości studzienka, kt&oacute;ra wychodzi nad charakterystyczną grzędą skalną w Sali Zbłąkanych. Z kolei poprzez prożek i kominek 1,5 m wysokości wchodzimy do szczeliny o przebiegu NE-SW długości około 8&nbsp;m. R&oacute;wnolegle do niej biegnie druga szczelina długości około 3 m. Od NE widać dalsze partie obu szczelin, lecz jest zbyt wąsko, aby pokonać zwężenie.</p>
+<p>&nbsp;Opisane powyżej partie stanowią wszystkie znane obecnie dojścia do Sali Dziadka. Sala Dziadka jest nieregularną komorą z licznymi odgałęzieniami. Ma około 3,5 m długości i&nbsp;2,5&nbsp;m szerokości. Maksymalna wysokość sali wynosi 3,0 m, lecz przeciętnie nie przekracza 1,5 m. Na NE ścianie znajduje się napis &bdquo;RUNN". w jej dnie znajduje się kilka studzienek. w środkowej części salę przedziela 2,0 m głębokości podłużna studnia. z jej dnie, na SE znajduje się wejście do opisanych wcześniej Ciasnych Partii prowadzących do Sali pod Studnią. Do partii tych prowadzi też zaciskowa (Z1) studzienka 2,0 m głębokości znajdująca się w pod SE ścianą Sali Dziadka. Na SW od podłużnej studni jest kolejna studzienka (2,2&nbsp;m wysokości), kt&oacute;rą można wejść do niewielkiej salki pod Salą Dziadka. Salka łączy się też zaciskowym (Z1) przełazem z podłużną studnią. w S części Sali Dziadka za prożkiem 0,5&nbsp;m wysokości znajduje opisywane wcześniej rozgałęzienie korytarza. Stąd na NE prowadzi pochylnia do Sali pod Studnią, a na SW znajdują partie, kt&oacute;rymi można dojść do Sali Zbłąkanych. Natomiast w N części Sali Dziadka znajduje się wejście do opisanych dalej Mylnych Partii. Powyżej na wysokości 2,0 m jest wejście do szczeliny prowadzącej na NW, kt&oacute;rej z powodu ciasnoty nie zwiedzano. Obok niżej, znajduje się r&oacute;wnież wejście do wysokiej, zwężającej się szczeliny długości około 3 m prowadzącej na zach&oacute;d. Z SW części Sali Dziadka wyodrębnia się podobna w charakterze, Sala Pradziadka. W środkowej części tej sali znajduje się nieregularny pr&oacute;g wysokości 1,5 m, kt&oacute;rym wydostajemy się na g&oacute;rne pięterko nad Salą Pradziadka. Wejść do niego można r&oacute;wnież podłużną studzienką wysokości 1,5 m znajdującą się E części sali. Z g&oacute;rnego pięterka odchodzi kilka korytarzyk&oacute;w. Na E prowadzi przez pochylnię do g&oacute;ry, dojście do opisywanego wcześniej rozgałęzienia, skąd można dojść do Sali Zbłąkanych. Do sali tej można dojść r&oacute;wnież, wymienionym już, ciasnym, około 3 m długości przejściem na SE. W tym miejscu odgałęzia się na zach&oacute;d korytarzyk, kt&oacute;ry prowadzi do najokazalszych w&nbsp;całej jaskini Partii Beskidnik&oacute;w. Korytarzykiem tym po około 1 m dochodzimy do poprzecznej, zakrzywionej szczeliny 5 m długości i wysokiej do 2,5 m. Stąd szeroki, lecz niski przełaz doprowadza do podobnej, r&oacute;wnoległej szczeliny. Znajduje się tu 1,5 m głębokości studzienka, kt&oacute;ra prowadzi do 1,5 m długości korytarzyka, na w odchodzi natomiast stroma pochylnia tworząca rodzaj komina wysokości 3,0 m. Od S szczelina kończy się studnią 3,0 m głębokości, kt&oacute;rą schodzimy na dno największej w jaskini Sali Janosika. Do sali tej możemy też zejść 1,5 m długości wąską szczeliną, kt&oacute;rą wychodzimy nad 4,0 m wysokości pr&oacute;g. Stąd trawersujemy ścianę (trudności II), do łatwiejszych partii w pochyłej ścianie opisanego dalej Komina Prezesa i nią schodzimy na dno Sali Janosika.</p>
+<p>&nbsp;Sala Janosika ma 4 m długości i około 3 m szerokości. Od NE sala ma wysokość 3,0 m, od SW strop przechodzi w wysoki na około 10 m Komin Prezesa. Pod NW ścianą sali znajdują się dwa niskie wejścia do wysokiego, zakrzywionego korytarza długości około 9&nbsp;m. Tu też pr&oacute;g (1,5 wysokości), a za nim szczelina na NW, kt&oacute;rą po 4 m dochodzimy do ciasnego kominka (1,3 m wysokości). Stąd na E stromo do g&oacute;ry korytarz do niewielkiej Salki Cypiska. Natomiast po przejściu kominka, wyjdziemy do wyżej położonej szczeliny. Tu na N przełaz do partii pod opisaną wcześniej Zagubioną Studzienką, a na SW 5 m długości korytarzyk z odgałęziającymi się dwiema, kilkumetrowej długości szczelinami na NW.</p>
+<p>Wracamy do Sali Janosika. Na SE Sali znajdują się wejścia do dw&oacute;ch r&oacute;wnoległych korytarzy. Lewy z&nbsp;nich ma długość 5 m, wysokość do 2,0 m i wprowadza do Gliniastych Partii. Od korytarza tego na S odchodzi niska, lecz szeroka, wznosząca się szczelina długości około 3 m, natomiast na p&oacute;łnoc wchodzimy do 6 m długości, wąskiego i niskiego korytarza. Korytarz ten początkowo stromo opada, lecz w środkowej części wznosi się ponownie. Tu łączy się on około 2 m długości niskim przełazem z gł&oacute;wnym korytarzem w Gliniastych Partiach. Do przełazu opada r&oacute;wnież od NW 2 m długości pochylnia. Od Sali Janosika prawym, wysokim do 5,0 m korytarzem na SE, skręcającym p&oacute;źniej na w przechodzimy do sali zwanej Rondem. Tworzą ją dwa r&oacute;wnoległe korytarze długości około 5 m, łączące się od W i E w charakterystyczne obejście. Wysokość p&oacute;łnocnego korytarza dochodzi do 4,0 m, natomiast południowy jest nieco niższy i ma wysokość do 2,0 m. w środkowej części p&oacute;łnocnego korytarza znajduje się charakterystyczny wielki głaz, w stropie natomiast ujście 5,0 m głębokości ciasnej studzienki z Komina Prezesa. z w końca korytarza odchodzi na wysokości 2,0 m wysoka, około 3 m długości szczelina. z kolei w środkowej części południowego korytarza Ronda znajduje się 1,5 m wysokości pr&oacute;g w d&oacute;ł, kt&oacute;ry przez wysoką szczeliną długości około 2 m wprowadza do poprzecznego, wysokiego korytarza długości około 5 m (na ścianie napis &bdquo;ŁOŚ" i nieczytelna data). Od południa znajduje się r&oacute;wnoległa do niego niska szczelina, kt&oacute;ra jest połączona z korytarzykiem dwoma pochylniami. Od zachodu w końcu korytarzyka odchodzi na S ciasna szczelina długości około 3 m, z kt&oacute;rego odgałęzia się z kolei w środkowej części na zach&oacute;d 1,5 m długości, niska wnęka. Natomiast pod prożkiem prowadzącym z Ronda, znajduje się wejście do niskiego, około 4 m długości korytarza.</p>
+<p>&nbsp;Pochyła SW ściana Sali Janosika przekształca się w SW ścianę wysokiego na około 10&nbsp;m Komina Prezesa. W stronę Sali Janosika i korytarza prowadzącego do Ronda komin opada stromymi pochylniami i progami do 3,0 m wysokości. W zależności od wariantu, trudności wspinaczkowe na ścianie wynoszą od I wzwyż (przydatna lina). Jest jednak ślisko i przydać może się poręcz&oacute;wka. Lina konieczna natomiast (II, znaczna ekspozycja) przy dojściu do znajdującego się na wysokości 8,0 m wylotu korytarzyka z opisanej dalej Sali Ondraszka. Bez trudności natomiast wychodzimy pochylnią do g&oacute;ry (na S) do r&oacute;wnoległej szczeliny długości około 6 m. Wschodnią częścią szczeliny, (ciasno) wchodzimy do okazałej Sali Rumcajsa. Ma ona 6 m długości, od 3 do 5 m szerokości i 4,0 m wysokości w środkowej części. Dno sali jest nier&oacute;wne, wznosi się na południe. W części Sali Rumcajsa znajduje się pr&oacute;g do g&oacute;ry 2,5 m wysokości oraz kominek 2,0 m wysokości, kt&oacute;rymi można się wydostać do szerokiej szczeliny 1,0 m wysokości o przebiegu W-E. W jej środkowej części znajdują się płyty skalne utrudniające przejście, natomiast w NW części prożek w d&oacute;ł 0,5 m wysokości. Schodzimy nim do ostatniej znanej w tych partiach Sali Ondraszka. Ma ona długość około 3 m, szerokość 1,5 m i wysokość do 2,0 m. z zachodniej części sali znajduje się przełaz, kt&oacute;rym schodzimy nad pr&oacute;g 8,0 m wysokości znajdujący się w Kominie Prezesa. Stąd możemy zejść (najlepiej jednak zjechać na linie) wprost do Sali Janosika.</p>
+<p>&nbsp;Natomiast wspomniane wcześniej Mylne Partie zaczynają się w N części Sali Dziadka. Strome zejście doprowadza do niskiego korytarza, długości ok. 7 m o przebiegu W-E. Zaraz za tym zejściem znajduje się podłużna studzienka 2,0 m głębokości, bardzo uciążliwa przy wychodzeniu. Sprowadza ona do zaciskowej szczeliny długości około 5 m, kt&oacute;ra wychodzi w zachodniej części wspomnianego korytarza, gdzie rozszerza się on do niewielkiej komory. Tu znajduje się rozgałęzienie korytarzy. Przez studzienkę 1,5 m głębokości schodzimy do niskiej szczeliny, skręcającej po około 2 m na p&oacute;łnoc. Stąd pochylnią schodzimy do 1,0 m wysokości, opadającego korytarza długości około 5 m. W&nbsp;części korytarza znajduje się przełaz doprowadzający do niewielkiej, 2,0 m wysokiej, Komory Bazyla. Od wspomnianego odgałęzienia korytarzy na NE schodzimy do wysokiego, litego korytarza długości około 4&nbsp;m (Sala KGL). Przy wejściu do Sali znajduje się studzienka, kt&oacute;rą ciasnym korytarzem z zaciskiem Z2 można przejść do opisanego powyżej korytarza za Komorą Bazyla. Na dnie Sali KGL znajduje się też ciasny przełaz, przez kt&oacute;ry dochodzimy do wysokiej na 3,0 m Litej Komory. Stąd około 1 m długości, wysoka szczelina na NE doprowadza do rozgałęzienia. Dalej idziemy na NNW wąską szczeliną wysokości 2,0 m, kt&oacute;ra dochodzi do poprzecznego korytarza długości około 10&nbsp;m. w jego SW części znajduje się studzienka 1,0 m głębokości, kt&oacute;ra sprowadza do ciasnej szczeliny długości około 6 m. Połączona jest ona zaciskowym przełazem z Salą Balbiny, kt&oacute;ra powstała w miejscu rozszerzenia się wspomnianego korytarza 10 m długości. Ma ona około 2 m szerokości i do 3,0 m wysokości. w jej dnie znajdują się dwie 1,5 m studzienki, kt&oacute;rymi schodzimy do poprzecznego korytarza długości około 8 m. W&nbsp;środkowej części odgałęzia się od niego na zach&oacute;d zaciskowa szczelina długości 2 m. Łączy się ona z wspomnianym, wysokim korytarzem wychodzącym z Litej Komory. Nad odgałęzieniem znajduje się prożek wysokości 1,5-3,0 m, przez kt&oacute;ry wychodzimy do położonej powyżej, wysokiej do 1,5 m i długiej na 3 m sali. W jej p&oacute;łnocnej części znajduje się zaciskowy przełaz doprowadzający do Sali Balbiny oraz kominek 1,5 m wysokości. Wchodzimy nim do położonej wyżej niskiej komory. Stąd 3,0&nbsp;m wysokości progiem lub sąsiednią ciasną studzienką 3,0 m głębokości możemy zejść do Sali Balbiny. Natomiast na E prowadzi załamujący się dwukrotnie, niski korytarzyk doprowadza do 1,0 wysokości kominka. Kominkiem tym wychodzimy do najwyższego pięterka, kt&oacute;re tworzy niewielka, pochyła salka wysokości do 1,0 m. Partie te zwane są Partiami X-lecia Speleoklubu Dębickiego.</p>
+<p>&nbsp;Jaskinia osuwiskowa, powstała w piaskowcach magurskich. Dno przeważnie tworzy gruz skalny, a miejscami większe głazy. Pod studzienkami wejściowymi, na dnie spotyka się liście i szczątki roślinne. w Gliniastych Partiach oraz innych korytarzach odchodzących z&nbsp;Sali Janosika dno tworzy glina. w S części Sali Rumcajsa dno pokryte jest na znacznym obszarze guanem nietoperzy. Pokłady guana spotyka się r&oacute;wnież w kilku innych korytarzykach, lecz w mniejszej ilości. Często w jaskini występują nacieki węglanowe w&nbsp;postaci polew i stalaktyt&oacute;w do kilku centymetr&oacute;w długości. Największe znajdujemy w&nbsp;rejonie Sali Janosika, Kominie Prezesa i Sali Rumcajsa.</p>
+<p><span>&nbsp;Jaskinia posiada mikroklimat dynamiczny, zimą nie jest wymrażana. Światło dzienne sięga Sali Wejściowej i korytarzy bieg</span><span>nących do Sali Zbłąkanych i Sali pod Studnią. G&oacute;rne partie jaskini są suche, natomiast w partiach poniżej Sali Dziadka jest dość wilgotno. </span></p>
+<p><span>W rejonach gdzie dochodzi światło dzienne rozwijają się mchy i porosty, na szczątkach organicznych spotyka się grzyby i pleśń.</span></p>
+<p><span>Stwierdzono obecność licznych pająk&oacute;w, motyli i owad&oacute;w bezskrzydłych. Zimą hibernują w niej liczne nietoperze. Jaskinia jest największym zimowiskiem podkowca małego <strong><em>Rhinolophus hipposideros</em></strong> w Polsce, jego kolonia liczy ponad 500 osobnik&oacute;w (Nowak, Piksa 1997). Obserwowano w jaskini r&oacute;wnież salamandrę plamistą <strong><em>Salamandra salamandra</em></strong> oraz ropuchę szarą<em> <strong>Bufo bufo</strong>.</em> <br /></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsza wzmianka o jaskini znalazła się w rękopisie J. N. Rostworowskiego w 1813 r. Kilkakrotnie jaskinię wymienia K. Sosnowski (1914, 1926, 1930). K. Kowalski (1953) pisze, że według ludności miejscowej jaskinia jest zasypana. Za nim powtarza to K. Krygowski (1970). z pewnością jednak nie była w tym czasie zasypana, a K. Kowalski szukał jaskini w niewłaściwym miejscu. Jaskinię wymienia jeszcze A. Matuszczyk (1986) i M. Sopata (1997). Zlokalizowana została w sierpniu 1997 r. przez B. Bubulę, P. Lesieckiego i B. Sułkowskiego. Obecnie jaskinia jest znana ludności miejscowej i często zwiedzana. Jaskinia stanowi pomnik przyrody &bdquo;Grota Zb&oacute;jnicka na Łopieniu&rdquo; (Rozporządzenie Nr 48 Wojewody Nowosądeckiego z dnia 7 grudnia 1998 r. w sprawie uznania za pomniki przyrody ożywionej i nieożywionej znajdujących się na obszarze wojew&oacute;dztwa nowosądeckiego 1998).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary wykonali 21 i 25 sierpnia 1997 r. T. Mleczek (Speleoklub Dębicki), B. Bubula, P. Lesiecki i B. Sułkowski używając busoli geologicznej Freiberg i taśmy parcianej. 17 września 2000 r. B. Bubula i P. Lesiecki (Klub Grotołaz&oacute;w w Limanowej) zinwentaryzowali nowe partie za Kruchą Salką do otworu 3 o łącznej długości 24 m (Bubula 2000- materiały arch.; Klassek, Mleczek 2000). 21 sierpnia 2004 r. T. Mleczek i B. Bubula (Stowarzyszenie Speleoklub Beskidzki) zinwentaryzowali Salkę Cypiska oraz od Sali Janosika do korytarza poniżej Zagubionej Studzienki o łącznej długości 29 m (Klassek, Mleczek 2004). 26 sierpnia 2008 r. A. Gubała i W.J. Gubała (Stowarzyszenie Speleoklub Beskidzki) ustalili deniwelację jaskini na 20,3 m (-18,8 m; +1,5 m) (Klassek, Mleczek 2008b). Dane zaktualizował T. Mleczek w 2009 r.<br />Plan opracował T. Mleczek.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Sosnowski K. 1914 (wzmianka); Sosnowski K. 1926 (wzmianka); Sosnowski K. 1930 (wzmianka); Kowalski K. 1954 (wzmianka); Krygowski, K. 1968 (wzmianka za K. Kowalskim); A. Matuszczyk (lokalizacja, podania); Wiśniewski W.W. 1996b (wzmianka); Wiśniewski W.W. 1996f (wzmianka); Jaskinie Polskich Karpat fliszowych 1997b (plan i opis inwentarzowy); Sopata M. 1997 (wzmianka); Nowak J., Piksa K. 1997 (nietoperze); Klassek G., Mleczek T. 1998 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Rozporządzenie Nr 48… 1998 (uznanie za pomnik przyrody); Wiśniewski W.W. 1998b (historia poznania); Wiśniewski W.W. 1998d (wzmianka, nietoperze); Wiśniewski W.W. 1998e (wzmianka, nietoperze); Bubula B, 1999 (zawalenie jednego z otwor&#243;w); Mleczek T. 1999b (uznanie za pomnik przyrody, kr&#243;tki opis); Mleczek T. 1999d (zawalenie jednego z otwor&#243;w, nietoperze); Mleczek T. 1999g (pochodzenie nazwy jaskini oraz sal, fotografia w Sali Janosika); Mleczek T., Baczyński P. 1999a (nietoperze); Klassek G., Mleczek T. 1999 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Urban J. 1999 (pochodzenie nazwy jaskini); Wiśniewski W.W. 1999b (pochodzenie nazwy jaskini); Alexandrowicz Z., Poprawa P. (red.) 2000 (wzmianka); Klassek G., Mleczek T. 2000 (nowe partie i nowy otw&#243;r- wzrost długości do 404 m, ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Piksa K. 2000 (nocek orzęsiony); Urban J. 2000 (geneza nazwy jaskini); Bubula B. 2001a (historia poznania); Bubula B. 2001d (ujęta w spisie jaskiń Beskidu Wyspowego, szkic techniczny); Bubula B. 2001e (nietoperze); Kapturkiewicz A. 2001b (mikroklimat, geneza); Gacek D. 2001 (kr&#243;tki opis, nietoperze, ujęta w wykazie jaskiń Beskidu Wyspowego); Gierat Ł. 2001 (śmieci); Kapturkiewicz A. 2001a (kr&#243;tki opis, dewastacja jaskini); Klassek G., Mleczek T. 2001 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Matuszczyk A. 2001 (wzmianka bez podanej nazwy); Urban J. 2001 (projekt ochrony jaskini: szczeg&#243;łowy opis, uzasadnienie ochrony, proponowane zabiegi ochronne); Klassek G., Mleczek T. 2002 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Beskid Wyspowy 2003 (błędna lokalizacja na mapie bez podanej nazwy); Klassek G., Mleczek T. 2003 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G. 2004 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2004 (nowe partie - wzrost długości do 433 m, ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Beskid Wyspowy 2005 (błędna lokalizacja na mapie bez podanej nazwy); Kapturkiewicz A. 2005b (ujęta w spisie jaskiń Beskidu Wyspowego); Klassek G., Mleczek T. 2005 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Sułkowski B. 2005 (opis jaskini); Sachanowicz K., Ciechanowski, 2005 (nietoperze); Beskid Wyspowy 2006 (błędna lokalizacja na mapie bez podanej nazwy); Kapturkiewicz A. 2006a (ujęta w spisie najdłuższych jaskiń rejon&#243;w Karpat Fliszowych); Klassek G., Mleczek T. 2006 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Sachanowicz K., Ciechanowski M., Piksa K. 2006 (nietoperze); Beskid Wyspowy 2007 (błędna lokalizacja na mapie bez podanej nazwy); Urban J., Margielewski W., Schejbal-Chwastek M., Szura Cz. 2007 (nacieki); Klassek G., Mleczek T. 2007 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2008a (wzmianka); Klassek G., Mleczek T. 2008b (nowa deniwelacja, ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2009 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T. 2010 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T. 2011 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T. 2012 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Urban J., Schejbal-Chwastek M., Margielewski W., Ž&#225;k K. 2012  (skład izotopowy naciek&#243;w); Klassek G., Mleczek T., 2014 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Bubula B. 2000 (plan i opis nowych partii).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tomasz Mleczek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2770)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=1527" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

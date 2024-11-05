@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F812">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 812;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "605441,50".replace(',', '.') + "," + "333511,69".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('812','Jaskinia Pajęcza'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Pajęcza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko Pajęcze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-1.34
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;29′55,00″, φ: 50&#176;51′32,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Piekosz&#243;w (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kielecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody Chelosiowa Jama
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                256,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                18
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                17,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                8
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                25,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1183
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaworznia, zesp&#243;ł nieczynnych kamieniołom&#243;w na G&#243;rze Kopaczowej. Otw&#243;r Jaskini Pajęczej położony jest w południowej ścianie zachodniego kamieniołomu wapieni dewońskich, ok. 15 m na południowy-zach&#243;d od gł&#243;wnego otworu Chelosiowej Jamy. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Dojście do jej otworu prowadzi ścieżką biegnącą pochylnią wzdłuż południowej ściany wyrobiska. Z tej ścieżki należy zboczyć na południe około 30 m przed otworem Chelosiowej Jamy (metalowe drzwi we wschodniej ścianie) i podejść do ściany południowej, gdzie znajduje się zabezpieczony metalowym włazem otwór jaskini. Wcześniejsze trzy otwory ówczesnego Schroniska Pajęczego zostały zamurowane po odkryciu dalszych partii jaskini. Dostęp do jaskini ograniczony jest jej ochroną konserwatorską. Wejście możliwe jest jedynie za zgodą Regionalnego Konserwatora Przyrody w Kielcach. Zwiedzanie jaskini tylko z przewodnikiem ze względu na jej ochronę oraz trudną orientację w labiryncie korytarzy. Jaskinia w wielu miejscach wymaga czołgania się przez wąskie i błotniste przełazy. Zawaliskowy charakter niektórych pustek stwarza zagrożenie obrywami oraz ruchomymi blokowiskami w dnie. Dostęp do niektórych partii jaskini (kominy, niektóre studnie) możliwy jest jedynie przy użyciu liny i technik taternictwa jaskiniowego. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obecnie w otworze zamontowane są metalowe drzwi założone w maju 1998 r. Zaraz za otworem wejściowym rozwija się dwumetrowa studzienka przechodząca niżej w niewielką salkę o dnie pokrytym gruzem skalnym. W południowej części salki ciasny przełaz doprowadza do miejsca rozejścia się dalszych korytarzy jaskini. Na wsch&oacute;d w stronę Chelosiowej Jamy odchodzi 4 metrowy korytarzyk z piaszczysto-gliniastym namuliskiem. Jego końcowa część to najdalej na wsch&oacute;d wysunięty punkt Jaskini Pajęczej. Miejsce to oddalone jest o ok. 15 m od Komory Wstępnej w Chelosiowej Jamie. Natomiast w kierunku południowo-zachodnim od rozejścia biegnie trzymetrowy zawaliskowy przełaz - Kuszenie Losu. Przełaz ten prowadzi do obszerniejszego korytarza o długości 8 m, szerokości 2 m i wysokości do 3,5 m. Końcowa część tego korytarza przechodzi w Niską Salę. Jest to rozległa komora o długości 20 m, szerokości do 8 m i wysokości od 0,3 do 1,5 m. Na planie ma charakterystyczny kształt litery U. Spąg sali pokryty jest w części zachodniej piaszczystym namuliskiem, a we wschodniej gliniastym. Miejscami na stropie i w dnie jaskini występują nacieki kalcytowe. W p&oacute;łnocnej części Niskiej Sali znajduje się wejście do kilkumetrowego zawaliskowego korytarzyka doprowadzającego przez zacisk do korytarza o nazwie Tchawica. Korytarz ten ma długość 10 m, szerokość do 3 m i wysokość do 1,4 m. Gł&oacute;wna jego część posiada nachylony strop i dno pokryte dużymi blokami skalnymi.</p>
+<p>&nbsp;W kierunku południowo-zachodnim od Niskiej Sali odchodzi błotnisty przełaz przechodzący w stromy korytarz o długości 5 m, w kt&oacute;rego dnie znajduje się ciasna studzienka prowadząca do dalszej części jaskini. Za studzienką i dalej małą salką położony jest obszerny ciąg Korytarza Południowego o długości 25 m, szerokości do 4 m i wysokości do 5 m. Spąg korytarza pokryty jest piaszczystym namuliskiem z dużymi blokami skalnymi i fragmentami polew kalcytowych. W kierunku południowo-zachodnim korytarz przechodzi w wąską szczelinę o szerokości 1 m i kończy się niewielką salką z kominkiem krasowym. Jest to najdalej na południe wysunięte miejsce jaskini. Gł&oacute;wny ciąg kontynuuje się w p&oacute;łnocnej części Korytarza Południowego. Odchodzi stąd stromo opadający przełaz o długości 10 m, za kt&oacute;rym znajduje się niewielka, ale wysoka na 5 m salka o piaszczystym dnie. Za salką przez dwumetrowy nachylony prożek dochodzi się do największego fragmentu jaskini korytarza o nazwie Kolektor. Jest to bardzo obszerny ciąg o rozciągłości generalnie r&oacute;wnoleżnikowej długości ok. 100 m, szerokości do 10 m i wysokości do 5 m. Dno Kolektora pokryte jest blokami skalnymi oraz piaszczystymi namuliskami, kt&oacute;re w części środkowej korytarza tworzą formy powstałe w wyniku infiltracji w&oacute;d opadowych - jamy egutacyjne. W stropie Kolektora, w jego wschodniej części znajduje się wylot 10 metrowego szczelinowego Komina Bohatera (trudności A2, IV, konieczny sprzęt wspinaczkowy). Strop komina stanowi zarazem najwyższe miejsce w jaskini (+8 m). Końcowa część Kolektora stanowi miejsce rozejścia się dalszych ciąg&oacute;w jaskini. Na p&oacute;łnoc rozwija się system krasowych korytarzyk&oacute;w, studni i komink&oacute;w o kilkusetmetrowej długości noszących nazwę Megaser. Kontynuacją Kolektora w kierunku zachodnim jest ładnie wymyty kilkunastometrowy korytarz dochodzący do Salki z Kapeluszem. W jej stropie znajduje się kominek o wysokości 6 m mający w przekroju kształt grzybowego kapelusza. Dalej jaskinia ciągnie się na zach&oacute;d i po kilkunastu metrach dochodzi da sali Fatamorgana o krasowym charakterze długości 6 m, szerokości 8 m i wysokości do 8 m. Sala ta stanowi najdalej na zach&oacute;d wysunięte miejsce w jaskini. Pod stropem sali , w p&oacute;łnocnej ścianie zlokalizowany jest wylot ciasnego korytarzyka o długości 5 m, zakończonego szczeliną z silnym przewiewem powietrza. Dostęp do tego korytarzyka możliwy jest jedynie przy użyciu liny. We wschodniej ścianie Salki z Kapeluszem położone jest wejście do bocznego ciągu o długości ponad 100 m. Partie te rozpoczynają się ciasnym, rurowatym korytarzykiem z kilkoma zaciskami przechodzącym po 10 m, w obszerniejszy korytarz, kt&oacute;ry po 8 m wychodzi w sali o nazwie Dziad&oacute;wki I. Strop tej sali stanowią nachylone na p&oacute;łnoc ławice wapieni dewońskich. W południowo-wschodniej części sali znajduje się 2 m studzienka, poniżej kt&oacute;rej rozwijają się ciągi Megasera. Natomiast w zachodniej ścianie Dziad&oacute;wek I zaczyna się ciasny korytarzyk doprowadzający do sali Dziad&oacute;wki II. Sala ta podobna jest do poprzedniej, ale nieco mniejsza. W kierunku p&oacute;łnocnym kilkunastometrowy korytarzyk prowadzi dalej do Wysokiej Sali o średnicy 6 m, wysokości do 7 m. Jej dno pokrywają wielkie bloki skalne oraz miejscami gliniaste namuliska. U podn&oacute;ża wschodniej ściany sali położone jest wejście do Aorty - ciasnego meandrującego korytarzyka, kt&oacute;ry po 12 m wychodzi w końcowej części tego ciągu - Stanie Zawałowym. Jest to zawaliskowy ciąg salek i korytarzyk&oacute;w połączonych zaciskami o łącznej długości 30 m i rozciągłości południkowej. Dno ciągu pokryte jest świeżymi zawaliskami, widoczne są r&oacute;wnież ślady po otworach strzałowych (ciąg ten znajduje się już pod dnem kamieniołomu). Ze względu na znaczne spękanie ścian i stropu podczas eksploatacji wapieni prowadzonej w kamieniołomie zwiedzanie tego ciągu jest niebezpieczne. W końcowej części Stanu Zawałowego znajduje się wejście do Partii Ropnych. Początek ich stanowi połączenie końc&oacute;wki Stanu Zawałowego z wykopem wykonanym z powierzchni dna kamieniołomu. Miejsce to ma charakter niewielkiej sali o średnicy ok. 1,5 m i wysokości ok. 4 m, kt&oacute;rej dno pokryte jest gruzem skalnym. W najniższym miejscu sali znajduje się wejście do syfonalnego, ciasnego przejścia często zalewanego wodami opadowymi. W miejscu tym prawie zawsze obecne jest jeziorko, a po większych opadach tworzy się syfon.Za ciasnym przejściem rozciąga się początkowo kluczokształtny, myty korytarz (z rynną denną w spągu) o średnicy 1 m, kt&oacute;ry przechodzi następnie w rozmytą szczelinę o wysokości 2 m i szerokości 1 m. Łączna długość korytarza wynosi 6 m. W dnie końcowej części korytarza otwierają się dwa</p>
+<p>wejścia do pionowych studzienek prowadzących na dolne piętro. Nad wejściem do drugiej studzienki rozpoczyna się 7. m myty korytarzyk z jeziorkiem przechodzącym dalej w kr&oacute;tki syfon, za kt&oacute;rym rozciąga się 2. m ciasna szczelina. Obie studzienki są początkowo ciasne o średnicy 0,6 m, po 2 m łączą się ze sobą i przechodzą w jedną studnię o średnicy 1 m. Całkowita głębokość studni wynosi 6 m. Ze względu na ciasnotę oraz błotniste namulisko pokrywające ściany, wchodzenie, a zwłaszcza wychodzenie ze studni (mimo założonej tam liny) jest dosyć trudne. W dolnej części studnia przechodzi w szczelinowy korytarz, kt&oacute;ry pośrodku rozszerza się w salkę o średnicy około 2 m z dnem pokrytym gliniastym namuliskiem. W najniższej część tej salki znajduje się najgłębsze miejsce nowych partii, a zarazem całej jaskini Pajęczej -17,5 m względem otworu jaskini. W dnie sali znajduje się okresowy ponor. Szczelinowy korytarz przechodzi dalej w ciasny korytarzyk z błotnistym namuliskiem, zakończony bardzo wąskim zwężeniem (obecnie nie do przejścia), za kt&oacute;rym znajdują się dalsze partie g&oacute;rnego piętra. Gł&oacute;wny ciąg g&oacute;rnego piętra zaczyna się nad wylotem studni. W kierunku p&oacute;łnocnym odchodzi stąd błotnisty szczelinowy korytarzyk o szerokości 1 m i wysokości od 1,5 m w części początkowej do 0,4 m w końcowej. Jego dno wypełnione jest płytką wodą. Korytarzyk zakręca następnie (po 7 m) w kierunku zachodnim i (po 5 m) przechodzi w większe rozszerzenie. Na zakręcie korytarza znajduje się wejście do</p>
+<p>niezbadanego do końca, kilkumetrowego ciasnego kominka, natomiast 2 m przed rozszerzeniem, w dnie, położona jest ciasna studzienka połączona niżej z niewielką salką zakończoną szczeliną z przewiewem. Dalsza część gł&oacute;wnego korytarza wyraźnie rozszerza się i osiąga szerokość 2 m. Rozszerzenie to ma charakter nachylonej w kierunku p&oacute;łnocnym sali z kilkoma bocznymi kr&oacute;tkimi odgałęzieniami. W dnie sali znajduje się wejście do niewielkiej studzienki, poniżej kt&oacute;rej mała błotnista salka połączoną jest ciasną szczeliną (nie do przejścia) z błotnistym korytarzykiem dolnego piętra. W p&oacute;łnocnej części sali znajduje się wejście do 4 metrowego komina o średnicy ok. 1 m, kt&oacute;ry łączy się wyżej z końcową częścią jaskini, rozwiniętą w postaci rozgałęzionego ciągu trzech korytarzy. Lewy korytarz o długości 6 m z gliniastym namuliskiem rozwija się w kierunku p&oacute;łnocno-zachodnim. Prawy kr&oacute;tki korytarzyk (3 m) na dnie wypełniony jest płytką wodą. Przekr&oacute;j poprzeczny tego korytarza ma kształt &oacute;semki. W środkowym, najdłuższym korytarzu (długość 7 m), w końcowej części widoczne są zniszczone nacieki kalcytowi (gł&oacute;wnie polewy i kolumny naciekowe). W stropie korytarza znajduje się 2 m kominek, od kt&oacute;rego odchodzi niezbadana jeszcze do końca szczelina z naciekami.</p>
+<p>Stosując morfologiczną klasyfikację Palmera (1991) Jaskinię Pajęczą należy zaliczyć do grupy jaskiń labiryntowych (maze), jej fragmenty wykazują cechy zbliżone do jaskiń typ&oacute;w branchwork, anastomotic oraz spongework.</p>
+<p>Jaskinia Pajęcza występuje w obrębie gruboławicowych wapieni dewońskich nachylonych na p&oacute;łnoc pod kątem 20. Stanowi system krasowych korytarzy rozwiniętych poziomo na wysokości ok. 250 - 255 m. n.p.m. (podobnie jak gł&oacute;wny ciąg Chelosiowej Jamy). W jej obrębie wyr&oacute;żnić można kilka odcink&oacute;w o odmiennej rzeźbie. Partie przyotworowe (Niska Sala) reprezentują gł&oacute;wnie niskie, rozległe komory zbliżone wyglądem do wstępnych fragment&oacute;w Chelosiowej Jamy. Następny odcinek (Korytarz Południowy i jego okolice) utworzony jest wzdłuż kilku wyraźnych szczelin o przebiegu zbliżonym do południkowego. Końcowa część Korytarza Południowego biegnąca w kierunku kopalnej doliny rzecznej zasypana jest piaszczystymi namuliskami. Centralną część jaskini stanowi duży, w znacznym stopniu zawaliskowy korytarz - Kolektor. Jego dno pokrywają miejscami piaszczyste namuliskami z dobrze wykształconymi jamami egutacyjnymi. Kolektor przechodzi w system ruro- i kluczokształtnych meandr&oacute;w i krasowych kom&oacute;r ( Megaser i sala Fatamorgana). Partie te rozwinięte są na r&oacute;żnych wysokościach. P&oacute;łnocne krańce jaskini położone już pod dnem kamieniołomu stanowią w części krasowe pustki międzyławicowe</p>
+<p>( rozległe niskie sale Dziad&oacute;wki I i II), w części zaś komory i korytarze zawaliskowe (Wysoka Sala, Stan Zawałowy). Partie Ropne położone na przedłużeniu Stanu Zawałowego są obecnie najdalej na p&oacute;łnoc wysuniętą częścią Jaskini Pajęczej. Swoim charakterem odbiegają nieco od pozostałej jej części. Partie te stanowią system generalnie mało obszernych, ale ładnie mytych korytarzy, studni i komink&oacute;w rozwiniętych na dw&oacute;ch poziomach, o łącznej długości 132 m i deniwelacji 15 metr&oacute;w.</p>
+<p>Światło sięga kilka metr&oacute;w za otw&oacute;r jaskini. Zimą w części przyotworowej tworzą się nacieki lodowe.&nbsp;W Partiach Ropnych występują stałe jeziorka, syfony i okresowe cieki zasilane wodami opadowymi oraz znaczna ilość błotnistych namulisk. Dodatkowo większość tych partii skażona jest substancjami ropopochodnymi występującymi na ścianach korytarzy, w namuliskach i na powierzchni zbiornik&oacute;w wodnych (badania Wojew&oacute;dzkiego Inspektoratu Ochrony Środowiska w Kielcach &ndash; mat. arch.). Zanieczyszczenia te pochodzą z czas&oacute;w eksploatacji w kamieniołomie.</p>
+<p>Podczas prac eksploracyjnych we wstępnych partiach natrafiono na szkielety lis&oacute;w <strong><em>Vulpes vulpes</em></strong> (L.) oraz bardzo liczne ślady pobytu (odciski łap i odchody) kuny <strong><em>Martes </em></strong>sp. penetrującej dalekie partie jaskini. Szczątki nietoperzy zlokalizowano w nielicznych miejscach, przy czym w jednym punkcie wtopione były w polewy naciekowe. Zimowe obserwacje nietoperzy prowadzone w 1998 i 1999 r. wykazały obecność nock&oacute;w dużych <strong><em>Myotis myotis</em></strong> (Borkhausen), nock&oacute;w Natterera <strong><em>Myotis nattereri</em></strong> (Kuhl.) i gack&oacute;w brunatnych <strong><em>Plecotus auritus</em></strong> (Linnaeus). Zaobserwowano r&oacute;wnież owady w tym motyle: szczerb&oacute;wka ksieni <strong><em>Scoliopteryx libatrix</em></strong> (L.), rusałka pawik <strong><em>Inachis io</em></strong> (L.). Ponadto stwierdzono pająki i nieliczne ślimaki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otwory Schroniska Pajęczego (po odkryciach w 1997 r. zmieniono nazwę obiektu na Jaskinia Pajęcza) zostały odsłonięte podczas eksploatacji wapieni prowadzonej do 1972 r. Niewątpliwie tworzyły wcześniej jeden system jaskiniowy z pobliską Chelosiową Jamą. Świadczy o tym niewielka odległość pomiędzy obiema jaskiniami oraz wyraźne ślady krasu na ścianach kamieniołomu w rejonie otwor&oacute;w. Otwory schroniska znane były speleologom i geologom prowadzącym prace w Chelosiowej Jamie. <br />Poniżej zestawiono kalendarium prac eksploracyjnych. Prawie wszystkie odkrycia są dziełem członk&oacute;w Speleoklubu Świętokrzyskiego w Kielcach.<br /><br />&bull; Początek lat siedemdziesiątych - odsłonięte zostają otwory Schroniska Pajęczego.<br />&bull; Połowa lat osiemdziesiątych - kieleccy grotołazi działający w Chelosiowej Jamie penetrują niewielkie w&oacute;wczas Schronisko Pajęcze nie prowadząc ze względu bezpieczeństwa (zawalisko) eksploracji.<br />&bull; Lato 1992 r. - Z. Grzela i A. Kasza podczas kartowania obiektu stwierdzają wyraźny przewiew i możliwość istnienia dalszych partii.<br />&bull; 14.02.1993 r. - A. Kasza i W. Krupski eksplorują ciasną szczelinę (bez efektu) z przewiewem powietrza.<br />&bull; 28.07.1996 r. - J. Bednarz i A. Kasza odsłaniają nowy pionowy otw&oacute;r Schroniska Pajęczego, umożliwiając tym samym rozpoczęcie w miarę bezpiecznej eksploracji zawaliska.<br />&bull; 08.06.1997 r. - S. Gumula i A. Kasza rozpoczynają pr&oacute;by eksploracji zawaliska.<br />&bull; 15.06.1997 r. - J. Bednarz, S. Gumula i T. Kapica przy użyciu &bdquo;flaszencugu&rdquo; wyciągają z zawaliska największe bloki skalne.<br />&bull; 22.06.1997 r. - J. Bednarz, S. Gumula i A. Kasza kontynuują eksplorację zawaliska odkrywając korytarzyk krasowy o długości 3 m.<br />&bull; 29.06.1997 r. - J. Bednarz, G. Borek, S. Gumula, A. Kasza i D. Korzeńska po przejściu zawaliskowego przełazu Kuszenie Losu odkrywają Niska Salę, Korytarz Południowy, Kolektor, Megaser dochodząc do sali Fatamorgana. Po tych odkryciach długość jaskini przekracza 600 m.<br />&bull; 13.07.1997 r. - J. Bednarz, G. Borek, S. Gumula i D. Korzeńska eksplorują ciasne korytarzyki w rejonie Niskiej Sali i Kolektora.<br />&bull; 20.07.1997 r. - J. Bednarz, Ł. Dziewięcki i A. Kasza odkrywają kilkanaście metr&oacute;w korytarzy ( Przeminęło z Wiatrem) w dolnym piętrze Megasera, a następnie eksplorują ciasne korytarzyki w rejonie Fatamorgany i Korytarza Południowego.<br />&bull; 27.07.1997 r. - I. Domagała, A. Kasza i A. Machul eksplorują ciasny korytarzyk odchodzący od Salki z Kapeluszem (rejon Fatamorgany) odkrywając salę Dziad&oacute;wki I.<br />&bull; 30.07.1997 r. - J. Gubała i A. Kasza rozbierają zawalisko w p&oacute;łnocnej części Niskiej Sali i odkrywają korytarz Tchawica.<br />&bull; 03.08.1997 r. - J. Bednarz, J. Gubała, A. Kasza i D. Korzeńska rozpoczynają eksplorację korytarzyka (we wstępnej części jaskini) biegnącego w kierunku Chelosiowej Jamy.<br />&bull; 30.08.1997 r. - I. Domagała, A. Kasza i A. Machul kontynuują eksplorację w sali Dziad&oacute;wki I odkrywając salę Dziad&oacute;wki II, Wysoką Salę, korytarz Aorta i Stan Zawałowy.<br />&bull; 08.09.1997r. - S. Gumula, A. Kasza i W. Krupski wykonują trawers pod stropem sali Fatamorgana i odkrywają ciasny 4 m korytarzyk z silnym przewiewem powietrza.<br />&bull; 14.09.1997 r. - I. Domagała, A. Kasza i A. Machul odkrywają kilkanaście metr&oacute;w w rejonie Aorty i sali Fatamorgana.<br />&bull; 22.11.1997 r. - W. Chudzik, A.Kasza i D. Korzeńska kontynuują eksplorację korytarzyka pod stropem Fatamorgany.<br />&bull; 24.01.1998 r. &ndash; Agnieszka Gajewska (Speleoklub Warszawski) odkrywa ciasny kilkumetrowy kominek w korytarzyku prowadzącym do sali Dziad&oacute;wki I.<br />&bull; 11.10.1998 r. - M. Handerek i W. Krupski rozpoczynają wspinaczkę do komina widocznego w stropie Kolektora.<br />&bull; 18.10.1998 r. - M. Handerek i W. Krupski kontynuują wspinaczkę w Kolektorze odkrywając Komina Bohatera o wysokości 10 m.<br />&bull; 04.04.1999 r. - A. Kasza, R. Knap i P. Kucharczyk eksplorują ciasne korytarzyki w rejonie Megasera i Fatamorgany.<br />&bull; 07.04.1999 r. - A. Kasza i R. Knap rozpoczynają eksplorację w korytarzyku (Beztlenowce) w rejonie Fatamorgany.<br />&bull; 17.04.1999 r. - A. Kasza, R. Knap, L. Kuleszyński i A. Machul kontynuują eksplorację w rejonie Fatamorgany.<br />&bull; 08.08.1999 r. - A. Kasza, R. Knap, T. Wiśniewski eksplorują 3 m kominek w Fatamorganie (przy dnie sali) i odkrywają 2 m studzienkę na p&oacute;łce w Kolektorze. Pr&oacute;ba eksploracji w końcowej części Korytarza Południowego.<br />&bull; 11.03.2000 r. &ndash; A. Kasza i R. Knap eksploracja w rejonie Fatamorgany.<br />&bull; 17.06.2000 r. - A. Kasza i A. Machul kontynuują eksplorację korytarzyka koło Fatamorgany(Beztlenowce).<br />&bull; 3.12.2000 r. &ndash; A. Czechowska, K. Dabrowski, W. G&oacute;źdź, J. Jach, A. Kasza, P.Michalski, P. Wojtasik eksploracja w Beztlenowcach (1,5 m do przodu).<br />&bull; 17.12.2000 r. - K. Dabrowski, J. Jach, A. Kasza, P.Michalski, M. Rakoczy, P. Wojtasik<br />-eksploracja w Beztlenowcach (1 m do przodu); eksploracja (M.Rakoczy) 4 m komina w Megaserze; eksploracja (A. Kasza, M. Rakoczy) 3 m kominka w Kolektorze (obok Komina Bohatera).<br />&bull; 7.01.2001 r. - , K. Dabrowski, W. G&oacute;źdź, A. Kasza, P. Wojtasik eksploracja w Beztlenowcach (1m do przodu).<br />&bull; 7/8.02.2001 r. &ndash; A. Czechowska, K. Dabrowski, W. G&oacute;źdź, J. Jach, P.Michalski, M. Rakoczy, P. Wojtasik oraz M. Parczewski i Z. Tabaczyński (ST Zakopane)<br /> eksploracja w Beztlenowcach (1,5 m do przodu). <br />- 3.03.2001 r. &ndash; G. Borek, J. Jach, A. Kasza, P. Michalski, P. Wojtasik -eksploracja w <br /> Beztlenowcach.<br />- 23.12.2001 r. - A. Kasza, R. Knap i A. Machul eksploracja korytarzyka nad Fatamorganą <br /> (dojście do zakrętu- dalej b. ciasna szczelina)<br />- 31.05.2002 r. &ndash; A. Szynkiewicz (Wrocław) badania georadarowe w dnie kamieniołomu <br /> nad Jaskinią Pajęczą.<br /> - 27.07.2002 r. &ndash; A. Kasza i Sz. Kręciwilk odkrycie pochyłej salki na salą Dziad&oacute;wki I i <br /> znalezienie problemu do eksploracji w sali Dziad&oacute;wki II.<br />- 8.08.2002 r. &ndash; J. Gubała, A.Kasza, M. Marcisz, M. Pochopień i M. Rakoczy eksploracja<br /> w sali Dziad&oacute;wki II.<br />- 27.08.2002 r. &ndash; A. Kasza, M. Pochopień i R. Soliński eksploracja w sali Dziad&oacute;wki II <br /> - odkrycie salki i mytego korytarzyka.<br />- 31.08.2002 r. - A. Kasza i Sz. Kręciwilk eksploracja w sali Dziad&oacute;wki II.<br />- 27/28.09.2002 r. &ndash; W. G&oacute;źdź, A. Kasza i M. Rakoczy połączenie Dziad&oacute;wek I z <br /> Megaserem.<br />- 29.11.2002 r. &ndash; K. Dąbrowski, D. Fuja i J. Sikora (ST Zakopane), P.Wojtasik eksploracja w <br /> sali Dziad&oacute;wki II<br />- 21.04.2003 r. &ndash; P. Burczyk, W. G&oacute;źdź, J. Jach, A. Kasza, P. Suchanek , A. Szrek<br /> eksploracja w sali Dziad&oacute;wki II.<br />- 24.04.2003 r. - P. Burczyk, W. G&oacute;źdź, J. Jach, M. Rakoczy, A. Szrek i B.Zięba <br /> (ST Zakopane) - eksploracja w sali Dziad&oacute;wki II.<br />- 25.05.2003 r. &ndash; A. Kasza i P. Wojtasik eksploracja w sali Dziad&oacute;wki II.<br />- 08.06.2003 r. &ndash; M. Hajnos, J. Jach i A. Kasza eksploracja w sali Dziad&oacute;wki II<br />- 13.06.2003 r.- P. Burczyk, J. Gubała, M. Hajnos, J. Jach, A. Kasza, M. Pochopień, <br /> P. Wojtasik - eksploracja w sali Dziad&oacute;wki II.<br />- 13.03.2004 r. &ndash; M. Hajnos, A. Szrek -eksploracja w sali Dziad&oacute;wki II przejście zacisku<br /> i odkrycie końcowej salki.<br />- 9.05.2004 r. - P. Burczyk, R. Knap, M. Pochopień, A. Szrek eksploracja korytarzyka nad <br /> Fatamorganą.<br />- 16.05. 2004 r. &ndash; R. Knap i L. Kuleszyński eksploracja korytarzyka nad Fatamorganą.<br />- 22.05 2005 r. &ndash; A. Kasza, J. i M. Saganowscy eksploracja w korytarzyku w Fatamorganie <br /> (przy dnie sali).<br />- 11.06.2005 r. - A. Kasza, J. i M. Saganowscy eksploracja w korytarzyku w Fatamorganie<br /> (przy dnie sali).<br />- 26.06. 2005 r. - A. Kasza, J. i M. Saganowscy eksploracja w korytarzyku w Fatamorganie<br /> (przy dnie sali).<br />- 10.09.2005 r. - J. i M. Saganowscy eksploracja w korytarzyku w Fatamorganie<br /> (przy dnie sali)<br />&bull; 16.10.2005 r.&ndash; A. Kasza, J. Kotwica, A. Przydatek, M. Saganowski &ndash; pierwsze prace<br />w zawalisku Stanu Zawałowego, eksploracja kominka wypełnionego gruzem skalnym.<br />23.10.2005 r. &ndash; A. Kasza, J. Saganowska, M. Saganowski, P. Wojtasik &ndash; pierwsze prace w dnie kamieniołomu; stwierdzenie połączenia dźwiękowego dna ze Stanem Zawałowym.<br />&minus; 26.11.2005 r. &ndash; A. Kasza, J. Kotwica, M. Saganowski&ndash; eksploracja w wykopie w dnie<br /> kamieniołomu nad Stanem Zawałowym.<br />&minus; 27.11.2005 r. &ndash; A. Kasza, J. Kotwica, M. Saganowski&ndash; kontynuacja prac w wykopie.<br />&minus; 03.12.2005 r. &ndash; A. Kasza, J. Kotwica &ndash; kontynuacja prac w wykopie.<br />&minus; 04.12.2005 r. &ndash; M. Grochala, A. Kasza, J. Kotwica, A. Marek &ndash; kontynuacja prac w <br /> wykopie.<br />&minus; 10.12.2005 r. &ndash; M. Grochala, A. Kasza&ndash; kontynuacja prac w wykopie.<br />&minus; 11.12.2005 r. &ndash; M. Grochala, A. Kasza,G. Wałek &ndash; kontynuacja prac w wykopie, zakładanie <br /> drewnianej obudowy.<br />&minus; 12.12.2005 r. &ndash; A. Kasza, M. Saganowski &ndash; zakładanie drewnianej obudowy w wykopie.<br />&minus; 07.01.2006 r. &ndash; A. Kasza, J. Kotwica &ndash; kontynuacja prac w wykopie.<br />&minus; 15.01.2006 r. &ndash; A. Kasza, M. Staniec &ndash; uzupełnianie drewnianej obudowy w wykopie.<br />&minus; 21.01.2006 r. &ndash; A. Kasza, M. Staniec &ndash; kontynuacja prac w wykopie.<br />&minus; 28.01.2006 r. &ndash; A. Kasza, J. Kotwica, J. Saganowska, M. Saganowski &ndash; kontynuacja<br /> prac w wykopie.<br />&minus; 29.01.2006 r. &ndash; A. Kasza, J. Kotwica, M. Saganowski&ndash; kontynuacja prac w wykopie.<br />&minus; 04.02.2006 r. &ndash; A. Kasza, M. Staniec &ndash; kontynuacja prac w wykopie.<br />&minus; 11.02.2006 r. &ndash; A. Kasza, M. Saganowski,M. Staniec, P. Wojtasik &ndash; połączenie wykopu z <br /> Jaskinią Pajęczą.<br />&minus; 12.02.2006 r. &ndash; A. Kasza, J. Kotwica,M. Saganowski, P. Wojtasik &ndash; eksploracja salki na <br /> połączeniu.<br />&minus; 17.02.2006 r. &ndash; A. Kasza, J. Kotwica, J. Saganowska , M. Saganowski, M. Staniec<br /> &ndash; odkrycie nowych korytarzy o długości około 80 m.<br />&minus; 24.02.2006 r. &ndash; A. Kasza, J. Saganowska, M. Saganowski, P. Wojtasik &ndash; eksploracja<br /> końcowych partii, założenie liny w Studni Dującej.<br />&minus; 11.03.2006 r.&ndash; A. Kasza, J. Kotwica, M. Saganowski &ndash; eksploracja w rejonie<br /> Studni Dującej.<br />- 22.04.2006 r. &ndash; J. Kotwica, M. Saganowski, J. Saganowska- eksploracja na początku Stanu <br /> Zawałowego.<br />- 30.04.2006 r. &ndash; M. Pochopień, M.Saganowski i P. Wojtasik &ndash; kontynuacja eksploracji <br /> w Stanie Zawałowym.<br />- 3.05.2006 r. &ndash; A. Marek, M. Saganowski, J. Saganowska- zakończenie eksploracji <br /> w Stanie Zawałowym.<br />&minus; 27.05 2006 r. &ndash; A. Kasza, M. Saganowski, J. Saganowska &ndash; pr&oacute;ba połączenia dolnego<br /> i g&oacute;rnego piętra Partii Ropnych, prace w końcowej części partii &ndash; lewy korytarz.<br />&minus; 10.06.2006 r. &ndash; J. Kotwica, M. Saganowski&ndash; kontynuacja eksploracji partii końcowych.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń regionu świętokrzyskiego dokumentację Schroniska Pajęczego sporządzili 3.03.1996 r. i 29.07.1996 r. Z.Grzela, J.Gubała i A. Kasza. Obiekt miał w&oacute;wczas 10 m długości. Dokumentację Jaskini Pajęczej sporządzili w 1998 i 2006 r. J. Gubała, A. Kasza i M. Saganowski. Lokalizację otworu jaskini wykonał 4.01.2009 r. A. Kasza przy pomocy odbiornika GPS Map60CSx. Zaktualizował A. Kasza w 2009 r.<br />Plan opracowali J. Gubała, A. Kasza. i M.Saganowski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinie Regionu Świętokrzyskiego 1996 (dokumentacja, plan pod nzwą Schronisko Pajęcze); Jastrzębski C. 1997 (wzmianka o odkryciu Jaskini pajęczej) Kasza A. 1997 (odkrycie dalszych partii Schroniska Pajęczego-Jaskini Pajęczej); (r) 1997 (informacja o odkryciu nowych partii Schroniska Pajęczego -Jaskini Pajęczej); Jaskinia Pajęcza 1998 (informacja o założeniu kraty w otworze); Kasza A. 1998  (odkrycie Jaskini Pajęczej, historia eksploracji, opis); Gubała J., Kasza A. 1999a (dokumentacja, opis, plan i przekr&#243;j, fotografie, możliwości eksploracyjne); Kasza A. 1999 (mapa i przekr&#243;j Jaskini Pajęczej na tle masywu); Paszkowski M. 2000 (lokalizacja na mapie, długość); Paszkowski M. 2001 (Schronisko Pajęcze - błędna długość); Kasza A., Szynkiewicz A. 2002 ((badania georadarowe nad Jaskinią Pajęczą); Kasza A., Szynkiewicz A., Gubała J. 2003 (badania georadarowe nad Jaskinią Pajęczą ); Gradziński M. 2005 (długość- wzmianka); Kasza A. 2005b (informacja o odkryciu Partii Ropnych); G&#243;rniak M., J&#243;źwiak M., Kasza A., Urban J. 2006 (geologia, historia eksploracji, opis, plany); Kasza A., Saganowski M. 2006a (eksploracja Partii Ropnych, dokumentacja, plan i przekr&#243;j, fotografie); Kasza A., Saganowski M. 2006b (eksploracja Partii Ropnych, dokumentacja, plan); Urban J. 2006 (wzmianka); Urban J., Kasza A. 2006 (historia eksploracji); Urban J., Gągol J. 2008 (wartości geologiczne, długość).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Urban J. 2000.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej Kasza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(299)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

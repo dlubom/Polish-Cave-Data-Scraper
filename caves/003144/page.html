@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3144">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3144;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "632464,92".replace(',', '.') + "," + "210866,17".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3144','Diabla Dziura w Bukowcu'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Diabla Dziura w Bukowcu
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Pr-02.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;50′22,00″, φ: 49&#176;45′02,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Korzenna (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                nowosądecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody Diable Skały
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku N, 425 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                425
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                42,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                42,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    365
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Pog&#243;rze Rożnowskie, Bukowiec, ku NW od wsi Bukowiec k/Lipnicy Wielkiej, N zbocze zalesionego wzg&#243;rza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od drewnianego kościoła w Bukowcu drogą w kierunku Jamnej do początku ścieżki przyrodniczej i dalej tą ścieżką do otworu 1. Około 20 m dalej ku W znajduje się niepozorny otwór 2. Dojście nieskomplikowane, otwory łatwe do znalezienia. Zwiedzanie w niektórych partiach uciążliwe i trudne, w kilku miejscach lina konieczna (stałe punkty asekuracyjne). Otwory jaskini zamknięte kratami.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W jaskini generalnie można wyr&oacute;żnić trzy gł&oacute;wne poziomy:</p>
+<p>I poziom, g&oacute;rny - tworzą korytarze wejściowe dw&oacute;ch otwor&oacute;w jaskini, wraz z&nbsp;łączącym je ciągiem bocznym.</p>
+<p>Pierwszy (stary) otw&oacute;r wejściowy (szerokości 0,7&nbsp;m) wyprowadza do niskiego, biegnącego w&nbsp;d&oacute;ł ku SW korytarza, kt&oacute;ry swoim charakterem r&oacute;żni się wyraźnie od dalszych, strzelistych partii jaskini. Tu, 4&nbsp;m za otworem, dnia 15 października 1996&nbsp;r. została założona stała krata. Na pierwszych 10&nbsp;m korytarz jest przeciętnie wysokości 0,8&nbsp;m (z rzadka 1,4 m), szerokości w&nbsp;dolnej części 0,7-0,8&nbsp;m (tylko raz, 4&nbsp;m od otworu, za małym prożkiem rozszerza się do 1,4&nbsp;m) zaś miejscami przy płaskim, nachylonym stropie -1,2&nbsp;m. Ściany proste, przeważnie lite, zaś dno nier&oacute;wne, pokryte rumoszem i&nbsp;większymi blokami (najokazalsza wanta przegradzająca korytarz około 8&nbsp;m za otworem).</p>
+<p>Te pierwsze, opisane powyżej partie, doprowadzają do niedużej salki z&nbsp;charakterystycznym koniem skalnym (wysokości około 2 m, szerokości 1,2&nbsp;m) zwanej Salą Piotrka. Na prawo, pod wspomnianym koniem w&nbsp;d&oacute;ł przez niewielki prożek wydostajemy się do ciasnego, zaciskowego przesmyku wprowadzającego nas w&nbsp;partie wielkiego zawaliska. W&nbsp;kierunku SW odchodzi boczny korytarz z&nbsp;niewielką studzienką liczący około 8&nbsp;m długości, przy przeciętnie szerokości 0,6&nbsp;m o&nbsp;przebiegu SW-W, kt&oacute;rym wydostać się można do wstępnych partii jaskini przy 2 otworze. Tu zamontowana została ruchoma krata. My jednak przedostajemy się (czołganie) przez zawalisko wspomnianym przesmykiem, kt&oacute;ry gwałtownie skręca ku S. Zrazu jest on szerokości 0,3 m, a&nbsp;po 2,5&nbsp;m za okazałą wantą rozszerza się do 0,4&nbsp;m. Korytarz (znowu wygodniejszy) ponownie biegnie na SW. Przegradzają go teraz dwie brzytwy skalne, kt&oacute;re obchodzimy g&oacute;rą, przejściem z&nbsp;lewej strony (szerokości 0,5&nbsp;m). Po około 5&nbsp;m niewielkie rozszerzenie (szerokości 1,4&nbsp;m) zawalone głazami za kt&oacute;rym korytarz (szerokości 0,7&nbsp;m) biegnie jeszcze w&nbsp;d&oacute;ł 4&nbsp;m i&nbsp;doprowadza do ciągu gł&oacute;wnego (drugi poziom). Miejsce to można określić jako pierwszy istotny zwornik pomiędzy ciągami jaskini.</p>
+<p>W odległości 1,5&nbsp;m od tego miejsca w&nbsp;kierunku SW, gdzie korytarz gł&oacute;wny ciągu jest już znacznie wyższy, można wspiąć się około 3&nbsp;m prożkiem do korytarza schodzącego od II otworu. Korytarz biegnie w&nbsp;g&oacute;rę ku NE, jest szeroki i&nbsp;prostokątny, pokryty gliną. Po około 4&nbsp;m zwęża się znacznie przechodząc w&nbsp;ciasną studzienkę (głębokości 1&nbsp;m) i&nbsp;skręca gwałtownie ku N. Za studzienką w&nbsp;wyżej położonej części korytarza (z prawej strony) znajduje się wylot ciągu bocznego opisanego uprzednio. Po 3&nbsp;m (od studzienki) biegnący w&nbsp;g&oacute;rę korytarz wyprowadza do ciasnego (szerokości 0,5&nbsp;m) drugiego otworu jaskini, kt&oacute;ry prawdopodobnie w&nbsp;okresie inwentaryzacji K. Kowalskiego (1953) nie był jeszcze otwarty.</p>
+<p>&nbsp;II poziom, środkowy - stanowi centralną część jaskini i&nbsp;obejmuje partie od rejonu Studni Dusz po Studnię &bdquo;S". Jest on najbardziej rozczłonkowany, tak, że w&nbsp;nim samym można wyr&oacute;żnić piętra pośrednie, co jednak dla sp&oacute;jności opisu wydaje się zbędne.</p>
+<p>Od miejsca zwanego Chłodnią, w&nbsp;kt&oacute;rym zgodnie z&nbsp;wcześniejszym opisem wspiąć się można do korytarza schodzącego od 2 otworu, kierujemy się ku SW w&nbsp;d&oacute;ł (przez 2&nbsp;m pionowy pr&oacute;g) do strzelistego (wysokości 5-6 m, miejscami strop niewidoczny) choć wąskiego korytarza (szerokości na progu 0,7 m, w&nbsp;dalszych partiach 0,5&nbsp;m) o&nbsp;prostych, litych ścianach, biegnącego w&nbsp;d&oacute;ł w&nbsp;linii prostej, przez około 9 m, z&nbsp;tym, że około 4&nbsp;m od progu wspiąć się można do g&oacute;rnych partii, o&nbsp;kt&oacute;rych p&oacute;źniej. Wysokości korytarza jest teraz zmienna - zmniejsza się do około 2 m, po czym zwiększa, aby dalej znowu się zmniejszyć. Bieg korytarza też ulega zakł&oacute;ceniu. Na kr&oacute;tkim odcinku skręca on dwukrotnie pod kątem prostym. Za drugim zakrętem (około 2&nbsp;m) w&nbsp;prawo (za niewielkim prożkiem) 2&nbsp;m obejście doprowadza do niedużej studzienki. My jednak schodzimy stromo w&nbsp;d&oacute;ł od zakrętu ku południowi, z&nbsp;prawej strony dochodzi zejście od wspomnianej uprzednio, niedużej studzienki. Jest to już rejon Studni Dusz (drugi istotny zwornik pomiędzy ciągami jaskini) i&nbsp;w&nbsp;tym miejscu można założyć zjazd, lecz jest to niepraktyczne. Lepiej zejść około 4&nbsp;m niżej, gdzie wspomniana studzienka uchodzi do wielkiej szczeliny i&nbsp;tu korzystając ze stałego punktu założyć stanowisko. Stąd ku SW odchodzi nieduży korytarz (długości 5,5&nbsp;m, szerokości do 0,6 m, wysokości zmiennej 0,7 - 2,5 m).</p>
+<p>Do rejonu Studni Dusz zejść można inną, okrężną drogą, przez g&oacute;rne partie. Wydostajemy się do nich przez ukośny pr&oacute;g (wysokości 1,8&nbsp;m) w&nbsp;miejscu, o&nbsp;kt&oacute;rym wcześniej wspomniano, tj.&nbsp;około 4&nbsp;m od progu w&nbsp;Chłodni. Korytarz (szerokości 0,7&nbsp;m) biegnie ku SW zrazu w&nbsp;g&oacute;rę przez 1,5&nbsp;m prożek, po czym wyr&oacute;wnuje się. Po około 8&nbsp;m rozszerza się do 1&nbsp;m. Za dużym głazem korytarz urywa się prostokątną rozpadliną (szerokości 0,7 m; długości 1,2&nbsp;m) będącą w&nbsp;zasadzie otworem studni łączącej się z&nbsp;niżej położonymi partiami obejścia. Dalej za otworem korytarz kontynuuje się w&nbsp;kierunku SW, biegnie w&nbsp;d&oacute;ł przez 3&nbsp;m do skrzyżowania z&nbsp;poprzeczną szczeliną, za kt&oacute;rą (w g&oacute;rę przez pr&oacute;g wysokości 1,7&nbsp;m) kontynuuje się jeszcze dwoma pięterkami po około 4&nbsp;m długości, skręcając w&nbsp;końcowej części ku W. Z g&oacute;rnego piętra przez 3,0 m wysokości pr&oacute;g możemy się wspiąć do około 7 m długości korytarza. Jest wysoki do 3,0 m i szeroki do 1,5 m, kończy się niewielkim rozszerzeniem, kt&oacute;rego dno pokrywa guano nietoperzy (Komora z Guanem). Z niej przez 2, o m wysoki prożek możemy wejść do niskiego, około 2 m długości korytarza. Natomiast poprzeczna szczelina w&nbsp;kierunku W&nbsp;po około 2&nbsp;m kończy się, a&nbsp;ku E zbiega do zaznaczonej uprzednio małej studzienki (obejście do Studni Dusz), nad kt&oacute;rą łączy się r&oacute;wnież ze wspomnianym wcześniej 2&nbsp;m obejściem korytarza dolnego.</p>
+<p>Nad opisanymi partiami znajduje się jeszcze jedno piętro. Dostać się tam można od Chłodni zapieraczką poprzez 5,5&nbsp;m pr&oacute;g. Dalej biegnie ciasna szczelina, kt&oacute;ra stopniowo się rozszerza. Po 4,5 dochodzimy do studni (głębokości 3,5 m), a&nbsp;po dalszych 3&nbsp;m do następnej (głębokości 2,5&nbsp;m). Studnie te łączą się z&nbsp;niżej położonymi, a&nbsp;wcześniej opisanymi partiami. Wysokość korytarza tu zmienia się od 1&nbsp;m do 3&nbsp;m w&nbsp;rejonie studni.</p>
+<p>&nbsp;Opisane partie - nastromione, rozwinięte piętrowo i&nbsp;koncentrujące się w&nbsp;zasadzie bezpośrednio na osi dużej pionowej szczeliny - r&oacute;żnią się swoim charakterem od drugiej rozwiniętej horyzontalnie części poziomu.</p>
+<p>Od pierwszego zwornika tj. połączenia korytarza wejściowego z&nbsp;ciągiem gł&oacute;wnym kierujemy się na NE (w przeciwnym kierunku niż uprzednio). Przez 8&nbsp;m korytarz jest niski, ograniczony od g&oacute;ry dużymi wantami (miejscami istnieje kontakt z&nbsp;korytarzem wejściowym), a&nbsp;w&nbsp;dalszej części specyficznym okapem. Tu też szerokości korytarza się zmniejsza z&nbsp;0,7 do 0,4&nbsp;m. Przez przewężenie schodzimy pod okapem i&nbsp;za niedużym prożkiem wydostajemy się do poziomego korytarza nazwanego przez W. Walczaka, a&nbsp;za nim K.&nbsp;Kowalskiego Komorą Nietoperzową. Jest to szczelina szerokości 0,5 m, wysoka na 2,3&nbsp;m, o&nbsp;ścianach litych i&nbsp;nachylonych, przechodzących (w g&oacute;rnej części) w&nbsp;pionowe pęknięcie. Korytarz w&nbsp;środkowej części zagradza wąski i&nbsp;długi na 1,2&nbsp;m blok. Po 2&nbsp;m (od bloku) w&nbsp;prawo jest przejście do dalszych partii jaskini, zaś na wprost 0,9&nbsp;m prożek z&nbsp;wantą (w g&oacute;rę), za kt&oacute;rym korytarz (przeciętnie szerokości na 0,6&nbsp;m) kontynuuje się jeszcze przez 5&nbsp;m i&nbsp;kończy zawaliskiem.</p>
+<p>&nbsp;Wracamy do wspomnianego przejścia, kt&oacute;re stanowi niewielka studzienka wyprowadzająca ku SE do oryginalnego rozdroża (zawalonego głazami od strony SW) zwanego też Salą nad Zębem. Jest to 3&nbsp;m długości szczelina przedzielona prożkiem, szerokości 0,8 m w&nbsp;g&oacute;rnej części, a&nbsp;ograniczona ku dołowi charakterystycznymi (zaglinionymi) gzymsami (szerokości przeciętnie 0,4&nbsp;m) biegnącymi wzdłuż ścian. Od rozdroża odchodzą w&nbsp;przeciwnych kierunkach dwa ciągi. Pierwszy w&nbsp;kierunku SW. Jest to biegnący stromo w&nbsp;d&oacute;ł, szerokości 0,6&nbsp;m korytarz o&nbsp;litych ścianach i&nbsp;zaglinionym dnie. Po około 6&nbsp;m przegradza go kaskadowy pr&oacute;g (wysokości 2,1&nbsp;m). Pod nim korytarz (szerokości 0,4 i&nbsp;wysokości 6&nbsp;m) utrzymując poprzedni kierunek jest bardziej połogi, o&nbsp;dnie pokrytym głazami. Kończy się on po 10&nbsp;m nad pionową szczeliną do kt&oacute;rej przedostajemy się przez dwa otwory, pomiędzy dużymi blokami. Zjazd założyć tu można z&nbsp;dw&oacute;ch stałych hak&oacute;w. Miejsce to zwane Sypialnią stanowi trzeci istotny zwornik pomiędzy ciągami jaskini. Drugi korytarz biegnie w&nbsp;kierunku NE. Schodzimy do niego 1,8&nbsp;m progiem. Na odcinku pierwszych 3,5&nbsp;m jest r&oacute;wny i&nbsp;szeroki na 0,7 m, po czym raptownie się zwęża do 0,3&nbsp;m (zacisk Z1). Następne 9&nbsp;m to partie okazałego zawaliska, z&nbsp;tym, że z&nbsp;ciasnego 2,5&nbsp;m długości przełazu wydostajemy się do studni (1,9&nbsp;m głębokości) popod kt&oacute;rą korytarz najpierw rozszerza się ponad 1 m, po czym stopniowo zwęża się do 0,5&nbsp;m. Partie te zwane są Meandrem. Po przejściu niewielkiego prożka (1,4&nbsp;m) w&nbsp;g&oacute;rę wydostajemy się znowu do wysokiego (do około 5&nbsp;m), r&oacute;wnego i&nbsp;szerokości 0,5&nbsp;m korytarza zwanego Salą Balową. Kończy się on po około 8&nbsp;m zawaliskiem. Jednak 2&nbsp;m przed końcem korytarza, przez niewielki otw&oacute;r w&nbsp;dnie przedostać się można do przejścia biegnącego stromo w&nbsp;d&oacute;ł ku wschodowi, kt&oacute;re po 2,5&nbsp;m doprowadza nad prostokątny (szerokości 0,5&nbsp;m, długości około 5&nbsp;m) otw&oacute;r studni &bdquo;S". Trawersując otw&oacute;r studni przechodzimy na drugi jej kraniec, gdzie znajduje się zaciskowy przełaz. Przechodzimy go i&nbsp;przez 4&nbsp;m wysokości pr&oacute;g wydostajemy się do dolnego poziomu jaskini. Nad zaciskiem znajduje się jeszcze jeden wygodny przełaz, kt&oacute;ry doprowadza do opisanego dalej, ciasnego pięterka, położonego nad dolnym przełazem. Studnia &bdquo;S" jest czwartym istotnym zwornikiem pomiędzy ciągami jaskini.</p>
+<p>III poziom, dolny - jest jedną wielką szczeliną o&nbsp;generalnym przebiegu NE-EW-SW, kt&oacute;ra ze wszystkich ciąg&oacute;w jaskini w&nbsp;największym stopniu zachowała sw&oacute;j pierwotny charakter.</p>
+<p>Z g&oacute;rnymi partiami zasadniczo ma połączenie przez trzy wspomniane w&nbsp;opisie zworniki (drugi, trzeci, czwarty), kt&oacute;re warto pokr&oacute;tce scharakteryzować. Da nam to przy okazji sondażowy (w trzech r&oacute;żnych punktach) wgląd w&nbsp;pionowe rozwinięcie szczeliny.</p>
+<p><em>Zwornik drugi</em> - od Studni Dusz - 14&nbsp;m zjazd rozległą, jednostajnie nachyloną pod kątem około 75&deg; szczeliną o&nbsp;litych ścianach. Generalnie można przyjąć, że jest ona wąska (miejscami tylko nieznacznie się rozszerza). Pokonywanie szczeliny czy w&nbsp;d&oacute;ł, czy w&nbsp;g&oacute;rę dość uciążliwe - konieczna jest lina (trudności V).</p>
+<p><em>Zwornik trzeci</em> - od Sypialni (2 stałe haki) 8&nbsp;m zjazd tą samą co uprzednio rozległą, lecz tu pionową i&nbsp;przestronną szczeliną o&nbsp;ścianach litych - do mostu skalnego utworzonego częściowo z&nbsp;dużych zaklinowanych blok&oacute;w. Na tym odcinku lina konieczna (trudności IV).</p>
+<p>&nbsp;Od mostu w&nbsp;d&oacute;ł (5&nbsp;m) szczelina znacznie się zwęża, można zejść nią bez liny, zapieraczką (trudności II).</p>
+<p><em>Zwornik czwarty</em> - od Sali Balowej 9&nbsp;m zjazd studnią &bdquo;S" (stromo nachyloną szczeliną). Dla dobrze wspinających się lina nie jest konieczna, choć zejście lub wyjście dość ryzykowne - miejscami jest ślisko. Łatwiejszym wariantem jest przetrawersowanie studni do zaciskowego przełazu. Za nim schodzimy łatwym, 4,0 m wysokości progiem na dno dolnego poziomu. Aby uniknąć kłopotliwego przejścia przez zacisk, możemy wejść do wygodniejszej szczeliny, znajdującej się 1 m powyżej. Przedostajemy się nią do opisanego dalej pięterka, znajdującego się nad dolnym poziomem. Problemem są tu z kolei głębokie studzienki, kt&oacute;re należy pokonać zapieraczką, by zejść do dolnego poziomu.</p>
+<p>Warto zaznaczyć, że najpraktyczniej dostać się można do dolnej szczeliny stosując warianty:</p>
+<p>1) zejście przez zwornik czwarty, wariantem przez zaciskowy przełaz i trawers studni &ldquo;S&rdquo;</p>
+<p>2) wejście przez zwornik drugi (Studnia Dusz), wariantem omijającym 14 m głębokości szczelinę.</p>
+<p>Dolna szczelina o&nbsp;litych ścianach, dnie pokrytym rumoszem, gdzieniegdzie większymi blokami i&nbsp;żwirowatym materiałem nie jest jednostajna. Przeciwnie, jej konfiguracja jest zmienna, urozmaicona licznymi progami, co przy szerokości 0,4-0,5&nbsp;m (w przeważającej części) czyni jej całkowite przejście uciążliwym.</p>
+<p>Od zjazdu ze Studni Dusz (zwornik drugi) z&nbsp;miejsca zwanego Kuchnią w&nbsp;kierunku SW szczelina biegnie w&nbsp;g&oacute;rę. Po około 6&nbsp;m przechodząc progi 5&nbsp;m (za kt&oacute;rym znajdują się duże bloki skalne) i&nbsp;2&nbsp;m dochodzimy do spita. Tu szczelina jest szerokości na około 0,7&nbsp;m i&nbsp;wysokości na około 8&nbsp;m. Warto dodać, że od tego miejsca można wspiąć się w&nbsp;g&oacute;rę i&nbsp;trawersując w&nbsp;wyższych partiach szczelinę p&oacute;łkami i gzymsami dostać się można do stałego haka w&nbsp;Studni Dusz (wspomniany wariant omijający 14 m głębokości szczelinę).</p>
+<p>Za starym spitem w&nbsp;d&oacute;ł przez 3&nbsp;m pr&oacute;g przedostać się można jeszcze około 14&nbsp;m (w kierunku powrotnym przejście uciążliwe). Pod tym korytarzem znajduje się też ciasna szczelina długości 8&nbsp;m.</p>
+<p>Od Kuchni w&nbsp;kierunku NE schodzimy w&nbsp;d&oacute;ł szczeliną szerokości generalnie na 0,4-0,5&nbsp;m i&nbsp;osiągamy najniższy punkt jaskini (-42,5&nbsp;m). Dalej przez 1,5&nbsp;m prożek w&nbsp;g&oacute;rę. Po około 4&nbsp;m szczelina skręca ku E i&nbsp;zwęża się do 0,3&nbsp;m. Wydostajemy się teraz popod wspomniany wcześniej most skalny (przy zworniku trzecim) usytuowany nad dnem szczeliny na wysokości od 3 do 5&nbsp;m. Po około 8&nbsp;m szczelina (szerokości 0,4&nbsp;m) na tym poziomie się kończy i&nbsp;wydaje się, że kończy się definitywnie (ślepa ściana). Jednak tak nie jest, szczelina kontynuuje się 5&nbsp;m wyżej na poziomie mostu skalnego. Utrzymując poprzedni kierunek z&nbsp;platformy stanowiącej część tego mostu podchodzimy jeszcze 3&nbsp;m progiem i&nbsp;wydostajemy się do Jadalni - miejsca w&nbsp;kt&oacute;rym znajduje się&nbsp;puszka z&nbsp;zeszytem do wpis&oacute;w. Szczelina ograniczona okazałym głazem poszerza się tu do 1 m, przy wysokości 3-4,5&nbsp;m. Schodzimy po pochyłym dnie, 3&nbsp;m dalej szczelina (zwana Korytarzem Gotyckim) znowu się zwęża do 0,5&nbsp;m. Przez dalsze 6&nbsp;m biegnie prosto (tylko jeden, niewielki prożek) jest wąska i&nbsp;strzelista (wysokości 6,5&nbsp;m) o&nbsp;litych, r&oacute;wnych ścianach, gdzieniegdzie przegrodzona większymi blokami. Za niewielkim zakrętem (utrzymując uprzedni kierunek) schodzi nieco w&nbsp;d&oacute;ł, po czym się wznosi. Dochodzimy do okazałej, prostokątnej wanty, za kt&oacute;rą przez około 5&nbsp;m szczelina jest r&oacute;wna (szerokości 0,4-0,5 m; wysokości do około 8&nbsp;m). Na dalszych 8&nbsp;m (za dwoma blokami) sytuacja uprzednia się powtarza - schodzimy w&nbsp;d&oacute;ł, po czym w&nbsp;g&oacute;rę. Szczelina (zawalona okazałymi głazami) wyraźnie skręca ku NE i&nbsp;poszerza się do 0,8&nbsp;m. Znajdujemy się w&nbsp;rejonie dna studni &bdquo;S" (zwornik czwarty). Szczelina zwęża się znowu do 0,5&nbsp;m. Schodzimy w&nbsp;d&oacute;ł, a&nbsp;następnie przez 5&nbsp;m podchodzimy stromo w&nbsp;g&oacute;rę. Na tym poziomie po 2&nbsp;m szczelina kończy się wąskim pęknięciem. Do dalszych partii wspiąć się trzeba ukośnym 3&nbsp;m progiem (nad nim znajduje się 4 m wysokości pr&oacute;g, kt&oacute;rym możemy się dostać do zaciskowego przełazu), za kt&oacute;rym około 4&nbsp;m przejściem wydostajemy się nad kolejny 3,5 pr&oacute;g. Pod progiem pozioma, prosta szczelina kontynuuje się jeszcze przez około 7&nbsp;m. Opisywany ciąg jednak się tu nie kończy. Przez 4,5&nbsp;m pr&oacute;g (znajdujący się w&nbsp;połowie poziomego odcinka) wspiąć się jeszcze można na wyższe piętro. Szczelina (szerokości 0,5&nbsp;m) o&nbsp;dnie pokrytym żwirowatym materiałem biegnie tu jeszcze ku g&oacute;rze przez 7&nbsp;m i&nbsp;za prostokątnym głazem kończy się zawaliskiem. Nad tymi partiami znajduje się jeszcze jedno ciasne pięterko długości około 9 m. Dostać się do niego można (zapieraczką) jednym z czterech komin&oacute;w, wysokości od 3,5 m do 9 m. Jedna ze szczelin od SW doprowadza do g&oacute;rnych partii Studni &ldquo;S&rdquo; (nad zaciskowym przełazem)</p>
+<p>Jaskinia osuwiskowa, powstała w&nbsp;piaskowcach ciężkowickich serii śląskiej. Dno pokryte rumoszem, gruzem, r&oacute;żnej wielkości blokami, w&nbsp;niekt&oacute;rych partiach gliną lub żwirowatym materiałem. W jaskini występują inkrustacje kaolinitowo-kwarcowe z domieszką substancji amorficznej (Urban i in. 2006, Urban i in. 2007).</p>
+<p>Jaskinia prawie w&nbsp;całości sucha. Przewiew wyczuwalny w&nbsp;jaskini na poziomie g&oacute;rnym i&nbsp;środkowym. Światło sięga od 1 otworu do Sali Piotrka oraz do studni za ruchomą kratą (od 2 otworu).</p>
+<p><span>Na głazach przyotworowych (1 otw&oacute;r) występują gdzieniegdzie mchy i&nbsp;porosty. Zaobserwowano liczne pająki i&nbsp;owady troglokseniczne (K. Kowalski 1954). Podczas zimowych spis&oacute;w nietoperzy sporządzanych w&nbsp;latach 1991-1997 (T. Mleczek, B.&nbsp;Szatkowski, W. Węgiel 1994, T. Mleczek 1996g,h) stwierdzono występowanie podkowca małego (<strong><em>Rhinolophus hipposideros</em></strong>), nocka dużego (<strong><em>Myotis myotis</em></strong>), nocka Natterera (<strong><em>Myotis nattereri</em></strong>), nocka Brandta (<strong><em>Myotis brandtii</em></strong>), nocka rudego (<strong><em>Myotis daubentonii</em></strong>) i gacka brunatnego (<strong><em>Plecotus auritus</em></strong>). Maksymalną liczebność nietoperzy stwierdzono 13 lutego 2008 r., gdy w jaskini zimowało 158 osobnik&oacute;w, w tym 147 podkowc&oacute;w małych (Mleczek 2008- materiały arch.)</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od bardzo dawna. Wiążą się z&nbsp;nią legendy o&nbsp;skarbach i&nbsp;diabłach. Prawdopodobnie była penetrowana przez poszukiwaczy skarb&oacute;w (o&nbsp;czym świadczyć mogą znaki wyryte przy 1 otworze). Miała też być kryj&oacute;wką arian. Pierwszą wzmiankę o&nbsp;jaskini odnaleźć można w&nbsp;&bdquo;Dzienniku podr&oacute;ży do Tatr&oacute;w" z&nbsp;1853&nbsp;r. S. Goszczyńskiego. Wzmiankuje o&nbsp;niej r&oacute;wnież w&nbsp;1878&nbsp;r. A. Gruszecki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W&nbsp;1923&nbsp;r. wstępne partie opisuje S.&nbsp;Udziela. Z&nbsp;p&oacute;źniejszych wzmianek opracowań należy wyr&oacute;żnić zasadniczo dwie pozycje zawierające w&nbsp;ujęciu inwentarzowym kompleksowe dane o&nbsp;jaskini:</p>
+<p>1) z&nbsp;1937&nbsp;r. - opis i&nbsp;plan jaskini oraz fotografia otworu W. Walczaka - &bdquo;Wierchy";</p>
+<p>2) z&nbsp;1954&nbsp;r. K. Kowalskiego - lokalizacja, opis, plan i&nbsp;przekr&oacute;j rozwinięty (w skali 1:400) obejmujący 175&nbsp;m długości (Jaskinie Polski tom III).</p>
+<p>Na podstawie ustnych informacji wiemy, że prawdopodobnie w&nbsp;latach 70-tych został sporządzony (przez grupę tarnowską) trzeci plan jaskini, nieznany autorowi. Właśnie z&nbsp;tymi pracami mogą mieć związek oznaczenia numeryczne widniejące gdzieniegdzie na ścianach jaskini.</p>
+<p>W ramach inwentaryzacji jaskiń beskidzkich materiał dokumentacyjny zebrali w&nbsp;dniach 12-13 lipca 1979 r., 5-7 października 1979 r. 18 października 1980 r., 21-23 marca 1981&nbsp;r. 19-20 maja 1982 r., 28-29 maja 1983 r., 5-6 listopada 1983 r.:</p>
+<p>do planu jaskini: J. Ganszer J. Pukowski, G. Klassek, Z. Malarz, J.&nbsp;Pudełko,&nbsp;M.&nbsp;Beczała, M.&nbsp;Wiewi&oacute;ra,&nbsp;M. Grupka;</p>
+<p>do przekroju rozwiniętego: J. Ganszer J. Pukowski J. Saluk, J. Pudełko, Z. Malarz ze Speleoklubu Bielsko-Biała.</p>
+<p>Pomiary wykonano busolą geologiczną Freiberg i&nbsp;taśmą parcianą. Dnia 31 października 1993&nbsp;r. T. Mleczek, B. Szatkowski i&nbsp;K. Bigos ze Speleoklubu Dębica uzupełnili materiały dokumentacyjne - inwentaryzując nowe partie o&nbsp;długości 30&nbsp;m. Po tych pomiarach długość jaskini wzrosła do 350 m. 22 stycznia 1997 r. T. Mleczek, P. Baczyński i R. Niemiec (Speleoklub Dębicki) pomierzyli partie o długości 15 m. Po tych pomiarach długość jaskini wynosi 365 m. 15 kwietnia 2009 r. T. Mleczek (Stowarzyszenie Speleoklub Beskidzki) dokonał aktualizacji planu i opisu, a w 2015 r. dpkpnał uzupełnień w wykazie cytowanej literatury..</p>
+<p><span>Plan i&nbsp;przekr&oacute;j rozwinięty opracował J. Ganszer, uzupełnienia wprowadził T. Mleczek.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Goszczyński S. 1853 (wzmianka o jaskini k/Bruśnika); Gruszecki A. 1878 (wzmianka o jaskini); Udziela S. 1923 (opis wstępnych partii); [bez imienia] 1932 (wzmianka o jaskini); Danysz-Fleszarowa R. 1933 (ujęta w spisie jaskiń krajowych); Czeppe Z. 1936 (opis jaskini); Walczak W. 1937 (opis, plan jaskini, fot. otworu); Sosnowski K. 1948b,(wzmianka o jaskini); Reychman J. 1948 (wzmianka o rozpoczęciu starań ochronnych jaskini); Kowalski K. 1951 (wzmianka o jaskini); Tomek W. 1952 (wzmianka o jaskini); Kowalski K. 1953b (wzmianka o występowaniu nietoperzy); Kowalski K. 1954 (plan, przekr&#243;j rozwinięty i opis inwentarzowy); Alexandrowicz Z. i in. 1975 (szkic lokalizacyjny, og&#243;lna charakterystyka planu wg Kowalskiego); Klassek G. 1986b (ujęta na liście najdłuższych i najgłębszych jaskiń Karpat Fliszowych); Mleczek T. 1988 (wzmianka o „książkach wejść&quot; do jaskini); Klassek G. 1989 (ujęta w zestawieniu jaskiń fliszowych); Wiśniewski W.W. 1989 (ujęta w wykazie jaskiń Karpat); Klassek G. 1990a (ujęta na liście najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G. 1990b, (opis, plan i przekr&#243;j rozwinięty jaskini oraz ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Klassek G. 1991 (ujęta na liście najdłuższych i najgłębszych jaskiń Karpat Fliszowych); Wiśniewski W.W. 1991e (ujęta w wykazie jaskiń Karpat); Wiśniewski W.W. 1992 (wzmianka); Węgiel A., Węgiel W. 1993 (dane dot. występowania nietoperzy w jaskini); Wiśniewski W.W. 1993a (wzmianka); Wiśniewski W.W. 1993b (ujęta w wykazie jaskiń Karpat); Klassek G. 1994 (ujęta na liście najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T., Szatkowski B., Węgiel W. 1994 (dane z zimowego spisu nietoperzy - 1991-93); Wiśniewski W.W. 1994 (wzmianka o powiększeniu długości jaskini o 30 m nowych partii oraz ujęta na liście najdłuższych i najgłębszych jaskiń Karpat Fliszowych); Mleczek T. 1995b (wzmianka o inwentaryzacji 30 m nowych partii, uzupełniony przekr&#243;j rozwinięty jaskini); Klassek G. 1995 (wzmianka o inwentaryzacji nowych partii oraz ujęta w wykazie najdłuższych i najgłębszych jaskiń Karpat Fliszowych); Klassek G. 1996 (ujęta w wykazie najdłuższych i najgłębszych jaskiń Karpat Fliszowych); Mleczek T. 1996g,h (nietoperze); Mleczek T. 1996i (informacja o zamknięciu jaskini kratą); Wiśniewski W.W. 1996a,d (ujęta w wykazie jaskiń Karpat); Wołoszyn B.W. 1996 (wymienia w spisie największych kolonii nietoperzy); Urban J. 1997 (ujęta w wykazie najdłuższych i najgłębszych jaskiń pseudokrasowych Polski); Jaskinie Polskich Karpat fliszowych 1997b (plan i opis inwentarzowy); Klassek G., Mleczek T. 1998 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Nabożny P., Kozik R., Zawartka J. 1998 (kr&#243;tki opis, fauna, fotografie); Wiśniewski W.W. 1998d (wzmianka); Wiśniewski W.W. 1998e (wzmianka); Klassek G., Mleczek T. 1999 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T., Baczyński P. 1999a (nietoperze); Mleczek T., Baczyński P. 1999b (nietoperze); Mleczek T. 1999d (nietoperze); Mleczek T. 1999e (opis i przekr&#243;j jaskini z trudnościami technicznymi); Mleczek T. 1999f (nietoperze); Alexandrowicz Z., Poprawa P. (red.) 2000 (kr&#243;tki opis); Klassek G., Mleczek T. 2000 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Gacek, J., Wojkowski, J. 2001 (mikroklimat); Ganszer J., Klassek G., Mleczek T., Pukowski J., Szura Cz. 2001 (opis jaskini, przekr&#243;j rozwinięty); G.[Radziński], M. 2001. (wzmianka); Klassek G., Mleczek T. 2001 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T. 2001c (nietoperze); Mleczek T. 2001d (nietoperze); Klassek G., Mleczek T. 2002 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T. 2002b (wzmianka); Klassek G., Mleczek T. 2003 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Pog&#243;rze Ciężkowickie i Rożnowskie 2003 (lokalizacja na mapie bez podanej nazwy); Klassek G. 2004 (historia poznania, ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2004 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Okolice Tarnowa, 2004 (lokalizacja na mapie, wzmianka); Klassek G., Mleczek T. 2005 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Kapturkiewicz A. 2006a (ujęta w spisie najdłuższych jaskiń rejon&#243;w Karpat Fliszowych); Klassek G., Mleczek T. 2006 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Margielewski W. 2006. (9. Międzynarodowe Sympozjum Pseudokrasowe, fotografie uczestnik&#243;w przy otworze jaskini); Migoń p. 2006 (kr&#243;tki opis, podana długość i głębokość, fotografia korytarza jaskini); Mleczek T. 2006 (szkic techniczny); Rachwał, J., Kozioł, P. 2006 (wzmianka); Urban J., Margielewski W., Alexandrowicz Z., Mleczek T. 2006 (kr&#243;tki opis, geneza, plan i przekr&#243;j); Urban J., Margielewski W., Żak, K., Schejbal-Chwastek M., Mleczek T., Szura, Cz., Herman, H., Sujka, G. 2006a (nacieki); Urban J., Margielewski W., Żak, K., Schejbal-Chwastek M., Mleczek T., Szura, Cz., Herman, H., Sujka, G. 2006b (nacieki); Klassek G., Mleczek T. 2007. (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Urban J., Margielewski W., Schejbal-Chwastek M., Szura Cz. 2007. (nacieki- opis i fotografie); Margielewski W. 2008 (9. Międzynarodowe Sympozjum Pseudokrasowe); Klassek G., Mleczek T. 2008a (wzmianka); Klassek G., Mleczek T. 2008b (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T., 2009 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Sanek W. 2009 (nietoperze); Klassek G., Mleczek T., 2010 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2011 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2012 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2014 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek, Tomasz Mleczek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12183)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(2661)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=722" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1648">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1648;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "562860,40".replace(',', '.') + "," + "152274,84".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1648','Jaskinia Przeziorowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Przeziorowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.F-08.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;51′49,51″, φ: 49&#176;14′05,11″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW, 1229 m n.p.n.; 3 - ku SW, 1229 m n.p.m.; 4 - ku NW, 1229 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1229
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                170
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                5,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                17,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    420
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na prawym orograficznie zboczu Doliny Kościeliskiej, w zboczach Żaru (Gubalca). 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Za mostkiem powyżej Krzyża Pola skręcamy na lewo i niewyraźną, starą hawiarską drogą idziemy skosem do góry, w kierunku ujścia doliny aż za gęsty las ograniczający od północy niewielką polanę. Drogę aktualnie (2009) utrudniają zwalone drzewa. Na prawo, wysoko na stoku widać skałki, a między nimi, nieco wyżej pod ścianką, ciemną nyżę. Za skałkami wznosimy się żlebem wprost do góry, nieco ku SE. Za pierwszym (niższym) pasem skałek, w prawej or. stronie żlebu widać obszerny otwór Jaskini za Smrekiem T.E-08.02; rośnie w nim rozłożysty, stary smrek, zasłaniający go nieco. W następnym żlebie, położonym kilkadziesiąt metrów na południe od tej jaskini, znajduje się w analogiczny sposób usytuowany główny otwór Jaskini Przeziorowej T.F-08.01, również zasłonięty smrekiem. Wszystkie otwory Jaskini Przeziorowej odnajdujemy w prawym orograficznie ograniczeniu tego żlebu, w dolnej części pasa skał. Dojście bez trudności, zwiedzanie uciążliwe ze względu na ciasnotę części korytarzy oraz niebezpieczne zawaliska.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Jaskinia ma cztery otwory, kt&oacute;re tworzą malownicze &bdquo;przeziory&rdquo; w jej wstępnych partiach. Obszerny gł&oacute;wny otw&oacute;r o nieregularnym kształcie wiedzie do Komory Wstępnej, z kt&oacute;rej za oknami w ścianie uchodzą do powierzchni dwa korytarzyki-przeziory (otwory II i III). Czwarty przezior stanowi wylot 2,5-metrowego kominka, znajdującego się przy lewej ścianie naprzeciwko wspomnianych okien.</span></p>
+<p><span>Z Komory Wstępnej idziemy Lewym Korytarzem na wprost, nieco do g&oacute;ry, do małej przegrody skalnej (wysokości 0,8 m ). Nad nią, na prawo do g&oacute;ry odchodzi boczny, myty ciąg zakończony studzienką. Za przegrodą gł&oacute;wny korytarz opada na wprost do ciasnego przekopu (za nim na prawo widać ujście wspomnianej uprzednio studzienki). Przekop kończy się około 8 m dalej, za podstemplowaną kom&oacute;rką zawaliskową, zwaną Zawałem pod Zapałkami. Korytarz zakręca stąd na prawo i stromą, mytą pochylnią sprowadza do 4-metrowej Studni Dobrej Nadziei. Z jej dna &ndash; zn&oacute;w na prawo &ndash; docieramy do Kostnicy (widać tu materiał wybrany ze szczeliny w dnie). Nieco dalej znajduje się Gnojny Syfon &ndash; wbrew nazwie jest płytkim, błotnistym jeziorkiem, kt&oacute;re przechodzi się po kamieniach. Następnie pokonujemy Zacisk Gwark&oacute;w z Mysłowic i niską pochylnią z osuwającym się rumoszem (Golgotę Kamienną), wiodącą do g&oacute;ry, docieramy do Salki Czterech Wiatr&oacute;w.</span></p>
+<p><span>Z Salki Czterech Wiatr&oacute;w na prawo, za 2-metrowym progiem wznosi się stromo boczny ciąg z zawaliskowym Kominem Niepokoju, kt&oacute;ry tworzy pętlę, uchodzącą z powrotem do salki nad innym, 2-metrowym progiem. Na lewo odchodzi około 15-metrowy korytarz z jeziorkiem na końcu, całkowicie zamulony. Na wprost idziemy gł&oacute;wnym ciągiem, kt&oacute;ry opada do zamulonej kom&oacute;rki, będącej kolejnym miejscem eksploracji g&oacute;rniczymi metodami. Kom&oacute;rkę omijamy g&oacute;rą przez ciasną rurkę skalną po lewej stronie i docieramy do Sali Piętrowej.</span></p>
+<p><span>Z Sali Piętrowej na prawo, za 2-metrowym progiem odchodzi boczny ciąg o skomplikowanym przebiegu, z kilkoma odnogami i prożkami. Na wprost można przejść przez r&oacute;wnoległe szczelinowe zaciski (bardzo trudne) do Damskich Partii &ndash; ciasnych, zakończonych szczeliną wiodącą w kierunku powierzchni.</span></p>
+<p><span>Z Sali Piętrowej cofamy się nieco i odchodzącym na skos w prawo zamulonym przełazem dochodzimy do Mlecznego Rurociągu. Jest to niezbyt obszerny, myty korytarz o długości około 120 m. Po mniej więcej 20 m od wejścia do niego, odgałęzia się na lewo niezwykle ciasna szczelina zwana Korytarzem tylko dla Wybrańc&oacute;w. Omijamy jego wylot i Mlecznym Rurociągiem podążamy ku wschodowi. Za kilkoma ostrymi zakrętami tworzącymi &bdquo;Z-kę&rdquo; biegnie on prawie prosto. Omijamy boczne, niedostępne szczeliny oraz niewielkie studzienki i kominki. W końcu korytarz zakręca na prawo i doprowadza do Gwiazdy Rozdroża. Jest to niewielkie rozszerzenie, z kt&oacute;rego na prawo wiedzie w kierunku powierzchni zwężający się zawaliskowy Korytarz Niedźwiedzi, z pozostałościami po szkieletach tych zwierząt. Na lewo, jako przedłużenie dojściowego korytarza, odchodzi wąska, wysoka szczelina (przy wejściu do niej omijamy ciasne przebicie do Mlecznego Rurociągu), zakończona miniaturową Kom&oacute;rką Naciekową. </span></p>
+<p><span>Wracamy do Korytarza tylko dla Wybrańc&oacute;w. Ma on ponad 12 m długości, jego szerokość rzadko przekracza 25 cm, a w kilku miejscach jest jeszcze ciaśniej. Przeciskamy się nim do wygodnego Prawego Korytarza. Na prawo w d&oacute;ł za małym przekopem zamienia się on w bardzo ciasny tunelik, kt&oacute;ry po około 18 m zakręca na lewo i przechodzi w niedostępną szczelinę. Na lewo od wylotu Korytarza tylko dla Wybrańc&oacute;w szeroki Prawy Korytarz przez mały prożek wyprowadza do Komory Wstępnej. Po drodze omijamy ujścia kr&oacute;tkiej odnogi tworzącej pętlę.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach triasu środkowego autochtonicznej serii wierchowej. Została wymyta na systemie szczelin o kierunkach SW&ndash;NE, WSW&ndash;ENE i W&ndash;E. W&oacute;jcik (1966a) zalicza Jaskinię Przeziorową do VII piętra jaskiń tatrzańskich i uważa ją za podziemny przepływ powierzchniowego potoku z okresu dolnego pliocenu.</span></p>
+<p><span>Rudnicki (1958) uważa jaskinię za młodszą, pochodzącą z końca pliocenu lub z okresu najstarszego zlodowacenia Tatr. Ściany jaskini w części przyotworowej są zwietrzałe i spękane, w głębi, za przekopem, przeważnie ogładzone, myte. W jaskini występują ciekawe, choć niewielkie formy naciekowe. Najliczniej występują one w Mlecznym Rurociągu i okolicach Gwiazdy Rozdroża. Opr&oacute;cz bardzo obecnie zniszczonej, grubej warstwy mleka wapiennego, w małych załomach występują polewy naciekowe, stalaktyty, stalagmity i heliktyty, a w Kom&oacute;rce Naciekowej także pola ryżowe.</span></p>
+<p><span>Namulisko stanowi glina oraz gruz wapienny. W Mlecznym Rurociągu mleko wapienne zmywane ze ścian barwi glinę na jasnokremowy kolor. W osadach znajdują się domieszki żwir&oacute;w skał krystalicznych. Zawaliska stanowią znaczną część osad&oacute;w występujących w jaskini &ndash; szczeg&oacute;lnie w okolicach Zawału pod Zapałkami, Golgoty Kamiennej, Komina Niepokoju, Sali Piętrowej i Korytarza Niedźwiedzia. Gleba występuje w niewielkiej ilości przy otworach, a także w Partiach Damskich i w Korytarzu Niedźwiedzi, gdzie jest namywana przez niedostępne szczeliny z powierzchni.</span></p>
+<p><span>Światło poprzez przeziory dociera około 20 m w głąb jaskini. Jaskinia jest wilgotna, miejscami na namulisku występują kałuże wody i niewielkie jeziorka. Największym zbiornikiem wody jest jeziorko Gnojnego Syfonu. W korytarzach wyczuwa się wyraźny przewiew.</span></p>
+<p><span>W Komorze Wstępnej rozwijają się paprocie, mchy, porosty i glony, spotyka się także nieliczne rośliny kwiatowe.</span></p>
+<p><span>Wsp&oacute;łczesną faunę reprezentują przy otworze ślimaki, chrząszcze, pająki, muchy i komary; głębiej spotyka się motyle <strong><em>Triphosa dubitata</em></strong>, chruściki, ćmy, much&oacute;wki, a także nietoperze. W namulisku i na jego powierzchni znajdowały się prawie kompletne szkielety niedźwiedzi (kości grube i czaszki odkrywcy przekazali do Muzeum Tatrzańskiego Parku Narodowego w Zakopanem), a także kości nietoperzy, gryzoni i innych zwierząt. Piksa (1998) wymienia nietoperze z gatunku </span><strong><em>Myotis myotis</em></strong> /Borkhausen/.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Na temat genezy i osad&oacute;w jaskini wypowiadali się Rudnicki (1958) oraz W&oacute;jcik (1960b, 1966a).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wstępne partie jaskini były prawdopodobnie od dawna znane pasterzom W 1922 r. T. i S. Zwolińscy zwiedzili Lewy Korytarz do pierwszego przekopu oraz Prawy Korytarz do zwężenia za zachodnim wylotem Korytarza tylko dla Wybrańc&oacute;w &ndash; łącznie około 50 metr&oacute;w. <br /> Podczas obozu szkoleniowego zorganizowanego w 1971 r. przez Okręgową Sekcję Speleologii PTTK z Katowic i kierowanym przez J. Senkałę, jego uczestnicy odkryli nowe partie jaskini &ndash; ich długość oszacowano wtedy (błędnie) na 150 metr&oacute;w. Ciasny przełaz na końcu Lewego Korytarza przeszedł H. Boronowski ze Speleoklubu &bdquo;G&oacute;rnik&rdquo; z Katowic. Grotołazi ze Speleoklub&oacute;w z Katowic i Bielska Białej doszli do Syfonu Gnojnego, wykonując długi przekop przez zawalisko i podstemplowując jego część grożącą obsunięciem (Zawał pod Zapałkami). Zacisk Gwark&oacute;w z Mysłowic i gł&oacute;wny ciąg do końca przebyli członkowie Speleoklubu &bdquo;Gacek&rdquo; Oddziału PTTK &bdquo;Gwarek&rdquo; przy kopalni Mysłowice w składzie: L. Pacuła, J. Niederliński, R. Politański, H. Rusiecki i J. Winkler. Nieco p&oacute;źniej wyeksplorowali także większość bocznych odn&oacute;g oraz rozpoczęli przekopywanie namulisk i zawalisk zamykających drogę w kilku korytarzach. Nowe ciągi jaskini nazwano Partiami Śląskimi. W jaskini wykonano fotografie, m. in. czaszek niedźwiedzi. L. Pacuła i H. Boronowski wykonali szkic jaskini oparty częściowo na pomiarach. Informację o odkryciu podał Parma (1972).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan jaskini opublikował Zwoliński (1923). Kowalski (1953a) opublikował własny opis inwentarzowy datowany na 13 lipca 1952 r., wraz z kt&oacute;rym zamieścił plan Zwolińskiego. Podczas inwentaryzacji jaskiń tatrzańskich OW PTPNoZ dokumentację jaskini sporządzili w dniach 17-20 lipca 1977 r. I. Luty i M. Burkacki przy wsp&oacute;łpracy E. Kuźniak i P. Herzyka. Przeprowadzone pomiary wykazały, że długość korytarzy oszacowana przez Pacułę i jego koleg&oacute;w była znacznie zaniżona. W trakcie sporządzania dokumentacji odkryto dalsze fragmenty bocznych partii jaskini, w tym Partie Damskie oraz ciasny tunelik na przedłużeniu Prawego Korytarza (po przekopaniu jego wylotu). Dokumentację fotograficzną przezior&oacute;w wykonał W. Burkacki, a zdjęcia naciek&oacute;w i kości niedźwiedzi oraz korytarzy jaskini &ndash; I. Luty. I. Luty uzupełniła też obserwacje terenowe w latach 1978-79, 1984 i 1989, stwierdzając postępujące zniszczenia szaty naciekowej oraz kradzież kości. Pomiary wykonano taśmą parcianą i busolą geologiczną Meridian. Dane zaktualizowała I. Luty (2009).<br />Plan opracowali M. Burkacki i I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zwoliński T. 1923 (plan, opis, fotografia otworu); Kowalski K. 1953a (plan i opis inwentarzowy); Rudnicki J. 1958 (wzmiankuje w nawiązaniu do rozwoju doliny); W&#243;jcik Z. 1960b (osady); Rudnicki, J. 1962 (informacja o badaniach wieku i genezy); W&#243;jcik Z. 1966a (dane morfometryczne, osady, wiek, geneza); Parma Ch. 1972 (informacja o odkryciach); Kardaś R.M., Burkacki M. 1977 (informacja o wykonaniu dokumentacji i długości); Herzyk P. 1977 (opis akcji inwentaryzacyjnej, fotografia Golgoty Kamiennej autorstwa I.Luty); TATRY POLSKIE 1984 (lokalizacja na mapie); Gradziński R. i in. 1985a (dane morfometryczne, lokalizacja na mapie); Jaskinie TPN 1993b (plan i opis inwentarzowy); Piksa, K. 1998 (nietoperze).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Pacuła, L. 1977 (list z opisem eksploracji, szkic jaskini z 1971 r.).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1172)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11763">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11763;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "557456,98".replace(',', '.') + "," + "259908,27".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11763','Jaskinia Biała'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Biała
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Biała jama, Jaskinia Krakowska, grota Krakowska, Jaskinia Jasna, Grota Biała
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02b.164
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′19,34″, φ: 50&#176;12′12,92″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku NW, wys. otw. 407 m n.p.m., wys. otw. nad dnem wąwozu 22 m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                398
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    84
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Wąw&#243;z Jamki, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na prawym zboczu Wąwozu Jamki ok. 100 m w górę od wylotu bocznego Wąwozu Dzikowiec. Idąc Wąwozem Jamki od Doliny Sąspowskiej, po dojściu do położonej przy ścieżce skały z dużym otworem Jaskini Pustelnia J.Olk.I-02b.178 należy skręcić w kierunku grupy skalnej usytuowanej na przeciwległym zboczu. Po minięciu rozległego blokowiska dochodzimy do skałek o wysokości ok. 15 m. Niewielki dolny otwór jaskini (1.) jest usytuowany u ich podnóża. Otwór ten zasłonięty przez duże bloki wapienne jest widoczny jedynie z bliska. Otwór górny (2.) znajduje się powyżej w ściankach skalnych, w górnej części stromego, skalistego żlebu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za otworem o tr&oacute;jkątnym kształcie i wysokości 1 m, w kt&oacute;rym osadzona jest krata, znajduje się obszerny korytarz. Odbiega od niego kilka niewielkich odgałęzień zamkniętych gruzem wapiennym i humusem, przez kt&oacute;re przebijają się korzenie drzew. Korytarz ten dochodzi po 15 m do wysokiej sali, gdzie krzyżuje się z poprzecznym ciągiem. Ku południowi ciąg ten prowadzi, poprzez obniżenie, do obszernej sali o białych ścianach, kt&oacute;rej wysokość sięga 15 m. P&oacute;łnocną część wspomnianego ciągu stanowi nachylony komin o wysokości 9 m, kończący się otworem g&oacute;rnym (2.) zamkniętym nieotwieralną kratą.</p>
+<p>Jaskinia powstała w wapieniu skalistym jury g&oacute;rnej. Kształt i przebieg korytarzy jest uwarunkowany przebiegiem szczelin ciosowych. Jaskinia ma genezę krasową. Namulisko obfite, w końcowej części jaskini gliniaste; w częściach wstępnych humusowe, pokryte liśćmi. W sali na spągu duża ilość gruzu wapiennego; wielkość niekt&oacute;rych blok&oacute;w przekracza 1 m.</p>
+<p>Szata naciekowa jaskini jest uboga, jedynie w końcowej sali spotykamy wodospady naciekowe oraz pola ryżowe powstałe z częściowo skonsolidowanego mleka wapiennego, o białej barwie a także niewielkie stalaktyty.</p>
+<p>Jaskinia wilgotna; światło sięga kilka metr&oacute;w w głąb od otwor&oacute;w. Partie pod kominem w strefie światła rozproszonego. Wiosną w rejonie przyotworowym przez długi czas występuje śnieg (Kowalski 1951). Jaskinia charakteryzuje się mikroklimatem dynamiczno-statycznym uwarunkowanym istnieniem dw&oacute;ch otwor&oacute;w (Gula i in. 1994&ndash;1995). Cechuje się istnieniem stratyfikacji termicznej powietrza. Temperatura waha się od 4&ndash;7&deg;C, a wilgotność od ok. 80 do 100%. Najmniejsze zmiany wilgotności zaznaczają się w końcowej sali (Gula i in. 1994&ndash;1995). W składzie chemicznym wody dominuje Ca i HCO3 (G&oacute;rny i in. 2001). Część badanych pr&oacute;bek nosiła cechy zmian antropogenicznych, o czym świadczy między innymi podwyższona zawartość azotan&oacute;w (Goc i in. 2000).</p>
+<p>Ściany przy otworach są porośnięte przez obfity zesp&oacute;ł sinic i glon&oacute;w.</p>
+<p>W jaskini stwierdzono (20.11.1994 r.) obecność dw&oacute;ch nietoperzy (<em>Rhinolophus hipposideros</em> i niezidentyfikowanego) oraz pająk&oacute;w. Występowanie nietoperzy w jaskini było wielokrotnie odnotowywane w literaturze. Maksymalną frekwencję odnotowano w 2009 r. (22 osobniki). Łącznie stwierdzono przedstawicieli 10 gatunk&oacute;w nietoperzy. W jaskini zaobserwowano występowanie wielu gatunk&oacute;w bezkręgowc&oacute;w &ndash; motyli, much&oacute;wek, chruścik&oacute;w, pająk&oacute;w (w tym <em>Porrhomma egeria</em> = <em>P. moravicum</em>) niesporczak&oacute;w, skoczogonk&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Sondażowe prace wykopaliskowe przeprowadził jesienią 1919 r. S. Krukowski, lecz wynik&oacute;w nie opublikował; nie upublicznił także faktu prowadzenia badań (M. Kot i in. 2019b). Badania geomorfologiczne prowadził w jaskini Z. Ciętak (1935), a geologiczne M. Gradziński (1992, 1994&ndash;1995 &ndash; geneza szaty naciekowej). Obserwacje mikroklimatyczne wykonywali S. Gula i in. (1994&ndash;1995). Analizy w&oacute;d perkolacyjnych prowadziła G. Ficek (1979), a w latach 1996&ndash;1998 J. Motyka wraz z zespołem (P. Goc i in. 2000; A. G&oacute;rny i in. 2001; Motyka i in. 2002). Zesp&oacute;ł naskalnych sinic i glon&oacute;w był przedmiotem studi&oacute;w J. Czerwik-Marcinkowskiej i T. Mrozińskiej (J. Czerwik-Marcinkowska i T. Mrozińska 2009, 2010, 2011; J. Czerwik-Marcinkowska, 2013; J. Czerwik-Marcinkowska i in. 2015a, 2015b). Wsp&oacute;łczesną faunę badali: bezkręgowce &ndash; K. Demel (1918), motyle &ndash; C.M. Bieżanko (1923), chrząszcze &ndash; W. Szymczakowski (1959) i J. Pawłowski (1975), skoczogonki &ndash; A. Szeptycki (1967), niesporczaki &ndash; H. Dastych (1979), pajęczaki &ndash; E. Sanocka-Wołoszynowa (1981) i R. Rozwałka (2008), a much&oacute;wki A. Klasa i A. Palaczyk (2005). Wielokrotnie prowadzone były obserwacje nietoperzy. W latach pięćdziesiątych XX w. prowadzili je K. Kowalski i W. Szymczakowski (K. Kowalski 1953). Następnie obserwacje takie były wykonywane okazjonalnie (J. Godawa 1994&ndash;1995; M. Jurczyszyn i A. Nowosad 2006). Od lat dziewięćdziesiątych XX w. w lutym każdego roku odbywa się systematyczny monitoring nietoperzy prowadzony przez liczne zespoły w ramach og&oacute;lnopolskiej akcji Dekada Spisu Nietoperzy (M. Labocha i B.W. Wołoszyn 1994; J. Węgiel i A. Węgiel, 1996; K. Polowy i M. Wieczorek, 2001; A. Węgiel i in. 2001; K. Kozakiewicz i B.W. Wołoszyn 2008) a w ostatnich latach gł&oacute;wnie przez W. Grzywińskiego i J. Nowaka z towarzyszami (J. Nowak i K. Kozakiewicz 2000, 2001; J. Nowak i in. 2002; W. Grzywiński i in. 2004, 2006, 2015; J. Nowak i W. Grzywiński 2007, 2012, 2017).<br />Jaskinia wpisana 29.10.1924 r. przez Radę Konserwator&oacute;w do Inwentarza Zabytk&oacute;w Nieruchomych pod nr. 439 (Z Ministerstwa 1924). Na zlecenie Dyrekcji OPN otwory jaskini zostały zamknięte kratami 12.11.1993 r. (J. Partyka, B. Słobodzian &ndash; inf. ustna, 1995 r.). Dzięki staraniom Polskiego Towarzystwo Przyjaci&oacute;ł Przyrody &bdquo;pro Natura&rdquo; z Wrocławia krata w dolnym otworze w 2010 r. została wymieniona na zamknięcie dostosowane dla potrzeb nietoperzy (W. Grzywiński i in. 2015).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od dawna. Być może odnoszą się do niej wzmianki m&oacute;wiące og&oacute;lnie o jaskiniach w Jamkach lub w lasach w pobliżu Czajowic, z kt&oacute;rych prawdopodobnie najwcześniejszą jest wzmianka autorstwa J.M. Wiślickiego (1850). Prawdopodobnie pierwszą wzmiankę jej dotyczącą podaje S.J. Czarnowski (1899), stosując nazwę Jaskinia Krakowska. Można przypuszczać, że przynajmniej część publikowanych wzmianek m&oacute;wiących o Jaskini Jasnej lub Białej (S. Ciszewski 1887; P. Przesmycki 1908), odnosi się w rzeczywistości do Jaskini Krakowskiej. Nazwy Jaskinia Biała użył w odniesieniu do tego właśnie obiektu S.J. Czarnowski (1911, 1911c). Opis jaskini wraz z własnym planem podaje Z. Ciętak (1935).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zinwentaryzowana 17.05.1950 r. przez K. Kowalskiego (1951) z planem Z. Ciętaka (1935). Została skartowana 29.03.1967 r. przez A. Kobyłeckiego z pomocą A. Tokarskiego (A. Kobyłecki &ndash; inf. pisemna, 2020 r.) i wymieniona w wykazie A. Kobyłeckiego (1972). Dokumentację kartograficzną wykonał M. Szelerewicz z pomocą A. Drabierskiej, J. Matyjasza i W. Szymanowskiego w trakcie kursu kartowania jaskiniowego 16.04.1983 r. Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego. Opisana i wymieniona w wykazie przez M. Szelerewicza i A. G&oacute;rnego (1986) a następuje w wykazie M. Szelerewicza (1990d). W ramach wykonywania dokumentacji 20.11.1994 r. obserwacje terenowe zebrali A. Amirowicz i M. Gradziński. Obserwacje uzupełniające przeprowadził M. Gradziński 04.11.2017 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Szelerewicz.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wiślicki J.M. 1850 (wzmianka o jaskiniach zwanych czajowskiemi od sąsiedniej wsi Czajowice, być może odnosi się także do Jaskini Białej); Grabowski A. 1866 (wzmianka o jaskiniach zwanych Jamkami znajdujących się w lasach na gruncie wsi Czajowice, być może odnosi się także do Jaskini Białej); Gustawicz B. 1886 (wzmianka o trzech grotach zb&#243;jeckich zwanych jamkami, ze sklepieniami śnieżnej białości, być może odnosi się także do jaskini Białej); Ciszewski S. 1887 (wzmianka o Jaskini Białej, błędna lokalizacja w Dolinie Sąspowskiej, nie można wykluczyć. że wzmianka ta dotyczy jaskini Krakowskiej); Czarnowski S.J. 1899 (wzmianka, lokalizacja na schematycznej mapie); Wr&#243;blewski K. 1900, 1907 (położenie i opis); Krzywicki L. 1904 (wzmianka); Czarnowski S.J. 1907 (wymieniona, lokalizacja na schematycznej mapie); Czarnowski S.J. 1911, 1912b (położenie, opis, lokalizacja na schematycznej mapie); Demel K. 1918 (położenie i opis, lokalizacja na schematycznej mapie, wyniki obserwacji zoologicznych, podaje oznaczone taksony bezkręgowc&#243;w); Bieżanko C.M. 1923 (wzmianka o występowaniu ciem); Z Ministerstwa 1924 (oficjalna informacja o wpisaniu do rejestru zabytk&#243;w nieruchomych); Danysz-Fleszarowa R. 1933 (wymieniona); Boese G. 1934 (wymieniona); Ciętak Z. 1935 (położenie, opis, plan, lokalizacja na mapie); Wolf B. 1934–1937 (wykaz wsp&#243;łczesnej fauny wg Demela, 1918); Kowalski K. 1951 (opis i plan inwentarzowy, lokalizacja na mapie); Kowalski K. 1953 (informacje o występowaniu nietoperzy); Szymczakowski W. 1959 (wzmianka o występowaniu chrząszczy); Szeptycki A. 1967 (informacje o występowaniu skoczogonk&#243;w); Kobyłecki A. 1972 (wymieniona w wykazie); Pawłowski J.1975 (informacja o występowaniu chrząszczy); Czepiel M. 1976 (wymieniona w wykazie); Rafalski J. 1977 (wzmianka o występowaniu pająk&#243;w); Rzebik-Kowalska B. 1977 (informacje o występowaniu nietoperzy); Dastych H. 1979 (informacja o występowaniu niesporczak&#243;w); Sanocka-Wołoszynowa E. 1981 (informacja o występowaniu pajęczak&#243;w, wymienione gatunki pająk&#243;w i kosarzy); Ruprecht A.L. 1983a,e,i (informacja o występowaniu nietoperzy); Czepiel M. 1984 (położenie, opis i plan); Śliwiński W. 1984 (uwagi dotyczące nazewnictwa); Szelerewicz M., G&#243;rny A. 1986 (opis, plan, lokalizacja na mapie w skali 1: 40 000, wymieniona w wykazie, lokalizacja na mapie w skali 1: 100 000 oraz na przedruku schematycznej mapy Czarnowskiego); Szelerewicz M., 1990d (wymieniona w wykazie, lokalizacja na mapie); Śliwiński W. 1990 (uwagi dotyczące nazewnictwa); Kurzak J. 1991 (wzmianka o występowaniu nietoperzy); Labocha M., Wołoszyn B.W. 1994 (informacje o występowaniu nietoperzy w latach 1988–1992); Pawłowski J. i in. 1994 (informacja o występowaniu chrząszczy); Godawa J. 1994–1995 (informacja o występowaniu nietoperzy); Gradziński M. 1994–1995 (informacje o naciekach z mleka wapiennego); Gula S. i in. 1994–1995 (wyniki pomiar&#243;w mikroklimatycznych); Gradziński M. i in. 1995a (opis i plan inwentarzowy, lokalizacja na mapie); Kozakiewicz K. 1996 (eliminacja zimnolubnych gatunk&#243;w nietoperzy); Węgiel J., Węgiel A. 1996 (informacje o nieznacznym wzroście liczebności podkowca małego); Goc P. i in. 2000 (wyniki analiz stężenia azotan&#243;w w wodach); G&#243;rny A. i in. 2001 (wyniki analiz w&#243;d); Nowak J., Kozakiewicz K. 2000, 2001 (podsumowanie występowania nietoperzy); Podstawczyńska-Bienias A., Charciarek T. 2001b (wzmianka o prowadzeniu badań mikroklimatycznych); Polowy K., Wieczorek M. 2001 (zbiorcze zestawienie wynik&#243;w zimowych spis&#243;w nietoperzy); Węgiel, A. i in. 2001 (informacje o występowaniu nietoperzy); Wojkowski J. 2001 (dane mikroklimatyczne zestawione na podstawie literatury); Motyka J. i in. 2002 (wzmianka o prowadzeniu badań hydrochemicznych); Nowak J. i in. 2002 (informacje o występowaniu nietoperzy); Gradziński M., Szelerewicz M., 2004 (wymieniona w wykazie); Grzywiński W. i in. 2004 (podsumowanie występowania nietoperzy); Klasa A., Palaczyk A. 2005 (informacja o występowaniu much&#243;wek); Grzywiński W. i in. 2006 (informacja o występowaniu nietoperzy); Jurczyszyn M., Nowosad A. 2006 (informacja o występowaniu nietoperzy); Nowak J., Grzywiński W. 2007 (informacja o występowaniu nietoperzy); Gradziński M. i in. 2008 (wymieniona, lokalizacja na mapie, schematyczny plan); Kozakiewicz K., Wołoszyn B.W. 2008 (informacja o występowaniu nietoperzy); Palaczyk A. 2008 (wzmianki o występowaniu much&#243;wek); Rozwałka R. 2008 (o występowaniu pajęczak&#243;w); Czerwik-Marcinkowska J., Mrozińska T. 2009, 2010, 2011 (analiza zespołu epilitycznych glon&#243;w, wykaz gatunk&#243;w); Gradziński M. i in. 2011b (położenie, opis, plan, lokalizacja na schematycznej mapie, historia poznania); Nowak J., Grzywiński W. 2012 (informacja o występowaniu nietoperzy); Czerwik-Marcinkowska J. 2013 (analiza zespołu sinic i glon&#243;w, wykaz gatunk&#243;w); Czerwik-Marcinkowska J. i in. 2015a (wyniki ekologicznej analizy zespołu epilitycznych sinic i glon&#243;w, wykaz gatunk&#243;w); Czerwik-Marcinkowska J. i in. 2015b (zr&#243;żnicowania morfologiczne i cytologiczne a także ekologia i strategia życiowa zielenicy Muriella decolor); Grzywiński W. i in. 2015 (informacja o występowaniu nietoperzy); Śliwiński W. 2016 (uwagi dotyczące nazewnictwa); Nowak J. i Grzywiński W. 2017 (informacje o występowaniu nietoperzy); Kot M. i in. 2019b (wzmianka o przeprowadzeniu rekonesansu przez Krukowskiego); Gradziński M. i in. 2020 (opis i plan inwentarzowy, lokalizacja na mapie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Materiały archiwalne: Ficek G. 1979 (wzmianka o własnościach hydrochemicznych i termicznych w&#243;d, wzmianka o powstawaniu naciek&#243;w lodowych); Szymanowski W. i in. 1983 (dokumentacja kartograficzna).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Artur Amirowicz, Michał Gradziński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13597)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1 
+                    </a>
+                    <a onclick="showImageInfo(14884)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

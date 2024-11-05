@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2803">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2803;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "504089,82".replace(',', '.') + "," + "197389,03".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2803','Jaskinia Chłodna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Chłodna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-02.15
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;03′24,00″, φ: 49&#176;38′38,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Lipowa (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                żywiecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Kuźnie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Nr 1/93 Woj. Bielskiego z dn. 23.04.1993 r.; Dz. Urz. Woj. Bielskiego z 1993r. Nr 5 poz. 31. [wg http://crfop.gdos.gov.pl]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                912
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                16,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                16,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    125
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Śląski, Radziechowy, w SE stokach Muronki (1021 m n.p.m.).
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od szlaku turystycznego (znaki zielone) biegnącego przez Ostre na Magurkę Radziechowską, za halą z szałasami, już w lesie, skręcamy z grzbietu Muronki w lewo (szlak turystyczny odchodzi w stronę prawą). Ścieżka wyprowadza na rozległe, rozczłonkowane osuwiska - rejon rezerwatu "Kuźnie". W górnej części występują liczne formy skałkowe: mury, ambony (wysokości około 11 m) i ścianki. Część środkową zajmują głazowiska, rowy rozpadlinowe poprzedzielane wałami. Schodzimy w dół przez okazały rów na skraju wybitnego wału częściowo ograniczającego od dołu główne partie osuwiska. Tu w dość okazałym, lejowatym zagłębieniu otwór jaskini. Otwór z dala niewidoczny, lecz łatwy do znalezienia. Zwiedzanie bez trudności, tylko końcowe partie niebezpieczne (kruche, niestabilne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Przez mały, niepozorny otw&oacute;r w kierunku SW schodzimy około 2&nbsp;m niskim korytarzykiem. Kończy się on przewężeniem z&nbsp;niewielkim prożkiem i&nbsp;wyprowadza do Komory Wstępnej o&nbsp;wymiarach: długości 4,5 m, szerokości 2,5&nbsp;m. W&nbsp;okresie wiosennym znaleziono tu kilka dużych odłam&oacute;w lodu. Dno zasłane głazami jest nachylone ku W. Schodzimy na specyficzny balkon podcięty dwoma prożkami. W&nbsp;kierunku SW po zejściu w d&oacute;ł (1,2 m) wydostajemy się do ciasnej szczeliny, kt&oacute;ra po 2&nbsp;m gwałtownie skręcając nastramia się (dno pokryte materiałem żwirowatym) i&nbsp;po dalszych 3&nbsp;m wyprowadza do niższej sali.</p>
+<p>&nbsp;Dostać się tu można r&oacute;wnież inną drogą. Ze wspomnianego balkonu schodzimy na N progiem (2,2 m) do Sali z&nbsp;Nietoperzem o&nbsp;wymiarach: długości 3 m, szerokości do 2&nbsp;m i&nbsp;wysokości przeciętnie 2&nbsp;m. Strop nieregularny, dno zasłane głazami. W&nbsp;kierunku N z&nbsp;sali odchodzi w d&oacute;ł wąska, niezbadana szczelina. Natomiast w jej SE krańcu znajduje się wylot szczeliny o&nbsp;przeciętnej szerokości 0,4 m, kt&oacute;ra biegnie stromo w d&oacute;ł i&nbsp;po około 2&nbsp;m też doprowadza do niższej sali, lecz w jej przeciwległym boku.</p>
+<p>&nbsp;Wspomniana sala o&nbsp;kształcie zbliżonym do prostokąta i&nbsp;wymiarach: długości około 5 m, szerokości ponad 2 m, wysokości do 2,5 m, w zasadzie rozpoczyna ciąg gł&oacute;wny jaskini. Strop nieregularny, zaburzony, w środkowej części strzelisty. Dno nier&oacute;wne, u wylotu opisywanych szczelin zasłane miejscami żwirowatym materiałem, w gł&oacute;wnej części zawalone potężnymi blokami skalnymi tworzącymi duże rumowisko. Kontynuuje się ono w dalszych partiach jaskini na przestrzeni około 7&nbsp;m.</p>
+<p>&nbsp;Od sali w kierunku SE odchodzi stromo w g&oacute;rę wąska, wyklinowująca się szczelina, zaś gł&oacute;wny ciąg kontynuuje się ku SW. Schodzimy w d&oacute;ł dwoma prożkami (pierwszy o&nbsp;wysokości 1,8 m) wśr&oacute;d dużych blok&oacute;w skalnych (wspomniane rumowisko) do rozszerzenia - rozdroża.</p>
+<p>Ku NW przez prożek wydostać się można do Wiszącej Sali, kt&oacute;ra od N kończy się pochyłą wnęką, a&nbsp;w kierunku SW przechodzi w stromo nachyloną (ku g&oacute;rze) wąską, wyklinowującą się szczelinę.</p>
+<p>W kierunku SE, za prożkiem, biegnie obejście ciągu gł&oacute;wnego do Gł&oacute;wnej Sali. Jest to zesp&oacute;ł szczelin o&nbsp;szerokości 0,5-0,7 m, o&nbsp;przebiegu E-S-SW (ślepa odnoga ku NE), o&nbsp;łącznej długości około 10&nbsp;m.</p>
+<p>&nbsp;Ciąg gł&oacute;wny kontynuuje się jednak w kierunku SW. Schodzimy dwoma prożkami (dolny o&nbsp;wysokości 1,5 m) w końcową część rumowiska, obchodząc z&nbsp;lewej strony okazałą wantę-filar. Obejść ją r&oacute;wnież można prawą stroną od Wiszącej Sali ciasnym zejściem z&nbsp;małym prożkiem. Pod prożkami dno jest zawalone większymi głazami. Tu na jednej z&nbsp;want stwierdzono występowanie w formie gniazdowej, substancji podobnej do węgla kamiennego. W&nbsp;dalszej części rumowisko zmniejsza się, korytarz zmienia sw&oacute;j charakter. Jest r&oacute;wniejszy, o&nbsp;regularnych kształtach, u podstawy szerokości do 2 m, ku g&oacute;rze pochyla się i&nbsp;zwęża do 1 m, osiągając wysokość 5&nbsp;m. Strop jest płaski, pochylony. Po około 2&nbsp;m korytarz zwęża się i&nbsp;kończy 1,4&nbsp;m prożkiem, z&nbsp;kt&oacute;rego schodząc wydostajemy się do Gł&oacute;wnej Sali. Z&nbsp;lewej strony znajduje się wylot obejścia opisanego uprzednio, a&nbsp;tuż obok za prożkiem ku E, dalej ku NE odchodzi rozwidlony, wyklinowujący się korytarzyk o&nbsp;długości około 4&nbsp;m.</p>
+<p>&nbsp;Sala Gł&oacute;wna to największa komora jaskini o&nbsp;długości 8&nbsp;m i&nbsp;wysokości od 4,5&nbsp;m (pomiar przy wejściu) do około 11&nbsp;m w jej środkowej części. Tu strop jest płaski, dość lity, miejscami jednak widać wiszące, okazałe bloki skalne. W&nbsp;centralnej części szerokość sali wynosi 4 m, dno dość r&oacute;wne (nieliczne większe głazy), pochylające się ku SW (wg wykonanego tam pomiaru głębokość jaskini wynosi -16,5 m). Szerokość sali zmniejsza się tu stopniowo do 0,7&nbsp;m. Ze strony lewej ogranicza ją oryginalny, idący ku g&oacute;rze zach&oacute;d. Wspomniany pomiar głębokości wykonano u podstawy prożka, r&oacute;wnoległego do gł&oacute;wnej osi przebiegu sali, za kt&oacute;rym ku W przez następny 1,5 prożek wyjść można do kr&oacute;tkiej, wyklinowującej się szczeliny. Za punktem pomiaru w kierunku SW po 3&nbsp;m dalszy ciąg sali blokuje duży głaz. Ku SE biegnie w d&oacute;ł kr&oacute;tka, wyklinowująca się szczelina, a&nbsp;na W (przez prożek) 2&nbsp;m długości korytarzyk skręcający gwałtownie na S doprowadza do dna niewielkiej studzienki wychodzącej w Niskiej Sali.</p>
+<p>&nbsp;Dojść tu można r&oacute;wnież inną drogą przez wspomniany zach&oacute;d. Ograniczony od części środkowej Gł&oacute;wnej Sali prożkami (z kt&oacute;rych najwyższy ma 1,5 m) biegnie ku g&oacute;rze na SW. Dno ma zasłane materiałem żwirowatym i&nbsp;gruzem skalnym. Zrazu szerokości na prawie 2 m, po 3&nbsp;m zwęża się do 0,5&nbsp;m przechodząc stopniowo w korytarz, kt&oacute;ry za niewielkim prożkiem (w g&oacute;rę) rozgałęzia się. i&nbsp;tu charakter jaskini się zmienia - tu jej partie są zaburzone ruchami masowymi. W&nbsp;kierunku SE odchodzi 2,5&nbsp;m boczny korytarz, niezbadany do końca z&nbsp;uwagi na dużą kruszyznę. Z&nbsp;tych samych powod&oacute;w nie penetrowano dalej korytarza zasnutego materiałem żwirowatym i&nbsp;biegnącego w g&oacute;rę na S za 4&nbsp;m progiem.</p>
+<p>&nbsp;Gł&oacute;wny ciąg kontynuuje się dalej ku SW. Przez niski przełaz z&nbsp;niebezpiecznie wiszącymi głazami wydostajemy się do Niskiej Sali. Na prawo 2&nbsp;m od przełazu w dnie przy ścianie jest wylot studzienki (wspomnianej uprzednio) łączącej ją z&nbsp;Gł&oacute;wną Salą.</p>
+<p>&nbsp;Niska Sala o&nbsp;nieregularnym, wydłużonym kształcie (długości około 5 m, maksymalna szerokość 3 m) jest ostatnią (obecnie znaną) większą komorą jaskini. Dno ma zasłane blokami skalnymi, ściany ku N są dość stabilne, zaś ku S i&nbsp;SW bardzo kruche, zaburzone. W&nbsp;tych też kierunkach sala rozszerza się poprzez dwie nisze. Pierwsza z&nbsp;nich kończy się nie penetrowaną (duża kruszyzna) ciasną szczeliną, biegnącą w g&oacute;rę ku W. Druga zaś, nazywana Gabinetem Strachu (silne spękanie ścian), o&nbsp;prostokątnym kształcie, kończy się ślepo. Na N w g&oacute;rę przez pr&oacute;g wysokości na 1,8&nbsp;m wydostać się można do ładnej, prostokątnej salki o&nbsp;wymiarach: długości 3 m, szerokości 1,5 m, wysokości 4&nbsp;m. Ściany salki są r&oacute;wne, lite, kontrastowo r&oacute;żne od uprzednio opisanych partii. Dno lekko nachylone, zasłane materiałem żwirowym i&nbsp;gruzem skalnym.</p>
+<p>&nbsp;Od opisanej salki na W biegnie w g&oacute;rę dwoma prożkami (1&nbsp;m i&nbsp;2,5 m) kruchy, niepewny korytarz, kt&oacute;ry po około 2&nbsp;m wyprowadza do niewielkiego rozszerzenia zwanego Gabinetem Zgrozy. Partii tych nie penetrowano do końca z&nbsp;uwagi na groźbę zawału - nie polecane do zwiedzania.</p>
+<p>&nbsp;Jaskinia osuwiskowa, powstała w piaskowcach warstw godulskich g&oacute;rnych. Gł&oacute;wny ciąg jaskini rozwinął się na zespole dość okazałych szczelin, tworzących szeregowy układ kom&oacute;r generalnie na linii NE-SW. Zr&oacute;żnicowanie charakteru poszczeg&oacute;lnych fragment&oacute;w ciągu pozostaje w związku z&nbsp;usytuowaniem względem rowu rozpadlinowego i&nbsp;jego otoczenia. I&nbsp;tak Komora Wstępna i&nbsp;dwie następne (leżące poniżej) utworzone są w wale zewnętrznym ograniczającym r&oacute;w. Wyraźnie zaburzona, bardziej nastromiona, z&nbsp;dużym zawaliskiem, część środkowa ciągu usytuowana jest w zboczu rowu, zaś Gł&oacute;wna Sala w centralnej części rowu rozpadlinowego. Niska Sala i&nbsp;jej zaburzone otoczenie wydaje się odpowiadać przeciwległemu zboczu wspomnianego rowu.</p>
+<p>&nbsp;Dno jest zasłane gruzem skalnym, miejscami żwirem i&nbsp;okazałymi blokami. W&nbsp;partiach przyotworowych znajdują się szczątki roślinne i&nbsp;nieco gleby. Stwierdzono występowanie w formie gniazdowej substancji podobnej do węgla kamiennego (umiejscowienie w opisie jaskini). Jest to pierwsze znalezisko tego typu w znanych nam jaskiniach Karpat Fliszowych.</p>
+<p>&nbsp;Temperatura w jaskini jest niska (stąd nazwa) przez cały rok (+3,5&deg;C dnia 31&nbsp;marca 1986&nbsp;r.). Tylko w partiach końcowych za Gł&oacute;wną Salą temperatura jest wyższa. W&nbsp;kwietniu (w partiach przed Gł&oacute;wną Salą) znaleziono luźne kawałki lodu.</p>
+<p>&nbsp;Jaskinia jest na og&oacute;ł sucha. Słaby przewiew jest wyczuwalny w korytarzu wejściowym. Światło sięga do korytarza wejściowego. Na głazach przyotworowych występują mchy i&nbsp;porosty. W czasie spisu hibernujących nietoperzy w 1997 r. zaobserwowano w jaskini: 2 nocki duże <strong>(<em>Myotis myotis</em>), </strong>7 nock&oacute;w wąsatk&oacute;w / nock&oacute;w Brandta <strong>(<em>Myotis mystacinus/ brandtii </em>) </strong>oraz 1 nietoperza nieoznaczonego &ndash;( Mysłajek 1998a, 2000a). Stwierdzono występowanie szczerb&oacute;wki ksieni <strong>(<em>Scoliopteryx libartix</em>)</strong>- motyl z rodziny s&oacute;wek - (Mysłajek 1999b, 2000b) oraz kokony pająk&oacute;w <strong>(<em>Meta menardi</em>) </strong>-<strong> </strong>(Beczała 2004).</p>
+<p>&nbsp;W 2001 r. stwierdzono ślady dewastacji jaskini - na ścianach i spągu plamy białej farby.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Do czasu udokumentowania brak wzmianek o tym obiekcie w literaturze, choć wstępne partie zapewne znane ludności miejscowej. Wysuwana jest też hipoteza, że jaskinia (jej gł&oacute;wne partie) mogła być jednak penetrowana od bardzo dawna - zauważono na ścianach nieliczne zagłębienia, niewykluczone, że wykute, choć nie jest to tak jednoznacznie przekonywujące. Wskazana przez J. Szumskiego i J. Goryla (Speleoklub Bielsko-Biała).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Materiał dokumentacyjny zebrali w dniach 23 i 31 marca 1986 r. J. Goryl, J. Ganszer J. Pukowski, S. Polański i R Czarnecki (Speleoklub Bielsko-Biała). Pomiary wykonano busolą geologiczną Freiberg i taśmą parcianą. Wsp&oacute;łrzędne geograficzne GPS pomierzył w 2003 r. J.Ganszer, w 2004 r. P. Beczała. Dane zostały zaktualizowane w 2009 r.<br />Plan opracował J. Ganszer.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ganszer J. 1986 (wzmianki o wyjazdach inwentaryzacyjnych); Klassek G. 1988 (wzmianka o inwentaryzacji jaskini); Gawłowski P. 1989 (umiejscowienie jaskini w jednostkach litostratygraficznych); Wiśniewski W.W. 1989 (ujęta w wykazie jaskiń Karpat); Klassek G. 1990 (plan i opis inwentarzowy, ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Rozporządzeni... nr 1/93 z dnia 23 kwietnia 1993 r (ustanowienie pomnika przyrody nieożywionej) Wiśniewski W.W. 1993b (ujęta w wykazie jaskiń Karpat); Wiśniewski W.W. 1996a,b (ujęta w wykazie jaskiń Karpat); Jaskinie Polskich Karpat fliszowych 1997a (plan i opis inwentarzowy); Mysłajek R.W. 1998a (spis nietoperzy); Ganszer J. 1998c (schemat dojścia); Mysłajek R.W. 1999b, 2000a (wzmianka o faunie); Michalska B., Wojtas P. 1999 (wymieniona wśr&#243;d jaskiń okolic Bielska-Białej); Alexandrowicz Z., Poprawa D. (red.) 2000 (og&#243;lna charakterystyka jaskini w rezerwacie „Kuźnie”); Mysłajek R.W. 2001 (wzmianka o dewastacji jaskini); Mysłajek R.W. 2002 (wzmianka o nietoperzach); Pukowski J., Szura C. 2004 (og&#243;lna charakterystyka jaskini w rezerwacie „Kuźnie”); Mysłajek R.W., Nowak S., Kurek K. 2008 (wzmianka o ilości nietoperzy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Gawłowski P. 1988 (lokalizacja jaskini na planie wychodni skalnych w rezerwacie &quot;Kuźnie&quot; ). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2011
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2326)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

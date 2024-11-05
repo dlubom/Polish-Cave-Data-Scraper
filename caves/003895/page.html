@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3895">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3895;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "347616,79".replace(',', '.') + "," + "269183,13".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3895','Jaskinia Kontaktowa (S-1.9)'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Kontaktowa (S-1.9)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                S.I-03.13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Sudety
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 16&#176;51′39,59″, φ: 50&#176;16′12,49″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Stronie Śląskie (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kłodzki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                dolnośląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                730
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                23
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                23
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    85
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sudety Wschodnie, Stara Morawa, masyw Śnieżnika, g&#243;ra Janowiec, nieczynny kamieniołom marmuru.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Idziemy drogą Stronie Śląskie-Kletno. Tuż przed wapiennikiem skręcamy w drogę biegnącą w prawo. Po około 1 km skręcamy w lewo na strome podejście przez łąkę, a następnie idziemy lasem. W miejscu gdzie młody las przechodzi w starodrzew, skręcamy w prawo niewyraźną ścieżką. Po chwili w głębi zobaczymy potężny okap w nieczynnym kamieniołomie. Idziemy w górę, wzdłuż ściany. Sztuczne wejście, trudne do odnalezienia wśród złomisk skalnych, znajduje się tuż nad spągiem kamieniołomu marmurów, pod najwyższą ścianą.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Opis wg K. Kamienieckiego i in., 1969: "<span style="font-style: italic;">Otw&oacute;r wejściowy jaskini o kształcie soczewki mający 2,8 m szerokości i 0,6 m wysokości jest trudny do odnalezienia wśr&oacute;d złomowisk dawnego kamieniołomu. Jest on utworzony sztucznie i znajduje się na kontakcie łupk&oacute;w metamorficznych (strop) z leżącymi pod nimi marmurami. Jaskinia zaczyna się korytarzem o nachyleniu 40</span><span>&deg;</span><span style="font-style: italic;">, stromo opadającym ku NE. Długość jego wynosi 9 m, po 4,5 m korytarz zwęża się do 1,1 m szerokości i 0,3 m wysokości. Dalej korytarz rozszerza się i przechodzi w Salę Marmitową, o wysokości średniej ok. 1,7 m, długości 5 m i szerokości maksymalnej 4,4 m. Strop sali zbudowany jest z łupk&oacute;w, a dno z marmur&oacute;w. Podłoże sali wyścieła zwietrzelina łupk&oacute;w namyta lub opadająca bezpośrednio ze stropu. W centrum sali znajduje się kilka marmit&oacute;w. W południowo-wschodniej części sali, za dużym głazem rozpoczyna się korytarz o długości 5,2 m, kt&oacute;ry kończy się namuliskiem. W tej samej ścianie, 4 m dalej, znajduje się zacisk prowadzący do Korytarza Nowego. W p&oacute;łnocno-zachodniej ścianie widoczne są otwory trzech korytarzy. Pierwszy, od wejścia do sali, po 3 m kończy się namuliskiem, drugi rozwinięty jest na szczelinie i po 3,6 m wyklinowuje się. Trzeci korytarz w początkowej fazie rozwinięty jest prostopadle do gł&oacute;wnego ciągu jaskini, a po 4,6 m skręca prawie pod kątem prostym. Druga część korytarza (po skręcie) ma długość 4 m i kończy się namuliskiem. Gł&oacute;wny ciąg jaskini (na przedłużeniu korytarza początkowego) przechodzi korytarzem z Sali Marmitowej do Sali Marmurowej. Nachylenie jego wynosi 33</span><span>&deg;</span><span style="font-style: italic;">, długość 5,3 m, przeciętna szerokość ok. 2 m, a wysokość waha się w granicach od 0,4 m do 2 m. Podłoże jego wysłane jest zwietrzeliną łupk&oacute;w złożoną z drobnych kamyczk&oacute;w i większych głaz&oacute;w. Korytarz ten kończy się stromym progiem o wysokości 1,5 m. Pr&oacute;g ten ciągnie się ku NE dzieląc Salę Marmurową na dwa wyraźne poziomy, niższy o wysokości 2 m i wyższy o wysokości 1,5 m. Wyżej położona część sali znajduje się przy p&oacute;łnocno-zachodniej ścianie, a niższa przy południowo-wschodniej. Marmurowe podłoże wysłane jest zwietrzeliną łupk&oacute;w. Łupkowy strop sali zapada ku NE. Po poziomem wyższy rozpoczynają się dwa korytarze. Pierwszy o spadku 25</span><span>&deg;</span><span style="font-style: italic;"> po 2,5 m skręca lekko na prawo, po czym wznosi się do g&oacute;ry, gdzie po 3 m kończy się namuliskiem. W miejscu skrętu przecina się z korytarzem poprzecznym. Na lewo prowadzi on do niskiej, małej salki o kształcie prostokątnym i wymiarach 2,5x2,0x0,4 m. Na prawo korytarz prowadzi do drugiego korytarza znajdującego się pod poziomem wyższym Sali Marmurowej. Korytarz drugi po 3 m kończy się namuliskiem. W przedłużeniu południowo-zachodniej ściany sali rozwinięty jest korytarz, kt&oacute;ry po 5 m zwęża się, a po następnych 3 m kończy się namuliskiem. Za zwężeniem w tył na prawo odchodzi 2-metrowy korytarz zakończony pionowym zaciskiem. Prowadzi on do Korytarza Nowego. W tym miejscu łączy się on z zaciskiem znajdującym się w Sali Marmitowej. Korytarz Nowy ma długość 13 m, przeciętną szerokość około 1 m na wysokości 1,5 m. Dno w formie wyklinowującej się szczeliny jest rozcięciem erozyjnym. Zostało ono utworzone przez swobodnie płynące wody. W stropie widoczne są kociołki eworsyjne (</span>błędna nazwa - są to kociołki wirowe, kotły eworsyjne tworzę się wyłącznie w dnie korytarza! Przyp. red<span style="font-style: italic;">.) powstałe podczas płynięcia wody pod ciśnieniem. Na 12,4-metrze następuje połączenie z małym 3-metrowym korytarzem i z kominem. Wysokość komina wynosi 1 m. Koniec Korytarza Nowego i komina stanowią inne wejścia do jaskini z kamieniołomu. Na 5 metrze Sali Marmurowej znajduje się rumowisko skalne, za kt&oacute;rym odchodzą od gł&oacute;wnego ciągu jaskini dwa korytarze. Pierwszy jest właściwie małą salką o długości 2,3 m, a szerokości 1,4 m. Drugi korytarz nazwany Korytarzem Kolorado, o długości 13,7 m podobnie jak Korytarz Nowy rozwinięty jest wyłącznie w marmurze. Za wejściem do Korytarza Kolorado, Sala Marmurowa zwęża się, a strop jej zapada ku NE. Kończy się ona "zaciskiem" o szerokości 0,5 m i długości 0,5 m wypełnionym wodą. Długość całej Sali Marmurowej wynosi 13,7 m. Na jeziorku kończy się gł&oacute;wny ciąg jaskini</span>."<br />Jaskinia utworzyła się w wapieniach krystalicznych na kontakcie z łupkami łyszczykowymi serii strońskiej. Powstała ona dzięki wodom przepływowym odwadniającym powierzchnię stokową i wnikającym na kontakcie w głąb soczewki marmuru. W jaskini występują osady typu zwietrzelinowego oraz żwiry allochtoniczne.<br />Jaskinia jest wilgotna. Światło z otworu oświetla około 5 m korytarza wstępnego.<br />Roślinność zielona w okolicach otworu nie występuje. <br />Fauna jaskiniowa była badana przez Z. Hajduka i A. Ogorzałka (1978), kt&oacute;rzy stwierdzili w syfonie końcowej części jaskini kiełża <span style="font-weight: bold; font-style: italic;">Nipsogellus zondti</span> i wypławka krynicznego <span style="font-style: italic; font-weight: bold;">Planavia alpina</span> ( znalezisko ma charakter unikatowy). Była także badana przez A. Skalskiego (1976,1994). Podczas prac aktualizacyjnych (27.11.1994 r.) stwierdzono obecność 12 egzemplarzy nietoperzy i dużą ilość pająk&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta przez dw&oacute;ch chłopc&oacute;w, mieszkających w okolicy kamieniołomu, a następnie eksplorowana przez M. Jasińskiego z Kletna (gł&oacute;wny ciąg). Dzięki jego wskaz&oacute;wkom zesp&oacute;ł Sekcji Krasowej Koła Naukowego Geograf&oacute;w przy Uniwersytecie Warszawskim w składzie: K. Kamieniecki, A. Kassenberg, A. Nadolski, E. Roman, A. Szymański, A. W&oacute;dkowski, odkrył i zbadał dalsze partie jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i opis jaskini został sporządzony przez zesp&oacute;ł K. Kamieniecki, A. Kassenberg, A. Nadolski, E. Roman, A. Szymański, A. W&oacute;dkowski (1969). Dokumentację sporządzili T. Natanek, P. Potok i J. Trumpus (1996).<br />Dane zaktualizował i uzupełnił A. Szynkiewicz w 2014 r.<br />Plan opracował P. Potok.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kamieniecki K. i in. 1969 (plan i opis);  Hajduk Z., Ogorzałek A. 1978 (opis fauny); Skalski A. 1976 (opis fauny); Skalski A. 1994 (opis fauny); Jaskinie Sudet&#243;w 1996 (plan i opis inwentarzowy pod nr. S-1.9); Rogala W. 1998a,c (wymienia); Furmankiewicz J., Furmankiewicz M. 2002 (nietoperze); Hajduk Z., Ogorzałek A. 2007 (opis fauny); Bieroński J. i in. 2007g (osady, fauna); Stefaniak K., Bieroński J. 2009 (dane morfometryczne, badania, literatura). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tadeusz Natanek, Jan Trumpus, Piotr  Potok
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3905)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

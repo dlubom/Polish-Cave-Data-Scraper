@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F675">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 675;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "613876,08".replace(',', '.') + "," + "334060,39".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('675','Jaskinia Odkrywc&#243;w'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Odkrywc&#243;w
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Jaskinia Odkrywc&#243;w
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-1.7
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;37′07,00″, φ: 50&#176;51′44,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kielce (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                Kielce
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Komunalny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                G-1.8 Prochownia; G-1.9 Szczelina na Kadzielni.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                257,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                16,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                6,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                23
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    392
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Miasto Kielce, park miejski, nieczynny kamieniołom Kadzielnia w centrum miasta 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    System jaskiniowy: Jaskinia Odkrywców - Prochownia - Szczelina na Kadzielni znajduje się we części wschodniej ściany kamieniołomu. Dojście do otworów: alejką biegnącą dnem wyrobiska od strony ulicy Krakowskiej. Dobrze widoczne otwory systemu zlokalizowane są u podstawy wschodniej ściany kamieniołomu na odcinku około 80 m. Dojście bez trudności. Zwiedzanie studni i kominów krasowych wymaga użycia sprzętu i technik taternictwa jaskiniowego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r Jaskini Odkrywc&oacute;w (1) jest sztuczny, ma szczelinowaty kształt, wysokość 2,7 m i szerokość do 1,5 m. <br />Za otworem rozwija się szczelinowy korytarz długości 16 m, szerokości do 1,4 m i wysokości w środkowej części do 6,5 m. Korytarz najpierw wznosi się a następnie stromo opada. Jego dno pokrywa namulisko gliniaste, w części końcowej r&oacute;wnież gruzowe. <br />Kilka metr&oacute;w za otworem znajduje się metalowa kratą z zamykanymi drzwiami. Końcowa część korytarz przechodzi w kierunku południowym w salkę o szerokości 3 m i długości 4 m i pochyłym dnie łączącą Jaskinię Odkrywc&oacute;w z Prochownią. W stropie i dnie salki wystają ładne krasowo wymyte występy skalne pokryte miejscami naciekami groniastymi. W ścianach salki znajdują się dobrze zachowane warstwowane namuliska gliniasto-mułkowe.</p>
+<div><strong>Informacje o systemie.</strong></div>
+<p>System jaskiniowy : Jaskinia Odkrywc&oacute;w, Prochownia i Szczelina na Kadzielni występuje w obrębie wapieni g&oacute;rnego dewonu ( gł&oacute;wnie franu). Gł&oacute;wne ciągi systemu (korytarze Szczeliny na Kadzielni i Prochowni) rozwinięte są na wyraźnym uskoku o kierunku NNW-SSE , kt&oacute;ry przebiega przez całą wschodnią ścianę kamieniołomu. Kilka korytarzy wymytych zostało na szczelinach poprzecznych do gł&oacute;wnego uskoku (Jaskinia Odkrywc&oacute;w, boczne korytarze w Prochowni).Gł&oacute;wne kanały krasowe mają przekr&oacute;j soczewkowaty (soczewki są wydłużone pionowo, zgodnie z przebiegiem powierzchni nieciągłości) lub owalny. W stropie soczewkowatych korytarzy rozwijają się kominy sięgające stropu wapieni kadzielniańskich (nieuławiconych oraz gruboławicowych) i spągu cienkopłytkowego kompleksu fameńskiego (Urban, Kasza 2007-mat.arch.).&nbsp;Szczelina uskoku zmineralizowana jest kalcytem , galeną i barytem. Miejscami galena występuje w formie okruch&oacute;w do kilkunastu cm średnicy krasowo wypreparowanych i wypełniających szczeliny krasowe.</p>
+<p>Wśr&oacute;d osad&oacute;w namuliskowych wypełniających kanały krasowe wyr&oacute;żniono siedem następujących typ&oacute;w osad&oacute;w (Urban, Kasza 2007-mat.arch.):</p>
+<p>1. Permsko-triasowe węglanowe wypełnienia krasowe reprezentowane przez zlityfikowane zwięzłe osady węglanowe o zabarwieniu czerwonym, brązowo-czerwonym, rzadko beżowym, niekiedy laminowane, pocięte drobnymi żyłkami białego kalcytu.</p>
+<p>2. Kenozoiczne osady ilaste oraz ilaste z niewielką domieszką odruch&oacute;w skał reprezentowane przez ż&oacute;łte, brązowe lub czerwono-brązowe iły pylaste, rzadziej iły, iły piaszczysto-pylaste a nawet posp&oacute;łki gliniaste. W obrębie Prochowni osady te zawierają kości nietoperzy wieku pliocen/plejstocen.</p>
+<p>3. Kenozoiczne nacieki kalcytowe reprezentowane przez grubokrystaliczne polewy, nieliczne stalaktyty i kolumienki naciekowe (Nowe Partie i Partie Baby Jagi) oraz nacieki groniaste, kalafiorowate i grzybkowe (Partie Baby Jagi, Jaskinia Odkrywc&oacute;w).</p>
+<p>4. Czwartorzędowe pyły oraz pyły ilaste reprezentowane przez osady o barwie beżowo-czerwonej lub czerwonej, zbudowane gł&oacute;wnie z pył&oacute;w z domieszką kwarcu. W osadach tych napotkano na kości nietoperzy o biały zabarwieniu.</p>
+<p>5. Czwartorzędowe osady zawaliskowe niezwietrzałe słabo zwietrzałe reprezentowane przezszare, szaroż&oacute;łte lub szaror&oacute;żowawe gliny zawierające gruz frakcji psefitowej w ilości od kilkunastu do ponad 50 %.</p>
+<p>6. Czwartorzędowe osady zawaliskowe z przejawami wietrzenia i innych proces&oacute;w wt&oacute;rnych reprezentowane przez szaroż&oacute;łte, szarobrązowe, szaro-fioletowe gliny zawierające znaczne domieszki gruzu wapienno-marglistego o r&oacute;żnej wielkości.</p>
+<p>7. Kenozoiczne zlityfikowane wypełnienia krasowe reprezentowane przez skały węglanowe o zabarwieniu szarym, jasnoszarym, szaro-ż&oacute;łtawym, szaro-r&oacute;żowawym i mniej lub bardziej wyraźnej teksturze brekcjowej.</p>
+<p>&nbsp;Analiza kanał&oacute;w krasowych i ich osad&oacute;w sugeruje, że najstarszy kras rozwijał się tu w dolnym triasie i koncentrował się wzdłuż powierzchni uskokowej. Wsp&oacute;łczesne pustki krasowe zaczynały się rozwijać najp&oacute;źniej w pliocenie. W plejstocenie następowało okresowo wmywanie do pustek krasowych luźnego materiału (lessowego) z powierzchni Najprawdopodobniej w okresach zimnych plejstocenu część komin&oacute;w i korytarzy krasowych zostało wypełnionych osadami gruzowymi pochodzącymi z famenu (Urban 2004a, 2004b-mat.arch.;<strong> Urban J., Kasza A. 2007; </strong>G&oacute;rniak M., J&oacute;źwiak M., Kasza A., Urban J. 2006).</p>
+<p>Gł&oacute;wne ciągi systemu jaskiniowego cechują się obecnie dynamicznym typem mikroklimatu (G&oacute;rniak 2006-mat.arch.). Przed połączeniem z Prochownią jaskinia Szczelina na Kadzielni miała mikroklimat dynamiczno-statyczny, natomiast Jaskinia Odkrywc&oacute;w statyczny(Wołoszyn 1977).W bocznych korytarzach jaskini (Partie Baby Jagi, Strzelisty Korytarz) mikroklimat ma charakter statyczny. Większość partii jaskini jest sucha, niekt&oacute;re korytarze dolnego piętra są wilgotne ( Korytarz Południowy, Nowe Partie).</p>
+<p>Zimą wstępna komora jaskini Szczelina na Kadzielni i południowa część Wielkiej Szczeliny są wymrożone, tworzą się tu nacieki lodowe. Niekiedy (zima 1995/96) płatki lodowe pojawiają się na ścianach nawet w Wysokiej Komorze. Światło sięga kilka metr&oacute;w za otwory jaskini. Przy otworze Szczeliny na Kadzielni występują trawy, na ścianach komory wstępnej pojawiają się płaty glon&oacute;w. Bogata fauna jaskiń systemu była omawiana w kilku publikacjach.</p>
+<p>W Szczelinie na Kadzielni występują nietoperze: nocek duży <strong><em>Myotis myotis </em></strong>(Borkhausen), nocek rudy <strong><em>Myotis daubentonii </em></strong>(Kuhl) i gacek szary <strong><em>Plecotus austriacus </em></strong>(Fischer) (Wołoszyn 1960a, 1962a, 1964a, 1965b, 1994a, Wołoszyn, W&oacute;jcik 1965). Ostatnio J. Gubała i M. Gwardian obserwowali opr&oacute;cz wyżej wymienionych nietoperzy r&oacute;wnież nocka Natterera<em> <strong>Myotis natterei </strong></em>(Kuhl)<em>,</em> nocka Brandta <strong><em>Myotis Brandtii </em></strong>(Eversmann), gacka brunatnego<strong> <em>Plecotus auritus </em></strong>(L.), mopka <strong><em>Barbastella barbastellus </em></strong>(Schreber) i mroczka p&oacute;żnego <strong><em>Eptesicus serotinus </em></strong>(Schreber) (Gubała 1996b). Innym kręgowcem, kt&oacute;rego ślady stwierdzono w jaskini jest kuna <strong><em>Martes </em>sp</strong><em>.</em> Bezkręgowce reprezentowane są przez much&oacute;wki, pająki, motyle, r&oacute;wnonogi (Isopoda - stonoga murowa <strong><em>Oniscus asellus </em></strong>(L.)) i mr&oacute;wkowate (Formicidae). Sanocka-Wołoszyn (1964) wymienia dwa gatunki pająk&oacute;w: <strong><em>Lepthyphantes nebulosus </em></strong>(Sund.) oraz <strong><em>Porrhomma pygmaeum </em></strong>(Bl.). Motyle reprezentowane są przez rusałkę pawik <strong><em>Inachis io </em></strong>(L.), szczerb&oacute;wkę ksieni<em> <strong>Scoliopteryx libatrix </strong></em>(L.)i <strong><em>Triphosa dubitata </em></strong>L.</p>
+<p>W Prochowni napotkano much&oacute;wki i pająki, a także nieliczne motyle miernikowce (Geometridae) oraz rusałkę pokrzywnik <strong><em>Aglais urticae </em></strong>(L.).</p>
+<p>W Jaskini Odkrywc&oacute;w faunę reprezentują gł&oacute;wnie bezkręgowce. Sanocka-Wołoszyn (1964) oznaczyła kilka gatunk&oacute;w pająk&oacute;w: <strong><em>Lepthyphantes nebulosus </em></strong>(Sund.), <strong><em>Lepthyphantes leprosus </em></strong>(Ohlert) oraz <strong><em>Tegenaria domestica </em></strong>(Cl). Ponadto napotkano tu komary oraz motyle: rusałkę pawik <strong><em>Inachis io </em></strong>(L.), szczerb&oacute;wkę ksieni <strong><em>Scoliopteryx libatrix </em></strong>(L.) i <strong><em>Triphosa dubitata </em></strong>L<em>,.</em> a także r&oacute;wnonogi (Isopoda) reprezentowane prawdopodobnie przez stonogę murową<strong> <em>Oniscus asellus </em></strong>L. Obserwowano także pojedyncze nietoperze gacki szare <strong><em>Plecotus austriacus </em></strong>(Fischer)(Gubała 1996b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W systemie prowadzono badania naukowe dla wykonania ścieżki dydaktycznej ( Urban 2004a, 2004b-mat.arch.; Jach, Kasza, Saganowski 2005; Urban, Kasza 2007; Kasza 2009), badania naukowe namulisk pod kierunkiem dr. J. Urbana&nbsp; i mikrolimatyczne (Wołoszyn 1977, G&oacute;rniak 2006). Obserwacje nietoperzy prowadzili Wołoszyn, W&oacute;jcik, Gwardian i Gubała, a pająki badała Sanocka-Wołoszynowa.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wszystkie jaskinie systemu zostały odsłonięte podczas eksploatacji wapieni w kamieniołomie. Jaskinia Odkrywc&oacute;w została spenetrowana po raz pierwszy w lipcu 1960 r. przez B.W. Wołoszyna, wymieniona została przez Wołoszyna, W&oacute;jcika (1965). <br /> Otw&oacute;r Prochowni został odsłonięty w trakcie eksploatacji, wykorzystywany był do jej zakończenia w 1963 r. jako magazyn materiał&oacute;w wybuchowych (stąd jego nazwa). W części przyotworowej jest sztucznie poszerzony (ślady wierceń na ścianach) oraz miejscami zabudowany. Strop i ściany komory są okopcone. <br />Otwory Szczeliny na Kadzielni odsłonięte zostały podczas eksploatacji wapieni. Komorę wstępną jako pierwsi zwiedzili najprawdopodobniej pracownicy kamieniołomu. Dalsze części zostały spenetrowane w połowie lipca 1959 r. przez W. Kr&oacute;la i B. W. Wołoszyna, kt&oacute;rzy zwiedzili jej dolne partie. W kilka dni p&oacute;źniej W. Kr&oacute;l i J. Zaborek odkryli Wielką Szczelinę a we wrześniu tegoż roku B.W. Wołoszyn spenetrował g&oacute;rne piętro jaskini, zaś w dolnym piętrze Strzelisty Korytarz (na zach&oacute;d od Dolnej Sali). Informacja o odkryciu i pierwszy opis jaskini ukazały się w prasie codziennej (Wołoszyn 1960b). W jaskini prowadzone były w latach 1959-1962 obserwacje mikroklimatyczne i faunistyczne. Wiosną 1992 r. A. Idzik, K. Rytka i L. Skupin (Speleoklub Świętokrzyski) wyeksplorowali kilka metr&oacute;w w bocznym korytarzyku odchodzącym z Dolnej Sali. <br /> Od 2004 r. na zlecenie Geoparku Kielce trwają prace eksploracyjne, udostępniające, zabezpieczające i badania naukowe mające na celu utworzenie podziemnej trasy turystycznej w trzech jaskiniach: Jaskini Odkrywc&oacute;w, Prochowni i Szczeliny na Kadzielni. Obecnie (2009 r.) wszystkie jaskinie są połączone, wykonano r&oacute;wnież znaczne prace udostępniające i zabezpieczające oraz badania naukowe ( Urban 2004a, 2004b-mat.arch.; Jach, Kasza, Saganowski 2005; Urban, Kasza 2007-mat.arch.; Kasza 2009)<br />Poniżej zestawiono chronologicznie wszystkie prace wykonane w jaskiniach od 2004 r.<br />- 6.11.2004 r.-30.01.2005 r. - prace eksploracyjne prowadzili członkowie Speleoklubu Świętokrzyskiego (J. Jach, A. Kasza, Sz. Kręciwilk, M. Saganowski, P. Wojtasik i J. Gubałą).<br />Pierwsze prace wykonano w Szczelinie na Kadzielni w rejonie Korytarza Strzelistego w dniach 6-7.11.2004 r. odkopując zamulony korytarzyk krasowy na odcinku 3 m rozwinięty na gł&oacute;wnej szczelinie uskokowej. Ze względ&oacute;w bezpieczeństwa (strop z luźnego materiału gliniasto-kamienistego) prace przerwano. Następne prace przeprowadzono w Prochowni i w dniu 13.11.2004 r. odkryto dalszą część Korytarza Południowego a następnie po przejściu końcowego zawaliska poznano dalszą część korytarza o długości 6 m. W stropie korytarza rozpoczęto eksplorację komina Gwiezdne Wrota do wysokości 9 m, kt&oacute;ry uległ p&oacute;źniej zawaleniu (skutkiem zawału osad&oacute;w w kominie było powstanie 29.01.2005 r. w ścianie kamieniołomu zapadliska o głębokości 4 m). W dniu 25.11.2004 r. odkopano g&oacute;rny otw&oacute;r Prochowni oraz odkryto Partie Baby Jagi za boczną wnęką Prochowni. Kolejnych odkryć dokonano 26.11.2004 r. łącząc Prochownię z Jaskinią Odkrywc&oacute;w. Łącznie w Prochowni odkryto w&oacute;wczas 68 m korytarzy. Długość Prochowni wzrosła do 111 m a deniwelacja do +15 m.<br />Kolejne działania prowadzono w Szczelinie na Kadzielni: 5.12.2004 r. odkryto 4 m niski korytarzyk odchodzący w kierunku zachodnim od p&oacute;łnocnej części Dolnej Sali oraz 5 m ciasny korytarzyk stromo nachylony odchodzący na wsch&oacute;d od Dolnej Sali. <br />Dalsze prace wykonano w G&oacute;rnej Sali 12.12.2004 r. i 6-7.01.2005 r. odkrywając 8 m korytarzyk o nazwie Psie Budy. Długość Szczeliny na Kadzielni wzrosła do 200 m (Jach, Kasza, Saganowski 2005). R&oacute;wnocześnie z pracami eksploracyjnymi prowadzono badania naukowe namulisk pod kierunkiem dr. J. Urbana z Instytutu Ochrony Przyrody PAN w Krakowie (Urban 2004b).<br />- 27.06.2005 r.- 22.08.2005 r.- prace eksploracyjne prowadziło Specjalistyczne Przedsiębiorstwo G&oacute;rnicze &bdquo;G&Oacute;RTECH&rdquo; Sp. z o.o. Krak&oacute;w. W czasie tych pogłębiono Korytarz Południowy na odcinku 8 m urabiając r&oacute;wnież prawą ścianę korytarza przy użyciu materiał&oacute;w bez wybuchowych &bdquo;Betonamitu&rdquo;. Następnie przebito (8.08.2005 r. ) końcową część gł&oacute;wnej szczeliny korytarza łącząc ją z małą salką na końcu jaskini (omijając w ten spos&oacute;b ciasne obejście gł&oacute;wnego korytarza). W czasie dalszych prac rozpoczęto wybieranie gliniastego namuliska w dalszej części Korytarza Południowego. Podczas prac g&oacute;rniczych pobierano pr&oacute;bki namuliska dla dr. J. Urbana.<br />-22.05.2006 r. &ndash; 7.08.2006 r.- prace eksploracyjno &ndash; zabezpieczające prowadził Zakład Rob&oacute;t G&oacute;rniczych i Wysokościowych AMC Andrzej Ciszewski Krak&oacute;w. Prace polegały na wykonaniu trwałego zabezpieczenia g&oacute;rnej części komina krasowego &bdquo;Gwiezdne Wrota&rdquo; dostępnej w ścianie kamieniołomu na odcinku występowania łupk&oacute;w marglistych famenu oraz wybraniu części namuliska gliniasto- kamienistego spod wylotu komina w jaskini Prochownia. W kominie zamontowano rurę z tworzywa sztucznego o średnicy 130 cm na długości 3,5 m dochodząc do początku zagruzowanego komina. Przestrzenia za rurą szczelnie wypełniono materiałem iniekcyjnym- pianobetonem oraz dodatkowo ustabilizowano całą konstrukcję zestawem kotew.<br />-11.10.2006 r. -10.11.2006 r. &ndash; prace eksploracyjne prowadziło Przedsiębiorstwo Budowlane &bdquo;ALBUD&rdquo; Albert Idzik Kielce. Wykonano połączenie g&oacute;rnej i dolnej części komina &bdquo;Gwiezdne Wrota&rdquo; całkowicie oczyszczając go z osad&oacute;w gliniasto-kamienistych. Wysokość komina po oczyszczeniu wyniosła 14 m.<br />- 16.11.2006 r. &ndash; na ścianie kamieniołomu nad jaskiniami wykonano cztery profile georadarowe w celu wykrycia nieznanych pustek krasowych pomiędzy jaskiniami. <br />Badania przeprowadzili pracownicy naukowi zakładu Geofizyki AGH Krak&oacute;w J. Karczewski i J. Ziętek przy pomocy członk&oacute;w Speleoklubu Świętokrzyskiego.<br />-14.12.2006 r.-20.12.2006 r. &ndash; prace zabezpieczające prowadził Zakład Rob&oacute;t G&oacute;rniczych i Wysokościowych AMC Andrzej Ciszewski Krak&oacute;w. Wykonano zabezpieczenie ścian komina krasowego &bdquo;Gwiezdne Wrota&rdquo; na odcinku 3 m poniżej rury z tworzywa sztucznego w strefie skrasowiałego rumoszu skalnego. Założono i zespawano pocięte fragmenty rury z tworzywa sztucznego, przestrzenie za rura wypełniono szczelnie materiałem iniekcyjnym &ndash;Teksilem. Całość konstrukcji zakotwiono do ocios&oacute;w skalnych.<br />- 15.03.2007 r.- 11.01.2008 r. badania mikroklimatyczne w Prochowni i Szczelinie na Kadzielni wykonywane prze M. G&oacute;rniak (daty pomiar&oacute;w: 15.03.2007, 20.03., 28.03.,4.04, 12.04, 24.05., 20.06., 2011., 23.11., 12.12., 20.12., 11.01.2008).<br />- 15.03.2007 r. &ndash; 27.04.2007 r.- prace eksploracyjno - zabezpieczające prowadził Zakład Rob&oacute;t G&oacute;rniczych i Wysokościowych AMC Andrzej Ciszewski Krak&oacute;w. Celem prac była eksploracja i zabezpieczenie dalszej części jaskiń: Prochownia i Szczelina na Kadzielni pod katem połączenia ich w jeden system. W pierwszej fazie prac wybrano materiał gliniasto-kamienisty z końca Prochowni odsłaniając drugi duży komin krasowy o wysokości około 6 m. W dniu 26.03.2007 r. nastąpiło oberwanie się osad&oacute;w ze stropu komina i na powierzchni ściany kamieniołomu powstała studnia krasowa o głębokości około 6 m. Po wybraniu od dołu komina oberwanych osad&oacute;w studnię (komin) zabezpieczono od powierzchni rurą z tworzywa sztucznego o średnicy 80 cm i długości 7, 5 m. Przestrzeń poza rurą wypełniono materiałem iniekcyjnym -Teksilem a całość konstrukcji zakotwiono do ocios&oacute;w skalnych. Po zabezpieczeniu komina dalszą eksplorację prowadzono po szczelinie gł&oacute;wnego uskoku wybierając namulisko na odcinku około 10 m. W końcowej fazie prac natrafiono na zlityfikowane wypełnienie krasowe (brekcję). Długość Prochowni wzrosła do 130 m. Opr&oacute;cz prac w Prochowni prowadzono r&oacute;wnież prace od strony Szczeliny na Kadzielni w korytarzu Psie Budy zakładając pierwszy segment drewnianej obudowy g&oacute;rniczej w zawalisku korytarza. Łącznie w tym miejscu wyeksplorowano w zawalisku korytarz o długości 3 m kierujący się w stronę przodka w Prochowni.<br />-11.05.2007 r. &ndash; prace geodezyjne w Prochowni i Szczelinie na Kadzielni prowadziła firma POLWERS Geodezja Polska Sp. z o.o. Celem prac było wyznaczenie dokładnych punkt&oacute;w pomiarowych w przodkach obu jaskiń pod kątem dalszych prac połączeniowych.<br />- 12.09.2007 r. &ndash; 9.01.2008 r.- prace eksploracyjno - zabezpieczające prowadził Zakład Rob&oacute;t G&oacute;rniczych i Wysokościowych AMC Andrzej Ciszewski Krak&oacute;w. Celem prac było udrożnienie strefy zawałowej pomiędzy jaskiniami Prochownia i Szczelina na Kadzielni. Prace wykonywano jednocześnie w obu jaskiniach. W Prochowni urabiano zlityfikowane namulisko permskotriasowe używając materiału bez wybuchowego &bdquo;Betonamitu&rdquo; na odcinku 5 m. Natomiast w Szczelinie na Kadzielni eksplorowano korytarz w strefie dużego wypełnienia krasowego z osadami gliniasto-kamienistymi stosując pełną drewnianą obudowę g&oacute;rniczą na odcinku 9 m. W dniu 6.01.2008 r. dokonano połączenia obu jaskiń w g&oacute;rnym piętrze systemu. Podczas prac g&oacute;rniczych pobierano pr&oacute;bki namuliska dla dr. J. Urbana.<br />-11.01.2008 r. &ndash; M. G&oacute;rniak i A. Kasza rozpoczynają eksplorację w Prochowni w szczelinie krasowej wypełnionej namuliskiem gliniastym położonej przed miejscem połączenia ze Szczeliną na Kadzielni.<br />-27.05.2008 r. &ndash; Fundacja &bdquo;Nauka i Tradycje G&oacute;rnicze&rdquo; z siedzibą Wydział G&oacute;rnictwa i Geoinżynierii AGH Krak&oacute;w (zesp&oacute;ł autorski- J. Chmura, J. Garecki, T. Mikoś, E. Radzik-Marchewka i K. Sułowska) wykonała opracowanie &bdquo;Projekt zabezpieczenia g&oacute;rniczego połączonych jaskiń Odkrywc&oacute;w, Prochownia i Szczelina na Kadzielni, niezbędnego dla potrzeb przyszłej trasy turystycznej oraz geotechnicznego zabezpieczenia skarpy w rejonie w/w jaskiń&rdquo;.<br />-11.09.2008 r. &ndash; 16.12.2008 r.- prace udostępniająco - zabezpieczające prowadził Zakład Rob&oacute;t G&oacute;rniczych i Wysokościowych AMC Andrzej Ciszewski Krak&oacute;w. Celem prac było udostępnienie i zabezpieczenie jaskini Szczelina na Kadzielni na odcinku od otworu wejściowego do Wysokiej Komory i Wielkiej Szczeliny. Prace w pierwszym etapie polegały na urabianiu ścian korytarza dojściowego do Wysokiej Komory materiałem bez wybuchowym &bdquo; Betonamitem&rdquo;. Kolejne prace wykonywano w Wysokiej Komorze w zawalisku zagradzającym przejście do Wielkiej Szczeliny. Całość zawaliska została rozebrana i usunięta na zewnątrz jaskini. Dodatkowo wykonano prace iniekcyjne w odspojone fragmenty skalne oraz zamontowano kilkanaście kotew szkłoepoksydowych wzmacniających ociosy skalne. W otworze wejściowym Szczeliny na Kadzielni wykonano kamienny murek oporowy podpierając spękany strop skalny. <br />- 4.10.2008 r.- I. Barchanowska i A.Kasza eksplorują w szczelinie krasowej (studzience) w rejonie połączenia. Wybrano namulisko gliniaste do głębokości 0,7 m.<br />-12.10.2008 r. - I. Barchanowska i A. Kasza eksplorują w studzience w rejonie połączenia. Wybrano namulisko gliniaste do głębokości 1 m.<br />-28.12.2008 r. - I. Barchanowska i A. Kasza eksplorują w studzience w rejonie połączenia. Wybrano namulisko gliniaste do głębokości 1,7 m dochodząc do zaklinowanej wanty skalnej.<br />-2.01.2009 r. - I. Barchanowska i A. Kasza eksplorują w studzience w rejonie połączenia. Wybrano zaklinowaną wantę skalną i odsłoniętą ciasną pozioma szczelinę krasową z przewiewem powietrza.<br />-18.01.2009 r. - I. Barchanowska, A. Kasza i M. Terek eksplorują w studzience w rejonie połączenia. Pogłębiono studzienkę do 2 m i stwierdzono istnienie w dnie ciasnej poziomej szczeliny pionowej niedostępnej studzienki.<br />- 4.03.2009 r. &ndash; 22.05.2009 r. - prace udostępniająco - zabezpieczające prowadził Zakład Rob&oacute;t G&oacute;rniczych i Wysokościowych AMC Andrzej Ciszewski Krak&oacute;w. Celem prac było wykonanie prac udostępniająco- zabezpieczających w jaskiniach: Odkrywc&oacute;w, Prochownia i Szczelina na Kadzielni na odcinku do komin&oacute;w krasowych. W czasie trwania prac w pierwszym etapie poszerzono przejście między Jaskinią Odkrywc&oacute;w i Prochownią odsłaniając ciekawe występy skalne pokryte naciekami i dobrze zachowane w ścianach osady namuliskowe. W drugim etapie wybrano większość osad&oacute;w namuliskowych w Korytarzu Południowym w Prochowni docierając pod komin &bdquo;Gwiezdne Wrota&rdquo;oraz wybrano resztę materiału zawaliskowego ze Szczeliny na Kadzielni. W ramach prac zabezpieczających wykonano stalową obudowę stropu i ocios&oacute;w komin&oacute;w krasowych oraz iniekcję mineralna w przestrzenie za obudową. Dodatkowo wykonano kotwienie wzmacniające w stropie i ociosach korytarzy. W czasie prac prowadzonych w Prochowni w dniu 2.04.2009 r. znaleziono wejście do nowych partii. Odkrycia dokonano podczas wybierania namuliska z gł&oacute;wnego korytarza Prochowni kilka metr&oacute;w poniżej wejścia do komina Gwiezdne Wrota. <br />- 2.04.2009 r.- odkrycie studzienki wejściowej do Nowych Partii; eksploracja Komory Wiesława (W. Cygan, J. Mendela, J. Mosur- kierownik, M. Rosiek).<br />- 3.04.2009 r.- przejście ciasnego przełazu na dnie Komory Wiesława i odkrycie Korytarza <br />Niedźwiedzia (J. Mosur).<br />- 16.04.2009 r. &ndash; przejście zawaliska na końcu Korytarza Niedźwiedzia i odkrycie salki Jama Kr&oacute;lika (T. Dreschler, J. Mosur).<br />Nowe ciągi mają charakter ładnie mytych korytarzy (Komora Wiesława, Korytarz Niedźwiedzia, Jama Kr&oacute;lika) o szerokości około 3 m i wysokości do 6 m z licznymi kominkami w stropie. Korytarze te stanowią dolne piętro systemu jaskiniowego rozwiniętego na gł&oacute;wnej szczelinie uskokowej. Ściany nowych partii pokryte są ciekawą szatą naciekową w postaci licznych polew i draperii, natomiast w dnie występują gliniaste namuliska miejscami z większą koncentracją tlenk&oacute;w manganu.<br />Po nawiązaniu kontaktu dźwiękowego pomiędzy końcem nowych partii a zagruzowanym kominkiem w Szczelinie na Kadzielni (w rejonie Korytarza Strzelistego) w trakcie dalszych prac w dniu 27.04.2009 r. dokonano połączenia obu jaskiń w dolnym piętrze. Dotychczas pomierzono 50 m nowych korytarzy.<br />27.04.2009 r. &ndash;połączenie (Połączenie Małego) Jamy Kr&oacute;lika z zawaliskowym kominkiem w <br />Szczelinie na Kadzielni (w rejonie Korytarza Strzelistego) - J. Mendela, J. Mosur- kierownik, <br />M. Norek, M. Rosiek). Podczas prac g&oacute;rniczych pobierano pr&oacute;bki namuliska dla dr. J. Urbana (Kasza 2009).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń regionu świętokrzyskiego jaskinie: Jaskinia Odkrywc&oacute;w i Prochownia zostały udokumentowane (opisy, plany i przekroje) 26.09.1995 r. przez J. Gubałę, A. Kaszę i B.W. Wołoszyna. Jaskinia Odkrywc&oacute;w miała w&oacute;wczas 14 m długości a Prochownia 28 m. Trzecia jaskinia systemu- Szczelina na Kadzielni została udokumentowana 10.03.1996 r. przez Z. Grzelę, J. Gubałę, A. Kaszę i B.W. Wołoszyna. Miała w&oacute;wczas 180 m długości. <br />Aktualną dokumentację systemu jaskiniowego sporządził 27.04.2009 r. A. Kasza. Lokalizację otwor&oacute;w jaskini wykonał 14.10.2008 r. A. Kasza przy pomocy odbiornika GPS Map60CSx. Zaktualizował A. Kasza w 2009 r.<br />Plan opracowali Z.Grzela, J. Gubała i A. Kasza.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wołoszyn B.W. 1960a (Szczelina na Kadzielni-nietoperze, nazwa); Wołoszyn B.W. 1960b (Szczelina na Kadzielni-odkrycie, nazwa); W&#243;jcik Z. 1960a (Szczelina na Kadzielni-odkrycie, bez nazwy); W&#243;jcik Z. 1960b (Szczelina na Kadzielni-ochrona); Wołoszyn B.W. 1961a (Szczelina na Kadzielni-nietoperze); Wołoszyn B.W. 1962a (Szczelina na Kadzielni, Jaskinia Odkrywc&#243;w, Prochownia-brak nietoperzy ); Sanocka-Wołoszyn E. 1964 (pająki); Wołoszyn B.W. 1964a (Szczelina na Kadzielni-nietoperze); Kowalski K. 1965 (Szczelina na Kadzielni-wzmianka, nietoperze); Wołoszyn B.W., W&#243;jcik Z. 1965 (Jaskinia Odkrywc&#243;w, Prochownia-og&#243;lna lokalizacja; Szczelina na Kadzielni-opis, plan, fauna); Kozłowski S., Radwan J. W&#243;jcik Z. 1965 (Szczelina na Kadzielni-zweryfikowany plan, geneza, namulisko); Wołoszyn B.W. 1965b (Szczelina na Kadzielni -nietoperze); Rubinowski Z., Wr&#243;blewski T. 1968 (Szczelina na Kadzielni - wzmianka); Kozłowski S., Rubinowski Z. 1973 (Jaskinia Odkrywc&#243;w-wzmianka bez nazwy, Prochownia i Szczelina na Kadzielni-projektowane udostępnienie turystyczne); Rubinowski Z. 1975 (Szczelina na Kadzielni-wzmianka); Siedlecka W., Micuła G. 1976 (Jaskinia Odkrywc&#243;w-wzmianka bez nazwy; Prochownia-zniszczenie naturalnej rzeźby; Szczelina na Kadzielni-kr&#243;tki opis); Wołoszyn B.W. 1977 (Jaskinia Odkrywc&#243;w i Szczelina na Kadzielni-mikroklimat, termika i wilgotność, Prochownia-og&#243;lna lokalizacja); Wr&#243;blewski T. 1977 (Szczelina na Kadzielni-wzmianka); Rubinowski Z., W&#243;jcik Z. 1978 (Szczelina na Kadzielni-zdjęcie, ochrona); Pilichowie M. i P. 1979 (Szczelina na Kadzielni-wzmianka); Ruprecht A. 1983 (Szczelina na Kadzielni-nietoperze); Wiśniewski W.W. 1989 (Szczelina na Kadzielni-wielkość), Wołoszyn B.W. 1994a (Szczelina na Kadzielni-nietoperze); Gubała J. 1996b (Szczelina na Kadzielni, Jaskinia Odkrywc&#243;w-nietoperze); Gubała J., Kasza A., Urban J. 1996 (Szczelina na Kadzielni-wielkość); Jaskinie Regionu Świętokrzyskiego 1996 (dokumentacja, plan); Wr&#243;blewscy T. i E. 1996 (Szczelina na Kadzielni-długość wzmianka); Bujna E., Klauzińska M. 1997 (Jaskinia Odkrywc&#243;w-brak nietoperzy, Szczelina na Kadzielni-nietoperze); Gubała J., Urban J. 1997 (Szczelina na Kadzielni-nietoperze); Urban J., Gubała J., Kasza A. 1997a (Szczelina na Kadzielni -długość wzmianka, fotografia); Paszkowski M. 2000 ( Szczelina na Kadzielni-długość wzmianka, Prochownia-fotografia otworu); Wr&#243;blewski T. 2000 (Szczelina na Kadzielni-wzmianka, długość, Prochownia-wzmianka bez nazwy); Paszkowski M. 2001 (opis, plan, fotografie); Kasza A. 2004 (eksploracja-kr&#243;tki opis); Jach J. i in. 2005 (eksploracja, dokumentacja, plan i przekr&#243;j, fotografie); Duda Z., Olesiak S. 2006 (podziemna trasa turystyczna, warunki geologiczno-g&#243;rnicze); G&#243;rniak M., J&#243;źwiak M., Kasza A., Urban J. 2006 (wielkość, eksploracja, namuliska); Urban J., Kasza A. 2006 (eksploracja-kr&#243;tki opis); Wąsikowski A. 2007 (wzmianka); Wr&#243;blewski T. 2008 (Szczelina na Kadzielni- wzmianka); Kasza A. 2009 (eksploracja, dokumentacja, plan i przekr&#243;j, fotografie). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Chmura J., Garecki J., Mikoś T., Radzik-Marchewka E., Sułkowska K. 2008; Duda Z. 2004; Karczewski J., Ziętek J. 2006; Myśluk J., Saltarski W. 1986; POLWERS Geodezja Polska Sp. z o.o 2004; POLWERS Geodezja Polska Sp. z o.o 2007; Urban J. 2004a; Urban J. 2004b; Urban J., Kasza A. 2007; Wołoszyn B.W., Wołoszyn K.P. 1990.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej Kasza, Jan Urban
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12950)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(185)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

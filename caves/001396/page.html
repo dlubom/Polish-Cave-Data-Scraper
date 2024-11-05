@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1396">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1396;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563021,97".replace(',', '.') + "," + "152526,20".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1396','Jaskinia Poszukiwaczy Skarb&#243;w'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Poszukiwaczy Skarb&#243;w
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-08.18
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;51′57,64″, φ: 49&#176;14′13,19″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NNE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku g&#243;rze. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1211
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                130
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                16,25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                14,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                30,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    484
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Kościeliska, na lewym orograficznie zboczu Wąwozu Krak&#243;w, w NE ramieniu Zb&#243;jnickiej Turni. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Od miejsca, w którym z dna Wąwozu Kraków odchodzi na lewo szlak do Smoczej Jamy T.E-08.07, idziemy jeszcze 20 m w górę wąwozu i skręcamy na prawo. Trawiastą półką biegnącą ukośnie u stóp przewieszonych skał, dostajemy się na strome, lesiste zbocze. Idziemy nim w pobliżu skał około 15 min. do góry niewyraźną percią, aż do miejsca, skąd widać na prawo skalne żebro odchodzące od turni w grzbiecie Żaru, a na lewo, w górze, częściowo zasłoniętą smrekami ścianę, w której znajduje się obszerny otwór Jaskini Poszukiwaczy Skarbów T.E-08.18 (zasłaniają go nieco gałęzie drzew). U stóp ściany stajemy po przejściu niewielkiego, łatwego lecz śliskiego, skalno-trawiastego progu, dalej wspinamy się progiem o wysokości 9 m (III) wprost do otworu. Zwiedzanie łatwe (przydatna kilkunastometrowa lina).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r jest obszerny, owalny, ma około 6 m wysokości i 4 m szerokości. Ogranicza go duży okap. Za otworem znajduje się prawie okrągła, oświetlona komora o płaskim dnie &ndash; przedsionek groty zwany Balkonem. Oddziela ją od powierzchni przegroda skalna o wysokości ok. 0,7 m. Z przedsionka tr&oacute;jkątny otw&oacute;r (2,5 m wysokości i 1,3 m szerokości) prowadzi do ok. 8-metrowego korytarzyka, uchodzącego do obszernej Sali Gł&oacute;wnej. Ma ona około 15 m długości, około 4 m szerokości i około 5 m wysokości, rozwinięta jest na pochyłej szczelinie o gładkich, mytych ścianach. Południowo-zachodnią ścianą rzeźbią płytkie żłobki krasowe. Na dnie wznosi się wielki stożek z gliniastego namuliska i głaz&oacute;w.</span></p>
+<p><span>Idziemy wzdłuż lewej, południowo-wschodniej ściany Sali Gł&oacute;wnej. Po kilku metrach w załomie ściany, nad 4-metrowym progiem, widać ujście kilkunastometrowego Błotnego Korytarza. Jego dno i ściany pokryte są mokrym mlekiem wapiennym. Za 1 m studzienką korytarz przechodzi w ciasną, wznoszącą się szczelinę, zakończoną ślepo za następną 1-metrową studzienką. Na ścianach szczeliny występują ciemnobrunatne stalaktyty, stalagmity i polewy naciekowe, kt&oacute;rych połamane fragmenty leżą na dnie.</span></p>
+<p><span>Wracamy do Sali Gł&oacute;wnej. W jej południowej części, przy południowo-wschodniej ścianie, odchodzi Korytarz Gł&oacute;wny o skalnym dnie, owalny w przekroju. Docieramy nim do poprzecznej szczeliny, na kt&oacute;rej rozwinęły się dwie, prawie r&oacute;wnolegle przebiegające studnie. Bardziej obszerna, nieco pochylona, 6-metrowa studnia o ścianach pokrytych żłobkami krasowymi, nazywana jest &bdquo;I Kominem&rdquo;. (Zachowała się tu stara ostrewka, bezpieczniej jednak użyć liny). Za niewielką przegrodą skalną (ku NE) przebiega r&oacute;wnolegle druga, ciaśniejsza studnia, o średnicy 0,8 m i głębokości 7,1 m. Zjeżdżamy obszerniejszą z nich do Dolnej Komory zasłanej gliniastym namuliskiem zawierającym fragmenty pokruszonej skorupy naciekowej i domieszkę gruzu wapiennego. Wg opisu Kowalskiego (1953a) dawniej wyrastał tu duży stalagmit. Z Dolnej Komory odchodzi szczelinowy korytarz o skalnym dnie prowadzący nad 3,5-metrową, pochyłą studzienkę (&bdquo;II Komin&rdquo;). Opada ona do Ślepej Komory, z namuliskiem gliniastym i rumoszem wapiennym na dnie. W osadzie widać kości dużych zwierząt. Ku zachodowi odgałęzia się kr&oacute;tka, bardzo ciasna odnoga zablokowana rumoszem. </span></p>
+<p><span>Na przedłużeniu Sali Gł&oacute;wnej, ku SW, biegnie Korytarz Środkowy. Jego dno budują wanty i gruz wapienny. Po kilku metrach od otworu Korytarza Gł&oacute;wnego, na lewo, od Korytarza Środkowego wiedzie bardzo ciasna szczelina (bez osad&oacute;w). Uchodzi ona wysoko w ścianie &bdquo;I Komina&rdquo;, prawie 2 m nad poziomem Korytarza Gł&oacute;wnego.</span></p>
+<p><span>Korytarz Środkowy dalej zwęża się i wznosi. Docieramy do rozwidlenia. Kierujemy się do prawego odgałęzienia (lewa odnoga to kr&oacute;tki tunelik tworzący ucho skalne, po kilku metrach połączone z tym odgałęzieniem oknem nad 1,1-metrowym prożkiem). Za połączeniem omijamy okno po prawej stronie (jest za nim płytka, ślepa studzienka) i po kilku metrach dochodzimy do końca tego ciągu. Tuż przed jego zakończeniem, niski przełaz skalny wiedzie na prawo, do małej, zasłanej rumoszem kom&oacute;rki. Stąd na lewo (ku SW) stromo do g&oacute;ry, do bardziej obszernego, przebiegającego poprzecznie korytarza o dnie r&oacute;wnież pokrytym rumoszem (znaleziono tu kości niedźwiedzia jaskiniowego).</span></p>
+<p><span>W przeciwległej ścianie tego korytarza, nieco na prawo, ku SW odchodzą dwa r&oacute;wnoległe korytarzyki: dolny, zasłany rumoszem i g&oacute;rny, przebiegający częściowo nad dolnym, skalny. Wiodą one do niewielkiej komory z kilkoma zagruzowanymi niszami i ślepą szczeliną. Z komory idziemy ku E, do g&oacute;ry; zaraz na lewo ku NE, skalnym korytarzem wyprowadzającym do rozwidlenia, z kt&oacute;rego na lewo możemy wr&oacute;cić do znanych już partii.</span></p>
+<p><span>Z rozwidlenia na wprost ku ENE wiedzie na początku błotnisty, dalej skalny korytarzyk, kt&oacute;ry po około 10 m rozdziela się zn&oacute;w na dwa ciasne, rurkowate ciągi. Lewe odgałęzienie zakończone jest oknem uchodzącym w stropie Sali Gł&oacute;wnej (w pobliżu południowego wejścia do Niżnej Sali), prawe prowadzi stromo do g&oacute;ry i po 15 m zwęża się w niedostępną, zamuloną szczelinę. Jest to najwyższy punkt groty (+14,5 m). W odgałęzieniu tym występują stalaktyty, stalagmity i polewy naciekowe.</span></p>
+<p><span>Wracamy do Sali Gł&oacute;wnej. Pod jej p&oacute;łnocno-zachodnią ścianą, prawie na przeciwko Gł&oacute;wnego Korytarza, odchodzą w d&oacute;ł dwa przejścia do Niżniej Sali, nazywanej też niekiedy Dolną Komorą (inna niż poprzednio opisana Dolna Komora). Jest ona rozwinięta na szczelinie biegnącej ku zachodowi. Na prawo odchodzi od niej kr&oacute;tkie, ciasne odgałęzienie. Na wprost przez wąski przełaz z wodą przedostajemy się do kilkunastometrowego Korytarza Stefana. Jest to wysoka szczelina zakończona w dolnej części niezwykle wąską, sześciometrową studzienką. Do g&oacute;rnej części szczeliny, zablokowanej zaraz gruzem, można wspiąć się po zaklinowanych głazach. Z Niżniej Sali można też wspiąć się pochyłą ścianą ku SW i dalej przejść niezwykle ciasnym, rurkowatym korytarzykiem (4 m zacisk o średnicy 0,25 m) do Korytarza Stefana. Ciąg ten, dotychczas nie opisywany, uchodzi nad cztero-metrowym progiem w ścianie tego korytarza. W Niżniej Sali i Korytarzu Stefana dno buduje gruz wapienny z domieszką gliny. Ściany pokryte są brunatnymi naciekami (stalaktyty, stalagmity) oraz polewami. </span></p>
+<p><span>Wracamy do studzienki na końcu Korytarza Stefana (opis partii poniżej niej wg Nowaka, 2007b). Po zejściu studzienką (trudności II-III) stajemy na dnie Korytarza Zachodniego, z kt&oacute;rego na wsch&oacute;d prowadzi kr&oacute;tki korytarzyk z naciekami, natomiast idąc na zach&oacute;d, przez pr&oacute;g z want, po kilku metrach trafiamy na zejście do Rury (po prawej stronie korytarza), przez 1,5-metrowy pr&oacute;g. Rura wiedzie stromo w d&oacute;ł. Po zejściu następnym progiem (o wysokości 3 m) docieramy do poprzecznej szczeliny. Na prawo (ku E) prowadzi wysoka na początku, ciasna Grzybowa Szczelina, kt&oacute;ra po około 10 m staje się zbyt ciasna, aby przejść. Tu znajduje się najniższy punkt jaskini. W przeciwną stronę szczelina biegnie do niewielkiego rozszerzenia, za kt&oacute;rym, przez 3-metrowy pr&oacute;g z want dostajemy się do g&oacute;rnej części Sali Złomisk. Sala ta ma kilka kr&oacute;tkich odn&oacute;g. Na prawo schodzimy 2 m, skąd na lewo widać niewielką kom&oacute;rkę, a na prawo, pod dużym blokiem, odgałęzia się ciasny korytarzyk przechodzący w niedostępne szczeliny. Idąc natomiast z g&oacute;rnej części Sali Złomisk na lewo (ku W), spotykamy w jej połowie szczelinę odchodzącą wstecz (tworzy ona osobny zakamarek tej sali), a po lewej stronie ku S, pokonujemy zacisk między wantą a stropem. Dalej korytarzykiem usłanym głazami docieramy pod pr&oacute;g o wysokości 5 m (trudności III), za kt&oacute;rym po kilku metrach trafiamy zn&oacute;w do Korytarza Zachodniego, 3 m za odejściem Rury. Stąd Korytarz Zachodni kontynuuje się jeszcze 4 m ku W, a skośnie w g&oacute;rę, 9,5 m wyżej, prowadzi szczelinowy komin (trudności III).</span></p>
+<p><span><strong> Uzupełnienie W. Hoffmann 2019</strong>: Wracamy do Sali Złomisk. W jej p&oacute;łnocno-zachodnim krańcu widzimy ciasną, ślepą studzienkę 4 m głębokości oraz zagruzowany, nieobszerny przełaz o długości ok. 4m, silnie wciągający powietrze (styczeń 2018). Przełazem dostajemy się do zawaliskowej salki. Tu zaczynają się Partie Poszukiwaczy Przodk&oacute;w.<br />Z salki ku zachodowi biegnie pokryty rumoszem korytarzyk zakończony zagruzowaną studzienką. Idąc na p&oacute;łnocny zach&oacute;d ładnym korytarzykiem o spągu pokrytym wantami po ok. 15 m wąskim przełazem docieramy do rozdroża.<br />Skręcając w prawo - na wsch&oacute;d - przez prożek z niestabilnych want, osiągamy ok. 8 m kominek, zablokowany od g&oacute;ry rumoszem i wantami.<br />Skręcając w lewo idziemy na p&oacute;łnocny zach&oacute;d po piargu stromo do g&oacute;ry, by przewinąć się przełazem w prawo, na szczyt pochylni zbudowanej z luźnych want. Na jej końcu znajduje się ślepa, ciasna, zagruzowana szczelina kontynuująca się ok. 3 m oraz ciasny przełaz w zawalisku, kt&oacute;rym przedostajemy się dalej. Od miejsca można zaobserwować obecność dużej ilości mleka wapiennego, kt&oacute;re pokrywa ściany, a spąg pokryty jest mieszanką lepkiej gliny i rumoszu.<br />Za przełazem korytarzyk rozdziela się. W lewo, ciasnym błotnistym przełazem do g&oacute;ry, przez lekko ruchomą, dużą wantę docieramy do dalszego ciągu. Natomiast w prawo, rurą pokrytą błotem i mlekiem wapiennym, możemy - zataczając pętlę - wr&oacute;cić do tej samej wanty. W miejscu gdzie rzeczona rura skręca o ok. 160&ordm;, patrząc do g&oacute;ry widać wejście do Uroczej Szczeliny.<br />Biegnie ona przez 18 m na p&oacute;łnocny wsch&oacute;d. Pokonując 3 zwężenia między tworzącą spąg gliną a ścianą, docieramy do miejsca gdzie dalszą kontynuację blokują zaklinowane wanty i kamienie, z wyraźnym przewiewem.<br />Wracamy do ruchomej wanty. Idziemy dalej na p&oacute;łnoc, docierając po 5 m do ciasnego, błotnistego zwężenia. Za nim wychodzimy do szczeliny (Walki w kisielu) pokrytej grubą warstwą mleka wapiennego. Pokonujemy ją trawersując, mając pod sobą kilka metr&oacute;w ciasnej szczeliny nie do przejścia. Docieramy do kolejnego przełazu. Widać przed nim ciasną, wpadająca z g&oacute;ry studzienkę, a za nim - po prawej &ndash; ciasną, kontynuującą się szczelinę, niedostępną dla człowieka.<br />Dochodzimy do kolejnej szczeliny rozwijającej się na p&oacute;łnocny zach&oacute;d, z wyraźnym lustrem tektonicznym. Jej lekko wznoszący się spąg jest pokryty błotem i rumoszem. Po przebyciu przewężenia na jej krańcu, widzimy na wprost wznoszący się korytarzyk, kt&oacute;rym można dotrzeć do rozwijającej się na południowy wsch&oacute;d ciasnej, kilkumetrowej szczeliny. Skręcając w lewo za przewężeniem docieramy do niewielkiej salki - Kill Bill. Skręcając z salki w prawo, możemy wr&oacute;cić do rzeczonej szczeliny. Idąc w lewo, docieramy do najdalej na p&oacute;łnoc wysuniętej części jaskini.<br />Na p&oacute;łnocny wsch&oacute;d &ndash; w lewo, kontynuuje się zagruzowany korytarzyk, prowadzący prawdopodobnie do powierzchni. Po prawej widać ciasne, zasłonięte filarkiem skalnym przejście do drugiego otworu jaskini. Uchodzi on na powierzchnię u podn&oacute;ża ściany skalnej i jest do połowy zasypany rumoszem- należy uznać go za niedostępny. Z uwagi na powszechną niechęć do powrotu pierwotną drogą, pozostaje uczulić zwiedzających na osuwisko ziemne w kt&oacute;rym znajduje się otw&oacute;r.</span></p>
+<p><span>Jaskinia rozwinęła się na systemie szczelin w wapieniach malmo-neokomu wierchowej serii autochtonicznej. Tworzy labirynt korytarzyk&oacute;w odchodzących od obszernej Sali Gł&oacute;wnej. Rudnicki (1958) umieszcza ją w drugim poziomie jaskiń (spośr&oacute;d wydzielanych przez niego trzech poziom&oacute;w), a W&oacute;jcik (1966a) w piątym piętrze jaskiń (spośr&oacute;d sześciu jakie wydziela on w Wąwozie Krak&oacute;w).</span></p>
+<p><span>Ściany jaskini są częściowo myte, występują też partie o charakterze zawalisk. Szatę naciekową tworzą nacieki grzybkowe, mleko wapienne, polewy, dobrze rozwinięte stalaktyty i stalagmity, nacieki wełniste. W r&oacute;żnych miejscach nacieki mają rozmaite barwy (są białe, beżowe, ciemnobrunatne, brązowe).</span></p>
+<p><span>Namulisko przy otworze jest gliniaste z domieszką gleby, występuje też martwica. W głębi jaskini dno zaściela gł&oacute;wnie glina piaszczysta, niekiedy z otoczakami i głazami spojonymi mlekiem wapiennym, lub gruz wapienny. W osadach występują piaszczyste konkrecje cementacyjne oraz liczne kości (m.in. niedźwiedzia jaskiniowego i nietoperzy), można też znaleźć belemnity wypreparowane ze skały. Domieszkę stanowi materiał allochtoniczny, w kt&oacute;rym według W&oacute;jcika (1960b) dominują piaskowce seisu i kajpru oraz kwarc. Niekt&oacute;re fragmenty jaskini mają skalne dno, bez namuliska, w innych występują zawaliska.</span></p>
+<p><span>Światło sięga do końca Sali Gł&oacute;wnej. Jaskinia jest wilgotna. Przewiew wyczuwa się w Korytarzu Stefana, a także w szczelinach g&oacute;rnego ciągu (powyżej Korytarza Środkowego. Temperatura mierzona 25 lutego 1951 r. wynosiła w głębi 5,5&deg;C (Kowalski 1953a). Partie położone poniżej studni w Korytarzu Stefana są wyraźnie lepiej izolowane od warunk&oacute;w zewnętrznych. Skała jest tu zawsze mokra i często wyczuwa się przewiew.</span></p>
+<p><span>W przedsionku groty rozwija się bujnie roślinność zielona, na ścianach widać mchy, porosty i glony. </span></p>
+<p><span>Kowalski (1953a, 1955a) wzmiankuje o występowaniu w jaskini bezskrzydłego owada <em>Onychiurus armatus</em> Tullberg oraz nietoperzy <em>Myotis</em><em> myotis </em>Borkhausen i <em>Myotis mystacinus </em>Leisten. Podaje też, że Hoyer zebrał w 1922 r. na powierzchni namuliska kości nietoperzy, ryj&oacute;wek, gryzoni, kozicy, tch&oacute;rza, wilka, rysia (?) i niedźwiedzia jaskiniowego. W jaskini występują ponadto motyle<em> Triphosa dubitata</em>, a przy otworze komary, pająki i ślimaki. W&nbsp; dniu 29.05.2011 r. J. Nowak (2011c) zaobserwował w tej jaskini po raz pierwszy w Polskich Tatrach stwierdzono występowanie podkowca małego. <br /></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zwoliński (1955b), Rudnicki (1958) i W&oacute;jcik (1966a) wypowiadali się o genezie. W&oacute;jcik (1960b, 1966a, 1969) zbadał osady. Badania fauny przeprowadzili Hoyer (1928) i Kowalski (1953a, 1955a, 1959b), Szczygieł (2015b) wzmiankuje w kontekście genezy.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Grota znana była od dawna poszukiwaczom skarb&oacute;w. Do dziś zachowały się na ścianach przedsionka ich znaki i napisy, a w głębi &ndash; ostrewki, przy pomocy kt&oacute;rych pokonywali studnie i kominy. W 1921 r. T. i S. Zwolińscy sporządzili plan i opis jaskini, wcześniej prowadząc w niej eksplorację. Kowalski (1953a) zamieścił jej opis inwentarzowy datowany na 23.07.1952 r. oraz plan Zwolińskich. Baryła (1964b) podaje, że w dniu 2.01.1964 r. J. Didur i E. Ostapowski, za zawaliskiem na końcu Korytarza Stefana odkryli kilkadziesiąt metr&oacute;w nieznanego, dość ciasnego korytarza, w kt&oacute;rym znaleźli sporo kości niedźwiedzia. W latach sześćdziesiątych i siedemdziesiątych XX w. jaskinia była często zwiedzana i prawdopodobnie wtedy dokonano dalszych odkryć.</p>
+<p><strong>Uzupełnienie W. Hoffmann:</strong><br />20.06.2009 r. J. Nowak pokonuje zacisk na końcu Grzybowej Szczeliny, kt&oacute;ra na końcu rozszerza się i opada w niedostępną kontynuację z ciekiem wodnym.<br />22.05.2011 r. J. Nowak eksploruje kr&oacute;tki korytarzyk - dolne piętro, pod studnią kończącą korytarz Stefana.<br />8.12.2017 W. Hoffmann, P. Graczyk i K. Cieślawski przedostają się przez zawalisko w Sali Złomisk, odkrywając Partie Poszukiwaczy Przodk&oacute;w. Tego dnia docierają do zawaliska blokującego drogę przed &bdquo;Uroczą Szczeliną&rdquo;.<br />30.12.2017 W. Hoffmann, S. Dudziak, Ł. Marciniak, N.Skowroński docierają za &bdquo;Walki w Kisielu&rdquo;, po przekopaniu kilku przewężeń.<br />13.04.2018 Piotr Graczyk, Marta Walczewska, Michał Amborski docierają do salki &bdquo;Kill Bill&rdquo; i sprawdzają kr&oacute;tką odnogę w południowo-wschodniej części sali, stwierdzając, że zwęża się nie do przejścia.<br />2.11.2018 K. Cieślawski, F. Jankowiak odkrywają drugi otw&oacute;r jaskini.<br />28.11.2018 K. Cieślawski odkopuje &bdquo;Uroczą szczelinę&rdquo;.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ obserwacje terenowe w jaskini przeprowadziła wielokrotnie I. Luty. W lipcu 1994 r. wykonała ona pomiary ciąg&oacute;w (do studni w Korytarzu Stefana) przy wsp&oacute;łpracy J. Iwanickiego (jr), M. Kurczewskiego, M. Klisza i J. Zaim. Pomiary przeprowadzono busolą geologiczną Meridian i taśmą parcianą. W dniu 16 lutego 2006 r. partie położone poniżej studni w Korytarzu Stefana udokumentował J. Nowak przy wsp&oacute;łpracy J. Ślusarczyk (Nowak 2007b). Dane zaktualizowała I. Luty w 2009.&nbsp;</p>
+<p><strong>Uzupełnienie W. Hoffmann 2019:</strong>&nbsp;Po uzupełnieniach planu z 2011 r. jaskinia miała 350 m długości.<br />30.12.2017 W.Hoffmann, S. Dudziak, Ł. Marciniak, N. Skowroński kartują ciągi do zacisku przed &bdquo;Walkami w Kisielu&rdquo;.<br />13.04.2018 Piotr Graczyk, Marta Walczewska, Michał Amborski kartują pozostałe ciągi włącznie z salką &bdquo;Kill Bill&rdquo;.<br />10.07.2019 W. Hoffmann, K. Cieślawski kartują Uroczą szczelinę i przeprowadzają pomiary uzupełniające. W wyniku tych prac wyeksplorowano 133,41m (długość ciągu pomiarowego od poprzednio znanego krańca Sali Złomisk) i przegłębiono jaskinię o 0,55m (najgłębsze miejsce -16,25m). Na tej podstawie W. Hoffmann opracował plan całej jaskini, korygując plan I. Luty z uzupełnieniami J. Nowaka o wartość deklinacji magnetycznej w okresie wykonywania poamiar&oacute;w&nbsp; w 1984 r., 2006 r. i 2019 r. Kierunek p&oacute;łnocy na zestawionym planie jest kierunkiem p&oacute;łnocy geograficznej.<br />Plan opracowali I. Luty, J. Nowak i W. Hoffmann.<br /><br /></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Nowa grota w Tatrach 1922 (Gazeta Zakopiańska nr 27 – o odkryciu jaskini przez Zwolińskich); Zwoliński T. 1923 (opis i plan); Świerz M. 1923 (wzmianka); Stecki K. (senior), 1923 (o znakach poszukiwaczy skarb&#243;w); Zwoliński T. i S. 1925 (droga i opis); Zwoliński T. i S. 1927 (ditto); Hoyer H. 1928 (oznaczenie zebranych kości); Zwoliński T. i S. 1930 (droga i opis); Wrzosek A. 1933 (wzmianki); Danysz-Fleszarowa R. 1933 (wymienia); Szokalski J. 1934 (droga i opis); Passendorfer E. 1934 (wzmianka o plejstoceńskich kościach); Stach J. 1934 (wymienia owada Onychiurus armatus); Wolf B. 193438 (ditto); Zwoliński T. 1937 (droga i opis); WIG 1938 (lokalizacja na mapie 1:20.000); Zwoliński T. 1946 dojście i opis); Zwoliński T. 1948 (ditto); Zwoliński, T. 1951 (ditto); Kowalski K. 1951a (wzmianka o szczątkach niedźwiedzia jaskiniowego); Jarzębowski W. 1952 (fot. Zwolińskiego przedstawiająca wnętrze jaskini); Kowalski K. 1953a (plan i opis inwentarzowy); Berezowski S. 1953 (wzmianka dotycząca znak&#243;w na skale, opis); Kowalski K. 1955a (fauna, niekt&#243;re dane morfometryczne); Zwoliński S. 1955b (wzmianka o genezie i szczątkach kostnych); Rudnicki J. 1958a (wzmianka); Rudnicki J. 1958b (wzmiankuje w nawiązaniu do rozwoju doliny); Zwoliński T. 1958 (og&#243;lny opis, wzmianka o kościach niedźwiedzia); Guzik K. 1959 (lokalizacja na mapie geologicznej, bez nazwy); Kowalski K. 1959b (fauna ssak&#243;w plejstoceńskich); W&#243;jcik Z. 1959b (wzmianka o występowaniu form freatycznych i wadycznych); W&#243;jcik Z. 1960b (opis osad&#243;w, lokalizacja na mapce); Zwoliński S. 1961 (wzmianki dotyczące historii poznania, 2 fotografie); Baryła J. 1964b (informacja o odkryciu nowych ciąg&#243;w); Kowalski K. 1965 (wzmianka dotycząca szczątk&#243;w kostnych); W&#243;jcik Z. 1966a (opis osad&#243;w, niekt&#243;re dane morfometryczne, lokalizacja na mapkach, w tym geologicznej); W&#243;jcik Z. 1968 (lokalizacja na mapce, wzmianki o osadach); W&#243;jcik Z. 1969 (lokalizacja na mapce geologicznej, niekt&#243;re dane geologiczne i morfometryczne); Stecki K. (senior), 1969 (wzmianka); Paryski H., Radwańska-Paryska Z. 1973 (kr&#243;tka notatka encyklopedyczna); Tatry Polskie [mapa zastępcza, skala 1: 10 000] 1976 (lokalizacja otworu); Parma C. 1980 (wzmianka dotycząca historii odkrycia); W&#243;jcik Z. 1983 (wzmianka o badaniach przeprowadzonych przez Zwolińskich w 1921 r.); TATRY POLSKIE 1984 (lokalizacja na mapie 1: 10 000); Gradziński R. i in. 1985a (dane morfometryczne, lokalizacja na mapie); Jaskinie TPN 1994 (plan, przekr&#243;j i opis inwentarzowy do partii pod studnią w Korytarzu Stefana); Cywiński W. 1996 (wzmianka o położeniu i dojściu w przewodniku szczeg&#243;łowym); Nowak J. 2007b (plan, przekr&#243;j jaskini oraz opis partii pod studnią w Korytarzu Stefana); Nowak J. 2008a (wzmianka dotycząca historii odkryć i dokumentacji); Nowak J. 2011c: (występowanie podkowca małego); Szczygieł J. 2015b (wzmiankuje w kontekście genezy i uwarunkowań tektonicznych).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik S. 1959 Inwentarz Jaskiń Tatrzańskich (wymienia); [Siarzewski, W., Zwolińska, Z.]. 1986 (szkic terenowo-pomiarowy 1:200, plan i przekr&#243;j 1:500).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Witold Hoffmann, Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2019
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12941)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12943)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1535">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1535;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566324,49".replace(',', '.') + "," + "152969,10".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1535','Jaskinia pod Wantą'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia pod Wantą
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Litworowy Dzwon
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′41,26″, φ: 49&#176;14′26,28″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1793,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                190
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                158
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                14
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                172
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    520
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, na prawym orograficznie zboczu Doliny Litworowej, w połowie najbardziej południowego pasma skałek Ratusza Miętusiego, z prawej (or.) strony drugiego, idąc od p&#243;łnocy, żlebiku, nad małym, rosnącym w poprzek żlebu płatem kos&#243;wki. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Od niebieskiego szlaku prowadzącego z Doliny Miętusiej na Małołączniak idziemy wzdłuż kontaktu wapieni z krystalinikiem na orograficznie prawy skraj wybitnej depresji opadającej ku żlebowi, którym prowadzi szlak. Następnie trawersujemy początkowo po grubym piargu, a dalej po trawiastej półce na siodełko w grzędzie ograniczającej wspomnianą depresję, od następnej, opadającej już do Dolinki Litworowej. Stąd idziemy w górę na następne siodełko, z którego otwiera się widok na strome zbocze, porośnięte po prawej orograficznie stronie kosówką (około 100 m niżej zbocze to przekształca się w szeroki żleb). Przechodzimy nad ogromnym płatem kosówki i schodzimy w dół – tu napotykamy otwór jaskini. Dojście bez trudności, w czasie mgły mylące, zwiedzanie wymaga sprzętu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r jaskini, soczewkowatego kształtu o wymiarach 1,2x5 m, jest doskonale widoczny z Koziego Grzbietu. W dolnej części otworu zaklinowana jest płyta wapienia dolomitycznego dużych rozmiar&oacute;w (2x1,5 m), od kt&oacute;rej pochodzi nazwa jaskini. Trawersując ku wschodowi szczeliną w stropie leżącej niżej sali, po kilkunastu metrach osiągamy szczelinowy kominek, pod kt&oacute;rego stropem znajduje się przejście do niewielkiej salki, rozwiniętej nad zawaliskiem. Wspinając się jej wschodnią ścianą, osiąga się najwyższy punkt jaskini (+14 m). </span></p>
+<p><span>Wracamy do otworu i zjeżdżamy 21 m wprost w d&oacute;ł do tr&oacute;jkątnej dzwonowatej sali. Jej dno, zasłane rumoszem, opada ku zachodowi, do niskiego (0,4 m), szerokiego przełazu, prowadzącego do szczelinowatego, szerokiego na 1,5 m i wysokiego na 8 m korytarza. Jego usłane głazami dno opada stromo nad krawędź 60-metrowej studni.</span></p>
+<p><span>Po 11 m zjazdu szczelina studni rozszerza się, tu wahnięciem dostajemy się na metrowej szerokości p&oacute;łkę skalną, kt&oacute;rą trawersujemy nad studnią do kr&oacute;tkiego korytarzyka, opadającego 6-metrowym progiem na platformę. Stąd zjeżdżamy drugą (r&oacute;wnoległą) studnią 45 m na usypisko, formujące dno dużej sali o wysokości 25 m, szerokości 16 m i długości 30 m. Sala rozciąga się w kierunku W&ndash;E. Pod jej południową ścianą leży olbrzymi (4x12x6 m) głaz, odpadły ze stropu. P&oacute;łnocny kraniec sali tworzy stromo nachylona ku S płyta, przechodząca na wysokości około 6 m w pionową ścianę. W zachodnim końcu sala rozgałęzia się &ndash; p&oacute;łnocna część to leżąca powyżej 1,5 m prożka okrągła salka o średnicy 6 m. Jej dno jest r&oacute;wne, wysłane drobnym szutrem. Pod jej p&oacute;łnocną ścianą, z niewidocznego stropu pada silny deszcz podziemny.</span></p>
+<p><span>Południowe odgałęzienie opada poprzez 5-metrowy pr&oacute;g z zaklinowanych want do dość ciasnego otworu studni, otwierającej się wśr&oacute;d blok&oacute;w rumowiska. W południowej ścianie tego odgałęzienia, na wysokości 4 m znajduje się okno, prowadzące do niewielkiej salki.</span></p>
+<p><span>Wspomnianą uprzednio studnią zjeżdżamy około 15 m, początkowo pomiędzy blokami, potem w powietrzu, do zawaliskowej salki, kt&oacute;rej strop stanowią zaklinowane wanty, tworzące spąg wyższej sali. Po zawalisku można zejść ku zachodowi do dość obszernej okrągłej sali, stanowiącej dno opadającego z g&oacute;ry komina. Z dna sali poprzez 6-metrowy pr&oacute;g w g&oacute;rę można przedostać się szerokim oknem do r&oacute;wnoległego komina, o prawie okrągłym dnie.</span></p>
+<p><span>Wracamy do dużej sali. Schodząc jej dnem ku wschodowi i pomiędzy wantami przedostajemy się ciasną studzienką około 6 m w d&oacute;ł. Poprzez ciasny przełaz w zawalisku przedostajemy się nad kolejny, 7-metrowy pr&oacute;g. Sprowadza on na dno zawaliskowej salki, będącej najniższym punktem jaskini.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach robaczkowych anizyku (trias środkowy) serii wierchowej jednostki Żdiar&oacute;w fałdu Czerwonych Wierch&oacute;w. Jej tektoniczne założenia zostały zatarte silnie rozwiniętymi procesami zawaliskowymi. Ściany na og&oacute;ł są lite, w korytarzu za przełazem można obserwować wyraźne ślady przepływu wody pod ciśnieniem. Dno jest pokryte rumoszem.</span></p>
+<p><span>Światło sięga do pierwszej sali, przewiew nie jest zauważalny. Jaskinia jest wilgotna, w studniach występuje podziemny deszcz.</span></p>
+<p><span>Przy otworze występują obficie rośliny, wśr&oacute;d nich T. Bielska oznaczyła następujące gatunki:</span></p>
+<p><span>kwiatowe &ndash; <strong><em>Anemone narcissiflora </em></strong>L.,<strong><em> Polygonum viviparum</em></strong> L. <strong><em>Pedicularis palustris</em></strong> L., <strong><em>Potentilla aurea</em></strong> L., <strong><em>Saxifraga aizoon</em></strong> Jacq., <strong><em>Saxifraga aizoides</em></strong> L., <strong><em>Saxifraga moschata</em></strong> Wulf., <strong><em>Poa alpina</em></strong> L., <strong><em>Bellidiastrum michelli</em></strong> Cass., <strong><em>Mutellina purpurea</em></strong> Thell., <strong><em>Swertia perennis</em></strong> L., <strong><em>Viola biflora</em></strong> L., <strong><em>Carex firma</em></strong> L., <strong><em>Carex strata</em></strong> L., <strong><em>Salix reticulata</em></strong> L., <strong><em>Primula elatior</em></strong> Grubf., <strong><em>Primula auricula</em></strong> L., <strong><em>Rhodiola rosea</em></strong> L., <strong><em>Gentiana verna</em></strong> L., <strong><em>Galium anisophyllum</em></strong> Vill., <strong><em>Hypochoeris uniflora</em></strong> Vill., <strong><em>Androsace chamaejasme</em></strong> Wulff., <strong><em>Campanula polymorpha</em></strong> Witasek, <strong><em>Geranium silvaticum</em></strong> L., <strong><em>Bartsia alpina</em></strong> L;</span></p>
+<p><span>paprocie &ndash; <strong><em>Asplenium viride</em></strong> Huds., <strong><em>Cystopteris fragilis;</em></strong></span></p>
+<p><span>mszaki &ndash; <strong><em>Tortella tortuosa</em></strong> Limpr., <strong><em>Ctenidium molluscum</em></strong> Mitt., <strong><em>Bryum argentum</em></strong> L., <strong><em>Drepanocladus </em></strong>sp.</span></p>
+<p><span>Fauna nie była obserwowana.</span></p>
+<p><span>Piksa (1995) omawiając monitoring nietoperzy w latach 1994-1995 stwierdza</span><strong><em> Myotis brandtii, </em></strong>a<span> Piksa i Wołoszyn (2001) wymieniają następujące gatunki:&nbsp;</span><strong><em>Myotis myotis</em></strong><span>, <strong><em>Myotis mystacinus</em></strong> (Leisler),<strong><em> Myotis brandtii.</em></strong> </span><span>Piksa (2004) badał sezonowe zr&oacute;żnicowanie letniej i jesiennej aktywności nietoperzy; najliczniej odławiany był </span><strong><em>Myotis mystacinus.</em></strong></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania geologiczne i tektoniczne jaskini prowadził w 1967 r. J. Grodzicki (1969, 1970, 1989, 1991). Florę przyotworową badała w 1978 r. T. Bielska w ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini był znany F. Rabowskiemu, prowadzącemu przed wojną badania geologiczne w tym rejonie. Dane o wysokości n.p.m. otworu, jego położeniu i przybliżonej głębokości i studni przekazał on S. Zwolińskiemu (odnaleziono je spisane na kartce w Notatkach z Wypraw Grotowych &ndash; zob. Zwoliński 1993). Ponownie jaskinia została odszukana na podstawie wskaz&oacute;wek g&oacute;rali przez B. Gocha i R. Rodzińskiego z STJ Krakowskiego Koła Klubu Wysokog&oacute;rskiego na przełomie czerwca i lipca(?) 1960 r. i zbadana przez nich do przełazu w pierwszej sali. Została ponownie odszukana w lecie 1962 roku przez J. Onyszkiewicza, B. Uchmańskiego i towarzyszy ze Speleoklubu Warszawskiego PTTK i zbadana do zawaliska w dnie na głębokości -144 m .W 1970 r. W czasie wyprawy Speleoklubu Warszawskiego PTTK zbadano 2 wspinaczkowe problemy w drugiej studni z negatywnym wynikiem. W 1977 r. zakopiańscy grotołazi odkryli najniższe partie jaskini poniżej 6-metrowej studzienki. W lipcu 1989 r. W.W. Wiśniewski odkrył szczelinowy komin w stropie pierwszej sali, osiągając w nim wysokość +14 m w stosunku do otworu i ustalając obecną deniwelację jaskini.<br /> W okresie od lipca 1989 r. do marca 1991 r. członkowie Speleoklubu Akademickiego Kielce wyeksplorowali &bdquo;Partie nad Dzwonem&rdquo; o długości ciąg&oacute;w 64 m, do kt&oacute;rych &bdquo;startujemy z tego samego miejsca, z kt&oacute;rego zakładany jest zjazd na dno Dzwonu&rdquo; [Dzwonem od wielu lat nazywana jest studnia uchodząca do największej sali jaskini]; eksplorację prowadzili L. Dziubiński, B. Woldańska, A. Kasprzyk, Z. Grzela, T. Kapica, J. Rogalski, J, Bednarz (Kasprzyk,1991). <br />Eksploarację metodą wspinaczki prowadzili także grotołazi ze Speleoklubu Dąbrowa G&oacute;rnicza (w 1982 r.), STJ KW Krak&oacute;w (w 1998 r.), STJ KW Krak&oacute;w i Speleoklubu Tatrzańskiego (w 1992 r.). W 2003 roku grotołazi z Wałbrzyskiego Klubu G&oacute;rskiego i Jaskiniowego kontynuowali eksplorację rozpoczętą przez SDG 21 lat wcześniej. Eksplorowali partie odgałęziające się z komina w salce poniżej Dzwonu. Po zjechaniu 18 m studni dotarli do najniższego punktu jaskini na głębokości 158 metr&oacute;w. Odkryte wtedy partie mają 87 m długości i 34 m deniwelacji. W 2004 r. kontynuowali oni eksplorację rozbierając zawalisko w odkrytych partiach.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary sytuacyjno-wysokościowe otworu wykonał zesp&oacute;ł Koła Naukowego Geodet&oacute;w AGH pod kierunkiem W. Borowca w dniu 16 sierpnia 1981 r.<br /> Pierwszy plan i przekr&oacute;j jaskini sporządził 12 sierpnia 1967 r. J. Grodzicki przy wsp&oacute;łpracy A. Kopcia i Z. Tkacza. W 1978 r. zesp&oacute;ł Speleoklubu Katowice pod kierunkiem M. Napierały sporządził dokumentację najniższych partii jaskini. Kasprzyk (1991) zamieścił plan, przekr&oacute;j i opis Partii nad Dzwonem, wyeksplorowanych w latach 1989-1991) Niestety, plan tych partii nie został w czasie dokumentowania dowiązany do jakiegokolwiek charakterystycznego punktu jaskini, co uniemożliwia jego korelację z istniejącymi planami. W 1994 r. K. Recielski i S. Stefański publikują uproszczony przekr&oacute;j ze schematem przejścia wspinaczkowego pełnej deniwelacji jaskini (Recielski, Stefański 1994). Wojtoń (2003, 2005) zamieścił opis i plan partii wyeksplorowanych w 2003 i 2004 r., odgałęziających się z komina w salce poniżej Dzwonu, także bez danych umożliwiających dowiązanie do skartowanych partii jaskini. Dane zaktualizowała I. Luty (2009).<br />Plan opracował J. Grodzicki (nie zawiera partii odkrytych w latach 1991 i2003-2005).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kronika 1960 (informacja o odkryciu, bez nazwy); Kronika 1963 (wzmianka o zbadaniu jaskini); Uchmański B. 1963a (zapowiedź dalszej eksploracji); W&#243;jcik Z. 1963b (wzmianka o odkryciach w 1962 r.); W&#243;jcik Z. 1966a (dane morfometryczne, lokalizacja na mapie); W&#243;jcik Z. 1968 (lokalizacja na mapce); Grodzicki J. 1968b (plan, przekr&#243;j i opis inwentarzowy); Grodzicki J. 1970 (podaje genezę); Rutkowski M. 1970a (wzmianka o zbadaniu problem&#243;w wspinaczkowych w II studni); Grodzicki J. 1971a (podaje głębokość); Courbon P. 1972 (dane morfometryczne); Kozik A. 1972 (podaje głębokość); Kropiwnicka M., Burkacki M. 1976 (wzmianka o dokumentacji fotograficznej); Borowiec W. i in. 1977 (dane morfometryczne); Głazek J. i in. 1977 (wzmiankują); Grodzicki J. 1977 (podaje głębokość); Borowiec W. i in. 1978 (dane morfometryczne); W&#243;jcik Z. 1978c (wzmianka o genezie); Parma C. 1978 (wzmianka); Wiśniewski W.W. 1978a (wzmianka); Kardaś R. M. 1980b (podaje głębokość); Napierała M. 1980a (podaje głębokość); Napierała M. 1980b (wzmianka o odkryciach w 1978 r.); TATRY POLSKIE 1984 (lokalizacja na mapie topograficznej 1:10.000) Wiśniewski W.W. 1990a (informacja o wspinaczce i przewyższeniu); Kasprzyk A. 1991(plan, przekr&#243;j i opis Partii nad Dzwonem); Zwoliński S. 1993 (informacja Rabowskiego o położeniu jaskini); Recielski K., Stefański S. 1994 (uproszczony przekr&#243;j); Piksa K. 1995 (nietoperze); Jaskinie TPN 1999 (plan, przekr&#243;j i opis inwentarzowy); Bielska T., Mickiewicz J. 2000 (flora);Piksa K., Wołoszyn B. 2001 (nietoperze); Porębski W. 2003 (eksploracja);  Ramatowski P. 2003 (eksploracja wspinaczkowa); Wojtoń A. 2003 (opis i plan partii wyeksplorowanych z komina w salce poniżej Dzwonu); Piksa K.,  2004 (letnia i jesienna aktywność nietoperzy);  Wojtoń A. 2005 (opis i plan następnych odkryć w partiach wyeksplorowanych w salce poniżej Dzwonu).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Grodzicki, J. 1969 (opis geologiczny, geneza); Bielska, T. 1979 (lista gatunk&#243;w roślinności przyotworowej); Napierała, M. 1978 (opis i plan partii odkrytych w 1978 r.); Grodzicki, J. i in. 2000 (zmiany antropogeniczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11832)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(1046)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

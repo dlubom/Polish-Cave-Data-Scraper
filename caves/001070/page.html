@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1070">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1070;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559051,08".replace(',', '.') + "," + "153440,58".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1070','Jaskinia Mała'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Mała
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-04.04
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′41,71″, φ: 49&#176;14′44,23″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku E, 1045,5 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1045
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                2,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                2,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    40
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W Wyżniej Bramie Chochołowskiej, po lewej orograficznie stronie Doliny Chochołowskiej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z dna Doliny Chochołowskiej idziemy do dolnego (głównego) otworu Szczeliny Chochołowskiej T.D-04.02, który znajduje się o 50 m od leśniczówki w Wyżniej Bramie Chochołowskiej, ku NW od niej, na przełączce w małym żeberku skalnym, spadającym do potoku poniżej domu. Stąd trawersujemy ścieżką około 40 m ku ujściu doliny, schodzimy żlebem kilka metrów i cofamy się nieco percią trawersując na niższym poziomie do niedużej skałki. Tam, w jej wgłębieniu, jest niewielki otwór poszukiwanej jaskini, przedzielony filarem skalnym. Dojście od Jaskini Rybiej T.D-04.05: stromym piarżysto-trawiastym żlebem do góry, mijamy niewielką porośniętą świerkami turniczkę ponad skałką z południowymi otworami Jaskini Rybiej i na poziomie jej szczytu skręcamy w lewo, w ścieżkę, która po kilku metrach doprowadza do otworu. Dojście i zwiedzanie bez trudności, ciasno.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r gł&oacute;wny (południowy) rozdzielony jest filarem skalnym na dwie części: p&oacute;łnocna &ndash; szczelinowa, ma 2,1 m wysokości i 0,35 m szerokości (tędy wchodzimy do jaskini); południowa &ndash; o nieregularnym kształcie. Otw&oacute;r p&oacute;łnocny ma 0,9 m szerokości i 0,6 m wysokości. Za otworem gł&oacute;wnym znajduje się niewielka kom&oacute;rka (3x1x0,9 m) o dnie zasłanym wielkimi blokami skalnymi. Na prawo (ku NW) odchodzi od niej niski, ciasny korytarzyk, kt&oacute;ry zaraz rozdziela się. Ku S (na lewo) od niego wiedzie stromo do g&oacute;ry ukośna szczelina o zagruzowanym dnie, a od jej końca ku E biegnie bardzo wąska, pionowa szczelina, uchodząca z powrotem do wstępnej kom&oacute;rki. Ku N (na prawo) od rozdziela prowadzi niezwykle ciasny szczelinowy korytarzyk, od kt&oacute;rego prostopadle na prawo odchodzi ciasny ciąg do otworu p&oacute;łnocnego (przejście utrudniają duże wanty), a na lewo &ndash; ślepa odnoga. Nieco dalej, na następnej prostopadłej szczelinie, widać&nbsp;kr&oacute;tkie odnogi (prawa z nich, zmierzająca w kierunku powierzchni, jest całkowicie zamulona). </span></p>
+<p><span>Wracamy do rozdziela. Na wprost stąd (ku W), nad wantą tworzącą mały prożek, wiedzie gł&oacute;wny korytarz. Jest on szczelinowy, o kształcie pionowej soczewki (1x0,35 m), prowadzi do ciągu przebiegającego prostopadle. Na lewo stąd wiedzie szeroki lecz niski, kilkumetrowy korytarz o gliniastym dnie, a z jego końca odchodzą ku SE i NW kr&oacute;tkie odnogi. Na wprost wznoszą się kr&oacute;tkie ciasne odnogi, rozdzielone płytą skalną. Na prawo (ku N) biegnie ciasny korytarzyk na początku szczelinowy, dalej meandrujący, myty. Kilka metr&oacute;w za małą studzienką widoczną po lewej stronie, przechodzi on w ciąg zbyt ciasny, aby przejść.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmo-neokomu &bdquo;znad Schroniska&rdquo; paraautochtonicznej jednostki wierchowej. Wchodzi w skład podziemnego systemu Szczeliny Chochołowskiej (W&oacute;jcik 1966a). Na ścianach występują nacieki grzybkowe, w głębi r&oacute;wnież mleko wapienne i małe stalaktyty. Dno w części wstępnej kamieniste, w głębi gliniaste, przy otworach &ndash; gleba. W namulisku znaleziono kości nietoperzy. Osady allochtoniczne jaskini badał W&oacute;jcik (1960a, b, 1966a). Składem przypominają one żwirowiska Jaskini Rybiej i zawierają materiał podobny do wsp&oacute;łczesnego żwirowiska potoku. </span></p>
+<p><span>Część końcowa ciemna, światło sięga do końca pierwszej kom&oacute;rki oraz około 2 m od otworu N.&nbsp;Przy otworach sucho, dalej wilgotno. Wyczuwa się przewiew między otworami. </span></p>
+<p><span>Roślinność zielona obecna jest w pobliżu otwor&oacute;w. Występują liczne owady troglokseniczne, szczeg&oacute;lnie obficie reprezentowane przez ćmy <strong><em>Scoliopteryx libatrix</em></strong>. Ponadto znaleziono czarne pająki, muchy i komary. Kowalski (1955a) zebrał owady:</span></p>
+<p><em>Lepidoptera<strong><span>: Scolipteryx libatrix</span></strong></em><span> L. <strong><em>Triphosa dubitata</em></strong> L. oraz nietoperze: <strong><em>Plecotus auritus</em></strong> L. <strong><em>Eptesicus nilssoni</em><span style="font-style: italic;">i</span></strong> (Keyserling). E. Sobiepanek 2.09.1977 r. zebrała okazy <span style="font-style: italic;">Araneae</span>: <strong><em>Meta menardi</em></strong>.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Osady allochtoniczne jaskini badał W&oacute;jcik (1960b, 1966a), podając r&oacute;wnież dane geologiczne i rozważania na temat genezy. Faunę badał Kowalski (1955a) oraz Sobiepanek-Krzyżanowska (1979&nbsp;&ndash; mat arch).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta przez S. Zwolińskiego i K. Kowalskiego w dniu 9.08.1951 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis datowany na 3.11.1951 r. opublikował Kowalski (1953a). W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ P. Kulbicki i M. Małek 12.07.1975 r. przeprowadzili pomiary sytuacyjno-wysokościowe położenia otworu metodą ciągu azymutalno-taśmowego, E. Sobiepanek w 1977 r. zebrała faunę, a M. Burkacki, J. Mędza i K. Pohoski 3.09.1977 r. dokonali obserwacji terenowych w jaskini. W lipcu 2009 r. I. Luty przy wsp&oacute;łpracy P. Burkackiego oraz M. Machulaka sporządziła nową dokumentację jaskini. Pomiary wykonano busolą Suunto i taśmą mierniczą. Zaktualizowała I. Luty (2009).<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kowalski K. 1953a (plan i opis); Kowalski, K. 1955a (fauna); Kostrzewski A. 1960 (og&#243;lny opis); W&#243;jcik, Z. 1960b (osady); W&#243;jcik Z. 1966a (geneza, osady); Borowiec W. i in. 1977 (dane morfometryczne); Gradziński R. i in. 1985a (dane morfometryczne); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10 000); Jaskinie TPN 1991 (plan i opis inwentarzowy). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Sobiepanek-Krzyżanowska, E. 1979 (fauna).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(542)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

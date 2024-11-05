@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11289">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11289;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "557573,28".replace(',', '.') + "," + "256410,27".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11289','Jaskinia Dzika'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Dzika
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Wierzchowska Średnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-04.79
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′23,30″, φ: 50&#176;10′19,60″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wielka Wieś (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                400
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                2
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                2
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    61
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Wierzchowie, Dolina Kluczwody, Obszar Natura 2000 - Dolinki Jurajskie.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jadąc drogą krajową nr 94 w miejscowości Biały Kościół skręcamy na SW kierując się drogowskazami do Jaskini Wierzchowskiej Górnej J.Olk.I-04.83. Po ok. 500 m dojeżdżamy do skrzyżowania i skręcamy w prawo do Wierzchowia. Po kolejnych 900 m dojeżdżamy do parkingu w Wierzchowiu. Z parkingu idziemy ul. Spacerową za drogowskazem w kierunku Jaskini Wierzchowskiej Górnej (na północ). Po przejściu ok. 400 m po prawej (wschodniej) stronie pojawia się krótka i szeroka, boczna dolinka. Jaskinia leży kilkadziesiąt metrów od drogi w skałkach widocznych na zboczu tej dolinki. Duży otwór jest dobrze widoczny z drogi.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dobry opis jaskini, kt&oacute;ry nie uległ dezaktualizacji dał w 1951 roku K. Kowalski:<br /><em>&bdquo;Otw&oacute;r jaskini wychodzi na rodzaj bardzo wysokiej wnęki osłoniętej od g&oacute;ry przewieszoną skałą, a ku południowi przedłużającej się w kr&oacute;tki tunel lub raczej bramę skalną. Za otworem dostajemy się do korytarza 18 m długiego, zrazu wysokiego, potem coraz niższego, kt&oacute;rego dno na og&oacute;ł wznosi się ku g&oacute;rze. Strop jest ogładzony. Korytarz ten doprowadza nas do małej salki 7 m długiej, średnio 3 m szerokiej i 2 m wysokiej, o dnie poziomym. Posiada ona odnogę idącą ku SE i leżącą na poziomie 1 m niższym niż dno salki. Gł&oacute;wna oś jaskini biegnie dalej ku NE w postaci chodnika predysponowanego wyraźnymi szczelinami i wykazującego trzy następujące po sobie rozszerzenia połączone ciasnymi przejściami. Z pierwszego rozszerzenia odchodzi w lewo ciasny, ku dołowi biegnący korytarz z dobrze zachowanymi stalaktytami. Podobna odnoga występuje w drugim rozszerzeniu, lecz odchodzi w prawo. Łączy się ona widać z dalszymi pr&oacute;żniami w głębi skały, bo spływa do niej glina z jaskini tworząc wyraźny lej. Wreszcie gł&oacute;wny korytarz przechodzi w wąskie szczeliny.&rdquo;</em><br />Jaskinia powstała w g&oacute;rnojurajskich (oksford) wapieniach skalistych. Spos&oacute;b wykształcenia jaskini oraz spękania skał wok&oacute;ł niej wskazują, że zar&oacute;wno jaskinia jak i Schronisko przy Jaskini Dzikiej J.Olk.I-04.80 jest związana ze strefą tektoniczną przecinającą w poprzek Dolinę Kluczwody. Szczeliny tektoniczne zostały wykorzystane przez wody podziemne, kt&oacute;re bardzo mocno przemodelowały wnętrze jaskini. Kształt korytarzy wskazuje, że były to raczej wody związane ze strefą wadyczną przepływ&oacute;w podziemnych.<br />Wg Kowalskiego (1951):<em> &bdquo;...Nacieki w jaskini są liczne, stosunkowo dobrze zachowane, choć brak większych stalaktyt&oacute;w i stalagmit&oacute;w. Liczne też formy wymycia.</em><br /><em>Namulisko w niszy przed jaskinią skąpe, pr&oacute;chnicowe. W korytarzu wstępnym do 10 m od otworu namuł pr&oacute;chnicowy, skąpy, wystercza spod niego skała. Dalej aż do komory zalegają na dnie kamienie spojone po bokach skorupą naciekową. W głębi jaskini dno gliniaste. Namulisko nienaruszone, na powierzchni liczne kości wsp&oacute;łczesne.</em><br /><em>Jaskinia począwszy od komory silnie wilgotna, stale kapie woda tworząc na dnie kałuże. Jest ona znacznie wilgotniejsza niż leżąca w pobliżu, na niższym poziomie, Jaskinia Wierzchowska G&oacute;rna.&rdquo;</em><br />Jaskinia stwarza doskonałe warunki bytowania dla wielu gatunk&oacute;w pajęczak&oacute;w, kt&oacute;re w dużej ilości zamieszkują wnętrze. Opr&oacute;cz pajęczak&oacute;w korytarze zamieszkują liczne motyle zar&oacute;wno nocne jak dzienne oraz liczne much&oacute;wki. Jaskinia jest r&oacute;wnież&nbsp; wykorzystywana przez kilka gatunk&oacute;w nietoperzy, jako miejsce zimowania.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Niekt&oacute;re gatunki pajęczak&oacute;w były przedmiotem badań, kt&oacute;re prowadziła Sanocka-Wołoszynowa (1981).</p>
+<p>Obserwacje kolonii zimowych nietoperzy prowadzili Nowak i Grzywiński (2007, 2012).<br />W roku 2000 Goc, G&oacute;rny, Klojzy-Karczmarczyk i Motyka prowadząc badania geochemiczne w&oacute;d jaskiniowych południowej części Wyżyny Krakowskiej, objęli nimi r&oacute;wnież wody w Jaskini Dzikiej.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wg Kowalskiego (1951): <em>&bdquo;...Jedyną wzmianką o tej jaskini jest wymienienie jej i oznaczenie na mapie w pracy Ciętaka (1935) pod nazwą Jaskini Dzikiej. Znaną też była Ossowskiemu, kt&oacute;ry oznacza ją na mapie doliny Kluczwody, znajdującej się w Archiwum Muzeum Archeologicznego P.A.U. jako Jaskinię Wierzchowską Średnią.&rdquo;&nbsp;</em></p>
+<p><em></em> Aktualnie jaskinia jest często odwiedzana z racji bliskości niezwykle popularnej, udostępnionej Jaskini Wierzchowskiej G&oacute;rnej J.Olk.I-04.83.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>M. Szelerewicz i A. G&oacute;rny sporządzili w 1984 roku plan Jaskini Dzikiej, kt&oacute;ry wraz z opisem opublikowali w 1986 roku.<br />Nowe pomiary wykonał w październiku 2014 roku Norbert Sznober.<br />Plan opracował N. Sznober.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ciętak Z. 1935 (wzmianka, lokalizacja na mapie); Kowalski K. 1951 (plan, opis pod nr 82); Sanocka-Wołoszynowa E. 1981 (obserwacje pajęczak&#243;w w jaskini); Szelerewicz M., G&#243;rny A. 1986 (plan, opis); Goc P., G&#243;rny A., Klojzy-Karczmarczyk B., Motyka J. 2000 (w kontekście chemizmu w&#243;d krasowych); Nowak J., Grzywiński W. 2007 (spisy hibernujących nietoperzy); Nowak J., Grzywiński W. 2012 (spisy hibernujących nietoperzy); Jaskinie Wyżyny Olkuskiej 2018a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius, Kazimierz Kowalski, Norbert Sznober
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2018
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12863)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otwory
+                    </a>
+                    <a onclick="showImageInfo(12915)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r boczny
+                    </a>
+                    <a onclick="showImageInfo(12841)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

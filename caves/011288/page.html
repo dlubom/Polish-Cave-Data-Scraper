@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11288">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11288;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "557519,79".replace(',', '.') + "," + "256221,33".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11288','Jaskinia Mamutowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Mamutowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Wierzchowska Dolna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-04.63
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′20,50″, φ: 50&#176;10′13,50″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wielka Wieś (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                380
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                3,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    105
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Wierzchowie, Dolina Kluczwody, Obszar Natura 2000 - Dolinki Jurajskie.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jadąc drogą krajową nr 94 w miejscowości Biały Kościół skręcamy na SW kierując się drogowskazami do Jaskini Wierzchowskiej Górnej J.Olk.I-04.83. Po ok. 500 m dojeżdżamy do skrzyżowania i skręcamy w prawo do Wierzchowia. Po kolejnych 900 m dojeżdżamy do parkingu w Wierzchowiu.  Z parkingu idziemy ul. Spacerową za drogowskazem w kierunku Jaskini Wierzchowskiej Górnej (na północ). Za ostatnim domem (bardzo zniszczony) po prawej stronie, skręcamy w prawo i wąską ścieżką wznoszącą się lekko w górę dochodzimy do skałek, przechodzimy pod Okapem pod Mamutową J.Olk.I-04.64 i wznosząc się ścieżką jeszcze nieco w górę dochodzimy do wielkiego otworu Jaskini Mamutowej.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Opierając się na planie Ciętaka (1935) i cytując go częściowo, opis jaskini przedstawił w 1951 r. K. Kowalski jednocześnie nadając jej numer 85: <em>&bdquo;Otw&oacute;r stanowi wspaniały łuk skalny, będący resztką sklepienia wstępnej komory jaskini. Dalsza część tej komory otwarta jest u g&oacute;ry. Przed otworem stromy stok doliny.</em><br /><em>&bdquo;Na powstanie jaskini złożyły się kierunki spękań NE-SW oraz NNW-SSE. W południowej stronie komory gł&oacute;wnej niewielka wnęka tworzy boczne odgałęzienie, w kt&oacute;rym zaznacza się predyspozycja strukturalna. Komora gł&oacute;wna rozgałęzia się w dw&oacute;ch kierunkach: E i NE. Obydwa przebiegają wzdłuż szczelin. Odgałęzienie E jest dalszym ciągiem komory gł&oacute;wnej, przechodzącej w szeroki korytarz, kt&oacute;ry przy swym końcu jest zamknięty. Zaokrąglenia istniejące na całej długości korytarza noszą ślady działania wody płynącej, a miejscami działającej pod ciśnieniem. Kominy wdrążone w głąb skały urozmaicają wykształcenie stropu. Przy p&oacute;łnocnej stronie ściany wznoszą się dwa słupy skalne, z kt&oacute;rych drugi nosi wyraźne ślady omyć na wysokości odpowiadającej poziomowi dna jaskini przed rozkopaniem. Istnienie powyższej formy świadczy o tym, że woda płynąc zamulonym dnem jaskini erodowała na boki. Przekr&oacute;j na planie obrazuje nam kształty jaskini w tym miejscu. Na E od opisanych słup&oacute;w ciągnie się korytarz ku N, wyzyskujący istnienie szczeliny. Kierunek jego czterokrotnie ulega zmianie, skręcając w rezultacie ku N. W ostatnim swym odcinku spękania skały predysponują kominy uchodzące w głąb. Całość jaskini robi wrażenie resztek jakiejś większej formy dziś już nie istniejącej, kt&oacute;ra rozciągała się w miejscu dzisiejszej doliny.&rdquo;</em>(za Ciętakiem).<br />Jaskinia powstała w wapieniach skalistych g&oacute;rnej jury (oksford) dzięki podziemnym przepływom krasowym, kt&oacute;re zachodziły zar&oacute;wno w strefie freatycznej jak i wadycznej. Wielkie kotły wirowe przed samym wejściem do jaskini świadczą, że do powstania jaskini mogły się r&oacute;wnież przyczynić przepływy ascenzyjne.<br />Pewną ciekawostką jest występowanie w korytarzu p&oacute;łnocno-wschodnim tzw. szlif&oacute;w zwierzęcych. Są to wygłady na ścianach wywołane stałym ocieraniem się wędrujących przez jaskinię zwierząt.<br />Wg Kowalskiego (1951):<em> &bdquo;... Namulisko rozkopywane było przez Zawiszę w latach 1873-1881. Przekopał on w&oacute;wczas całe wnętrze komory gł&oacute;wnej. W 1881 rozpoczął także badanie przedproża jaskini, lecz zaniechał go napotkawszy głazy. Znalazł on w namulisku grubym na 2,5 m, rozkopanym aż do dna skalnego, 7 ognisk leżących ponad sobą, a przy nich wielką ilość kości zwierzęcych i wyrob&oacute;w ludzkich. Fauna warstw plejstoceńskich zawierała wg Zawiszy następujące gatunki: </em>Elephas primigenius<em>, </em>Rhinoceros tichorhonus<em>, </em>Ursus spelaeus<em>, </em>Ursus priscus<em>?, </em>Equus caballus<em>, </em>Cervus alces<em>, </em>Cervus tarandus<em>, </em>Bos<em> sp.</em><em>, </em>Canis lupus<em>, </em>Canis lagopus<em>, </em>Canis vulpes<em>, </em>Meles taxus<em>, </em>Lepus timidus<em>, </em>Sciurus vulgaris<em>, </em>Mus<em> sp., </em>Lagopus lagopus<em>, </em>Tetrao urogallus<em>. Wraz z nimi znaleziono zabytki paleolityczne. Pod powierzchnią znaleziono faunę holoceńską i wyroby neolityczne.&nbsp;</em></p>
+<p><em> Obecnie namulisko ma powierzchnię bardzo nier&oacute;wną, z dołem pozostałym po badaniach Kozłowskiego. Widać, że w głębszej części znajdowała się na powierzchni namuliska niezbyt gruba warstwa scementowana naciekami. W ciasnym lewym korytarzyku namulisko nienaruszone, na powierzchni wsp&oacute;łczesne kości. Gł&oacute;wna część namuliska została przekopana, jednakże wykop Kozłowskiego nie sięgał dna, zapewne też pod ścianami lub na przedprożu znalazłyby się partie nienaruszone, pozwalające w pewnym stopniu przynajmniej ustalić stratygrafię warstw namuliska.<br />Temperatura w głębi jaskini wg Ciętaka wynosiła +7,8&deg;C w miesiącach letnich. Cała gł&oacute;wna komora jasna, ciemne są tylko korytarzyki końcowe. Dość sucha."</em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wg Kowalskiego (1951): <em>"...W 1913 podjął badania wykopaliskowe w Jaskini Mamutowej Kozłowski. Rozkopał on taras przedjaskiniowy oraz część przednią jaskini pomiędzy łukiem skalnym, a dzisiejszą krawędzią stropu. G&oacute;rną warstwę (pod usypiskiem pozostałym z poszukiwań Zawiszy) tworzył humus 10-25 cm gruby z zabytkami neolitycznymi. Pod nim spoczywała 1 m gruba warstwa plejstoceńska wykazująca 3 poziomy: g&oacute;rny ż&oacute;łty i sypki, środkowy ciemniejszy, dolny zaś czerwony. W g&oacute;rnym poziomie znajdowała się warstewka kości gryzoni arktycznych, zawierająca kilka magdaleńskich wi&oacute;r&oacute;w krzemiennych. Poziom środkowy ma odpowiadać zdaniem Kozłowskiego gł&oacute;wnemu ognisku z badań Zawiszy, skupiającemu wyroby oryniackie i solutrejskie. Wreszcie poziom dolny krył zn&oacute;w kostki gryzoni i nieco wyrob&oacute;w uznanych przez Kozłowskiego za mustierskie. Dna skalnego Kozłowski nie osiągnął, zamieszczony w jego pracy profil jest jedynie schematem bez wartości dowodowej. Materiał kostny z r&oacute;żnych warstw plejstoceńskich, może nawet z dodatkiem kości pardw (</em>Lagopus lagopus<em> i </em>L. mutus<em>) oraz ssak&oacute;w: </em>Talpa europaea<em>, </em>Lepus timidus<em>, </em>Ochotona pusilla [w oryg. niepoprawnie Ochota pusilla]<em>, </em>Arvicola terrestris<em>, </em>Microtus arvalis<em>, </em>M. ratticeps<em>, </em>Dicrostonyx torquatus<em>, </em>Cricetus cricetus<em>, </em>Epimys rattus?<em>, </em>Mustela nivalis<em>, </em>M. erminea<em>, </em>Alopex lagopus<em>.</em><br /><em>Obecnie namulisko ma powierzchnię bardzo nier&oacute;wną, z dołem pozostałym po badaniach Kozłowskiego. Widać, że w głębszej części znajdowała się na powierzchni namuliska niezbyt gruba warstwa scementowana naciekami. W ciasnym lewym korytarzyku namulisko nienaruszone, na powierzchni wsp&oacute;łczesne kości. Gł&oacute;wna część namuliska została przekopana, jednakże wykop Kozłowskiego nie sięgał dna, zapewne też pod ścianami lub na przedprożu znalazłyby się partie nienaruszone, pozwalające w pewnym stopniu przynajmniej ustalić stratygrafię warstw namuliska. ...</em></p>
+<p><em>Pierwszy opisał ją Jan Zawisza, kt&oacute;ry następnie przez szereg lat badał namulisko i opisywał pochodzące z niego zabytki. Zebrane przez niego szczątki kostne oznaczał Fraas i Śl&oacute;sarski. Znalezione zabytki rozpoznał Zawisza trafnie jako neolit i paleolit. Dzięki swemu bogactwu były one publikowane i ilustrowane w wielu pracach poświęconych paleolitowi polskiemu i europejskiemu. W 1913 kontynuował Kozłowski badania wykopaliskowe w nietkniętym poprzednio przedprożu jaskini. Jego materiały kostne opracował Niezabitowski. Paleolit Mamutowej zalicza Kozłowski w gł&oacute;wnej mierze do okresu solutrejskiego, dopatruje się tu też ślad&oacute;w przemysł&oacute;w mustierskich i magdaleńskich. Krukowski (1939) zalicza wyroby paleolityczne z te jaskini do przemysł&oacute;w oryniackich g&oacute;rnych. ...</em><br /><em>Materiały archeologiczne Zawiszy i Kozłowskiego znajdują się w Muzeum Archeologicznym P.A.U. pod nr inw. 1-32, 916, 2423-2424, 5353-5355, 6812 i ks. wpływ&oacute;w za 1945/6 nr 14. Nie ustaliłem, gdzie znajdują się szczątki kostne z tych poszukiwań. Znalezioną przez siebie czaszkę ludzką ofiarował Zawisza do muzeum w Paryżu. Nieco okaz&oacute;w zebranych przez Śl&oacute;sarskiego znajduje się w P.M.A., zaś jeden odłupek ze zbioru R&ouml;mera w Muzeum Państwowym we Wrocławiu (bez nr).&rdquo;</em><br />W okresie powojennym kilkakrotnie powracano do prac wykopaliskowych. Prace te opisał S. Kowalski (1967, 1970, 1971), a materiał archeologiczny i paleontologiczny pozyskany wcześniej posłużył do wielu publikacji. W roku 1976 A. Nadachowski omawia kręgowce znalezione w trakcie wykopalisk. Omawiając neolityczne stanowiska jaskiniowe E. Rook wymienia jaskinię w 1980 roku. W 1981 r. Sanocka-Wołoszynowa publikuje materiały dotyczące pajęczak&oacute;w w jaskini. Dane dotyczące wieku bezwzględnego naciek&oacute;w, uzyskane na podstawie badań izotopowych są publikowane w 1994 r. (Pazdur A. i in.). W 1986 roku E. Foltyn wymienia jaskinię jako paleolityczne stanowisko jaskiniowe. W 1987 r. T. Madeyska wydzielając na podstawie kręgowc&oacute;w jednostki stratygraficzne czwartorzędu omawia znaleziska jaskiniowe. W 1999 roku Pazdur, Goslar, Gradziński i Hercman zajmują się zmianami hydrologicznymi i klimatycznymi w obszarach krasowych Polski południowej na podstawie badań izotopowych m.in. w Jaskini Mamutowej. W roku 2000 T. Madeyska w popularyzatorski spos&oacute;b omawia &bdquo;dzieje w jaskiniach zapisane&rdquo;. Goc, G&oacute;rny, Klojzy-Karczmarczyk i Motyka, badając chemizm w&oacute;d jaskiniowych uwzględniają w 2000 r. dane r&oacute;wnież z tej jaskini. W 2002 roku T. Madeyska zajmuje się zapisem zmian klimatycznych w osadach lessowych oraz paleolitycznych stanowiskach jaskiniowych, między innymi korzystając z obserwacji w Jaskini Mamutowej.<br />Dane z zimowych zliczeń nietoperzy hibernujących w licznych skupiskach w tej jaskini Nowak i Grzywiński (2007, 2012).</p>
+<p>W 2012 roku M. Wojenka zajmuje się artefaktami średniowiecznymi w jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy opisał ją Jan Zawisza, w 1935 Ciętak dał plan i opis morfologiczny jaskini. Plan Ciętaka i opis Kowalskiego nie uwzględnia ciasnych, bocznych korytarzyk&oacute;w. Kolejny plan i opis jaskini - Szelerewicza i G&oacute;rnego pojawia się w 1986 roku. Do długości jaskini należy dodać odkrycia dokonane w latach p&oacute;źniejszych, dzięki kt&oacute;rym długość obiektu wzrosła do ponad 100 metr&oacute;w. W 1992 r. A. G&oacute;rny opisuje odkrycia w korytarzu p&oacute;łnocno-wschodnim, gdzie znaleziono salkę z bogatą i r&oacute;żnowiekową szatą naciekową. W 1995 roku pojawia się wzmianka M. i J. Wiśniewskich o kolejnej pr&oacute;bie eksploracji, jednak wobec braku dokładnego opisu lub planu, trudno zlokalizować miejsce w kt&oacute;rym doszło do odkryć.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary wykonał w 1974 roku M. Czepiel, a uzupełnił je w 1992 roku A G&oacute;rny.<br />Plan M. Czepiela z uzupełnieniami A. G&oacute;rnego.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zawisza J. 1873a wzmianka); Virchow R. 1873 (opis fragmentu czaszki ludzkiej znalezionego przez Zawiszę); Zawisza J. 1874 (opis i plan jaskini, opis wykopalisk i znalezisk, rys. Wyrob&#243;w); Kohn 1876 (tłumaczenie pracy Zawiszy); H&#246;hlen mit Knochen... 1876 (wzm. o badaniach Zawiszy); Zawisza J. 1877 (opis dalszych badań., rys. wyrob&#243;w i fot. kości plejstoceńskich); Zawisza J. 1878 (dotychczasowe wyniki badań, plan, profil, fauna i zabytki; rys. wykopalisk); Virchow R. 1879 (por&#243;wnuje czaszkę z Gorenic z czaszką z Mamutowej); Kohn A. und Mehlis C. 1879 (tłumaczenie prac Zawiszy); Hellwald F. 1879 (streszczenie opisu wykopalisk wg pracy poprz.); Zawisza J. 1882a (dalszy ciąg badań w 1877-8); Zawisza J. 1882b (badania w 1879); Ossowski G. 1882a (wzm. o badaniach Zawiszy); Ossowski 1882b (dtto); Zawisza J. 1883a (teoria o znaczeniu wyrob&#243;w z cios&#243;w mamuta); Zawisza J. 1883b (tłumaczenie poprz.); R&#246;mer F. 1883 (wzmianki o badaniach, kościach i zabytkach wg Zawiszy); Ossowski G. 1884b (wzmianka); Śl&#243;sarski 1884 (wzm o znalezieniu szczątk&#243;w nosorożca); Stanisław z Warszawy 1888 (wzmianka); Czarnowski S.J. 1899 (wzmianki); Moritillet A. 1900 (o paleolicie); Czarnowski S.J 1903 (wzm. o czaszce ludzkiej z poszukiwań Zawiszy); Hoernes M. 1903 (o paleolicie);. Czarnowski S.J. 1905 (wzmianka); Wr&#243;blewski K. 1907 (opis wg Zawiszy); Przesmycki P. 1908 (wzmianki); Kuźniar W., Demetrykiewicz W. 1909 (wzm. o paleolicie); Diest H. 1909 (wzmianka); Czarnowski S.J. 1911 (wzmianki); Talko-Hryncewicz 1913 (wzm. o zabytkach i czaszce ludzkiej); Obermaier H. 1912 (o paleolicie); Demetrykiewicz W. 1913 (o paleolicie); Kiernik E. 1913b (o znalezieniu szczątk&#243;w Wilka); Niezabitowski E.L. 1914 (wzm.oszczątkach renifera); Orłowicz M. 1919 (wzmianka); Kozłowski L. 1921 (o paleolicie); Kozłowski L. 1922 (opis poszukiwań autora oraz zabytk&#243;w); Krukowski S. 1922 (krytyka wynik&#243;w i metod pracy poprzedniej); Demetrykiewicz W. 1922 (wzmianki); Żurowski J. 1923a (wzm. o zabytkach); Kozłowski L. 1924 (nieco poprawione tlumaczenie pracy z 1922); Kozłowski L. 1924a (wzm. o neolicie); Dzwonkowski [1922?] (wzmianka); Sawicki L. 1926 (wzm. o przemyśle solutrejskim); Antoniewicz W. 1927 (wzm. o paleolicie); Antoniewicz W. 1928 (opis paleolitu); Stączek S. 1928 (opis); Żurowski J. 1929 (o paleolicie); Żurowski J. 1931a (o paleolicie); Zawadzki J.  1932 (wzmianka); Niezabitowski E.L. 1932 (wykaz fauny plejstoceńskiej z badań Kozlowskiego, opis kości pardw); Niezabitowski E.L. 1933 (wzm. o kościach plejstoceńskich gryzoni); Danysz-Fleszarowa R. 1933 (wymienia); K. B. 1935 (wzmianka); Ciętak Z. 1935 (opis, plan, fot. otworu); Hoyer H. 1937 (wzm. o faunie plejstoceńskiej); Jura A. 1938a (57 wzm. o zabytkach oryniackich); Jura A. 1938b (rys. narzędzia paleolitycznego); Loth E. 1938 (wzm. o paleolicie i faunie); Jura A. 1939 (plan, wzm. o paleolicie); Krukowski S. 1939 (opis paleolitu, ryc. wykopalisk); Żabiński W.  1947 (wzmianka); Kowalski K. 1948 (wzm. o paleolicie); Kowalski K. 1948b (ditto); Reyman T. 1948 (ditto); Kostrzewski J. 1948 (o badaniach Zawiszy); Kostrzewski J. 1949a (o paleolicie); Kostrzewski J. 1949b (o badaniach Zawiszy); Sawicki L. 1949 (o badaniach Zawiszy); Kowalski K. 1951 (plan i opis); Kowalski S. 1967 (badania archeologiczne); Kowalski S. 1970 (o badaniach w 1969 r.); Kowalski S. 1971 (o badaniach w 1971 r.); Nadachowski A. 1976 (fauna kopalna w jaskini); Rook E. 1980 (o osadnictwie neolitycznym); Sanocka-Wołoszynowa E. 1981 (fauna pajęczak&#243;w); Foltyn E. 1986 (wzmiankuje w kontekście stanowiska neolitycznego); Szelerewicz M., G&#243;rny A. 1986 (plan i opis); Madeyska T. 1987 (stratygrafia osad&#243;w); G&#243;rny A. 1992a (opis); Pazdur A., Pazdur M., F., Hercman H., G&#243;rny A., Olszewski M. 1994 (datowania naciek&#243;w); Wiśniewski M. i J. 1995 (informacje o jaskini); Pazdur A., Goslar T., Gradziński M., Hercman H., 1999 (datowania naciek&#243;w); Goc P., G&#243;rny A., Klojzy-Karczmarczyk B., Motyka J. 2000 (wzmiankują w kontekście hydrochemii w&#243;d krasowych); Madeyska T. 2000 (wzmiankuje w kontekście zapisu danych środowiskowych w osadach); Madeyska T. 2002 (zmiany klimatyczne zapisane w osadach); Nowak J., Grzywiński W. 2007, 2012 (wyniki spis&#243;w nietoperzy); Wojenka M. 2012 (artefakty średniowieczne w jaskini); Jaskinie Wyżyny Olkuskiej 2018a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius, Kazimierz Kowalski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2018
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12914)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        chłopki lodowe
+                    </a>
+                    <a onclick="showImageInfo(12849)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(12840)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

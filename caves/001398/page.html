@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1398">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1398;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "562921,91".replace(',', '.') + "," + "152906,61".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1398','Jaskinia Wodna pod Pisaną'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Wodna pod Pisaną
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia pod Pisaną
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-08.20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;51′52,91″, φ: 49&#176;14′25,55″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku W, 1024 m n.p.m.; 3 - ku SW, 1028 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1023
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    450
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Kościeliska, na prawym orograficznie zboczu Doliny Kościeliskiej, przy jej dnie, nieco powyżej Hali Pisanej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Drogą wiodącą dnem doliny mijamy Halę Pisaną i odejście szlaku do Wąwozu Kraków. Główny otwór jaskini, z którego wypływa potok, znajduje się w Skale Pisanej stanowiącej prawe (or.) ograniczenie wąskiej w tym miejscu doliny, naprzeciw drugiego mostka za Halą Pisaną. Dojście bez trudności, zwiedzanie uciążliwe ze względu na wodę i ciasnotę części korytarzy jaskini, poznanie niektórych partii wymaga użycia techniki nurkowania swobodnego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r I (gł&oacute;wny) oraz trzy przeziory obok niego znajduje się w ścianie Pisanej Skały, u jej podn&oacute;ża. Suchy otw&oacute;r II widać około 30 metr&oacute;w dalej na SW, w miejscu gdzie droga zbliża się do skały (często bywa zasłonięty głazem lub karpiną). Otw&oacute;r III, r&oacute;wnież suchy jest położony pod skałami przy prawym (or.) brzegu potoku, naprzeciwko odejścia szlaku do Jaskini Mylnej. W 1985 r. zbocze doliny osunęło się i otw&oacute;r został zamknięty wielkim zawaliskiem; aktualnie&nbsp;(2009) nadal jest zamknięty. Nieco na p&oacute;łnoc od niego są jeszcze dwa mokre, rzadko wykorzystywane przez grotołaz&oacute;w otwory: jeden prowadzi do kom&oacute;rki za otworem III, a drugi jest wyjściem ciasnego, bocznego ciągu groty.</span></p>
+<p><span>Otw&oacute;r I o kształcie zbliżonym do tr&oacute;jkątnego ma 1,8 m szerokości i 1,4 m wysokości. Na południowy zach&oacute;d od niego biegnie za cienką przegrodą skalną 8-metrowy korytarzyk kontaktujący się z powierzchnią trzema obszernymi oknami-przeziorami. Otw&oacute;r II jest prawie okrągły, ma wymiary około 0,3x0,4 m. Otw&oacute;r III kształtem przypomina prostokąt (2,1x1,9 m). Leżą w nim dwa duże głazy wapienne.</span></p>
+<p><span>Za otworem I wiedzie dość obszerny korytarz, kt&oacute;rym płynie potok. Przechodzimy go w kombinezonie wodoodpornym lub neoprenowym. Do rozszerzenia nazwanego Komorą Goszczyńskiego woda sięga po kolana lub nieco wyżej (można przejść zapieraczką w kaloszach). Dalej idziemy na lewo, pod prąd, zwężającą się szczeliną z głęboką wodą. Na prawo od niej widać ciasne przebicie (okresowy syfonik) do r&oacute;wnoległego wodnego ciągu (Stemple Cz&oacute;łna), a kilka metr&oacute;w dalej następuje połączenie z nim. Po kilkunastu metrach od połączenia docieramy do zakrętu w prawo. Zaraz za nim w zakończeniu tzw. Komory Końcowej położony jest Syfon. Metodą nurkowania swobodnego schodzimy około 2&ndash;2,5 m poniżej lustra wody, do ciasnego przełazu pod kr&oacute;tką przegrodą skalną. Często gromadzi się w nim nanoszony przez wodę materiał, nieomal zamykając prześwit otworu. Za Syfonem wiedzie Nowy Korytarz, rozwinę ty na szczelinie r&oacute;wnoległej do gł&oacute;wnego ciągu groty. Jego długość wynosi około 40 m. Kończy go zwężenie całkowicie zalane wodą. W stropie tego korytarza można zauważyć buły hematytu. W Nowym Korytarzu po 25 m od syfonu jest do odnoga po lewej stronie, wypełniona po strop wodą, z dużym wypływem, ciasna. Idąc Nowym Korytarzem dalej, są dwa zwężenia, a niedaleko przed zakończeniem korytarza &ndash; ciasny syfon, odchodzący na lewo, nieco wstecz, położony w odległości 15 m od poprzedniej odnogi. W tym syfonie przebyto 7 m prawie poziomej szczeliny, przy głębokości 3 m. Dalej następuje ostry skręt na lewo, a ostra brzytwa skalna uniemożliwia nurkowanie. </span></p>
+<p><span>Wracamy do Komory Goszczyńskiego. Odchodzi z niej kilka ciasnych korytarzyk&oacute;w. Największy z nich prowadzi ku południowemu zachodowi, do Złotego Korytarza. Na prawo od niego widać ujścia labiryntu ciasnych przełaz&oacute;w, przez kt&oacute;re przedostajemy się do małego rozszerzenia. Stąd na prawo wąskimi, r&oacute;wnoległymi szczelinami można wr&oacute;cić z powrotem do Komory Goszczyńskiego, a na lewo i nieco dalej ku zachodowi wiedzie ciasny ciąg prowadzący do otworu II. Przed otworem odchodzi na prawo ślepo zakończona szczelina z przebiciem do rozszerzenia w labiryncie.</span></p>
+<p><span>Wracamy do bardziej obszernego Złotego Korytarza. Ku południowemu wschodowi po kilkunastu metrach przechodzi on w ciąg wodny (Stemple Cz&oacute;łna). Woda jest tu głęboka, a na dnie widać resztki pomost&oacute;w i stempli oraz cz&oacute;łen. Ciąg ten prowadzi do wcześniej opisanego Syfonu.</span></p>
+<p><span>Ze środkowej części Złotego Korytarza, ku południowemu wschodowi i dalej ku południowi prowadzi gł&oacute;wny ciąg jaskini, kt&oacute;ry niebawem rozdziela się: na prawo odchodzi Korytarz Skrzelowy z ostrymi, poprzecznymi brzytwami skalnymi wymytymi przez wodę, na wprost biegną dwie r&oacute;wnoległe, wąskie szczeliny, a na lewo &ndash; niezwykle ciasna, często całkowicie zamulona, kr&oacute;tka odnoga uchodząca w Nowym Korytarzu.</span></p>
+<p><span>Korytarz Skrzelowy i wąskie szczeliny łączą się ze sobą po około 10 m, dalej gł&oacute;wny ciąg zmierza ku południowemu zachodowi. Jeszcze kilka razy rozdziela się na dwie lub trzy szczeliny o r&oacute;wnoległym przebiegu z licznymi połączeniami między sobą. Z reguły szczeliny położone od strony zachodniej są szersze. Na tym odcinku odchodzą od ciągu gł&oacute;wnego na lewo, w kierunku nieznanych partii jaskini, z kt&oacute;rych dobiega szum wody,&nbsp;dwa boczne, niezwykle ciasne odgałęzienia. Na prawo wiedzie r&oacute;wnie ciasna odnoga, uchodząca otworem wprost do Potoku Kościeliskiego.</span></p>
+<p><span>Gł&oacute;wny ciąg kończy się tr&oacute;jkątną, niską komorą, z kt&oacute;rej na prawo widać otw&oacute;r prowadzący do potoku, a na wprost suchy III otw&oacute;r (aktualnie zamknięty zawaliskiem).</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmo-neokomu autochtonicznej serii wierchowej. Jest aktualnie czynnym podziemnym przepływem Potoku Kościeliskiego. Rudnicki (1958, 1967) przypisuje jej utworzenie się do trzeciego (ostatniego) zlodowacenia tatrzańskiego, W&oacute;jcik (1960b, 1966a) uważa, że powstała w w&uuml;rmie i holocenie. Korytarze jaskini mają charakter rozmytych przez wodę szczelin, o ścianach pokrytych zagłębieniami wirowymi. W części korytarzy widać resztki buł hematytowych. Nacieki nie występują. W jaskini powszechnie spotykane są formy erozyjne o kształcie filar&oacute;w, żeber, nawis&oacute;w i brzytew, nazywanych &bdquo;skrzelami&rdquo;. W partiach wstępnych zaznaczają się skutki wietrzenia mechanicznego.</span></p>
+<p><span>Dno jest prawie płaskie. Według W&oacute;jcika (1960a,b, 1966a) jego pokrywę stanowi gruboklastyczne rumowisko rzeczne, o składzie identycznym, jak w Potoku Kościeliskim (granity, gnejsy, piaskowce, zlepieńce i łupki seissu i karniku, wapienie triasu, wapienie piaszczyste i krynoidowe liaso-doggeru, dolomity środkowego i g&oacute;rnego triasu, a także plejstoceńskie brekcje piargowe i roślinny detritus). W korytarzach odległych od doliny przeważają osady piaszczyste, korytarz gł&oacute;wny ma pokrywę ze żwir&oacute;w i głazik&oacute;w. Ukształtowanie dna zmienia się w zależności od stanu wody i związanej z nim turbulencji, prędkości przepływu i frakcji transportowanego materiału. W jaskini spotyka się resztki organiczne i gałęzie naniesione przez wodę z g&oacute;rnego odcinka doliny.</span></p>
+<p><span>Wodny ciąg &ndash; od wypływu do Nowego Korytarza &ndash; jest stale wypełniony wodą, pozostałe korytarze są zalewane okresowo. Według Dąbrowskiego (1967) wypływ jest zasilany przez 4 ponory położone w dnie Potoku Kościeliskiego na odcinku od mostka przy Krzyżu Pola do południowego otworu jaskini, kt&oacute;ry funkcjonuje jako ponor w okresach powodziowych. Najdalszy ponor znajduje się w odległości około 520 m od wypływu, przy r&oacute;żnicy poziom&oacute;w wynoszącej około 33 m. W wypływie 93% wydajności stanowią wody Potoku Kościeliskiego (przy wydatku 280 l/sek.) Reszta wody pochodzi z systemu krążenia krasowego prowadzącego wody z Zadniego Kamiennego nad Wąwozem Krak&oacute;w (Dąbrowski, Rudnicki 1964). Temperatura wody pozostaje w ścisłym związku z temperaturą powietrza, choć istnieją r&oacute;żnice temperatur w&oacute;d jaskini i Potoku Kościeliskiego. Kowalski (1953a) podaje, że w dniu 7 kwietnia 1950 r. temperatura wody w wypływie wynosiła 4,4&deg;C, natomiast temperatura w&oacute;d Potoku Kościeliskiego wynosiła 2,8&deg;C.</span></p>
+<p><span>Światło sięga do kilkunastu metr&oacute;w od otwor&oacute;w. Przewiew pomiędzy nimi zależy od warunk&oacute;w atmosferycznych panujących na powierzchni. Strefa wymarzania sięga daleko w głąb jaskini. Zimą we wnętrzu tworzą się nacieki lodowe.</span></p>
+<p><span>W strefach okołootworowych występuje roślinność zielona i bezzieleniowa. Przy wypływie dominują mchy, sięgające około 1 m w głąb korytarza. Dalej można spotkać wypłonione kiełki, rozwijające się z nasion przyniesionych przez wodę (Kowalski 1953a). Roślinność opisał Żmuda (1915a, 1916a).</span></p>
+<p><span>We wnętrzu jaskini spotyka się nietoperze oraz liczne owady (pająki, chruściki komary, much&oacute;wki, ćmy, motyle i in.), a przy otworach &ndash; ślimaki. Dziędzielewicz (1895) opisuje kilka gatunk&oacute;w owad&oacute;w siatkoskrzydłych zebranych na stropie przy wypływie. Według Chodorowskich (1959) naniesione przez potok szczątki organiczne gromadzące się w aluwiach umożliwiają rozw&oacute;j fauny interstycjalnej. Wg informacji ustnej D. Graczyka, w syfonach odgałęziających się na lewo od Korytarza Nowego znaleziono w 2008 r. studniczki. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W jaskini prowadzono liczne badania naukowe już od połowy ubiegłego wieku. Zejszner (1844) wykonał pomiary temperatury wody i zauważył związek temperaturowy Wypływu spod Pisanej i Potoku Kościeliskiego. Jego hipotezy potwierdzili Janota (1860) i Ossowski (1882). Pomiary temperatury w wypływie wykonywali także Świerz (1882, 1892, 1899) oraz Birkenmayer (1896), a w p&oacute;źniejszym okresie wielu badaczy, m.in. Kowalski (1953a). Badania chemizmu w&oacute;d prowadzili Oleksynowa i Komornicki (1958) oraz Chodorowscy (1959). Genezę i ewolucję podziemnego przepływu omawiali Kowalski (1953a), Zwoliński (1955b) W&oacute;jcik (1960d). Rudnicki (1959) potwierdził barwieniem przepływowy charakter groty, prowadząc następnie badania z Dąbrowskim (1964), kt&oacute;re kontynuował ten ostatni (Dąbrowski 1967). <br />Badania hydrogeologiczne całego systemu wywierzyskowego przeprowadził też Barczyk (2000 b, 2002, 2008).<br />Osady badał W&oacute;jcik (1960a,b, 1966a). Ich pr&oacute;by przechowywane są w Muzeum Ziemi PAN w Warszawie. W zbiorach Muzeum Tatrzańskiego znajduje się oł&oacute;w, wykorzystywany zapewne przez poszukiwaczy skarb&oacute;w, znaleziony w jaskini przez T. Malickiego w 1923 r. <br />Roślinność przyotworową opisał Żmuda (1915a, 1916a) a faunę badał Dziędzielewicz (1895).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia była znana już w XV wieku g&oacute;rnikom pracującym w Dolinie Kościeliskiej przy wydobywaniu rud, pasterzom i poszukiwaczom skarb&oacute;w. Związane są z nią stare legendy i podania ludowe o ukrytych skarbach, srebrze, duchach strzegących podziemi itp. Na pamiątkę bajki Sabały o śpiącym rycerzu, rzeźbiarz J. Bełtowski wykuł popiersie rycerza na skale nad wypływem. Nieco dalej, przy mostku, widać wykuty, znacznie starszy rysunek g&oacute;rnika z latarnią w ręku i wiosłem lub łopatą. W 1822 r. jaskinię zwiedził leśnik Bluenfeld, a p&oacute;źniej E. Homolacs z F. Kleinem. Najstarszy, niezwykle barwny opis wyprawy do jaskini pi&oacute;ra S. Goszczyńskiego pochodzi z 1832 r. Goszczyński dotarł jedynie do komory nazwanej jego nazwiskiem Z 1839 r. pochodzi obraz J. N. Głowackiego przedstawiający otwory Wodnej pod Pisaną i Wodnej pod Raptawicką. Stęczyński (1860a) opublikował znany rysunek Wypływu spod Pisanej. J. G. Pawlikowski zwiedzał jaskinię w 1875 roku, poznając nie tylko wodny ciąg, ale i suche korytarze aż do otworu południowego. W 1902 r. jaskinię zwiedzili T. Estreicher i J. Kasprowicz.<br /> W 1923 roku Klub Speleologiczny przy Sekcji Przyrodniczej PTT zorganizował kilka wypraw do jaskini. Uczestniczyli w nich m.in. T. Malicki, T. i S. Zwolińscy i K. Stecki. W wodnym ciągu za Złotym Korytarzem znaleźli ślady prac, jakie mogli wykonać g&oacute;rnicy lub poszukiwacze skarb&oacute;w o g&oacute;rniczych umiejętnościach. Widać było dylowanie dna, stemple podtrzymujące strop oraz ślady po odstrzałach. Były też dwa cz&oacute;łna &ndash; jedno całkiem nowe, zbudowane przez niejakiego Grajcarka szukającego skarb&oacute;w. Podczas tych wypraw poznano nowe partie korytarzy, aż do Komory Końcowej. Powstała też dokumentacja fotograficzna i opis jaskini (Malicki, Zwoliński 1924). W 1934 r. S. Zwoliński i J. Zahorski po przekopaniu się przez namulisko w 7-metrowej szczelinie w gł&oacute;wnym ciągu (w pobliżu Korytarza Skrzelowego) odkryli Nowy Korytarz. Stwierdzili też istnienie syfonu w Komorze Końcowej (Zwoliński 1993).<br /> Nieudaną pr&oacute;bę przenurkowania syfonu podjęli w 1979 r. I. Luty i S. Sowiak. W następnej pr&oacute;bie, podjętej w raz z G. Kowalskim w 1980 r. I. Luty po odgruzowaniu syfonu przeszła przez jego zaciski i zajrzała do Nowego Korytarza, a w następnej akcji dotarła do zwężenia korytarza. W dniach 26-27.12.2008 r. D. Graczyk i D. Lermer (SW) po przebyciu syfonu wyeksplorowali odgałęzienia w Nowym Korytarzu: po 25 metrach od syfonu dotarli do odnogi po lewej stronie, wypełnionej po strop wodą, z dużym wypływem, niemożliwej do przenurkowania ze względu na ciasnotę. Idąc Nowym Korytarzem dalej, D. Graczyk pokonał na bezdechu dwa zwężenia i odnalazł niedaleko przed zakończeniem korytarza ciasny syfon, odchodzący na lewo, nieco wstecz, położony w odległości 15 m od poprzedniej odnogi. W tym syfonie przebył on 7 m prawie poziomej szczeliny, przy głębokości 3 m. Dalej następuje ostry skręt na lewo, a ostra brzytwa skalna uniemożliwia nurkowanie. Widać, że po około 1,5-2 m ciąg ponownie skręca na prawo i obniża się (Graczyk 2008).<br /> Jaskinię opisują wszystkie przewodniki turystyczne po Tatrach, wzmiankowana jest także w beletrystycznych książkach dotyczących Tatr. Nakręcono w niej także sceny do 3 film&oacute;w. Kowalski (1953a) opublikował własny opis inwentarzowy datowany na 22 lipca 1952 r. z planem Zwolińskiego.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W trakcie inwentaryzacji jaskiń tatrzańskich PTPNoZ plan suchych partii jaskini wykonała w grudniu 1977 r. I. Luty przy wsp&oacute;łpracy K. Pohoskiego i U. Olechniewicz. Znaczna r&oacute;żnica długości w stosunku do poprzednio publikowanych danych wynika z dokładniejszego pomiaru wszystkich dostępnych korytarzy, a nie dokonanych ostatnio odkryć. Obserwacje terenowe zbierała I. Luty w okresie wielu lat. Dokumentację fotograficzną jaskini sporządzili W. Burkacki w 1977 r. i I. Luty w 1990 r. oraz w 2008 r. Pomiary wykonano taśmą parcianą i busolą geologiczną Meridian. Dane zaktualizowała I. Luty (2009). Lokalizacja została skorygowana w oparciu o mapę topograficzną Tatr (http://maps.geoportal.gov.pl) w 2013 r przez J. Grodzickiego.<br />Plan opracowała I. Luty na podstawie własnych pomiar&oacute;w, a także planu ciąg&oacute;w wodnych S. Zwolińskiego z 1934 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Goszczyński S. 1835 (opis zwiedzania części wstępnej); Zejszner L. 1844 (stwierdza przepływowy charakter wypływu spod Pisanej); Janota E. 1860 (pomiary temperatury i charakteru przepływu); Stęczyński B.Z.1860 (rysunek wypływu, legenda o ukrywaniu się tu zb&#243;jc&#243;w); Eljasz W. 1870 (opis); Ossowski G. 1882b (uwagi o przepływach); Świerz L. 1882 (pomiary temperatury); Pawlikowski J.G. 1887 (opis zwiedzania całej jaskini); Świerz L. 1892 (pomiary temperatury); Dziędzielewicz J. 1895 (o owadach); Świerz L. 189 (pomiary temperatury); Kroebl A. 1903 (wzmianka o zwiedzaniu przez J. Kasprowicza i T. Estreichera); Sosnowski P. 1910 (fotografia otworu); Żmuda A. 1915a (opis roślinności); Żmuda A. 1916a (opis otoczenia wypływu i roślinności); Zwoliński T., Malicki T., (plan i opis, fotografie, legendy o jaskini); Włodek J.,1926 (podaje koncentrację jon&#243;w wodorowych w wodzie wypływu); Zwoliński S. 1934 (opis korytarzy odkrytych w 1934 r.); Tatrzański Park Narodowy [mapa 1:20 000] 1938 (lokalizacja); Kowalski K. 1953a (opis inwentarzowy i plan Zwolińskiego); Zwoliński S. 1955b (uwagi o genezie i przepływach); Paryski W.H. 1957 (informacja o zwiedzeniu jaskini ok. 1822 r. przez Bluenfelda i in.); Rudnicki J. 1958 (geneza, wiek – wzmianki, schematyczny przekr&#243;j); Oleksynowa T., Komornicki J. 1958 (chemizm w&#243;d); Chodorowska W., Chodorowski A. 1959 (badania warunk&#243;w środowiska); Guzik K., Sokołowski S. 1959 (lokalizacja na mapie geologicznej); Rudnicki J. 1959 (wyniki barwienia, zasilanie systemu wodami); W&#243;jcik Z. 1959b (geomorfologia i geneza); Sak A., Szapliński A. 1960 (hydrografia, osady, roślinność); W&#243;jcik Z. 1960a,b (osady); W&#243;jcik Z. 1960d (przepływy); Zwoliński S. 1961 (plan, historia badań, hydrografia, fotografie); W&#243;jcik S. 1964 (przepływy, mapki: geologiczna i hydrograficzna); Dąbrowski T., Rudnicki J. 1864 (przepływy, warunki hydrogeologiczne); Dąbrowski T. 1964 (geneza i ewolucja przepływ&#243;w); W&#243;jcik Z. 1966a (dane morfometryczne, osady, geneza, wiek); Dąbrowski T. 1967 (geneza i rozw&#243;j przepływ&#243;w); Rudnicki J. 1967 (geneza); Kobyłecki A. 1968 (informacja o analizach wody i powietrza); Tatry Polskie  1976 (lokalizacja); [Kropiwnicka M., Burkacki M.] 1977 (informacja o pracach dokumentacyjnych, fotografie); Nyka J. 1979 (informacja o udziale K. Steckiego w wyprawach Zwolińskich w 1923 r.); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10.000); Borowiec W., Rogalski R. 1985 (lokalizacja na mapie jednostek hydrogeologicznych krasu tatrzańskiego); Gradziński R. i in. 1985a (dane morfometryczne, schematyczna lokalizacja); Gradziński R. i in. 1985b (plan Zwolińskiego); Chowański A. 1987 (informacja o uczestnictwie T. Malickiego w eksploracji w 1923 r.); Kardaś R.M. 1988b (wzmianka o zdjęciach do filmu TV); Zwoliński S. 1993 (opis eksploracji z 1934 r.); Jaskinie TPN, t. 3b, 1993 b (plan i opis inwentarzowy); Wiśniewski W.W. 1999 (ikonografia); Barczyk G. 2000b, 2002 (badania hydrogeologiczne); Barczyk G.,  2008 (badania systemu wywierzyskowego);  Graczyk D. 2008 (o eksploracji nurkowej za I syfonem, plan wg Zwolińskiego błędnie podpisany, z błędnym szkicem nowych syfon&#243;w).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    [Siarzewski W., Zwolińska Z.] 1986 (plany w skalach 1:200 i 1:1000 i rysunek roboczy T. Zwolińskiego, plany robocze 1:200 i plan 1:1000 S. Zwolińskiego).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3664)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(905)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

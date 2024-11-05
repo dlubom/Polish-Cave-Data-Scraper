@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1063">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1063;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "570332,48".replace(',', '.') + "," + "154759,94".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1063','Jaskinia Kalacka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Kalacka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Grota Kalatowska, Jaskinia Kalacka Wyżnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.C-16.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;58′00,65″, φ: 49&#176;15′22,67″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1230
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                75
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                6,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                12,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                19
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    405
+                </div>
+                <div style="min-height: 15px;">
+                    60
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W lewym orograficznie zboczu Doliny Bystrej, na wschodnim stoku Kalackiej Turni, 65 metr&#243;w powyżej wywierzyska Bystrej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Kuźnic idziemy szlakiem wiodącym przez Polanę Kalatówki do Doliny Kondratowej. Na południowym skraju Kalatówek łączą się obie odnogi szlaku: ze schroniska i wiodąca dołem polany. Stąd skręcamy na prawo i podchodzimy wprost do góry, nieco ku SW, lasem porastającym stok Kalackiej Turni. Prowadzi tamtędy kilka ścieżek, jedna z nich – do otworu. Po około 100 metrach docieramy pod skałkę nad stromym stokiem, pod którą znajduje się otwór poszukiwanej jaskini. Dojście bez trudności, zwiedzanie łatwe.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r jest obszerny, o kształcie zbliżonym do prostokąta; ma 3,4 m szerokości i 1,6 m wysokości. Jest zamknięty kratą, umożliwiającą jednak przejście z jej lewej strony. Za otworem wiedzie ku W obszerny korytarz o szerokości do 4 m, długi na około 30 m, nazywany przez eksplorator&oacute;w Komorą Wstępną. Tuż za kratą, na prawo, odgałęzia się stromo do g&oacute;ry wąska szczelina. Pokonujemy w niej zapieraczką 6,6-metrowy pr&oacute;g; dalej widać około 6-metrowy komin, a na prawo &ndash; wąską (0,2 m) szczelinę uchodzącą na powierzchnię w ścianie dwoma okienkami nad otworem gł&oacute;wnym. Wracamy na d&oacute;ł. Po około 15 m od otworu, od gł&oacute;wnego ciągu odchodzi na lewo (ku S), lekko do g&oacute;ry, 8-metrowy boczny korytarzyk. Jest on ciasny, błotnisty, zakończony ślepo na poprzecznej szczelinie. </span></p>
+<p><span>Wracamy do Komory Wstępnej i schodzimy ku W. W miejscu, gdzie ciąg opada, przed podjęciem prac eksploracyjnych kończyła się jaskinia. Strome obniżenie w namulisku zwykle wypełnione było wodą; miejsce to nazywano &bdquo;studnią&rdquo;. Po wykopaniu w 1937 i&nbsp;1948 r. podzielonej na odcinki 7-metrowej studni i wybraniu wielkiej masy namuliska, aktualnie opada tu niezbyt stromy korytarz prowadzący do obszernej kom&oacute;rki. W kom&oacute;rce, wysokiej na około 3,5 m, występują niewielkie nacieki z krystalicznego kalcytu. R&oacute;wnolegle do niej biegnie kr&oacute;tka, ciasna, zamulona odnoga. Kom&oacute;rka przechodzi na lewo w stromo wznoszącą się, kilkumetrową, zamuloną pochylnię, na prawo natomiast, za niskim przełazem, wiedzie gł&oacute;wny ciąg. Przełaz jest najniższym punktem groty; dawniej często zalewany był wodą. Zaraz za nim, na lewo, odchodzi poziomo boczny, około 8-metrowy korytarzyk. Jest on bardzo ciasny, zakończony kolistym rozszerzeniem z&nbsp;jeziorkiem. Często wejście do niego zamykają gromadzące się osady.</span></p>
+<p><span>Za przełazem gł&oacute;wny ciąg wznosi się ku NNW, do salki o szerokości ponad 5 m, wysokiej na 3 m (znaczną część tego odcinka przekopano). Nieco dalej jest rozwidlenie. Na lewo odchodzi lekko do g&oacute;ry 17-metrowy, silnie meandrujący korytarz z małymi marmitami i kilkoma kałużami. Ma on przekr&oacute;j rury freatycznej o średnicy 0,8-0,9 m. Ciąg ten był całkowicie zamulony do czasu przekopania w 1948 r. W końcowej jego części, pod prożkiem w d&oacute;ł (0,9 m), pokonujemy małe jeziorko i zacisk za nim (w wodzie i błocie). Dalej wznosi się bardzo stroma 5-metrowa pochylnia zakończona owalną (prawie okrągłą) kom&oacute;rką o szerokości 3 m. </span></p>
+<p><span>Wracamy do rozwidlenia, skąd korytarz gł&oacute;wny wiedzie do g&oacute;ry. Jest on tu obszerny (około 2,5x2,5 m), a jego dno &ndash; zasłane głazami i gliną. Po 9 m korytarz zakręca na lewo (ku W) i rozszerza się. Miejsce to nazwano Salą Rozsuniętą, ze względu na niewielkie (15&nbsp;cm) przesunięcie tektoniczne z widocznymi płaszczyznami poślizgu (dolna część korytarza została przesunięta na N). Kilkanaście metr&oacute;w dalej Sala Rozsunięta przechodzi w komorę zawaliskową o długości około 10 m i szerokości 4 m. Duże wanty tworzą w niej niewielki prożek. Można prześledzić tu 6 płaszczyzn tnących poprzecznie ciąg. Za komorą charakter jaskini zmienia się na takim poprzecznym uskoku. Wg W&oacute;jcika i Zwolińskiego (1959) zachodnia część (szczelinowa) gł&oacute;wnego ciągu została przesunięta o 3 m na N i 2&nbsp;m do g&oacute;ry w stosunku do wschodniej części (zawaliskowej). </span></p>
+<p><span>Za uskokiem biegnie ku WSW 25-metrowy korytarz, rozwinięty na rozmytej szczelinie tektonicznej (widać w niej drobne przesunięcia poprzeczne). Za 2,2-metrowym prożkiem w d&oacute;ł (ze starą drabiną) szczelina ma 1 m szerokości i około 6 m wysokości. Dalej jest ona niższa, a na prawo do g&oacute;ry odchodzi od niej nad małym prożkiem, kilkumetrowy korytarzyk wracający zaraz do ciągu gł&oacute;wnego. Ciąg ten obniża się szybko i zakręca lekko na prawo w zamulonym dawniej całkowicie syfonie. Od czasu przekopania go można przejść przez niski, błotnisty przełaz, w kt&oacute;rym często gromadzi się woda zamykająca prześwit. Stąd obszernym zakolem wiedzie do g&oacute;ry, a po 10 m w d&oacute;ł, korytarz około 20-metrowej długości. Tworzy on błotne pochylnie, jest myty, w przekroju na początku p&oacute;łkolisty, dalej w kształcie poziomej soczewki (1,5x1,1 m). Docieramy nim do następnego syfonu, r&oacute;wnież przekopanego. Za syfonem korytarz zakręca lekko na prawo i wznosi się stromo. Głazy na jego dnie utrudniają przejście przy skręcie na lewo. Następnie mały prożek z want wyprowadza nas do sali zawaliskowej zwanej Salą za Przekopem lub Salą z Wantami. Jej dno zasłane jest wielkimi wantami leżącymi na namulisku gliniastym. Sala ma 11 m długości, 5 m szerokości i 4,5 m wysokości; wiedzie ku NW do g&oacute;ry. Strop sali jest nier&oacute;wny, potrzaskany poprzecznymi szczelinami (młode przesunięcia tektoniczne), od jej prawej ściany odchodzą kilkumetrowe szczeliny. Wg W&oacute;jcika i Zwolińskiego (1959) przesunięciu na N o prawie 3 m uległy partie zachodnie sali, a pierwotny, niewielki korytarz za nią został zgnieciony i wyniesiony w postaci horstu o 3 m. Tym kr&oacute;tkim, poziomym korytarzykiem (sztucznie poszerzonym) docieramy nad 3,1-metrowy, pionowy pr&oacute;g (przesunięcie tektoniczne &ndash; zachodnia część w w. horstu). Opada on do wysokiej na 3 m kom&oacute;rki zawaliskowej (około 4x4 m). Spod progu na prawo wstecz wiedzie wąska szczelina uchodząca w Sali za Przekopem.</span></p>
+<p><span>Z kom&oacute;rki gł&oacute;wny ciąg zakręca ostro na lewo, ku S. Obszerny korytarz przechodzi wkr&oacute;tce w niską, wznoszącą się pochylnię. Przeciskamy się nad wantami na jej dnie do rozszerzenia &ndash; niskiej salki zawaliskowej i z niej nieco w d&oacute;ł. Dalej prowadzi ku S, a&nbsp;następnie ku SW prawie poziomy, błotnisty korytarz (w przekroju około 1,6x1m), z&nbsp;licznymi kałużami. Po 27 m zmienia on charakter na odcinku 5 m &ndash; staje się wysoką na 3,5 m szczeliną o szerokości 1,8 m, od kt&oacute;rej wstecz odchodzi kr&oacute;tkie odgałęzienie. Ciasna błotnista rura kontynuuje się zn&oacute;w i 22 m dalej, na poprzecznym uskoku, zakręca na prawo. Na lewo zaś odchodzą w tym miejscu dwie kr&oacute;tkie odnogi o długości 5 m i 3 m. Za zakrętem coraz ciaśniejszy gł&oacute;wny korytarz wiedzie 15 m ku WNW, do następnego zakrętu (na lewo), r&oacute;wnież na poprzecznym uskoku. Po drodze zauważamy przecinającą ciąg poprzeczną szczelinę tektoniczną z silnym przewiewem (ma ona około 5 m długości i 7 m wysokości). Od ostatniego zakrętu korytarz opada zaraz do zamulonego całkowicie syfonu &ndash; końca jaskini.</span></p>
+<p><span>Ciąg położony na południe od ostatniej, niskiej salki zawaliskowej został silnie zmieniony podczas prac prowadzonych w 1948 r. Na wielu odcinkach założono w nim stemple podtrzymujące strop. Korytarze zostały częściowo zasypane namuliskiem wydobywanym z licznych przekop&oacute;w. Kowalski (1953a) podaje, że według Zwolińskiego za wspomnianą salką jaskinia dzieliła się na dwie gałęzie, z kt&oacute;rych jedna, dziś zasypana urobkiem, miała 60 m długości i tworzyła ładny, dość obszerny korytarz zawracający łukiem w stronę wylotu jaskini i dochodzący w sąsiedztwo osi gł&oacute;wnej przy Sali za Przekopem. Druga gałąź groty, biegnąca ku SW była pierwotnie zamulona, dziś jest rozkopana.</span></p>
+<p><span>Jaskinia rozwinęła się w obrębie wapieni środkowego triasu i malmo-neokomu (seria wierchowa, fałd Giewontu). Jest najwyższym piętrem systemu jaskiń związanych z&nbsp;Wywierzyskiem Bystrej odprowadzającym wodę z masywu Giewontu i stanowi najdawniejszy, dziś już nieczynny wypływ wywierzyska. Gł&oacute;wny korytarz został wymyty na szczelinach o kierunkach W&ndash;E, N&ndash;S, WSW&ndash;ENE. Ściany są ogładzone, widać na nich i w stropie miejscami zagłębienia oraz kotły wirowe. W bocznym, silnie meandrującym ciągu występują marmity. Sale mają charakter zawaliskowy i związane są z&nbsp;występowaniem młodych przesunięć tektonicznych opisanych szczeg&oacute;łowo przez W&oacute;jcika i Zwolińskiego (1959). Przesunięcia te wyraźnie zaznaczają się r&oacute;wnież w&nbsp;morfologii korytarzy. Widać to np. w gł&oacute;wnym korytarzu, gdzie partie o charakterze pierwotnym (m.in. z kotłami wirowymi na stropie), w pobliżu płaszczyzn przesunięć tektonicznych pokryte są zawaliskami. Uboga szata naciekowa, reprezentowana przez drobne stalaktyty, polewy naciekowe oraz nacieki grzybkowe, pojawia się tylko w kilku miejscach. </span></p>
+<p><span>Namuliska jaskini zostały znacznie naruszone, wymieszane i częściowo usunięte podczas prac eksploracyjnych. Dno Komory Wstępnej przed tymi pracami zbudowane było z gliny z domieszką piasku, gruzu i konkrecji wapiennych. Osady zawierały nieco kości kopalnych. W dalszych partiach groty występowało podobne namulisko. Wszędzie w glinie spotykało się też liczne konkrecje przypominające lalki lessowe. W osadach domieszkę stanowi allochtoniczny materiał piaszczysto-żwirowy. Okruchy granitowe i piaskowcowe zostały zdaniem W&oacute;jcika (1960a) przetransportowane systemem jaskiniowym z rejonu Doliny Kondratowej. Autor ten zamieszcza w swojej pracy (op. cit.) trzy profile osad&oacute;w groty. Na podstawie badania form korozyjnych (scallops) oraz osad&oacute;w (analiza minerał&oacute;w ciężkich, analiza granulometryczna oraz stopień obtoczenia ziaren kwarcu) D. Kicińska (1995,1996a,b,1997) stwierdziła dwa kierunki przepływu w&oacute;d: 1) kierunek od końca groty ku otworowi odzwierciedla jej wywierzyskowy charakter z okresu, kiedy odwadniała masyw Giewontu (śledzony w głębszych warstwach profili); 2) odwrotny kierunek &ndash; odpowiada odprowadzaniu w&oacute;d podczas deglacjacji Doliny Bystrej. Uwagi o genezie podali D. Kicińska (2004) i G. Barczyk (2004, 2008).</span></p>
+<p><span>Jaskinia jest wilgotna, często mokra, błotnista. Brak stałych strug, lecz przełaz na dnie tzw. &bdquo;studni&rdquo; i przekopy przez syfony w głębi bywają zalewane całkowicie wodą. Występują też liczne kałuże i jeziorka, niekt&oacute;re o charakterze stałym (np. w bocznych odnogach). Czasami pada deszcz podziemny. </span></p>
+<p><span>Światło sięga do początku &bdquo;studni&rdquo; na końcu Komory Wstępnej. Temperatura na końcu jaskini w dniu 26 listopada 1948 r. wynosiła 4,2<sup>o</sup>C. Wymarzanie sięga do kom&oacute;rki za &bdquo;studnią&rdquo;. Wyczuwa się przewiew w całej grocie, szczeg&oacute;lnie silny ze szczeliny przed jej końcem. </span></p>
+<p><span>Przy otworze rozwijają się rośliny kwiatowe, paprocie, mchy i porosty. </span></p>
+<p><span>W jaskini zimują nietoperze. Kowalski (1953a) obserwował nocki wąsatki (<strong><em>Myotis Mystacinus</em></strong>). Na dnie można spotkać kości nietoperzy. Występują owady troglokseniczne. Bezpośrednio po przekopaniu wejścia do głębszych partii groty, Kowalski (1953a) widział tam owady bezskrzydłe, a nawet muchy, co świadczy o kontakcie wnętrza jaskini z powierzchnią terenu przez szczeliny. W innej pracy (1955a) autor ten wymienia następujące gatunki: Coleoptera &ndash; <strong><em>Nebria tatrica</em></strong> Miller, <em>&nbsp;</em>Diptera &ndash; <strong><em>Eccoptomera emerginata</em></strong> Loew., <strong><em>Helomyza modesta</em></strong> Meigen oraz wymienia za Stachem (1954) &bdquo;z jaskini w dolinie Kalat&oacute;wki&rdquo; (zapewne chodzi tu o Jaskinię Kalacką) Collembola<em> <span><em>&ndash; </em><strong>Onychiurus ezastus</strong></span></em></span><em></em> var. <strong><em>multituberculatus</em></strong> Stach. Skoczkonogi zbadał W. M. Weiner (1990).</p>
+<p><span>Piksa (1998) wymienia następujące gatunki nietoperzy: </span><strong><em>Myotis myotis</em></strong><span> (Borkhausen, 1779), <strong><em>Eptesicus nilssonii</em></strong> (Keyserling), <strong><em>Myotis daubentonii, Plecotus auritus</em></strong> (L.)<em></em><strong><em>.</em></strong> </span><span>Piksa i in. (2000) odnotowali pierwsze wystąpienie </span><strong><em>Eptesicus serotinus </em></strong><em>&ndash;</em><span> najwyższe stanowisko w Polsce i najwyższe zimowe stanowisko w Europie.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W jaskini prowadzono badania i obserwacje naukowe. Jej faunę opisał Kowalski (1953a,1955a), Weiner (1990); mogą dotyczyć tej jaskini r&oacute;wnież wcześniejsze (z 1940 r.) obserwacje Stacha; Piksa (1998), Piksa i in. (2000). Młode przesunięcia tektoniczne zbadali W&oacute;jcik i Zwoliński (1959), a osady &ndash; W&oacute;jcik (1966a,b,1966a). Pr&oacute;by osad&oacute;w (m. in. konkrecje) przechowywane są w zbiorach Muzeum Ziemi PAN w Warszawie oraz Muzeum Tatrzańskiego, a także w ING PAN w Warszawie.<br />W p&oacute;źniejszym okresie badania prowadzili: Hercman (1991) &ndash; datowanie naciek&oacute;w i kości kopalnych, ewolucja systemu, zmiany środowiska naturalnego); Kicińska (1995,1996a,b, 1997, 2004, 2004a) &ndash; osady, paleoprzepływy; G. Barczyk (2004, 2008) &ndash; badania hydrogeologiczne systemu wywierzyskowego; Szczygieł (2015a) - przejawy neotektoniki; Szczygieł J. i in. (2019 - badania deformacji korytarzy, 2020a - minimalny wiek osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin, 2020b - badania deformacji osadów klastycznych).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia, a dokładniej jej Komora Wstępna i początek tzw. &bdquo;studni&rdquo; znana była od dawna i czasem zwiedzana przez turyst&oacute;w. Datę 1882 i podpisy: Schmidt z Monachium i Tereska [?] Roman z Zakopanego znalazł na stropie, za ciasnym przełazem w &bdquo;studni&rdquo; S. Zwoliński w 1937 r. Pawlikowski (1887) wspomina o grocie położonej nad Wywierzyskiem Bystrej, długiej na 42 m. Chodzi tu niewątpliwie o Jaskinię Kalacką, choć Fleszarowa (1933) niesłusznie odnosi tę wzmiankę do Jaskini Goryczkowej. W 1911 r. w Jaskini Kalackiej badania prowadził Kiernik, kt&oacute;ry znalazł tu kości lepiej zachowane, ale o wiele mniej liczne niż w Grocie Magury. Wrzosek (1933) wspomina o istnieniu wymyć i małych naciek&oacute;w. Szokalski (1934) podaje drogę do otworu i opis groty.<br /> Po wycieczce odbytej w dniu 9 września 1933 r., S. Zwoliński opisał dokładnie grotę w swoim notatniku (wydanym w 1993 r.). Przypuszczał on, że po przekopaniu przez osady Jaskini Kalackiej dostanie się do wnętrza Jaskini Bystrej, już za jej wstępnymi syfonami. W 1935 r. wsp&oacute;łpracujący z nim W. Gorycki i J. Dobiecki zaczęli kopać w &bdquo;studni&rdquo;. W dniach 8&ndash;9 października 1937 r. S. Zwoliński z dwoma robotnikami rozpoczął regularne prace, lecz jak się potem okazało, rozkopał boczny korytarzyk. W okresie od 18 października do12 listopada 1937 r. wykopał on wraz z E. Winiarskim oraz 4&ndash;5 robotnikami ciąg studni w namulisku (rozpoczynając od przodka Goryckiego). Używano wyciągu do urobku i miecha doprowadzającego powietrze. Prace przerwała pow&oacute;dź. W marcu 1943 r. S. Zwoliński pomierzył jaskinię z E. Winiarskim i stwierdził, że do Bystrej brakuje 20 m. Dzięki staraniom S. Zwolińskiego, w 1947 r., Ministerstwo Komunikacji przyznało subwencję Polskiemu Towarzystwu Tatrzańskiemu na badania systemu jaskiń Bystrej. Kierownictwo całością rob&oacute;t powierzono pomysłodawcy. Prace z zaangażowaniem znacznych sił i środk&oacute;w, przy udziale robotnik&oacute;w najemnych i grotołaz&oacute;w, trwały przez cały rok 1948. Pokonano ponad 250 m korytarza, w znacznej części zamulonego, wykonując szereg długich i skomplikowanych przekop&oacute;w. Oczekiwanego połączenia jednak nie osiągnięto. Trzeba było przerwać prace ze względu na brak miejsca do składowania wydobywanego z przodka materiału, kt&oacute;rym zasypano wszystkie rozszerzenia i boczne odnogi w końcowej części groty. Podczas prowadzenia rob&oacute;t ukazało się o nich wiele wzmianek w prasie, często nieścisłych.<br />Jaskinia jest od wielu lat często odwiedzana, mimo zamontowania w otworze kraty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsze szkice i plany jaskini wykonywał podczas postępowania rob&oacute;t S. Zwoliński już w 1937 r. Plan i opis datowany na 28 lipca 1952 r. opublikował Kowalski (1953a).<br />Podczas prac nad inwentaryzacją jaskiń tatrzańskich prowadzonych przez OW PTPNoZ pomiary sytuacyjno-wysokościowe położenia otworu metodą ciągu busolowo-taśmowego wykonali w dniu 30 lipca 1979 r. J. Iwanicki (jun.) i M. Kropiwnicka, używając busoli geologicznej Meridian i taśmy parcianej. W dniu 15 grudnia 2000 r. I. Luty przy wsp&oacute;łpracy W. Morgi sporządziła dokumentację jaskini. Pomiary przeprowadzono zestawem Silva i taśmą parcianą. Dane zaktualizowała I. Luty (2009).<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pawlikowski J.G. 1887 (wzmianka); Kiernik E. 1912 (wiadomość o badaniu namuliska i znalezieniu kości); Wrzosek A. 1933 (opis Komory Wstępnej); Danysz-Fleszarowa R. 1933 (niesłusznie odnosi wzmiankę Pawlikowskiego do innej jaskini); Szokalski J. 1934 (opis drogi oraz jaskini); Zwoliński T. 1948 (wzmianka); Zwoliński S. 1949 (opis prac wykonanych w 1948 r. i odkrytych części jaskini, fotografie wnętrza i rob&#243;t); Kowalski K. 1950 (wzmianka o odkryciach); Kowalski K. 1951a (wzmianka o odkryciach); Kowalski K. 1951h (opis odkryć); Zwoliński T. 1951 (wzmianka); Kowalski K. 1953a (opis inwentarzowy, plan); Kowalski K. 1953c (o występowaniu nietoperzy, używa nazwy Kalacka Wyżnia); Zwoliński T. 1955b (o badaniach i przynależności do systemu Bystrej); Kowalski K. 1955a (występowanie fauny, podaje długość i wysokość bezwzględną położenia otworu); Normy klasyfikacyjne i wykaz punktacji dr&#243;g jaskiniowych, 1956 (ocena trudności); W&#243;jcik Z. 1957c (o rabunkowym eksploatowaniu konkrecji – „kukiełek jaskiniowych”); Zwoliński T. 1958 (wzmianka); Burchard P. Kowalski K. 1959 (wzmianka); Guzik K., Sokołowski S. 1959 (lokalizacja na mapie geologicznej 1:10 000); WIG 1938 (lokalizacja na mapie 1: 20 000); Rabowski F. 1959 (wymienia Grotę Kalacką, dotyczy to jednak Jaskini Bystrej); W&#243;jcik Z. 1959b (og&#243;lny opis morfologii); W&#243;jcik Z., Zwoliński S. 1959 (młode przesunięcia tektoniczne, plan z uwzględnieniem ich występowania); W&#243;jcik Z. 1966a, 1960b (badania osad&#243;w); W&#243;jcik Z. 1961 (o konkrecjach cementacyjnych); Zwoliński S. 1961 (wzmianki dotyczące historii badań); W&#243;jcik Z. 1966a (uwagi o osadach, genezie, profile osad&#243;w, niekt&#243;re dane morfometryczne, lokalizacja na mapkach, w tym geologicznej); Zwoliński T. 1966 (wzmianka); Rudnicki J. 1967 (wzmianka o genezie); W&#243;jcik Z. 1968 (wzmianka dotycząca geomorfologii); Kozik A. 1972 (podaje długość); Tatry Polskie 1976 (lokalizacja na mapie 1:10 000); Radwańska-Paryska Z., Paryski W.H. 1973 (notatka encyklopedyczna pod hasłem J. Bystrej); W&#243;jcik Z. 1974a (wzmiankuje jako dawną, zawieszoną jaskinię wodną); W&#243;jcik Z. 1975 (wzmiankuje jako część systemu zawieszonego jaskiń wodnych); TATRZAŃSKI PARK NARODOWY 1976 (lokalizacja na mapie 1:30 000); Tatry Polskie 1976 (lokalizacja na mapie 1:10 000); W&#243;jcik Z. 1976a (og&#243;lna charakterystyka morfologii większej grupy jaskiń); Kicińska D. 1996a,b, 1997 (badania osad&#243;w, form korozyjnych, paleocyrkulacji w&#243;d); Borowiec W. i in. 1977,1978 (dane morfometryczne); Parma Ch., Rajwa A. 1978 (wzmianki dotyczące historii); W&#243;jcik Z. 1978b (o ruchach obniżających w glacjale na terenie systemu jaskiniowego Bystrej, wzmianki); W&#243;jcik Z. 1979 (o wieku jaskini, jej związku z przebiegiem zlodowaceń tatrzańskich, charakterze sedymentacji); Baryła J. 1980c (klasyfikacja trudności); Kardaś R.M. 1980 (wzmianka o pracach inwentaryzacyjnych, bez nazwy);TATRY POLSKIE 1984 (lokalizacja na mapie 1:10 000); Gradziński R. i in.1985a (dane morfometryczne, orientacyjna lokalizacja na mapie); Weiner W.M. 1990 (skoczkonogi); Hercman H. 1991 (datowanie naciek&#243;w i kości kopalnych, ewolucja systemu, zmiany środowiska naturalnego);  Zwoliński S. 1993 (opis groty, szkic Komory Wstępnej, opisy akcji z lat 1933, 1935, 1937); Cywiński W. 1994 (położenie, kr&#243;tka informacja o jaskini w przewodniku szczeg&#243;łowym); Paryski W.H., Radwańska-Paryska Z. 1995 (informacja encyklopedyczna); Kicińska D. 1995 (rekonstrukcja kierunk&#243;w cyrkulacji podziemnej); Kicińska D. 1996a,b (analiza osad&#243;w a paleocyrkulacja); Grodzicki J. 1996 (wzmianki historyczne); Piksa, K. 1998 (nietoperze); Piksa K. i in. 2000 (nietoperze); Hercman H. 2000 (wzmianka o paleoklimacie); TATRZAŃSKI PARK NARODOWY, 2000/2001 (lokalizacja na mapie 1:25 000); Jaskinie TPN 2002 (plan, przekr&#243;j i opis inwentarzowy); Barczyk G. 2004 (uwagi o genezie); Kicińska D. 2004, 2004a (uwagi o genezie, paleoprzepływy); Barczyk G. 2008 (badania hydrogeologiczne systemu wywierzyskowego); Szczygieł 2015a (badania przejaw&#243;w neotektoniki); Szczygieł J. i in. 2019 (badania deformacji korytarzy); Szczygieł J. i in. 2020a (o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin); Szczygieł J. i in. 2020b (badania deformacji osad&#243;w klastycznych).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    [Siarzewski W., Zwolińska Z.] 1986 (notatki, szkice stanu rob&#243;t, szkice i plany 1:200 i 1:400 S. Zwolińskiego).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(535)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

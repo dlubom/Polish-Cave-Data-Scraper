@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11098">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11098;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "547428".replace(',', '.') + "," + "258335,89".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11098','Jaskinia Racławicka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Racławicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Grzmiączka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-09.39
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;39′52,60″, φ: 50&#176;11′25,20″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Park krajobrazowy Dolinki Krakowskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                453
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                26
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                26
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    168
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Racławice, Dolina Racławki, Obszar Natura 2000 - Dolinki Jurajskie,
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Około 800 m na zachód od zabudowań wsi Racławice i około 350 na wschód od Góry Krzyżowej leży bezimienne wzgórze o podanej wysokości 459,6 m n.p.m. Szczyt tego wzgórza zwieńczony jest grupą skalną z charakterystyczną „iglicą”. Około 60 m na NW od tej grupy skalnej, na zboczu pojawiają się kolejne wychodnie wapieni. W ich szczytowej części leży otwór opisywanej jaskini.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dość obszerny opis jaskini podaje Kazimierz Kowalski (1951), a wobec skromnych opis&oacute;w na temat jaskini znajdowanych wsp&oacute;łcześnie, warto chyba zacytować tego autora:<br /><em>&bdquo;Otw&oacute;r jaskini przedstawia się jako studnia 5-metrowej głębokości, położona na łagodnie nachylonym stoku ostańca. Studnia ta doprowadza na dno g&oacute;rnego poziomu, nachylone ku SE. Na środku dna wznosi się wielki stalagmit lub może głaz oblany stalagmitem. Nie jest to, jak przypuszcza Ciętak, korek skalny, kt&oacute;ry zamykał kiedyś otw&oacute;r jaskini. Nacieki pokrywające ten głaz nie mogły się bowiem utworzyć w warunkach takich jak obecnie, to znaczy w pobliżu otworu. Obecnie bowiem obserwujemy jedynie niszczenie naciek&oacute;w przez pokrywającą je roślinność. Musimy więc przyjąć, że utworzenie się naciek&oacute;w pokrywających owo wzniesienie, lub może tworzących je, poprzedziło utworzenie się otworu, kt&oacute;rego wiek wydaje się być stosunkowo nieznaczny. G&oacute;rny poziom posiada dwa odgałęzienia w postaci nisz rozwiniętych na szczelinach. Ku SE dno przechodzi nagle w 15-metrową studnię. Przedłużenie poziomu g&oacute;rnego znajduje się po przeciwnej stronie tej głębokiej studni jako dość obszerny korytarz rozwinięty na szczelinie, z ciekawymi wymyciami na ścianach.</em><br /><em>Wspomniana studnia rozszerza się ku dołowi w Komorę Dolną. Przy lewej ścianie, na wysokości poziomu g&oacute;rnego, znajduje się wielki słup stalagmitowy z charakterystycznymi przewężeniami powtarzającymi się co 30 cm. Ściany poniżej r&oacute;wnież pokryte są pięknymi naciekami. Dno Komory Dolnej jest spadziste, pochylone stromo ku NW. Komora ta wyciągnięta jest w kierunku SE-NW, przechodząc ku obu końcom w ślepe korytarzyki. W jednym z nich, znajdującym się na NW końcu sali, zaklinowany jest wielki blok skalny, kt&oacute;ry oderwał się od stropu wraz z pięknie wykształconymi naciekami. W ścianie SSW widać niewielki otw&oacute;r prowadzący do Komory Gł&oacute;wnej &ndash; najobszerniejszej sali w jaskini. Przy tym otworze zauważyliśmy na wysokości 1,2 m wylot kanału, kt&oacute;ry biegnie ku dołowi na głębokość 2 m. Ciętak znalazł tu stawek na glinie, dziś glina jest wybrana do znacznej głębokości. Na stropie widać ładne stalaktyty.</em><br /><em>Przez wspomniany już niewielki otw&oacute;r przedostajemy się do Komory Gł&oacute;wnej. Wstępna jej część jest bardzo wysoka, na stropie widać ślady działania wody w postaci zagłębień i wymyć. Przy NW końcu tej sali odchodzi na wysokość 4 m trudno dostępny korytarzyk. Po kilku metrach doprowadza on do małej salki, z kt&oacute;rej dalej idzie ciasny chodniczek, po 3 m zapłynięty zupełnie naciekiem. W tym odgałęzieniu, przede wszystkim w salce, znajdują się najładniejsze w całej jaskini nacieki, a zwłaszcza pięknie rozwinięte stalaktyty i stalagmity (jest to tzw. Korytarz Naciekowy).</em><br /><em>Południowo-zachodnia część Komory Gł&oacute;wnej ma zupełnie inny charakter. Strop jest świeży z wyraźnymi śladami po odpadłych blokach, a za to bez jakichkolwiek świadectw działania wody. Dno zalegają ogromne złomy wapienia. Pod ścianami spotyka się gdzieniegdzie stalaktyty i stalagmity znacznych rozmiar&oacute;w, czasem nawet połączone w jednolite kolumienki.</em><br /><em>W zachodnim końcu sali znajduje się odgałęzienie, nieznane Ciętakowi i nie oznaczone na jego planie. Zaczyna się ono wąskim przejściem wśr&oacute;d głaz&oacute;w, kt&oacute;re wiedzie do małej komory, przechodzącej ku g&oacute;rze w komin i ozdobionej bardzo ładnymi naciekami. Ku dołowi idzie z niej bardzo stromy korytarzyk, a z niego dwa ślepe chodniczki i mała kom&oacute;rka, leżąca wprost pod wspomniana komorą z kominem.&rdquo;</em></p>
+<p>Obiekt powstał w g&oacute;rnojurajskich (oksford) wapieniach skalistych. Jego geneza jest typowo krasowa, związana z przepływem w&oacute;d podziemnych. Po okresie rozwoju krasowego w morfologii jaskini zaznaczył się etap &bdquo;tektoniczno-grawitacyjny&rdquo;, w kt&oacute;rym doszło do zawalenia części stropu gł&oacute;wnej komory i powstania &bdquo;blokowiska&rdquo; na jej dnie a jednocześnie powstawały bogate formy naciekowe.</p>
+<p>Kowalski (1951): <em>&bdquo;Jaskinia Racławicka ma charakter jaskini zapadliskowej. Postała przez zawalenie się mas skalnych nad jakimiś leżącym głębiej pr&oacute;żniami krasowymi, kt&oacute;re dziś nie są nam dostępne. W SW części Komory Gł&oacute;wnej zapadanie stropu trwa nadal, o czym świadczy jego świeży wygląd. Powstanie otworu jaskini jest wydarzeniem stosunkowo niedawnym. Boczne korytarze, ogładzone przez wodę, nie są bezpośrednio genetycznie związane z jaskinią, są starsze od niej, znajdowały się już w skale, w kt&oacute;rej miała miejsce zapadlisko. Jaskinia Racławicka jest jedną z najbogatszych w nacieki jaskiń Wyżyny Krakowsko-Wieluńskiej, nadto dzięki trudnemu dostępowi są one dobrze zachowane.</em><br /><em>Namulisko tworzą głazy, gdzieniegdzie glina jaskiniowa. W Komorze Gł&oacute;wnej zalega dużo guana nietoperzowego. Wśr&oacute;d głaz&oacute;w spotyka się kości ps&oacute;w, kt&oacute;re widocznie wpadły, lub zostały zrzucone do jaskini, a także kości nietoperzy. Namulisko w Komorze Dolnej i we wstępnej części Komory Gł&oacute;wnej było rozkopywane. Archeologicznie jest niewątpliwie jałowe.</em><br /><em>Jaskinia jest dość wilgotna, w głębi zupełnie ciemna. Temperatura wewnątrz jaskini jest bardzo stała, wynosi ona +7,2 &ndash; 7,6o C w ciągu całego roku.</em><br /><em>Fauna bogata. W zimie przebywa w jaskini kolonia podkowc&oacute;w licząca do 300 sztuk, w lecie spotyka się kilkanaście okaz&oacute;w tego gatunku. Zimą w Komorze Gł&oacute;wnej przebywa parędziesiąt okaz&oacute;w nocka orzęsionego (</em><strong>Myotis emarginatus</strong><em>), nietoperza o południowym rozmieszczeniu, kt&oacute;ry jest znany z Polski jedynie z tej jaskini i J. Wierzchowskiej G&oacute;rnej. Pojedynczo zimuje też w jaskini nocek duży (</em><strong>Myotis myotis</strong><em>) i gacek wielkouch (</em><strong>Plecotus auritus<em>).</em></strong><br /><em>W obficie nagromadzonym guanie nietoperzy żyją owady bezskrzydłe </em><strong>Onychiurus armatus</strong><em>, </em><strong>O. granulofosfa</strong><em>,</em><strong> Isotoma fennica</strong><em>, </em><strong>Ceratophysella armata</strong><em>, </em><strong>C. bengtssoni</strong><em>, </em><strong>Sinella myrmecophila</strong><em> i </em><strong>Lepidocyrtus zygophorus</strong><em> (wg oznaczeń J. Stacha) oraz roztocze. Także poza guanem, na kawałkach drzewa, spotyka się faunę troglofilną: owady bezskrzydłe i pająki."</em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>R&oacute;wnie obszerny opis jaskini podaje także w 1951 roku W. Szymczakowski - badacz, kt&oacute;ry towarzyszył K. Kowalskiemu w trakcie zwiedzania jaskini. Fragmenty tegoż opisu r&oacute;wnież warto zacytować mimo powtarzania niekt&oacute;rych wątk&oacute;w Kowalskiego:<br /><em>&hellip;&hellip;&bdquo;Już samo położenie i postać otworu wejściowego są wyraźnie odmienne niż w przeważającej części jaskiń ojcowskich. Podczas gdy tamte otwierają się prawie zawsze w skalnych zboczach dolin, pionowy wylot Grzmiączki położony jest wysoko na wierzchowinie prowadzi nie do poziomego lub słabo tylko nachylonego korytarza, lecz do pionowego komina. Źr&oacute;dło tych r&oacute;żnic leży w zupełnie odmiennej genezie otwor&oacute;w grot ojcowskich i Grzmiączki. Dzisiejsze partie przywejściowe jaskiń Ojcowa noszą silniej lub słabiej zatarte p&oacute;źniejszymi procesami, lecz zawsze dające się odczytać piętno modelacji wodnej. Wyżłobiły je chemiczną i mechaniczną pracą dawne wody krasowe, opuszczające podziemne łożyska w postaci potężnych wywierzysk lub jaskiniowych wypływ&oacute;w. Stopniowe obniżanie się poziomu w&oacute;d i zasmarowanie powierzchni utworami akumulacji glacjalnej i zwietrzeliną doprowadziło do osuszenia wnętrz jaskiń, kt&oacute;re powoli zaczęły przybierać obecny wygląd. Na innej zupełnie drodze powstał otw&oacute;r Racławickiej Groty. Nie tylko nie ma on charakteru wylotowego, ale w og&oacute;le nie jest związany &ndash; przynajmniej bezpośrednio &ndash; z działalnością w&oacute;d krasowych. Istnienie swe zawdzięcza on procesom zapadliskowym, to jest obrywaniu się odłam&oacute;w skalnych od stropu jaskini.</em><br /><em>Stopniowe kruszenie się pułapu i ścian jest zjawiskiem powszechnym. Towarzyszy ono każdej jaskini &bdquo;od kolebki do zgonu&rdquo;, pojawia się już w pierwszej fazie jej rozwoju, by w stadium dojrzałym i starczym stać się obok proces&oacute;w akumulacyjnych czynnikiem dominującym i doprowadzić ostatecznie do zupełnego odsłonięcia groty &ndash; przekształcenia jej w otwarte zapadlisko krasowe. Zmiany, jakie podczas proces&oacute;w zapadliskowych zachodzą w jaskini, to po pierwsze jej przesuwanie się ku g&oacute;rze aż do zetknięcia się z powierzchnią, po drugie powolne zmniejszanie się przestrzeni jaskiniowej, luźne gruzowisko zajmuje bowiem większą objętość niż lita skała.</em><br /><em>Skutki proces&oacute;w zapadliskowych są w Jaskini Racławickiej widoczne w bardzo wielu miejscach, czy to w postaci ostrych załom&oacute;w nie zdradzających żadnych ślad&oacute;w modelacji wodnej, czy też jako liczne bloki zwaliskowe. Interesująca jest kwestia wrośniętego w namulisko g&oacute;rnego poziomu pokaźnego głazu w formie turniczki, kt&oacute;rego kształt odpowiada dość dobrze zarysom wylotu groty. Na tej podstawie Ciętak (1935) doszedł do wniosku, że jest on &bdquo;korkiem&rdquo; zatykającym niegdyś otw&oacute;r, zanim strop uległ zapadnięciu. Czy jest tak rzeczywiście &ndash; nie wiadomo, trzeba bowiem zważyć, iż głaz ten oblany jest naciekiem, kt&oacute;ry nie m&oacute;gł powstać zbyt blisko powierzchni, gdzie musiałby ulec zwietrzeniu pod wpływem czynnik&oacute;w atmosferycznych. Wiek utworzenia się wylotu grotu trudno określić &ndash; nie jest on świeży, na co wskazuje fakt silnego zwietrzenia naciek&oacute;w w partiach wstępnych, z drugiej strony jednak studnia wejściowa ma charakter dość młodociany, jest jeszcze wąska i nie posiada lejkowatego kształtu.</em><br /><em>Zapadanie się pułapu wiąże się z inną ważną grupą proces&oacute;w kształtujących oblicze groty w jej morfologicznym rozwoju: są to procesy akumulacyjne, zapełniające przestrzeń jaskiniową wt&oacute;rnymi materiałami pochodzącymi bądź z samej groty (jak np. w przypadku kruszenia się stropu), bądź też z powierzchni. Wnętrze groty przestaje już być pierwotną przestrzenią maksymalnej ewakuacji materiału skalnego, spąg zostaje bowiem podwyższony zapadliskowym rumoszem. Materiały zwaliskowe w postaci odłam&oacute;w skalnych r&oacute;żnej wielkości &ndash; od drobnych okruch&oacute;w do ogromnych złom&oacute;w &ndash; są w Grocie Racławickiej niezwykle obficie reprezentowane i nadają jej, a zwłaszcza ostatniej komorze, charakterystyczne piętno.</em><br /><em>Drugą kategorię autochtonicznych produkt&oacute;w akumulacji jaskiniowej stanowią nacieki. W Grzmiączce rozwinięte są w wielu miejscach i wykazują dużą r&oacute;żnorodność, przybierając formę skorup, warkoczy, draperii, stalaktyt&oacute;w, &bdquo;makaron&oacute;w&rdquo; (to jest młodocianych, rurkowatych stalaktyt&oacute;w), stalagmit&oacute;w, filar&oacute;w, itd. Procesy osadzania się kalcytu naciekowego w pewnej mierze mogą przeciwdziałać kruszeniu się stropu, m. in. przez zapełnianie szczelin będących drogami infiltracji w&oacute;d atmosferycznych do wnętrza groty. Naciek cementuje też odpadłe bloki, co widoczne jest w wielu punktach gł&oacute;wnej komory. Wśr&oacute;d form naciekowych zasługują także na uwagę mało efektowne lecz interesujące drobne utwory naścienne w postaci grzybk&oacute;w, guzk&oacute;w, itp., kt&oacute;rych geneza &ndash; niezbyt dokładnie jeszcze poznana &ndash; jest z pewnością niejednolita; wchodzić tu może w grę spływanie i rozpryskiwanie się roztwor&oacute;w, krążenie kapilarne, przemieszczanie i cementacja zwietrzeliny, itd.</em><br /><em>Do produkt&oacute;w akumulacji mieszanej należą gliny jaskiniowe, na kt&oacute;re składają się zar&oacute;wno nanosy z powierzchni jak i materiały pochodzące z wnętrz grot. W Jaskini Racławickiej namulisko gliniaste rozwinięte jest bardzo skąpo w por&oacute;wnaniu z blokami zwaliskowymi i jedynie na g&oacute;rnym poziomie występuje wyraźnie, jest tam bogate w detritus, a w jego tworzeniu się gł&oacute;wną rolę odgrywają materiały pochodzące z powierzchni. Stoi to w związku z topografią partii przywejściowych.</em><br /><em>Naszkicowane wyżej procesy zapełniania i zapadania się przestrzeni jaskiniowej odgrywają w dzisiejszej morfologii Grzmiączki rolę dominującą, tym niemniej ważne są r&oacute;wnież zjawiska, kt&oacute;re te stadia poprzedziły i stworzyły podstawę dla ich rozwoju. Są to procesy jaskiniotw&oacute;rczej działalności wody, kt&oacute;rych ślady, choć dziś już w dużym stopniu zatarte, mogą rzucić światło na wiele zagadnień związanych z rozwojem groty.</em><br /><em>Etap pierwszy: tworzenie się przestrzeni jaskiniowej drogą chemicznego roztwarzania skały przez gromadzącą się w zluźnieniach tektonicznych i międzywarstwowych wodę, nie pozostawił żadnych zachowanych form. Tylko w bardzo szczeg&oacute;lnych przypadkach, gdzie mamy do czynienia ze specyficznym rodzajem krasowienia i z niepełnym cyklem rozwojowym, jak to ma miejsce w Grocie Kryspinowskiej pod Krakowem &ndash; takie najbardziej młodociane formy mogą zostać zakonserwowane. Przeważnie możemy zaobserwować jedynie kierunki spękań będących drogami penetracji wody.</em><br /><em>Faza druga, poszerzenie wytworzonych już pr&oacute;żni drogą mechanicznej i chemicznej pracy wody płynącej (nierzadko, zwłaszcza w początkowych stadiach, pod ciśnieniem) jest reprezentowana w jaskiniach pospolicie. Tworzy ona system kom&oacute;r, korytarzy i komin&oacute;w o wygładzonych powierzchniach, charakterystycznym często profilu, rozmaitych rynnach, żebrach, zagłębieniach eworsyjnych (tj. wyżłobionych przez działanie spadającej lub wirującej wody) itd. W Grocie Racławickiej takich pierwotnych, nieprzekształconych procesami zapadliskowymi form brak niemal zupełnie. Zaliczyć do nich można jedynie r&oacute;żne drobne wnęki, kominki i korytarzyki (jak np. korytarz naciekowy &ndash; zmieniony zresztą silnie w fazie akumulacyjnej), wreszcie potężne kotły eworsyjne (autor powtarza tu powszechnie występujący błąd &ndash; kotły eworsyjne, zgodnie z ich genezą i definicją - vide Książkiewicz, Geologia Dynamiczna - powstają wskutek erozji wstecznej w dnie kanału, w stropie mamy do czynienia z kociołkami wirowymi - pot holes). Przyp. red. nauk.), jakie występują w pierwszej części stropu gł&oacute;wnej komory. Jest niewykluczone, iż kotły te wraz z położonym wysoko korytarzem naciekowym są resztkami dawnego g&oacute;rnego piętra jednolitej dziś komory. Dlatego ciekawsza jest wszakże kwestia istnienia dolnego piętra, kt&oacute;re mogło zostać zupełnie zawalone, lub też tylko odcięte od komory zwaliskami wielkich blok&oacute;w. Dokładne przeszukanie groty w marcu 1950 roku doprowadziło do odkrycia kilkunastometrowego korytarza z niewielkimi odgałęzieniami, noszącego wyraźne ślady działalności wody. Dojście do niego, ukryte wśr&oacute;d głaz&oacute;w, jest trudne do odnalezienia i ciasne. Czy korytarz ten jest jedynym zachowanym fragmentem najniższego, typowo krasowego poziomu groty, czy też pod głazami kryją się inne jeszcze, dziś niedostępne partie, tworzące być może gł&oacute;wny ciąg jaskini &ndash; nie wiemy.</em><br /><em>Reasumując poczynione dotąd obserwacje określić możemy Grzmiączkę jako rozwinięty na dużą skalę system etażowy (piętrowy), z kt&oacute;rego dochowały się tylko resztki, zresztą pokaźnych rozmiar&oacute;w (og&oacute;lna długość kom&oacute;r i korytarzy wynosi około 100 m), zmienione dominującymi obecnie procesami zapadliskowymi. Dziś system ten jako całość prezentuje się nam w swej fazie starczej. Ewolucja hydrograficzna groty dawno już znalazła sw&oacute;j kres, ewolucja morfologiczna trwa nadal i przez długi jeszcze czas zmieniać będzie jej oblicze.</em><br /><em>Aby poznać Grzmiączkę wielostronnie, nie wystarczy studiować samej budowy, trzeba się starać wniknąć w jej życie. Bo jaskinia żyje. Żyje nie tylko nieustanną, konsekwentną ewolucją swej postaci, lecz podtrzymuje nawet w najgłębszych zakamarkach prawdziwe życie organiczne, kt&oacute;rego prężność, siła ekspansji i ogromna plastyczność przejawiają się właśnie tu &ndash; podobnie jak i w innych zimnych i mrocznych pustyniach podziemnych &ndash; z całą wyrazistością. Świat to niebogaty, lecz swoisty i interesujący dzięki szczeg&oacute;lnym warunkom siedliskowym , z kt&oacute;rymi jest związany. Niestety, obserwacje przeprowadzone dotąd nad roślinnością i fauną Grzmiączki, są bardzo fragmentaryczne i nie pozwalają na jakiekolwiek syntetyczne ujęcie problemu.</em><br /><em>Najbardziej może charakterystyczną cechą każdej jaskini i mającą zarazem doniosłe znaczenie dla rozwoju flory i fauny jest panująca w niej wieczną ciemność lub przynajmniej p&oacute;łmrok. Od stopnia natężenia promieniowania zależy rozmieszczenie zielonej roślinności jaskiń, dla kt&oacute;rej światło stanowi z reguły czynnik minimum. W Grocie Racławickiej tylko na kr&oacute;tkim, przejściowym odcinku mamy do czynienia ze światłem bezpośrednim lub rozproszonym i tam też rozwija się &ndash; choć niezbyt bujnie &ndash; wapieniolubna flora. Nieco głębsze partie, do kt&oacute;rych dociera odpowiednio jeszcze silne światło pośrednie (tj. odbite od otoczenia), są domeną bardzo już nielicznych, wybitnie cieniolubnych roślin asymilujących, jakimi są niekt&oacute;re mchy i naskalne glony z grupy zielenic. W nikłym świetle pośrednim, panującym w odleglejszych częściach g&oacute;rnego poziomu i w pierwszej komorze dolnej oraz w zupełnej ciemności, jaka roztacza się w komorze gł&oacute;wnej wraz z jej odgałęzieniami, rozwija się już jedynie roztoczowa, bezzieleniowa flora bakterii i grzyb&oacute;w. Pasożytujące nieraz, zwłaszcza na much&oacute;wkach, grzyby, jak r&oacute;wnież bakterie pasożytnicze tylko pośrednio związane są ze środowiskiem jaskiniowym, niemniej mogą w nim się rozmnażać i rozprzestrzeniać.</em><br /><em>Niedomogi świetlne rekompensują za to &ndash; w pewnym zakresie oczywiście &ndash; korzystne warunki hygrotermiczne, łagodzące w wysokim stopniu mikroklimat groty. Zwłaszcza wilgotność atmosfery i podłoża, kt&oacute;ra jest znaczna i podlega małym wahaniom w por&oacute;wnaniu z powierzchnią, ma dla roślinności poważne, dodatnie znaczenie. Temperatura mierzona w gł&oacute;wnej komorze w r&oacute;żnych porach roku wynosi +7,2 do +7,6oC, wahania jej są zatem minimalne. Tę izolację termiczną głębi jaskini przypisać należy brakowi przewiewu, dzięki czemu ciepłe i zimne powietrze przenikać tu może tylko drogą dyfuzji, a więc bardzo powoli.</em><br /><em>Specyficzne warunki ekologiczne wyciskają r&oacute;wnież piętno na charakterze zespoł&oacute;w faunistycznych. Tak więc brak światła eliminuje wszystkie zwierzęta, kt&oacute;rych byt związany jest z roślinnością zieloną (a więc większość fitofag&oacute;w); eliminuje dalej organizmy, dla kt&oacute;rych podstawą orientacji jest zmysł wzroku, natomiast faworyzuje formy mające dobrze rozwinięte inne narządy zmysł&oacute;w. Podziemny tryb życia nie zawsze jednak powoduje zanik oczu. Tak np. wśr&oacute;d siedmiu gatunk&oacute;w maleńkich, bezskrzydłych owad&oacute;w z rzędu skoczogonk&oacute;w (Collembola), jakie zostały stwierdzone w Grocie Racławickiej (oznaczenie ich zawdzięczam uprzejmości dra J. Stacha), tylko jeden Onychiurus armatus (Tullb.) jest zupełnie ślepy, w dodatku jest to gatunek ubikwistyczny, występujący w najr&oacute;żnorodniejszych, niekoniecznie ciemnych środowiskach, tak że brak oczu nie wydaje się mieć bezpośredniego związku z warunkami zewnętrznymi (jest to zresztą cecha całej rodziny Onychiuridae). Brak światła wpływa r&oacute;wnież na tak charakterystyczny dla wielu organizm&oacute;w żyjących w ciemności zanik pigmentu w okrywie ciała. Białą barwę powłoki chitynowej zauważyć można w trzech spośr&oacute;d wspomnianych siedmiu gatunk&oacute;w skoczogonk&oacute;w, między innymi u wymienionego już Onychiurus armatus, formy przewodniej dla fauny naszych jaskiń.</em><br /><em>Brak silnych ruch&oacute;w powietrza i stała wilgoć panująca w jaskini umożliwiają byt zwierzętom wrażliwym na susze; takimi są właśnie skoczogonki odznaczające się cienką powłoką chitynową, niezabezpieczającą całkowicie przed parowaniem; takimi są tez nietoperze, kt&oacute;re w braku odpowiedniej wilgotności powietrza w okresie snu zimowego giną wskutek wyschnięcia delikatnych błon lotnych. Minimalna amplituda temperatury stwarza korzystne warunki egzystencji dla form stenotermicznych, nie wykluczając przy tym możliwości bytu zwierząt eurytermicznych. Jednostajność warunk&oacute;w otoczenia wywiera wreszcie niewątpliwy wpływ na rytmikę dobową i sezonową stałych mieszkańc&oacute;w jaskini, mogąc m. in. Powodować zanik periodyczności rozrodu (np. Onychiurus armatus spotkać można we wszystkich porach roku w r&oacute;żnych stadiach rozwojowych)&hellip;&hellip;&hellip;&hellip;.</em><br /><em>&hellip;..W Grzmiączce wyodrębnić można dwie gł&oacute;wne konsocjacje zwierzęce, z kt&oacute;rych jedna ograniczona jest do partii wstępnych, gdzie wpływ powierzchni zaznacza się jeszcze stosunkowo wyraźnie, drugiej zaś odpowiadają bardziej ustalone, głęboko jaskiniowe warunki.</em><br /><em>W skład zbiorowiska zwierzęcego przednich części groty wchodzą gł&oacute;wnie much&oacute;wki i pająki. Pierwsze z nich są formami okresowo odwiedzającymi jaskinie i znajdującymi w nich ochronę przed światłem słonecznym, suszą lub mrozem. Pod względem pokarmu i rozwoju larwalnego związane są one wyłącznie ze środowiskiem pozajaskiniowym, dlatego w cyklu odżywczym tej części groty stanowią tylko początkowe ogniwa, jako formy nie czerpiące pożywienia z siedliska jaskiniowego, natomiast będące same pokarmem swych wsp&oacute;łtowarzyszy: pająk&oacute;w z pospolitego w jaskiniach środkowej Europy rodzaju Meta. Związek pająk&oacute;w ze środowiskiem podziemnym zaznacza się w silniejszym stopniu, są one bowiem mieszkańcami stałymi i znajdują w grocie ni tylko schronienie ale i pokarm w postaci łowionych w sieci owad&oacute;w czasowo zalatujących.</em><br /><em>W zbiorowisku zwierzęcym głębi jaskini dominują zdecydowanie formy troglofilne, rozwijające się z pokolenia w pokolenie całkowicie w obrębie groty. Tworzą one interesujące lecz prawie niezanalizowane jeszcze zespoły związane z danym rodzajem podłoża i pokarmu. &hellip;&hellip;&hellip;&hellip;&hellip;..W Jaskini Racławickiej gł&oacute;wnym źr&oacute;dłem pokarmu jest butwiejące drewno oraz przede wszystkim bogate złoża kału nietoperzy.</em><br /><em>Liczne kawałki zmurszałego drewna skupiają faunę saproksylofag&oacute;w, kt&oacute;rymi są w Grzmiączce drobne much&oacute;wki i skoczogonki. Odżywiają się one nie tyle samym drewnem ile rozwijającymi się w nim pleśniami. Formami prześladowczymi tych owad&oacute;w są maleńkie, białawoż&oacute;łte pająki, prawdopodobnie Porrhoma calypso Bertk. &ndash; gatunek szeroko rozprzestrzeniony i spotykany zar&oacute;wno w jaskiniach jak i pod kamieniami&hellip;&hellip;&hellip;.</em><br /><em>Guano nietoperzowe, pochodzące od podkowca małego (Rhinolophus hipposideros Bechstein), tworzy w gł&oacute;wnej komorze Grzmiączki pokaźne pokłady stanowiące niezwykle bogate źr&oacute;dło pożywienia dla zamieszkującej je fauny koprofag&oacute;w. Obfitość pokarmu powoduje bogactwo ilościowe fauny guana, natomiast wysoce selekcyjne warunki głębokojaskiowe są przyczyną jej ub&oacute;stwa jakościowego. Fauna guana w Grzmiączce składa się według dotychczasowych danych z 7 gatunk&oacute;w skoczogonk&oacute;w oraz nieoznaczonych bliżej roztoczy z rodzaju Parasitidae &ndash; mamy więc tu do czynienia z grupami systematycznymi, przewodnimi dla polskich jaskiń&hellip;&hellip;&hellip;..</em><br /><em>Tylko jedna z jaskiń naszego kraju zawiera obfitsze niż Grzmiączka złoża kału nietoperzy, mianowicie Grota Nietoperzowa. Guano, kt&oacute;re tam występuje, osadza się dłużej niż w Jaskini Racławickiej i zawdzięcza swe powstanie innemu gatunkowi, mianowicie nockowi dużemu(Myotis myotis Bechstein). Jest rzeczą ciekawą, że pomimo bliskiej odległości, jaka dzieli obie groty i podobnego charakteru okolicy, skład fauny guana obydwu stanowisk jest zupełnie r&oacute;żny&hellip;&hellip;&hellip;&hellip;.</em><br /><em>Szczeg&oacute;lnie interesującą grupę zwierząt w Jaskini Racławickiej tworzą nietoperze. &hellip;&hellip;&hellip;Wśr&oacute;d jaskiń polskich Grzmiączka odznacza się wyjątkowo bogatą ilościowo i jakościowo fauną nietoperzy&hellip;&hellip;&hellip;&hellip;..&rdquo;</em><br /><em>Dla uzyskania pełni obrazu powyższe opisy można jeszcze uzupełnić opisem Szelerewicza i G&oacute;rnego: &bdquo;&hellip;&hellip;Otw&oacute;r ma charakter 4-metrowej studni, z kt&oacute;rej dna opada stroma pochylnia, urywająca się nad krawędzią następnej, 11-metrowej przewieszonej studni. Studnię u jej krawędzi zdobią potężne stalagnaty, niżej przechodzące w nacieki kaskadowe pokrywające znaczna powierzchnię ściany.</em><br /><em>Pod studnią rozciąga się wysoka komora. Na jej SE krańcu odkryto bardzo ciasną, 8-metrową studnię, kt&oacute;rej dno stanowi najniższy dostępny punkt jaskini, położony 26 metr&oacute;w poniżej otworu. W przeciwległym końcu komory, wśr&oacute;d zwaliska blok&oacute;w, wyr&oacute;żnia się zaklinowany potężny głaz pokryty żebrami naciekowymi, powstałymi jeszcze przed jego odpadnięciem od ściany.</em><br /><em>W środku Sali znajduje się przejście do następnej dużej komory. W przejściu w kierunku SE (ciąg boczny), znajduje się pochylnia ze stropowymi kotłami wirowymi, w kt&oacute;rych rozwinęły się duże stalaktyty. Komora jest w zarysie kwadratowa. Jej wschodnia część jest wysoka, z dużą ilością stalaktyt&oacute;w, natomiast zachodnia &ndash; nieco niższa i posiadająca odmienny, zapadliskowy charakter: od stropu odpadły duże bloki, tworząc na dnie sali potężna zwaliska. Z Sali prowadzą niewielkie ciągi boczne &ndash; m.in. Czeski Korytarz, kt&oacute;rego początek znajduje się w p&oacute;łnocnej części komory, 6 m ponad dnem (konieczność wspinaczki).Dno jaskini pokrywa rumosz skalny i wielkie bloki. W bocznych, ciasnych korytarzach namulisko gliniaste...&rdquo;.</em></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsza wzmianka na temat jaskini autorstwa Czarnowskiego pochodzi z 1911 r., pierwszy plan, opis i dokumentację fotograficzną wykonał Ciętak w 1935. W 1951 jaskinię zinwentaryzował Kowalski nadając jej numer 176. W tym samym roku Szymczakowski odkrywa korytarz w zachodniej części drugiej komory i wykonuje obszerny opis przyrodniczy jaskini. W 1969 G&oacute;rny i Czepiel odkrywają studzienkę z najgłębszym miejscem w jaskini oraz pochylnię w przejściu między salami. W 1975 roku Czepiel wykonuje nowy plan, ten plan i opis zostaje opublikowany w 1983 roku. W 1986 r. Szelerewicz i G&oacute;rny publikują plan Czepiela dodając opis i nadają numer II,H.8. Po śmiertelnym wypadku w 1994 r. na otworze zostaje założona krata. W kwietniu 1995 P. Ostrowski i M. Wiśniewski odnajdują nowe partie w SW końcu drugiej Sali dodając do długości jaskini około 30 m. W czerwcu tego samego roku ten sam zesp&oacute;ł znajduje 2 m korytarz w S części drugiej komory. W październiku 1995 M. Pruc dokonuje wspinaczki w kilkunastometrowym kominie Sali Zawaliskowej. W 1996 r. zesp&oacute;ł w składzie R. Suski, R. Marszałek i J. Nowak odnajduje i odkopuje 3 m korytarzyk w studni zlotowej wypełniony kośćmi ps&oacute;w.<br />W lipcu 1994 roku doszło w jaskini do śmiertelnego w skutkach wypadku, kiedy to młody uczestnik pobliskiej kolonii spadł na dno jaskini pr&oacute;bując schodzić pionowym otworem.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan opracował M. Czepiel (1975), uzupełnienia P. Ostrowski (1995) i J. Nowak (1996).<br />Dane zaktualizował A. Polonius (2017).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Czarnowski S.J. 1911, 1914 (wzmianka, zaznaczenie na mapie); Danysz-Fleszarowa R. 1933 (wymienia); Ciętak Z. 1935 (plan, opis, fotografie) Kowalski K. 1951 (plan Ciętaka i obszerny opis); Szymczakowski W. 1951 (obszerny opis przyrodniczy); Czepiel M. 1983 (plan i opis); Szelerewicz M., G&#243;rny A. 1986 (plan i opis); Tragiczny koniec wakacji 1994 (przedruk z Echa Krakowa na temat wypadku w jaskini); Wiśniewski M. 1995 (nowe odkrycia w Jaskini); Herod S. 1995 (wzmianka na temat wspinaczki w jaskini); Ostrowski P. 1995b (wzmianka na temat eksploracji w jaskini); Nowak J. 1997a (nowy korytarzyk w studni wejściowej); Nowak J. 2003a (o założeniu stałych punkt&#243;w w jaskini); Nowak J. 2007a (informacja o sprzątaniu śmieci z jaskini); Jaskinie Wyżyny Olkuskiej 2018b (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius, Kazimierz Kowalski, Andrzej G&#243;rny, Mariusz Szelerewicz, Wacław Szymczakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2017
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12494)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(12492)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12493)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

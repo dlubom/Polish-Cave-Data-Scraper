@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1245">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1245;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "571543,54".replace(',', '.') + "," + "154333,41".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1245','Jaskinia Kasprowa Wyżnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Kasprowa Wyżnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Wyżnia Jaworzyńska, Jaskinia Jaworzyńska
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-17.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;59′00,30″, φ: 49&#176;15′08,35″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ENE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku WNW, 1467 m n.p.m.; 3 - ku SW, 1438 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1463
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                165
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                24,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                24,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    100
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W prawym orograficznie zboczu Doliny Kasprowej, w Zawraciku Kasprowym, nieco ku W od grani gł&#243;wnej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Kuźnic idziemy zielono znakowaną drogą wiodącą na Myślenickie Turnie do miejsca, gdzie opuszcza ona dno Kasprowego Potoku (jest tu duży zakręt), dalej wyraźną, nieznakowaną ścieżką, która prowadzi nad zachodnim zboczem tego potoku. Po około 400 m od zejścia ze szlaku skręcamy w lewe odgałęzienie ścieżki i niebawem przechodzimy przez suche koryto potoku na przeciwległy stok. Wznosimy się następnie mniej wyraźną percią pod ścianami Zawraciku Kasprowego. Po około 200 m omijamy charakterystyczną iglicę skalną, odizolowaną od głównego muru, a około 90 m  dalej (ku S), za turnią kryjącą niewidoczny spod niej otwór Jaskini Kasprowej Średniej, skręcamy na lewo i podchodzimy zachodem stromo ku ESE, aż do Przełęczy Rówienki. Do przełęczy można dojść też nieznakowanymi perciami z Polany Kasprowej (szerokim, w górnej części zalesionym żlebem). Z Rówienek idziemy granią 100 m  ku WNW, aż do wschodniego otworu Jaskini Kasprowej Wyżniej (I), widocznego na lewo (ku W) od grani, w ścianie turni tworzącej boczną grań. (W tej samej turni, w jej dolnej części, położona jest Jaskinia Kasprowa Średnia). Omijamy wschodni otwór po prawej stronie i eksponowaną granią turni idziemy około 50 m, aż do żlebu, którego prawą (mniej stromą) ścianą schodzimy wprost do zachodniego otworu Jaskini Kasprowej Wyżniej (II), znajdującego się po przeciwnej (W) stronie turni, w ograniczeniu żlebu, który opada progami aż do podnóża skał, w okolice odosobnionej iglicy. Do otworu III, położonego w południowej ścianie turni, nad przepaścią, najwygodniej dojść przez jaskinię. Dojście do otworu I i II bardzo łatwe, zwiedzanie wymaga użycia sprzętu wspinaczkowego. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r I o kształcie zbliżonym do kolistego, ma 1,6 m szerokości i 2,3 m wysokości. Otw&oacute;r II jest mniejszy, ma wymiary: 1,1x0,7&ndash;1,2 m, zaś III, o kształcie przypominającym nieco gruszkę, ma 1,2 m szerokości i 1,4 m wysokości. Za otworem I (gł&oacute;wnym) opada stromo obszerny korytarz o litym dnie, z pochyłym prożkiem w d&oacute;ł. Po 9 m&nbsp;doprowadza on nad 12-metrową studnię. Za otworem studni widać dalszy ciąg korytarza. Biegnie on prawie poziomo w kierunku otworu II i kończy się po 6 m oknem w stropie sali.</span></p>
+<p><span>Wracamy do studni. Zjeżdżamy nią do wielkiej sali o długości 25 m i szerokości 4&ndash;8 m, wysokiej na 4&ndash;6 m. Jej dno zasłane jest autochtonicznym gruzem i dużymi blokami skalnymi. Kilka metr&oacute;w na W od wylotu studni znajduje się najniższy punkt sali, od kt&oacute;rego dno wznosi się ku W i ku E. Wschodnia ściana sali przechodzi w pochyły, około 8-metrowy komin. W okolicy obniżenia dna odgałęzia się ku N ciasny, zawaliskowy korytarzyk, kt&oacute;ry zakręca ku E i po 6 m&nbsp;kończy się. Ma on kr&oacute;tkie odgałęzienie ku NW, zakończone zawaliskiem, a naprzeciwko jego wylotu - przebicie do sali. </span></p>
+<p><span>Za dużą, podłużną wantą leżącą pod południową ścianą sali, w pobliżu jej zachodniego krańca, między głazami, znajduje się 2,7-metrowa studzienka wiodąca do 10-metrowego korytarza o szerokości około 1 m, zakończonego III otworem.&nbsp;Korytarz stromo opada w&nbsp;stronę otworu, a w połowie długości tego ciągu jest śliski, pochyły, około 2-metrowy prożek w d&oacute;ł.</span></p>
+<p><span>Wracamy do sali. Na lewo dochodzimy do pochyłego, 7-metrowego progu (trudności III) stanowiącego jej zachodni kraniec. Oglądając się wstecz, wysoko w stropie widzimy duże okno&nbsp;&ndash; wylot g&oacute;rnego korytarza znad studni. Nad progiem, ku W, prowadzi do g&oacute;ry szeroki korytarz o długości 6 m. Uchodzi on na powierzchnię otworem II. W lewej orograficznie ścianie tego korytarza jest okno wiodące do ciasnej szczeliny, kt&oacute;ra prawdopodobnie łączy się z g&oacute;rnym korytarzem. </span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach malmo-neokomu (seria wierchowa, fałd Giewontu). Korytarze są myte, sala ma charakter zawaliskowy. Ściany jaskini są zwietrzałe, kruche, występują na nich miejscami nacieki grzybkowe oraz mleko wapienne. </span></p>
+<p><span>Namulisko stanowi gł&oacute;wnie autochtoniczny gruz wapienny, wielkie bloki wapienne oraz glina, a przy otworach&nbsp;&ndash; gleba. W g&oacute;rnym korytarzu osady są skąpe (dno skalne). Kowalski (1953a) podaje, że wśr&oacute;d głaz&oacute;w w sali &bdquo;<em>wg Zaruskiego trafiają się kości owiec i&nbsp;nietoperzy</em>&rdquo;. </span></p>
+<p><span>Jaskinia jest dość sucha. Światło odbite nie dociera tylko do najdalszych części bocznych korytarzyk&oacute;w. Wyczuwa się przewiew między otworami, kt&oacute;ry zmienia się szybko, w zależności od warunk&oacute;w atmosferycznych.</span></p>
+<p><span>Przy otworach rozwijają się rośliny kwiatowe, głębiej paprocie, mchy i glony (glony pokrywają też prożek przy III otworze). </span></p>
+<p><span>Występują owady troglokseniczne (motyle <strong><em>Triphosa dubitata</em></strong><em>, </em>chruściki, pająki, much&oacute;wki i in.) oraz nietoperze. O występowaniu nietoperzy wspomina już Zaruski (1923). </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania osad&oacute;w przeprowadził W&oacute;jcik (1966a), kt&oacute;ry zalicza grotę do V piętra jaskiń wg własnego podziału piętrowego jaskiń tatrzańskich. Nacieki grzybkowe pochodzące z kolekcji T. Malickiego gromadzonej w latach 1922-23 przechowywane są w zbiorach Muzeum Tatrzańskiego.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinię odkryli w dniu 27 października 1913 r. M. Zaruski i W. Jodkowski. Dotarli oni do otworu III (gdzie wyryli podpis na skale) wspinając się ścianą turni. Zaruski (1923) podał pierwszy opis groty. W latach dwudziestych zwiedzili jej gł&oacute;wną część bracia T. i S. Zwolińscy, kt&oacute;rzy opisali następnie drogę dojścia i wnętrze jaskini. Używano w&oacute;wczas nazw Jaskinia Jaworzyńska lub Wyżnia Jaworzyńska. S. Zwoliński w swoich notatkach (wydanych w 1993 r.) opisuje akcję z 15 czerwca 1932 r., podczas kt&oacute;rej z M. Pawlikowskim i S. Radkiewiczem po zbadaniu Jaskini Kasprowej Średniej, wprost od jej otworu wspiął się ścianą turni do trzeciego (południowego, uważanego wtedy przez niego za niedostępny) otworu Jaskini Kasprowej Wyżniej, przeprowadził w jej wnętrzu wspinaczkową eksplorację oraz akcję fotograficzną i wyszedł na szczyt turni. Zanotował, że ze zdziwieniem w otworze znalazł signum Zaruskiego. W dniu 9 lipca 1932 r. S. Zwoliński z E. Winiarskim wykonali pomiary jaskini.<br />Podczas wycieczki we wrześniu 1956 r. J. Iwanicki wspiął się kominem (studnią) do g&oacute;rnego korytarza, prawdopodobnie wcześniej nie zwiedzanego (mat. arch. W&oacute;jcik, 1956). <br />Obecnie jaskinia jest często odwiedzana, m. in. w ramach kurs&oacute;w taternictwa jaskiniowego.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W dniu 9 lipca 1932 r. S. Zwoliński z E. Winiarskim wykonali pomiary jaskini. Kowalski (1953a) przedstawił plan i dokładniejszy opis groty datowany na 20 sierpnia 1952 r. Podczas prac nad inwentaryzacją jaskiń tatrzańskich, prowadzonych przez OW PTPNoZ, dokumentację jaskini sporządziła I. Luty przy wsp&oacute;łpracy H. Hercman i M. Lasoty w dniu 30 sierpnia 1979 r., wykonała r&oacute;wnież pomiary sytuacyjno-wysokościowe położenia otworu metodą ciągu busolowo-taśmowego. Pomiary przeprowadzono busolą geologiczną Meridian i taśmą parcianą. Dane zaktualizowała I. Luty (2009). Lokalizację w oparciu o mapę topograficzną Tatr (<a href="http://maps.geoportal.gov.pl">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013). Uwaga - wykazane na tej mapie lokalizacje jaskiń nie są prawidłowe!<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zaruski, M. 1923 (opis odkrycia i samej jaskini, dość niejasny i z błędnymi wymiarami); Zwolińscy T. i S. 1925, 1927,1930 (opis drogi i groty); Danysz-Fleszarowa R.1933 (wymienia); Wrzosek, A. 1933 (wzmianki); Szokalski, J.1934 (opis drogi i jaskini); Zwoliński,T. 1937, 1946, 1948, 1951 (wzmianki); Kowalski, K. 1951a (wzmianka); Kowalski, K. 1953a (plan i opis); Kowalski, K. 1955a (fauna, niekt&#243;re dane morfometryczne); Zwoliński, S. 1955b (wzmianka o genezie); Normy klasyfikacyjne i wykaz punktacji dr&#243;g jaskiniowych, 1956 (ocena trudności); Zwoliński, T. 1958 (opis); W&#243;jcik, Z. 1960b (osady); [Krygowski, W] x. y. 1961 (informacja o pracach prowadzonych przez grotołaz&#243;w zakopiańskich); Zwoliński, S. 1961 (wzmianka dotycząca historii odkrycia pod nazwą Jaworzyńska, fotografia I otworu); W&#243;jcik, Z. 1966a (uwagi o osadach, genezie, niekt&#243;re dane morfometryczne, lokalizacja na mapkach, w tym geologicznej); W&#243;jcik, Z. 1968 (wzmianka); Kozik, A. 1972 (podaje długość); Tatry Polskie 1976  (lokalizacja na mapie 1:10.000); Borowiec W. i in. 1977,1978 (dane morfometryczne); W&#243;jcik, Z. 1978c (wzmianka); Baryła, J. 1980c (ocena trudności); Stecka, Z. 1981 (fotografia otworu); Kardaś, R. M. 1980a (wzmianka o zinwentaryzowaniu); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10.000); Gradziński, R. i in. 1985a (dane morfometryczne, orientacyjna lokalizacja na mapie); Zwoliński, S. 1993 (opisy akcji z 1932 i 1944 r.); Jaskinie TPN 2002b (plan, przekr&#243;j i opis inwentarzowy). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, Z. 1956 (notatki z prac terenowych prowadzonych w roku 1956); [Siarzewski, W., Zwolińska, Z.] 1986 (szkic pomiarowy w skali 1:200 S. Zwolińskiego).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11831)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(726)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

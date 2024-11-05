@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2946">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2946;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "629614,65".replace(',', '.') + "," + "181792,78".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2946','Jaskinia Niedźwiedzia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Niedźwiedzia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bsd-02.28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;47′25,00″, φ: 49&#176;29′23,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Łabowa (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                nowosądecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku g&#243;rze; 3 - ku g&#243;rze.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                983
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    611
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Sądecki, Barnowiec, zachodni szczyt Wierchu nad Kamieniem (1084 m n.p.m.)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Do jaskini najłatwiej dojść od szlaku turystycznego z Rytra na Halę Łabowską. Idąc od strony Rytra szlak opuszczamy w pobliżu zachodniego szczytu Wierch Nad Kamieniem. Niewyraźną droga podążamy na N około 300 m, aż pod Pękniętą Kopę (1068 m n.p.m.). Otwór Jaskini w Pękniętej Kopie (K.Bsd-02.22) - widoczny dopiero z bliska - znajduje się kilka metrów powyżej drogi na północnym stoku kopy. Stąd idziemy grzbietem w dół około 200 m do głębokich rozpadlin skalnych. Poziomo usytuowany otwór Jaskini Świętego Szczepana (K.Bsd-02.23) znajduje się na dnie ostatniej rozpadliny, w jej lewej części. W 2008 roku doszło do niewielkiego zawaliska w części przyotworowej, dzięki temu korytarzyk wstępny zyskał okno w stropie będące jednocześnie nowym, wygodniejszym wejściem. Szczelina w Labiryncie (K.Bsd-02.24) jest położona na tej samej szczelinie co Jaskinia Świętego Szczepana, kilkanaście metrów na wschód. Od Szczeliny w Labiryncie idziemy za grzbietem w dół stoku około 230 m na rozległe wybrzuszenie. Otwór Rysiej Jamy (K.Bsd-02.26) znajduje się obok wysokich turni pod blokiem piaskowca. Od Rysiej Jamy za grzbietem idziemy w dół stoku na oddzielony dolinką pakiet piaskowców. Otwór Jaskini Małej Niedźwiedziej (K.Bsd-02.27) znajduje się w środkowej części pakietu na skraju skalnej rozpadliny. Na północ od Jaskini Małej Niedźwiedziej znajduje się kilka metrów na północ otwór Jaskini Niedźwiedziej.
+Jaskinia Niedźwiedzia znajduje się w pobliżu Dziadziej i Bezdziadziej Nory, w skalistym grzbiecie, ograniczającym od S największy rów Niedźwiedziego Masywu. Można do niej dojść albo od szlaku czerwonego, albo ze wsi Barnowiec.  Idąc z Barnowca posuwamy się doliną na S, początkowo przez wieś, potem lasem. Cały czas wiedzie nas wąska asfaltowa droga. Po około 30 minutach przekraczamy Potok Barnowski i skręcamy na E. Idąc dalej drogą, po 10 minutach dochodzimy do następnego potoku i skręcamy na N. Kończy się tutaj asfalt, a my idziemy teraz utwardzoną, leśną drogą, początkowo w kierunku N a potem NE. Wkrótce dochodzimy do miejsca, gdzie od naszej dotychczasowej drogi odchodzi w lewo stroma, wyraźna droga - tzw. spychaczówka. Po skręceniu na nią wznosimy się stromo w kierunku NE, a potem SE. Spychaczówkę opuszczamy po około 30 minutach marszu w miejscu, gdzie z lewej strony dochodzi wyraźny, nieckowaty rów. Jest to jedna z dwóch dolinek oddzielających znajdujący się po lewej stronie Niedźwiedzi Masyw. Otwory jaskini znajdują się w środkowej części masywu, wspomnianej wcześniej, skalistej grzędzie.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wszystkie trzy otwory znajdują się w swoim sąsiedztwie. Najlepiej widoczny jest skalisty lej drugiego otworu. Pozostałe otwory usytuowane są po przeciwnej stronie grzędy. Tworzą je studzienki o wymiarach - 1 x 1,5 m i 1 x 0,5 m. Znajdują się one nad kilkumetrową ścianą skalną, opadającą na dno wspomnianego już rowu.</p>
+<p>Jaskinia Niedźwiedzia składa się z trzech kondygnacji. Poziom pierwszy to niskie korytarze wytworzone w średnioławicowych piaskowcach i marglistych łupkach. Zasadnicza część jaskini rozwinięta jest w poziomie drugim - piaskowcowym. Piętro najniższe opr&oacute;cz gruboławicowych piaskowc&oacute;w budują także warstwy zlepieńc&oacute;w.</p>
+<p>Jaskinia rozwinięta jest na systemie szczelin osuwiskowych o azymucie 210-220̊.&nbsp; Warstwy skalne zapadają się pod kątem 10-20̊&nbsp; na SW, tak też skokowo, pogłębia się cała jaskinia. Początkowo jest to regularna szczelina - Wielka Studnia. Jej NW ściana jest lita, a SE pocięta szczelinami, r&oacute;wnoległymi do biegu warstw. Na jednej z takich szczelin rozwinęły się ciasne korytarze, łączące Wielką Studnię z Wielkim Lejem (2 otw&oacute;r). Na dnie i pod stropem SW krańca Wielkiej Studni znajdują się zaciski prowadzące do dalszych partii jaskini (Partie za Skalną Pułapką są od jesieni 1998- relacja ustna B. Danka, naocznego światka- niedostępne ze względu na niewielki zawał- obsunięcie bloku skalnego i rumoszu. Usuniecie zawaliska jest trudne ze względu na ciasnotę miejsca).</p>
+<div>Uwaga! Ta część opisu była aktualna do 1998 roku.</div>
+<p>Ze Skalnej Pułapki przedostajemy się w lewo przez zacisk (Z2) do Białej Sali. Stąd w g&oacute;rę biegnie ciasny, dalej niski ciąg kilkunastometrowej długości , prowadzący do kilku gliniasto-skalnych wnęk, znajdujących się tuż pod powierzchnią, o czym świadczą liczne korzenie drzew.</p>
+<p>Z Białej Sali w prawo, przez metrowy prożek przedostajemy się do Szczeliny Naciekowej. Ma ona kilkanaście metr&oacute;w długości oraz około 7 m wysokości. Na jej początku ciasny przełaz prowadzi w prawo, do Skalnej Pułapki. Ze środkowej części szczeliny, po 7 m wspinaczce (trudno) można przedostać się do ciasnych Partii nad Szczeliną, kończących się obszerną, prostokątną Salą Dym&oacute;w.</p>
+<p>Wracany do Białej Sali. Idąc z niej w lewo, przez kilka 5-6 metrowych studzienek przedostać się można do Sali Balowej.</p>
+<p>Jest to największa sala w jaskini (20 m długości, 4-5 m szerokości i około 13 m wysokości). Dno sali pokrywają duże głazy, wśr&oacute;d kt&oacute;rych kryje się kilka kr&oacute;tkich korytarzyk&oacute;w. W ścianach sali znajdują się dwa okna.</p>
+<p>Pierwsze z nich, na wprost, na wysokości 9 m, prowadzi do Partii nad Stropem, drugie - w prawej ścianie - do Partii za Oknem.</p>
+<p>Po osiągnięciu pierwszego okna wspinamy się stromym korytarzem o dnie pokrytym rumoszem do Sali z Kolumną. Tu ciąg skręca o 180̊ i kilkanaście metr&oacute;w biegnie r&oacute;wnolegle do Sali Balowej Kończy się zawaliskiem, kontaktując się niedostępnymi szczelinami z Salą Balową. Z Sali z Kolumną przedostajemy się do Partii nad Stropem pokonując zacisk (Z3), znajdujący się w g&oacute;rnej części filara oddzielającego Salę Balową od wspomnianego uprzednio, r&oacute;wnoległego do niej korytarza. Partie nad Stropem to kilka poziom&oacute;w szczelin oraz kilkunastometrowej długości pochylni - najwyższego w jaskini korytarza zwanego Płytowcem Białych St&oacute;p. Obrywa się on nad Salą Balową 13 m progiem. Znad progu, po gzymsie nad Salą Balową można się przedostać (trudno, konieczna asekuracja) do Partii za Oknem.</p>
+<p>Łatwiejsze przejście do tych partii prowadzi z g&oacute;rnego poziomu Sali Balowej systemem ciasnych korytarzyk&oacute;w do obszernej Sali za Oknem W lewej ścianie najniższego jej poziomu znajduje się wspomniane już, drugie okno Sali Balowej. Ze środkowego poziomu Sali za Oknem prowadzi w r&oacute;żne strony kilka ciasnych, kr&oacute;tkich korytarzyk&oacute;w. Jeden z nich, biegnący na wprost, prowadzi przez ciasny przełaz i studzienkę z zaciskiem (Z2) nad Salę Balową, a dalej po gzymsie do Płytowca Białych St&oacute;p w Partiach nad Stropem. Koniec opisu części dostępnych do jesieni 1998 roku. Miejmy nadzieję że uda się w przyszłości udostępnić w/w partie jaskini.</p>
+<p>Wracamy do Wielkiej Studni, do znajdujących się niej zacisk&oacute;w.</p>
+<p>Dolny, znajdujący się w jej dnie, poprzez ciasną, kilkumetrową studzienkę, sprowadza bezpośrednio w d&oacute;ł, do Wielkiej Szczeliny z Małym Słoneczkiem.</p>
+<p>G&oacute;rny, znajdujący się pod stropem, doprowadza do ciasnego korytarza, ciągnącego się tuż pod powierzchnią i zakończonego 9 metrową studnią nad Wielką Szczeliną z Małym Słoneczkiem. Za tym fragmentem jaskini gł&oacute;wny ciąg wchodzi w niższe warstwy piaskowca.</p>
+<p>G&oacute;rna warstwa, w kt&oacute;rej do tej pory rozwijała się jaskinia, rozpada się na kompleks want, pomiędzy kt&oacute;rymi znajdują się ciasne ciągi o charakterze labiryntu.</p>
+<p>Schodząc na niższy poziom gł&oacute;wny korytarz rozszczepia się na dwa r&oacute;wnoległe do siebie chodniki. Początkowo są one połączone ze sobą ciasnymi oknami, potem wychodzą z nich ślepe, poprzeczne odnogi.</p>
+<p>Korytarz SE rozpoczyna się od Komnaty z Rozdeptanym Gacopyrzem i kontynuuje się na SW Szalonym Meandrem.</p>
+<p>Część NW jest silniej rozczłonkowana, a rozpoczyna się efektowną salą z Misiem. Obydwa opisane ciągi łączą się w obszernej sali Biwakowej. Ma ona charakter zawaliskowy, a pod zaklinowanymi wantami tworzącymi jej dno, znajdują się najgłębsze części jaskini - Sale Gotyckie i Sala Zapłakanych Gacopyrzy. W kierunku SE jaskinia zatraca sw&oacute;j szczelinowaty charakter i przeistacza się w labirynt ciasnych pr&oacute;żni, otoczonych przez bezładnie zaklinowane wanty (Kruche Partie).</p>
+<p>Jaskinia zbudowana jest z piaskowc&oacute;w, zlepieńc&oacute;w i łupk&oacute;w marglistych warstw magurskich. Jej powstanie należy wiązać z wielkim osuwiskiem, kt&oacute;re objęło cały lej Źr&oacute;dłowy Potoku Barnowskiego.</p>
+<p>W jaskini brak namuliska, dno przeważnie pokryte jest autochtonicznym gruzem piaskowcowym. Jedynie w Mokrej Komorze, Wielkiej Studni i Wielkim Leju znajduje się gliniasta zwietrzelina.</p>
+<p>Światło dociera na dno Wielkiej Studni i Wielkiego Leja. W słonecznym dniu nikłe światło dochodzi także na dno Wielkiej Szczeliny z Małym Słoneczkiem.</p>
+<p>Jaskinia Niedźwiedzia posiada mikroklimat dynamiczny i dużą wilgotność. Zimą otw&oacute;r 1 i 2 są oblodzone, otw&oacute;r 3 przykryty jest czapą śniegu.</p>
+<p>Liczne suche drzewa nad jaskinią świadczą o stałym przemieszczaniu mas skalnych w&nbsp;jej obrębie. Fakt ten, przy licznych ruchomych wantach na ścianach i stropie stwarza dla zwiedzających poważne zagrożenie.</p>
+<p>W jaskini przez cały rok bytują liczne nietoperze, gł&oacute;wnie nocki duże, a także podkowce małe i gacki wielkouche.</p>
+<p>W Sali z Misiem zostały znalezione kości niedźwiedzia, tzn. czaszka z żuchwą, kręgi, żebra, kości odn&oacute;ży. Do tej pory nie jest wyjaśnione, czy pochodzą one od niedźwiedzia brunatnego czy jaskiniowego (1989).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta 21 września 1988 r. przez członk&oacute;w koła geograficznego z Nawojowej. W&oacute;wczas znaleziono wszystkie otwory, rozkopano otw&oacute;r 2 i spenetrowano Wielką Studnię, Komnatę Tatiany po Skalną Pułapkę. Dnia 24 września 1988 r. rozkuto zaciski w Wielkiej Studni i odkryto Wielką Szczelinę z Małym Słoneczkiem, Salę z Misiem i Komnatę z Rozdeptanym Gacopyrzem. Korytarz po Salę Biwakową odkryto 11 października 1988 r., a Gotyckie Sale z Salą z Zapłakanym Gacopyrzem - 13 października 1988 r. W dniu 23 października 1988 r. odkryto Kruche Partie. Wszystkich odkryć dokonał E. Borek. Ta część jaskini została skartowana na przełomie grudnia 1988 r. i stycznia 1989 r. przez: A. Antkiewicz, R. Baran, E. Borka, W. Ignacyka, P. Irzyka i P. Wańczyka. Dalszych odkryć dokonali członkowie SKTJ - Nowy Sącz w lipcu 1996 r. Udało się wtedy pokonać zaciski w Skalnej Pułapce i odkryć Salę Balową. W sierpniu 1996 r. E. Borek odkrył w tej części jaskini Szczelinę Naciekową, Partie pod Stropem i Partie za Oknem. Tą część jaskini skartowali na przełomie września i października 1997 r. E. Borek i P. Wańczyk.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinię skartowali w latach 1988-1997: E. Borek,&nbsp; A. Antkiewicz, R. Baran,&nbsp; W. Ignacyk, P. Irzyk, P. Wańczyk. Pomiary wykonano busolą geologiczną i taśmą parcianą. Dane zaktualizował E. Borek w 2009 r.<br />Plan opracował E. Borek.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Borek E. 1992: (dane morfometryczne); Wiśniewski W.W. 1992: (dane morfometryczne); Borek, E., Mleczek T. 1996: (o eksploracji, dane morfometryczne); Wiśniewski W.W. 1996: (dane morfometryczne); Jaskinie Polskich Karpat Fliszowych 1997b: (opis inwentarzowy i plan); Mleczek T . 1999: (wzmianka); Mleczek T., Baczyński P. 1999: (wzmianka); Urban J. 2004: (wzmianka); Urban J., Margielewski W., Alexandrowicz Z., Mleczek T. 2006: (wzmianka); Migoń p. 2006 (kr&#243;tki opis, geneza, podana długość i głębokość, fotografia otworu).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Edward Borek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11939)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(11940)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 2
+                    </a>
+                    <a onclick="showImageInfo(2470)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

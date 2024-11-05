@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10096">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10096;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "499480,01".replace(',', '.') + "," + "197956,21".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10096','Jaskinia Miecharska'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Miecharska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-03.77
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;59′34,06″, φ: 49&#176;38′56,42″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wisła (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                cieszyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Stanowisko dokumentacyjne
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Uchw. Nr  XLV/558/2010 Rady M. Wisły z dnia 27.05.2010 r. w spr. ustan. stanowiska dokumentacyjnego &quot;Jaskinia Miecharska&quot;; Zarz. nr. Or. 0152-102/2010 Burm. M. Wisły z dn. 18.08.2010 r. w spr. prow. prac naukowych, bad. i eksplor. stan. dokumentacyjnego Jaskinia Miecharska.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                930
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                54,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                1,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                56,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1838
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wisła Malinka, Malinowska Skała (1152 m n.p.m), Beskid Śląski.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od pętli autobusowej "Malinka Rastoki" idziemy w górę na NE 60 m, po czym skręcamy w lewo, w górę i po 170 m idziemy tą drogą na wprost, nie skręcając drugi raz w lewo; najpierw po asfaltowej drodze, później betonowych płytach oraz gruntowej ścieżce. W sumie, od przystanku podchodzimy ok. 1 km, po drodze mijając zabudowania z obu stron i przechodząc przez mostek; przysiółek ten nazywa się Suchowianka. Do tego miejsca możemy również dojechać samochodem. Za mostkiem skręcamy po 150 m w lewo na wznoszącą się, kamienistą, leśną drogę o kierunku NE i po 800 m, nie zbaczając w żadną z bocznych ścieżek, dochodzimy do przecinki, tam kierujemy się w prawo na poziomo biegnącą drogę. Idziemy nią 130 m, aż do potoku, którym podążamy w górę. Po 42 m mijamy z prawej strony Jaskinię w Miecharskiej I K.Bs-03.82 oraz Jaskinię w Miecharskiej II K.Bs-03.80. Idziemy dalej wzdłuż potoku, następnie skręcamy w prawy jego dopływ i po 31 m dochodzimy do wyraźnego rowu z prawej strony. Schodzimy dnem rowu i po 28 m znajdujemy otwór Szczeliny w Miecharskiej IV K.Bs-03.123, idziemy dalej w dół jeszcze ok. 40 m, gdzie dochodzimy do otworu szukanej jaskini. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W otworze znajdują się dwa betonowe kręgi o średnicy 0,8 m oraz stalowa klapa zamykana na kł&oacute;dkę, zabezpieczenie to ma na celu ochronę jaskini przed niekontrolowanymi wejściami os&oacute;b w okresie zimowania nietoperzy oraz przed zniszczeniem unikatowych form naciekowych, zaburzeniem niespotykanego w jaskiniach fliszowych stałego cieku wodnego, w kt&oacute;rym żyją studniczki (<em>Niphargus </em><em>tatrensis</em>). Zapobiega to r&oacute;wnież zaśmieceniu jaskini.<br />Schodzimy poniżej betonowych kręg&oacute;w na pochylnię skierowaną najpierw na N, p&oacute;źniej skręcającą na NW, do niewielkiego rozszerzenia, w kt&oacute;rym znajduje się stara stalowa klapa, kt&oacute;ra służyła jako zabezpieczenie przed zamontowaniem obecnego zamknięcia. Dalej schodzimy studzienką o głębokości 1,0 m, poniżej kt&oacute;rej wchodzimy do wąskiego, niskiego korytarzyka, skąd możemy iść dwoma wariantami: albo na SW przez przełaz do opisanych dalej partii nazwanych "Do Bartoszowej Sali" albo na NE do gł&oacute;wnego ciągu, gdzie wychodzimy po 0,8 m na początku sali z Wodospadem, kt&oacute;ra ma szerokość w tym miejscu 1,8 m i rozszerza się na SE do 2,5 m Długość sali to 10,0 m, a jej maksymalna wysokość 3,3 m. Z tego miejsca, w g&oacute;rę, po pochylni na NW, prowadzi korytarz do "Przewyższenia", opisanego w dalszej części opracowania.<br />Na środku Sali z Wodospadem znajduje się pr&oacute;g o wysokości 1,5 m, a pod nim na N ścianie umieszczona została kartka z wytycznymi odnośnie zachowania w jaskini dla os&oacute;b zwiedzających. Najważniejszym punktem godnym podkreślenia jest bezwzględny zakaz używania oświetlenia karbidowego w całej jaskini. Spod progu o wysokości 1,5 m kierujemy się na S przez pr&oacute;g 0,8 m w g&oacute;rę, za kt&oacute;rym znajduje się wejście do "Obejścia Syfoniku" opisanego w osobnej części. W N części Sali znajduje się wodospad ze stałym ciekiem wodnym o wysokości 2,5 m. Przepływ wody w ciągu roku nieznacznie się zmienia podczas bardzo intensywnych opad&oacute;w deszczu oraz wiosennych roztop&oacute;w.<br />Gł&oacute;wny ciąg prowadzi z Sali z Wodospadem przez wielki blok skalny na SE do Salki z Deszczem o wymiarach 6,0x3,0 m, kt&oacute;rą schodzimy pochylnią do Syfoniku. Jest to niski przełaz o wysokości 0,5 m i szerokości 0,5 m, na dnie kt&oacute;rego znajduje się jeziorko z przepływającą stale wodą. Za przełazem wchodzimy do salki.<br />Stąd możemy iść na NE przez wąski przełaz do Partii za Syfonikiem, kt&oacute;re w całości mają 45,6 m, a największa ich sala ma wymiary 5,0x2,5 m. Jest tam r&oacute;wnież r&oacute;wnoległy do Wodospadu stały ciek wodny.<br />Możemy także na SW zejść pochylnią za ciekiem wodnym wypływającym z Syfoniku, do wąskiego przełazu zakręcającego na S. Po 4,0 m dochodzimy do miejsca, z kt&oacute;rego możemy iść gł&oacute;wnym ciągiem lub w pięciu innych kierunkach:<br />a) Do końca korytarza i kominkiem w g&oacute;rę, znajduje się tam wysoka zawaliskowa sala, z kt&oacute;rej idąc 6,0 m na SE możemy dojść do pochylni znajdującej się na początku Galerii i partii "Do Matrixa".<br />b) Spod kominka na wysokości spągu znajduje się wejście do ciasnego korytarzyka na SE, kt&oacute;rym idąc 8,0 m dochodzimy do połączenia z początkiem Galerii.<br />c) W miejscu, gdzie wychodziliśmy w g&oacute;rę kominkiem do sali, możemy iść w przeciwnym kierunku, gdzie znajduje się wejście prożkiem o wysokości 2,0 m do ciasnej szczeliny. Szczelina ta po 9,0 m łączy się z salą prowadzącą do Obejścia Syfoniku progiem w d&oacute;ł 1,6 m.<br />d) Na W najpierw przez mały prożek, następnie kierując się za ciekiem wodnym wchodzimy w niski korytarz o szerokości 0,6 m. Po 4,0 m woda wpływa w szczelinę znajdującą się po lewej stronie korytarza, natomiast korytarz skręca na NW, gdzie po 6,0 m dochodzimy do rozszerzenia, za kt&oacute;rym w prawo znajduje się ciasne połączenie z salą prowadzącą do Obejścia Syfoniku.<br />e) Przed wejściem do korytarza z ciekiem wodnym na W, znajduje się bardzo ciasna stroma pochylnia w d&oacute;ł o kierunku SE, kt&oacute;ra doprowadza nas po 4,0 m do szerszego korytarza o długości 3,5 m i szerokości 1,0 m z okresowym jeziorkiem.<br />Gł&oacute;wny ciąg zakręca na NW, prowadząc w d&oacute;ł 2,5 m przez niewielki prożek, a następnie dwoma wariantami możemy dojść do szczeliny prowadzącej do Galerii: idąc na NW wchodzimy w ciasną szczelinę lekko w g&oacute;rę lub na W przez pr&oacute;g 1,8 m w g&oacute;rę do okienka. Drugi wariant jest dużo trudniejszy, a wejście przez okienko dosyć ciasne. Za tymi przejściami wchodzimy do szerokiej szczeliny, kt&oacute;ra na NW rozszerza się do sali o wymiarach 1,4x5,0 m (dojście do tej sali było opisane w Sali z Wodospadem, jest to obejście Syfoniku) lub idziemy na SE do wąskiej szczeliny o litych ścianach. Idąc nią 5,0 m dochodzimy do rozszerzenia korytarza, gdzie z prawej strony znajduje się za zakrętem wyjście z partii prowadzących do Bartoszowej Sali. To ciasne przejście prowadzi na NW przez liniowy zacisk ZII (Zacisk za Heńka). Natomiast idąc dalej na wprost wąskim ciągiem po 2,5 m dochodzimy do wysokiej na 4,5 m i szerokiej na 0,7 m szczeliny. Na jej dno schodzimy przez dwa progi, pierwszy o wysokości 2,3 m i drugi 1,4 m. Pod pierwszym progiem znajduje się wejście na NW do ślepego korytarza o dł. 3,5 m, z małym jeziorkiem na dnie. Na obu progach znajdują się cztery stopnie z pręt&oacute;w żebrowanych ułatwiające zejście. Na dnie szczeliny płynie stały ciek wodny. Korytarz ten ma szerokość 0,7 m i wysokość 4,3 m, idąc nim po 2,5 m dochodzimy do początku Galerii, wysokiej na średnio 5,0 m i szerokiej na 1,2-1,5 m. Na początku Galerii, w g&oacute;rę po pochylni na N, znajduje się wejście "do Matrixa". Ściany Galerii tworzą ogromne, lite bloki skalne przedzielone gdzieniegdzie pionowymi pęknięciami. Dnem płynie ciek wodny tworzący niewielkie kaskady oraz małe bajorka. Całkowita jej długość do Sali Walhalla to 16,0 m.<br />Idąc dalej w d&oacute;ł gł&oacute;wnego ciągu po 3,5 m znajduje się komin Sylwestrowy o wysokości 4,8 m opisany w partiach do Matrixa. Dalej po 4,0 m z lewej strony znajdują się dwie szczeliny, pierwsza kończy się po 2,5 m, a kolejna po 2,5 m zakręca i przez pr&oacute;g 2,0 m doprowadza do wąskiej Błotnistej Szczeliny, kt&oacute;ra ma 10 m długości i na jej dnie płynie niewielki ciek wodny.<br />Idziemy dalej w d&oacute;ł Galerii - w stropie po lewej stronie widoczna jest lina zaczepiona o olbrzymi blok skalny zwisający ze stropu, przypominający dno statku. Wchodząc po nim możemy się dostać do ciągu pod stropem skierowanym na NW. Został on w większości odkopany i nazwany Veczna Robota. Kończy się jednak po 5,5 m niedostępną szczeliną.<br />Idąc dalej Galerią w d&oacute;ł dochodzimy do prawdopodobnie największej w jaskiniach fliszowych sali, Sali Walhalla. Jej wymiary to 11,0x8,0 m i wysokość 4,0 m. Na jej dnie znajduje się kilka dużych blok&oacute;w skalnych, resztę dna tworzą namuliska błotno-żwirowe, ciek wodny płynący przy W ścianie oraz gruz skalny. W stropie znajduje się pęknięcie o szerokości 0,7 m, przebiegające przez całą salę w kierunkach NW-SE. Możliwe jest wejście pod strop po zaporęczowanej linie na Progu Złamanej Drabiny, kt&oacute;ry ma wysokość 4,0 m. Pierwsze wyjście stało się możliwe dzięki zbudowaniu drewnianej drabiny, kt&oacute;ra została skręcona z kr&oacute;tkich listew. Niestety podczas zejścia drabina nie wytrzymała i złamała się. W tej Sali dokonywane były pomiary temperatury, najniższa została zanotowana 01.05.2010: 5,6&deg;C, a najwyższa 01.01.2010: 7,6&deg;C. W niewielkim jeziorku w zachodniej części Sali stwierdzono kilkukrotnie występowanie studniczk&oacute;w. Z Walhalli możemy iść albo na S do ciągu "Za Walhallą na wprost" albo na E, gdzie po kilku metrach wychodzimy w g&oacute;rę po pochylni, tam na dnie znajduje się niepozorne wejście w ciasny korytarzyk prowadzący w d&oacute;ł na S. Idąc nim po 2,0 m wychodzimy w małej salce 2,5x3,0 m, gdzie na dnie znajduje się rdzawo-czerwone namulisko i okresowo wypływa woda. Idziemy na SE do końca sali, dno zaczyna się wznosić, dochodzimy do kominka o wysokości 1,2 m. Do tego miejsca można r&oacute;wnież dojść przechodząc g&oacute;rnym piętrem, opisanym w "Partiach z Węglem".<br />Gł&oacute;wny ciąg wiedzie za kominkiem na SE do niskiego przełazu o szerokości 0,5 m i długości 1,7 m, doprowadzającym do niebezpiecznego progu, głębokiego na 2,1 m. Wchodzimy do tr&oacute;jkątnej salki, z kt&oacute;rej idziemy na S w d&oacute;ł progiem 1,2 m. Wchodzimy do korytarza o wysokości 4,0 m, długości 8,0 m i szerokości 1,5 m. Stąd po 3,5 m, idąc na SW, z prawej strony znajduje się wejście do Ciągu za Wodą - jest to wysoka szczelina początkowo szerokości 1,2 m, następnie po 3,0 m, schodząc w d&oacute;ł progiem 1,1 m, zwęża się i na dnie płynie ciek wodny oraz znajduje się namulisko żwirowe. Po kilku metrach dochodzimy do końca szczeliny, gdzie znajduje się małe jeziorko, za kt&oacute;rym korytarz się kończy.<br />Natomiast nie skręcając do Ciągu za Wodą, idąc dalej wysokim korytarzem na SW, po 2,0 m znajduje się wejście do korytarza z prawej strony, także z ciekiem wodnym oraz namuliskiem na dnie. Korytarz ten zwęża się i kończy po 5,5 m. W jego stropie znajdują się dwa wejścia do ciasnych, połączonych ze sobą korytarzy, tu widoczne są niewielkie nacieki.<br />Gł&oacute;wny ciąg prowadzi naprzeciw wejścia do drugiego korytarza z prawej strony, kierujemy się więc w lewo na E, gdzie znajduje się trudne wyjście po bardzo stromej płycie 2,7 m do okienka w stropie. Wspinamy się nim w dnie nieregularnej sali opadającej na SW, tam schodzimy mijając z prawej strony po 2,5 m studzienkę o głębokości 2,6 m. Trzymając się prawej ściany dochodzimy po 3,5 m do ciasnej studzienki o głębokości około 1,8 m, kt&oacute;rej wejście znajduje się nieco powyżej dna korytarza.<br />Przed tym zejściem z lewej strony znajduje się wiele przejść prowadzących do pierwszego dna, opisanych w "Partiach do starego Dna".<br />Za studzienką wchodzimy do korytarza, kt&oacute;rym idziemy 5,5 m na S do wąskiego przejścia, kt&oacute;re zostało częściowo odgruzowane (Przekop). Na NW znajduje się ślepy korytarz długości 4,5 m, natomiast w d&oacute;ł ciasną i niską szczeliną idziemy na S, po 2,0 m czołgamy się poziomą szczeliną kolejne 5,0 m. Znajdujemy niepozorny kominek wysokości 2,0 m, wychodzimy nim w g&oacute;rę do niskiego korytarza, kt&oacute;rym czołgamy się aż do rozszerzenia. Z prawej strony znajduje się prostokątna studzienka prowadząca skr&oacute;tem do Walhalli. Partie te zostały opisane w ciągu "Za Walhallą na wprost". My natomiast idziemy dalej na W, aż do bardzo stromej pochylni, kt&oacute;rą schodzimy 2,0 m, następnie do studzienki 1,7 m, za kt&oacute;rą wchodzimy w wąską, śliską szczelinę na S w d&oacute;ł, aż do progu 1,2 m, za kt&oacute;rym dostajemy się do przestronnej Sali z Jeziorkiem. Do tej Sali można wejść r&oacute;wnież r&oacute;wnoległą, stromą szczeliną, kt&oacute;rej początek znajduje się 2,0 m przed wejściem do Sali Naciekowej.<br />Sala z Jeziorkiem znajduje się na głębokości -37,0 m względem otworu. W jej NW części znajduje się stałe jeziorko o wymiarach 2,5x5,0 m. Głębokość wody jest niewielka (do kilkunastu cm) natomiast namulisko znajdujące się na dnie ma miąższość do 1,0 m. Stwierdzono r&oacute;wnież stałą obecność studniczka. Woda zasila jeziorko z trzech stron, natomiast wypływa w S części do niedostępnej szczeliny. Wysokość Sali to 4,0 m, a po 6,0 m od wejścia obniża się do 2,3 m. Całkowita długość to 14,0 m. W kierunku na SE znajduje się wejście po pochylni do "Wyjścia Ewakuacyjnego".<br />Idąc od jeziorka przed pochylnią 2,5 m w g&oacute;rę znajdujemy kominek o wysokości 3,0 m, kt&oacute;rym wychodzimy w korytarzu, gdzie możemy iść albo po błotnej pochylni w g&oacute;rę na N, kt&oacute;ra doprowadza po kilku metrach do bardzo ciasnej studzienki o głębokości 4,0 m znajdującej się w stropie Sali z Jeziorkiem, albo na W do zwężenia, za kt&oacute;rym znajduje się niewielka salka, kt&oacute;ra zakręca na S.<br />Schodzimy po pochylni w d&oacute;ł do wąskiego, całkowicie przekopanego przełazu o nazwie Fuczący Przekop. Tu wyczuwalny jest silny przewiew powietrza. Bezpośrednio za przełazem, na E, znajduje się wejście do wysokiego korytarza o długości 5,0 m, na końcu kt&oacute;rego jest 3,3 m kominek prowadzący do niskiej salki z kilkoma ślepymi korytarzami.<br />Schodzimy po kolejnej pochylni pod stropem, kt&oacute;ry tworzy wielka płyta, do Sali Wielkich Nadziei o wymiarach 2,2x8,5 m i wysokości maksymalnej 2,5 m. Idąc dalej Salą Wielkich Nadziei dochodzimy do 3,0 m progu. Znajdujemy się w wysokiej na ponad 3,0 m obszernej salce, z kt&oacute;rej prowadzą dalej trzy korytarze oraz prowadzący na N do ślepego korytarza pr&oacute;g Latającego Prezesa.<br />I korytarzem biegnącym na SE, idziemy dołem wąską szczeliną, kt&oacute;ra doprowadza nas po kilku metrach do Sali z Wypływem.<br />II r&oacute;wnoległym korytarzykiem możemy przejść bardziej na NE, g&oacute;rą, schodząc do Sali z Wypływem po pochylni.<br />III korytarzem idziemy przez niewielkie dwie salki na W, łącząc się z poprzednimi wariantami progiem 2,2 m.<br />Sala z Wypływem ma 8,0 m długości i na jej środku znajduje się wypływ stałego cieku wodnego oraz duży blok skalny. Woda tworzy niewielkie jeziorko, płynie wok&oacute;ł bloku na NW i zakręca wpływając na S do niedostępnej szczeliny. W N części Sali, na jej całej długości, znajduje się rozległa p&oacute;łka o wysokości 1,2 m. Dalej możemy przejść albo do końca Sali i w d&oacute;ł ciasną studzienką albo przez pr&oacute;g 1,6 m w g&oacute;rę, wychodząc w Sali Ostatniej z Wielkich. Jest ona nieregularna, a dno skierowane jest na S. Dalej możemy iść trzema wariantami:<br />a) Na S przez niewielki pr&oacute;g do przewężenia, za kt&oacute;rym wychodzimy w wysokim korytarzu z progiem 1,5 m. R&oacute;wnolegle do zwężenia znajduje się obejście z ślepym kominkiem o wysokości 2,5 m.<br />b) W d&oacute;ł do obniżenia o szerokości 1,4 m, kt&oacute;re po 1,5 m zwęża się i za nim wychodzimy na dnie wysokiego korytarza.<br />c) Po pochylni w g&oacute;rę na E, gdzie w najwyższym punkcie zakręca na SE i przez wąski przesmyk w d&oacute;ł wchodzimy do wysokiego korytarza, w kt&oacute;rego dnie znajduje się niskie wejście prowadzące do drugiego dna. Po 2,0 m na wprost znajduje się wejście do ciasnego korytarza oraz kruchej niewielkiej Sali Paści. My natomiast skręcamy na S dochodząc do cieku wodnego. Idziemy korytarzem o szerokości 0,7 m do rozszerzenia 2,0x1,3 m, z kt&oacute;rego wchodzimy przez zacisk liniowy ZI do poprzecznego korytarza, kt&oacute;rym idziemy na S. Po 2,0 m w g&oacute;rę znajduje się wejście w ślepy kominek o wysokości 4,0 m. Dalej na S przechodzimy przez zwężenie do korytarza zawaliskowego, gdzie po kilku metrach dochodzimy do studzienki o głębokości 2,0 m, kt&oacute;rą schodzimy do ostatniego już cieku wodnego wypływającego z niskiego korytarzyka i wpływającego w d&oacute;ł do zacieśniającej się szczeliny, kt&oacute;ra kończy się po 3,0 m i jest najniższym punktem w jaskini -54,5 m (Drugie Dno).</p>
+<p>"Przewyższenie"<br />W kierunku na NW znajduje się pochylnia prowadząca w g&oacute;rę, początkowo szeroka na 2,5 m, następnie zwężająca się do niskiego przełazu o szerokości 0,7 m, kt&oacute;ry prowadzi do Przewyższenia. Na końcu pochylni znajduje się wejście do niskiego i wąskiego korytarzyka prowadzącego na SE, kt&oacute;ry po 4,5 m nieco się rozszerza do 1,1 m i po 2,0 m za przełazem dochodzimy do rozwidlenia korytarza. Wariant I. Stąd na NW prowadzi w g&oacute;rę wąska zacieśniająca się szczelina, w połowie kt&oacute;rej znajduje się wejście przez prożek 0,5 m do pochylonej szczeliny na S, a po 2,5 m widoczny jest na końcu ciągu ciek wodny, kt&oacute;ry zasila wodospad w Sali z Wodospadem. Wczołgując się dalej w g&oacute;rę, przed prożkiem 0,5 m, po 3,4 m znajduje się najwyżej położone miejsce w jaskini +1,8 m, dalej widoczna jest ciągnąca się szczelina, zbyt ciasna do wejścia.<br />II wariant, po rozwidleniu za przełazem prowadzi na E, do cieku wodnego i dalej na SE przez zacisk. Idąc wąskim korytarzykiem w d&oacute;ł za ciekiem wodnym po 3,3 m wychodzimy studzienką w g&oacute;rę, słysząc w dole wodospad. Dalej korytarzyk o szerokości 0,5 m prowadzi na E, po 3,5 m idziemy albo dalej na wprost, w d&oacute;ł do ślepego korytarza o długości 5,5 m, albo w prawo na S przez Zacisk w Wodzie na niską pochylnię skierowaną na SE, po 1,5 m dochodzimy przez pr&oacute;g (tu obficie leje się woda) o wysokości 2,5 m do Salki z Deszczem. Całe to przejście jest bardzo uciążliwe ze względu na ciasne szczeliny oraz wodę płynącą w części korytarzy, w kt&oacute;rych przejście wymaga czołgania.</p>
+<p>"Do Bartoszowej Sali"<br />Spod studzienki wejściowej (wariant drugi) przechodzimy przez niski przełaz początkowo na S, w przeciwną stronę niż do Sali z Wodospadem. Po 0,7 m korytarzyk skręca na W, gdzie wchodzimy do sali, na środku kt&oacute;rej znajduje się obniżenie o wymiarach 2,8x1,1 m i głębokości 0,8 m. Sala w tym miejscu ma wysokość 2,2 m. Z tego miejsca możemy iść w 6 kierunkach:<br />a) Na NE po pochylni w g&oacute;rę do wąskiego przełazu, za kt&oacute;rym dochodzimy do korytarza prowadzącego do przewyższenia, następnie w d&oacute;ł na SE do Sali z Wodospadem. Na tej pochylni znajdują się luźne kamienie spadające z zawaliska powyżej, często tarasując przejście.<br />b) Na N prowadzi w g&oacute;rę zwężający się korytarz długości 3,5 m.<br />c) W NW części sali znajduje się niewielka studzienka o głębokości 1,3 m, za kt&oacute;rą możemy wejść w niewielkie rozszerzenie.<br />d) Na W prowadzi wznosząca się pochylnia szeroka na 1,1 m, kt&oacute;ra kończy się po 2,5 m zawaliskiem.<br />e) Na SW wchodzimy wąskim przełazem pod stropem w szczelinę, kt&oacute;ra zakręca na SE. Po przejściu kolejnego przełazu wchodzimy w wysoki na 2,7 m korytarz. Idąc dalej po 3,5 m łączy się on ze szczeliną o przebiegu NW- SE, kt&oacute;ra na NW kończy się po 3,7 m. W drugą stronę idziemy wysoką szczeliną, gdzie po 3,5 m dochodzimy do zakrętu. Tam na SW znajduje się okienko do Bartoszowej Sali, kt&oacute;rego nie da się przejść, natomiast na NW znajduje się wejście do bardzo wąskiej szczeliny, gdzie po 3,5 m dochodzimy do liniowego Zacisku Prezesa (Z II-III), kt&oacute;ry pokonał tylko Cz. Szura. Szczelina ta łączy się z salą z obniżeniem na środku (wariant f)).<br />Dalszy ciąg (mijając okienko do Bartoszowej Sali) prowadzi na NE przez wąskie przejście, za kt&oacute;rym korytarz zakręca w prawo (SE). Po 1,5 m w lewo możemy wyjść na kruchą pochylnię, kt&oacute;ra po 4,0 m łączy się z Obejściem Syfoniku. Pochylnia ta jest bardzo niebezpieczna, podczas eksploracji nastąpił tu niewielki zawał.<br />Posuwając się szczeliną na SE po 2,3 m dochodzimy do zwężenia i charakterystycznego ciasnego przełazu pod stropem, przypominającego w przekroju dziurkę od klucza. Długość tego przełazu wynosi 2,8 m, za nim znajduje się ślepy korytarzyk na SE lub dalszy ciąg na SW. Po lewej stronie mijamy wąskie i niskie obejście Bartoszowej Sali prowadzące pod stropem. Po 1,5 m na W dochodzimy do Bartoszowej Sali, kt&oacute;ra ma wymiary 7,8x4,5 m i wysokości 2,6 m. Na jej dnie znajdują się duże bloki skalne. Sala wznosi się na NW, gdzie na jej końcu znajdują się dwa kr&oacute;tkie ślepe korytarze, jeden o długości 2,0 m, a drugi, kt&oacute;ry kończy się ciasną szczeliną za progiem o wysokości 2,0 m prowadzącą w g&oacute;rę, ma 7,0 m długości. Z Bartoszowej Sali dalszy ciąg prowadzi na SE, gdzie po 3,0 m dochodzimy do trudnego progu o wysokości 3,0 m, kt&oacute;rym schodzimy na dno wysokiej na 4,5 m szczeliny. Jej dnem okresowo płynie niewielki ciek wodny, a jego szerokość to 1,3 m. W jej SE części znajduje się trudny do wyjścia pr&oacute;g o wysokości 3,8 m, kt&oacute;rym wchodzimy w niski przełaz pod stropem. Za przełazem z lewej strony widoczny jest niewysoki korytarz prowadzący do Dziurki od Klucza, natomiast na SE znajduje się pr&oacute;g o wysokości 1,2 m, kt&oacute;rym schodzimy do korytarza o szerokości 0,8 m, w kt&oacute;rego dnie zaklinowany jest duży kamień (przekr&oacute;j F). Następnie przejście prowadzi wąskim korytarzykiem zakręcając nieco na E. Po 2,5 m dochodzimy do rozszerzenia i studzienki o głębokości 3 m. Schodzimy na jej dno, gdzie płynie woda i wchodzimy w niski korytarzyk na SE, kt&oacute;ry po 1,5 m znacznie się rozszerza. Korytarz ten doprowadza nas do liniowego zacisku Za Heńka (ZII), w kt&oacute;rym podczas eksploracji utknął M. Procner, a osobie, kt&oacute;ra pomoże mu z drugiej strony obiecał "Heńka" (piwo Heineken). Po długiej walce i przy pomocy koleg&oacute;w udało mu się wyjść z zacisku. Za zaciskiem w lewo po 1,7 m dochodzimy do gł&oacute;wnego ciągu, w miejscu przed zejściem po klamrach do Galerii.</p>
+<p>"Obejście Syfoniku"<br />Od progu 1,5 m w Sali z Wodospadem, kierując się na S, znajdujemy wejście przez pr&oacute;g 0,8 m do wąskiego korytarza o szerokości 0,6 m, gdzie po 7,0 m możemy iść albo pochylnią w d&oacute;ł na W do ciągu prowadzącego do Bartoszowej Sali albo na SE wąskim i niskim korytarzykiem (Obejście Syfoniku). Dochodzimy nim po 7,5 m do progu 2,6 m i sali o wymiarach 1,4x5,0 m, na końcu kt&oacute;rej znajduje się rozejście (Gł&oacute;wny ciąg) do korytarza prowadzącego na SE do Partii za Syfonikiem, bądź na wprost sali do zwężającej się szczeliny o szerokości 0,35 m i wysokości 1,5 m, prowadzącej do Galerii.<br />"Do Matrixa"<br />Z N części Galerii prowadzącej do Walhalli idziemy na N po pochylni w g&oacute;rę, gdzie po 3,5 m z lewej strony znajduje się wejście przez pr&oacute;g do ciasnego korytarzyka łączącego się z gł&oacute;wnym ciągiem za Syfonikiem. My idziemy w prawo na SE po pochylni w g&oacute;rę, aż do progu 2,0 m, za kt&oacute;rym schodzimy niską pochylnią w d&oacute;ł do rozszerzenia i tr&oacute;jkątnego przełazu. Za nim wchodzimy do Sali z Namuliskiem o wymiarach 1,7x5,5 m, na dnie kt&oacute;rej znajduje się obszerne namulisko błotno-żwirowe oraz ciek wodny wypływający w NE części Sali, gdzie znajdują się dwa wejścia do ciasnych szczelin, do kt&oacute;rych wchodzimy przez pr&oacute;g w g&oacute;rę na E. Szczelina ta ma przebieg N-S i długość 14,0 m. Na całej długości znajdują się trzy zaciski. W jej N części możemy wejść do niewielkich dw&oacute;ch salek. Od Namuliska kierujemy się na S przez wąski przełaz, gdzie po 2,0 m dochodzimy do zawaliskowej salki, z kt&oacute;rej możliwe jest albo wyjście w g&oacute;rę na wyższe piętro kończące się po kilku metrach w kierunku na SE albo na NW wchodzimy w niskie salki o szerokości ponad 2,5 m, kt&oacute;re znajdują się bezpośrednio nad Salą z Namuliskiem i łączą się przed wejściem do niej progiem 1,6 m. Z zawaliskowej salki idziemy w d&oacute;ł przez mały prożek do zwężenia, w kt&oacute;rym korytarz zakręca, a następnie rozszerza się. Korytarz ten nazywa się Matrix, jest skierowany na NW, jego szerokość to 1,5 m a wysokość do 2,0 m. Ściany oraz strop są tu lite, a dno wypełnia łupek. W połowie znajduje się niewielki ciek wodny wypływający z N ściany. Długość całkowita to 12,5 m. W NW części korytarz zaczyna się wznosić i zwężać, aż do zacisku pod stropem ZI, za kt&oacute;rym możemy iść w dw&oacute;ch kierunkach. W g&oacute;rę do bardzo ciasnego kominka, za kt&oacute;rym znajduje się ciasna szczelina, kt&oacute;ra zar&oacute;wno na NW i SE kończy się po 6,0 m, bądź w d&oacute;ł, gdzie dochodzimy na szczyt Komina Sylwestrowego o wysokości 4,8 m, kt&oacute;ry po raz pierwszy został zdobyty wspinaczką hakową przez Cz. Szurę 31.12.2004 r. Możemy r&oacute;wnież kontynuować dalej na NW nie schodząc w d&oacute;ł. Po 4,0 m dochodzimy do niewielkiego załamania korytarza, a po kolejnych 2,0 m do ciasnego kominka, za kt&oacute;rym znajduje się bardzo ciasna szczelina wznosząca lekko w g&oacute;rę, kończąca się po 10 m.</p>
+<p>"Za Walhallą na wprost":<br />Z Walhalli idąc na S, gdzie dnem płynie ciek wodny, przechodzimy wąską na 0,4 m, wysoką szczeliną do prożku, a za nim do salki o wymiarach 3,5x2,7 m, kt&oacute;ra wznosi się ku SE. Na jej dnie znajduje się potrzaskany łupek. Dalej idąc na S wchodzimy w niski korytarzyk o szerokości 0,5 m. Po 3,5 m z lewej strony znajduje się ciasne wejście do ślepej szczeliny długości 3,0 m. Natomiast na wprost schodzimy przez prożek do szczeliny, z kt&oacute;rej z prawej strony pod stropem na W znajduje się wejście do Sali Wojownik&oacute;w, kt&oacute;ra ma szerokość 2,5 m i jest nachylona ku S; cała Sala jest niska. Idąc na N pochylnią w g&oacute;rę dochodzimy do korytarza o przebiegu NW-SE, kt&oacute;ry w kierunku na NW wznosi się i kończy po 5,0 m. Na SE po 2,0 m zakręca na S i przez ciasny przełaz w d&oacute;ł, a następnie przez pr&oacute;g, możemy zejść wychodząc w stropie Sali Wojownik&oacute;w. Wracając do szczeliny pod wejściem do Sali Wojownik&oacute;w kierujemy się dalej na S szczeliną o szerokości 0,5 m. Po 4,5 m dochodzimy do skrajnie trudnego zacisku liniowego ZIII w dolnej części szczeliny lub kierujemy się przed zaciskiem w lewo w g&oacute;rę obejściem zacisku prowadzącym przez ciasny przełaz pod stropem, najpierw na SE, a po 1,5 m prowadzący r&oacute;wnolegle do zacisku. Następnie ciąg skręca w prawo łącząc się ze szczeliną za zaciskiem. Przejście to zostało odkryte w 2012 r. i jest najkr&oacute;tszą drogą prowadzącą do dna jaskini oraz partii za Przekopem. Stąd idziemy dalej korytarzem na S dochodząc do rozszerzenia i pochylni w g&oacute;rę z progiem, za kt&oacute;rym wchodzimy do korytarza prowadzącego w d&oacute;ł. Z lewej strony możemy wyjść w g&oacute;rę przez pr&oacute;g do korytarzyka wznoszącego się na N, gdzie za kolejnym progiem 1,5 m korytarz kończy się, a głębokość w tym miejscu względem otworu to -22,1 m. Nie wychodząc przez pr&oacute;g (w lewo) schodzimy w d&oacute;ł pochylnią 2,0 m, następnie w g&oacute;rę 2,5 m, gdzie w lewo stroma pochylnia prowadzi do poprzednio opisanego wznoszącego się korytarza z progiem 1,5 m. Idziemy dalej na SE przez wąski przełaz 0,3 m wchodząc do niskiej sali o wymiarach 2,5x4,5 m pochylonej na S. Na końcu pochylni rozpoczynamy kolejny przełaz, za kt&oacute;rym znajduje się kilka kr&oacute;tkich wąskich szczelin, natomiast idąc na S, po 6,5 m od przełazu, dochodzimy do ciasnego kominka o wymiarach 0,6x0,4 m, kt&oacute;rym wychodzimy w gł&oacute;wnym ciągu za Przekopem.</p>
+<p>"Partie do starego Dna":<br />Partie te rozpoczynają się od wyjścia okienkiem w dnie Sali za stromą pochylnią. W kierunku na NE znajduje się wejście do bardzo ciasnego korytarza łączącego się z Partiami z Węglem przez zacisk ZI. Natomiast w przeciwnym kierunku, na SE, po kilku metrach dochodzimy do Sali Tr&oacute;jkątnej o wymiarach 10,0x3,0 m i opadającej w kierunku na S. Z jej SW części możliwe jest przejście przez skrajnie wąską szczelinę i liniowy zacisk ZII do Gejowatej Sali, wyjście ze szczeliny znajduje się w jej stropie. Sala ta jest zawaliskowa, ma kształt wyjątkowo nieregularny, prowadzi z niej kilkanaście możliwych przejść, z kt&oacute;rych istotniejsze dwa prowadzą:<br />a) W d&oacute;ł studzienkami w kierunku na SE, gdzie po kilku metrach przejścia łączą się i prowadzą do Starego Dna, w kt&oacute;rym łączą się cieki wodne i wpływają w niedostępne szczeliny. Głębokość tego dna to -28,1 m, dno tworzy tu spore namulisko, a strop jest nachylony pod kątem 45&deg;. Do tego miejsca dotarli pierwsi odkrywcy podczas pierwszego wejścia. Z tego miejsca można przejść w kierunku NW przez wąską szczelinę w g&oacute;rę po pochylni do gł&oacute;wnego ciągu i Przekopu.<br />b) Na S przez kilka przełaz&oacute;w do salki najbardziej wysuniętej w tym kierunku, gdzie w dnie znajduje się studzienka 2,2 m, za kt&oacute;rą wąskim pochylonym korytarzem idziemy na W do rozszerzenia, następnie przez pr&oacute;g w g&oacute;rę 1,3 m, za kt&oacute;rym po kilku metrach ciasnych szczelin wychodzimy przed wejściem do Przekopu.</p>
+<p>"Partie z Węglem"<br />Gł&oacute;wne wejście do Partii z Węglem znajduje się, idąc z gł&oacute;wnego ciągu, za kominkiem 1,2, ale przed niebezpiecznym zejściem w d&oacute;ł prożkiem 2,1 m. Tam kierujemy się na NE zwężającą się pochylnią w g&oacute;rę do poprzecznego korytarza. W prawo możemy dojść przez zacisk ZI do Gejowatej Sali, natomiast w lewo na NW wąskim korytarzykiem dochodzimy po 3,5 m do rozszerzenia. Idziemy dalej w tym kierunku i po 3,0 m wychodzimy przez pr&oacute;g 1,2 m w g&oacute;rę do niedużej salki o wymiarach 4,5x1,5 m, z kt&oacute;rej możemy iść:<br />a) Na SW, gdzie znajduje się zacisk ZI, za kt&oacute;rym po 3,5 m dochodzimy do studzienki 2,0 m prowadzącej do najbardziej wysuniętej na SE części Walhalli.<br />b) Na NW przechodzimy obok zacisku i bardzo wąskimi szczelinami, kilkukrotnie zakręcając, możemy dojść do prog&oacute;w znajdujących się w stropie Walhalli, 2,4 m lub 4,8 m nad jej dnem.<br />c) R&oacute;wnoległą do poprzedniej szczeliną w g&oacute;rę możemy przejść 5,0 m, po czym zakręcić i przez pr&oacute;g 1,6 m wr&oacute;cić w N części salki.<br />d) W N część salki, następnie przez pr&oacute;g 1,2 m na E, po 1,5 m ciąg zakręca i zwęża się. Po 3,0 m dochodzimy do studzienki, kt&oacute;ra prowadzi do prostej szczeliny skierowanej w d&oacute;ł o długości 14,5 m. My natomiast kierujemy się na NW pochylnią w g&oacute;rę, kt&oacute;ra po chwili rozszerza się do ponad 3,0 m i wznosi stromo w g&oacute;rę. Po kilkunastu metrach strop się obniża, a na dnie znajdują się pomarańczowo ż&oacute;łte formy naciekowe w postaci małych kaskad oraz zagłębień z wymytymi okrągłymi kamyczkami. Przed wejściem na pochylnie znajduje się największy kawałek węgla, kt&oacute;ry ma postać dużej bryły o wymiarach 25x15 cm znajdującej się w skale, jego druga część znajduje się w stropie, została odłamana w skutek przesuwania się osuwiska. Nazwa tych Partii wzięła się właśnie od tego kawałka rzadko spotykanego kamienia w piaskowcu.</p>
+<p>"Wyjście ewakuacyjne":<br />Z SE części Sali z Jeziorkiem, w miejscu, gdzie dno się wznosi, wychodzimy wąskim przełazem pod stropem do wysokiej szczeliny, z kt&oacute;rej możemy iść albo na S w g&oacute;rę, gdzie dochodzimy do wysokiego kominka, kt&oacute;rego sklepienie jest w kształcie p&oacute;łokręgu zbudowanego z gliny oraz kamieni. Szczyt kominka znajduje się na głębokości -29,0 m względem otworu. Możemy r&oacute;wnież za przełazem skierować się w d&oacute;ł, gdzie wchodzimy na pochylnię skierowaną na S. Na jej końcu znajduje się stały ciek wodny z salką o długości 4,7 m zwężającej się na E, gdzie z lewej strony widzimy bardzo ciasną szczelinę, na dnie kt&oacute;rej płynie woda. Szczelina ta ma długość 2,6 m i jest skierowana na N. Dalszy ciąg prowadzi z końca salki w g&oacute;rę 2,0 m kominkiem, a następnie pochylnią na SW. Po 2,0 m możemy iść albo w lewo przez pr&oacute;g w g&oacute;rę do niewielkiej ślepej salki albo nieco dalej w d&oacute;ł pochylnią przez przełaz, za kt&oacute;rym wchodzimy do sali. Zwęża się ona w swoim najniższym punkcie w kierunku SW i przechodzi w zacisk ZI, za kt&oacute;rym wchodzimy do obszernej sali o wymiarach 1,5x8,0 m. Z tej sali możemy iść w dw&oacute;ch kierunkach: albo na NW przez przewężenie na pochylnię, kt&oacute;ra po 3,0 m kończy się, albo na E wchodząc w g&oacute;rę pochylnią do zwężenia, za kt&oacute;rym znajduje się niewielka ślepa salka.</p>
+<p>"Do Sali Grzelaka"<br />Z miejsca, gdzie możemy schodzić w d&oacute;ł do Sali z Jeziorkiem, idziemy w kierunku W przez nieregularny korytarz o szerokości 1,7 m. Po 2,5 m z lewej strony znajduje się wejście do korytarza o szerokości 1,0 m prowadzącego do Sali Naciekowej. Sala Naciekowa ma przebieg N-S z szeroką pochylnią na końcu, kt&oacute;ra kieruje się na E. Na środku sala rozdzielona jest dużym filarem, a w węższej części znajduje się namulisko z okresowym jeziorkiem. Występują tam ciekawe formy błotne, przypominające wulkany, powstałe najprawdopodobniej w okresie kiedy jeziorko było stałe. W S części dno wznosi się i na końcu pod stropem możemy oglądać nacieki kalcytowe. Do Sali Grzelaka prowadzą trzy warianty:<br />a) Albo idziemy dalej korytarzem szerokości 1,8 m, nie wchodząc do Sali Naciekowej, tylko po 2,5 m wchodzimy na N do ciasnego kominka o wysokości 3,5 m, z kt&oacute;rego czołgamy się przez zawalisko, albo do następnego progu 3,0 m, za kt&oacute;rym skręcamy na W i przechodzimy przez pr&oacute;g w d&oacute;ł, skąd na NE po kilku metrach dochodzimy do SE części Sali Grzelaka. R&oacute;wnież przed drugim progiem w g&oacute;rę możemy przejść przez bardzo ciasny korytarzyk o długości 5,0 m, kt&oacute;ry r&oacute;wnież doprowadza nas do tego samego miejsca.<br />b) Przejście gł&oacute;wne, odkryte jako pierwsze, prowadzi od zejścia do Sali Naciekowej. Idziemy dalej korytarzem na W, gdzie po 7,0 m skręcamy na NW, a po kolejnych 2,0 m znowu w prawo kierując się na N do wąskiej szczeliny. Wpierw idziemy nią na N, a następnie ciasnym wyjściem w g&oacute;rę wychodzimy w szerszym korytarzu będącym SE częścią Sali Grzelaka.<br />c) Z miejsca, gdzie skręcaliśmy w prawo na N do wąskiej szczeliny idziemy dalej korytarzem na NW do końca, gdzie schodzimy w d&oacute;ł przez pr&oacute;g do poprzecznego korytarza. W jego E części płynie woda, natomiast z W części wychodzimy na trudny pr&oacute;g o wysokości 1,7 m do bardzo ciasnej szczeliny o szerokości 0,3 m. Po 4,0 m dochodzimy do szczeliny poprzecznej w prawo, kt&oacute;ra po 2,5 m kończy się progiem 1,5 m, kt&oacute;ry natomiast wprowadza nas na środek Sali Grzelaka.<br />Sala Grzelaka jest jedną z największych sal jaskiniowych w Beskidach. Ma 18,0 m długości i maksymalnie 5,0 m szerokości oraz do 4,0 m wysokości. Jej przebieg to NW-SE i wznosi się ku NW, gdzie na pochylni jest przedzielona dużymi wantami. W N części na charakterystycznym gzymsie znajdują się kilku centymetrowe heliktyty kalcytowe oraz unikatowy kociołek wirowy. Na dnie Sali umiejscowione są duże bloki skalne. W SE części wznosi się pr&oacute;g o wysokości 1,5 m, a poniżej niego znajduje się najniżej położone miejsce w tej Sali, jest to głębokość -34,0 m względem otworu. Strop oraz ściany są lite.</p>
+<p>Informacje o jaskini.<br />Utworzyła się w obrębie piaskowc&oacute;w warstw godulskich, w rezultacie grawitacyjnych ruch&oacute;w masowych w obrębie stoku g&oacute;rskiego. Reprezentuje ona typ jaskiń szczelinowych, jednak w odr&oacute;żnieniu od zdecydowanej większości jaskiń beskidzkich - korytarze jaskiniowe rozwinęły się w rezultacie grawitacyjnego ruchu ławic piaskowcowych wzdłuż powierzchni wkładek łupkowych oddzielających piaskowce.<br />Według Margielewskiego, Szury i Urbana (2006) jest to "<em>Jaskinia osuwiskowa, utworzona w średnio- i grubo ławicowych piaskowcach przeławiconych łupkami, należących do warstw godulskich g&oacute;rnych. Występuje ona w obrębie dużego osuwiska ograniczonego od g&oacute;ry zespołem r&oacute;żnowiekowych nisz i row&oacute;w rozpadlinowych (w jednym z tych row&oacute;w zlokalizowany jest otw&oacute;r jaskini) i schodzącego niemal do dna doliny potoku Malinka. Jaskinia związana jest z młodszą fazą ruch&oacute;w osuwiskowych. Jaskinia Miecharska stanowi labiryntową sieć korytarzy i sal, schodzących z g&oacute;rnej części stoku prawie do dna doliny. System korytarzy składa się z trzech części 1) g&oacute;rnej (przyotworowej), rozwiniętej gł&oacute;wnie wzdłuż skośnych spękań ciosowych zespołu, 2) środkowej, w kt&oacute;rej większość korytarzy nawiązuje do spękań zespołu poprzecznego, 3) dolnej, w kt&oacute;rej korytarze biegną wzdłuż kierunk&oacute;w spękań skośnych i poprzecznych. Opr&oacute;cz sieci korytarzy nawiązujących do spękań ciosowych, jaskinia lokalnie stanowi nieregularny system pustek pomiędzy znacznie przesuniętymi i zrotowanymi blokami skalnymi. Nachylenie stoku powoduje jednak, iż rzeczywista głębokość jaskini pod powierzchnią terenu sięga 10-20 m. Prawie przez całą długość jaskini przepływa podziemny strumień formujący wodospad w jej g&oacute;rnej części, zaś w dolnej partii tworzy jeziorko. Ze strumieniem związane są osady fluwialne i limniczne, zaś z przesiąkaniem (kapaniem) wody do jaskini - jamki w piaskowcu o charakterze kociołk&oacute;w wirowych oraz niewielkie nacieki kalcytowe i naskorupienia kalcytowo-gipsowe. W strumieniu i jeziorku występuje mikrofauna. Powstanie Jaskini Miecharskiej związane było ze zjawiskiem makrodylatacji szczelinowej, polegającej na zwiększeniu objętości masywu skalnego wzdłuż powierzchni poślizgu osuwiska, spowodowanym rozwojem szczelin i pustek w jego obrębie, kt&oacute;ry inicjowany był w trakcie przemieszczeń grawitacyjnych mas skalnych</em>"<br />Dno jest pokryte gliną, błotem i gruzem. W kilku miejscach występują stałe oraz okresowe cieki wodne. W otworze znajduje się glina oraz luźne kamienie. Jaskinia w większości partii jest wilgotna.<br />Zaobserwowano silny wywiew z jaskini w okresie zimowym. Światło sięga do dna studzienki wejściowej. W Sali Grzelaka zarejestrowana temperatura 01.03.2010 wyniosła 6,7&deg;C a 01.08.2010 7,6&deg;C.<br />Zbocze studzienki wejściowej porastają mchy i porosty.<br />W jaskini zaobserwowano pająki. Według Mysłajek i Szury 2008: "Wewnątrz jaskini zaobserwowano gł&oacute;wnie przedstawicieli r&oacute;żnych gatunk&oacute;w skąposzczet&oacute;w (wodnych, ziemno-wodnych i glebowych) i skorupiaki (małżoraczki i studniczki). Larwy wodnych owad&oacute;w znajdowano tylko blisko miejsca wpływu potoku do jaskini. Do Jaskini Miecharskiej woda przesącza się przez drobne szczeliny i prawdopodobnie ta bariera przestrzenna jest gł&oacute;wnym czynnikiem limitującym występowanie wodnych organizm&oacute;w w jej wnętrzu, ponadto czynnikiem ograniczającym może być brak odpowiedniego siedliska dla pokarmu (dla form glonożernych). Dumnicka E. 2006"<br />"Jaskinia jest jednym z najcenniejszych zimowisk nietoperzy w Karpatach. Hibernują tu dwa skrajnie zagrożone wyginięciem gatunki - podkowiec mały i nocek orzęsiony. Z czego dla nocka orzęsionego jest to drugie pod względem liczby zimujących osobnik&oacute;w zimowisko w kraju."<br />Podczas corocznego monitoringu nietoperzy stwierdzono zimowanie 7 gatunk&oacute;w nietoperzy. W tym 3 gatunk&oacute;w z II Dyrektywy Siedliskowej UE - Podkowc&oacute;w małych (<em>Rhinolophus hipposideros</em>), nock&oacute;w dużych (<em>Myotis myotis</em>), nock&oacute;w orzęsionych (<em>Myotis emarginatus</em>). Liczenia szczeg&oacute;łowe nietoperzy zostały przeprowadzone przez Szurę Cz. Mysłajka R. Pysza J. 27.02.2011 r. stwierdzono 52 nietoperze, w czym 18 sztuk podkowca małego (<em>Rhinolophus hipposideros</em>), oraz nocki wąsatki (<em>Myotis mystacinus</em>), nocki duże (<em>Myotis myotis</em>), nocki orzęsione (<em>Myotis emarginatus</em>), nocek rudy (<em>Myotis daubentonii</em>), nocek Natterera (<em>Myotis nattereri</em>). 09.10.2011 r. (Cz. Szura) stwierdzono 7 nietoperzy - podkowce małe (<em>Rhinolophus hipposideros</em>), nocki wąsatki <em>(Myotis mystacinus</em>), nocki duże (<em>Myotis myotis</em>), nocki orzęsione <em>(Myotis emarginatus</em>). 21.12.2012 r. (Cz. Szura) stwierdzono 71 nietoperzy, w czym 38 sztuki podkowca małego (<em>Rhinolophus hipposideros</em>), oraz nocki wąsatki (<em>Myotis mystacinus</em>), nocki duże (<em>Myotis myotis</em>), nocki orzęsione (<em>Myotis emarginatus</em>), nocki rude (<em>Myotis daubentonii</em>), nocki Natterera (<em>Myotis nattereri</em>), oraz gacka brunatnego (<em>Plecotus auritus</em>).<br />28.12.2013 r. (Cz. Szura) stwierdzono 83 nietoperze, w czym 59 sztuki podkowca małego (<em>Rhinolophus hipposideros</em>), oraz nocki wąsatki (<em>Myotis mystacinus</em>), nocki duże (<em>Myotis myotis</em>), nocki orzęsione (<em>Myotis emarginatus</em>), oraz nocka Natterera (<em>Myotis nattereri</em>).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta w 19.12.2004 r. przez: G. Szalbota oraz B. Juroszka. Otw&oacute;r został częściowo odkopany.<br />31.12.2004 r. - Cz. Szura, B. Juroszek, G. Szalbot: od otworu do Walhalli i Starego Dna, określenie głębokości na -28,1 m.<br />30.01.2005 r. - Cz. Szura, B. Juroszek: Komin Sylwestrowy.<br />30.01.2005 r. - G. Szalbot, M. Procner, B. Juroszek; przewyższenie +1,8 m.<br />10.02.2005 r. - G. Szalbot, M. Procner, B. Juroszek: do Jeziorka i do II Dna, określenie głębokości jaskini na -54,5 m.<br />03.04.2005 r. - G. Szalbot, M. Procner, B. Juroszek, R. Cieślar: do Bartoszowej Sali.<br />08.04.2005 r. - M. Procner, B. Juroszek, G. Szalbot: Partie za Syfonikiem, do Sali Grzelaka.<br />27.11.2005 r. - G. Szalbot, Cz. Szura: lewa strona do Walhalli.<br />12.01.2006 r. - G. Szalbot, Cz. Szura, B. Juroszek: do Matrixa.<br />14.01.2006 r. - Cz. Szura, B. Juroszek: Partie z Węglem, z Walhalli na wprost.<br />04.03.2006 r. - G. Szalbot, Cz. Szura, B. Juroszek: Sala z Jeziorkiem.<br />19.08.2007 r., Cz. Szura; uzupełnienia pomiar&oacute;w busolą geologiczną Freiberg i dalmierzem laserowym Leica Disto.<br />06.02.2010 r. - Cz. Szura: przewyższenie wielofunkcyjnym dalmierzem DistoX.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary wykonali Cz. Szura, B. Juroszek, G. Szalbot, M. Procner, a brali r&oacute;wnież udział w eksploracji J. Pysz, P. Cieślar, A. Żera. Większość pomiar&oacute;w odbyła się w latach 2005-2006 r. Wsp&oacute;łrzędne geograficzne GPS 8.06.2007 r. pomierzył Cz. Szura.<br />Plan i przekr&oacute;j opracował Cz. Szur.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Margielewski W., Szura Cz., Urban J. 2006a,b (geologia jaskini, geneza); Mysłajek R., Szura Cz. 2008: (nietoperze); Szura Cz. 2006 (opis i plan jaskini); Dumnicka E. 2006 (fauna wodna); Dumnicka E. i in. 2006 (opinia ws walor&#243;w naukowych i przyrodniczych) ;Kur J. 2006 (zooplankton w jaskini); Margielewski W, Urban J, Szura Cz. 2008 (geneza i warunki geologiczne); Kurek K. i in. 2007 (wzmiankują w kontekście występowania nietoperzy); Urban J i in. 2007 (nacieki); Kurek K., Mysłajek R. W., Nowak S. 2008 ( wzmiankują); Margielewski W., Urban J. 2008 (por&#243;wnanie z innymi jaskiniami pseudokrasowymi); Dumnicka E. 2008a (fauna wodna); Dumnicka E. 2008b: (wzmiankuje); Dumnicka E. 2008c (występowanie skąposzczet&#243;w); EUROBATS 2007 (wzmianka); Dumnicka E. 2010 (warunki bytowania fauny wodnej); Margielewski W. 2010 (wzmiankuje w kontekście genezy); Panek T. i in. 2010 (wymieniają); Szura Cz. 2010 (wzmiankuje); Szura Cz., Juroszek B. 2010 (historia odkrycia); Urban J. 2010 (wymienia); UCHWAŁA NR XLV/558/2010 RADY MIASTA WISŁY z dnia 27 maja 2010 r. w sprawie ustanowienia stanowiska dokumentacyjnego &quot;Jaskinia Miecharska&quot;; ZARZĄDZENIE Nr. Or.0152-102/2010 BURMISTRZA MIASTA WISŁY z dnia 18 sierpnia 2010 r. w sprawie: prowadzenia prac naukowych, badawczych i eksploracyjnych stanowiska dokumentacyjnego Jaskinia Miecharska; Urban J., Schejbal-Chwastek M., Margielewski W., Ž&#225;k K. 2012  (skład izotopowy naciek&#243;w); Franczak P., Zatorski M., Szura Cz. 2014 (woda w jaskini); Jaskinie Polskich Karpat Fliszowych 2016a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Dumnicka E., Urban J., Margielewski W. 2006 (opinia o wartościach przyrodniczych); Wołoszyn B. 2008 (opinia o konieczności zabezpieczenia jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Bartłomiej Juroszek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(10231)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(10232)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(10233)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=637" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

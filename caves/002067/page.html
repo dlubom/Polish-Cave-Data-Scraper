@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2067">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2067;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566821,8787".replace(',', '.') + "," + "243299,8506".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2067','Smocza Jama'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Smocza Jama
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.BK-01.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;56′01,36″, φ: 50&#176;03′11,54″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Krak&#243;w (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                Krak&#243;w
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                205,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                6,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                2,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    276
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Brama Krakowska, Krak&#243;w, Wawel.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się w centrum Krakowa we Wzgórzu Wawelskim. Jej korytarze przebiegają pod zachodnią częścią wzgórza. Aktualnie dostępny otwór wyprowadza w skałkach, na bulwary wiślane poniżej murów obronnych. Obecne wejście do jaskini znajduje się na poziomie wzgórza wawelskiego, w pobliżu Baszty Złodziejskiej. Znajduje się tam ceglana wieżyczka przylegająca do muru obronnego, w której wybudowano schody sprowadzające do poziomu jaskini. Obszerne sale, przebiegające pomiędzy zejściem a wylotem na bulwary, są oświetlone światłem elektrycznym i przystosowane do masowego zwiedzania. Odgałęzienie boczne jest zamknięte i można je zwiedzać  w wyjątkowych przypadkach za zezwoleniem Dyrekcji Zamku Królewskiego. W pobliżu otworu ustawiono w roku 1972 rzeźbę smoka autorstwa Bronisława Chromego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <div>  <p><span>Do jaskini schodzimy krętymi schodami (135 stopni), które znajdują się w XIX wiecznej wieżyczce i sprowadzają do położonej 21 m niżej jaskini. Od podstawy schodów obmurowany początkowo korytarz doprowadza do właściwej jaskini. W tym miejscu dno korytarza usytuowane jest na wysokości 201 m n.p.m., ok. 2 m nad średnim poziomem wody w Wiśle. Przy wysokich stanach wody w Wiśle pojawiają się tutaj okresowe jeziorka. Jaskinia kontynuuje się dalej na odcinku ok. 70 m w kierunku południowo‑wschodnim i&nbsp;południowym, przez 3 obszerne komory, wychodząc na powierzchnię w naturalnym otworze. Jest on obmurowany ceglanym murem, zamknięty bramą i kratą. Pierwsza, położona na północnym krańcu jaskini komora Alojzego Altha, ma długość 10 m i szerokość&nbsp;do 5,8 m. Jej wysokość&nbsp;w części środkowej dochodzi do 3,2 m. W stropie znajdują się kotły wirowe, niektóre połączone ze sobą i zwężające się ku górze; osiągają one maksymalną wysokość 8 m. Ściany są tutaj silnie skrasowiałe z licznymi wżerami, drobnymi kanałami i mniejszymi kotłami wirowymi.</span></p>  </div>  <span></span><span>Za salą strop obniża się i krótki korytarz, biegnący stromo w górę (schody), wyprowadza do największej w jaskini Komory Ambrożego Grabowskiego. Jej dno położone jest 4,5 m wyżej od dna poprzedniej sali. Długość&nbsp;tej sali wynosi 25 m. Przedzielona jest ona w połowie dużymi blokami skalnymi i 6‑metrowej długości filarem. Północna część&nbsp;ma wysokość 10 m i szerokość do 5 m. W stropie znajduje się obszerny komin kiedyś otwarty na powierzchnię, aktualnie zamknięty ceglaną kopułą, którą wybudowano w 1830 r. W&nbsp;części wschodniej usytuowane jest okno skalne zamknięte kratą. Znajduje się tutaj tunel, przebity w 1974 r., który prowadzi do korytarzy bocznego ciągu Smoczej Jamy. W środkowej części komory znajduje się drewniany słup podtrzymujący część&nbsp;sklepienia. Druga część&nbsp;komory to obszerne rozszerzenie o długości 11 m, szerokości do 7,6 m i wysokości 4,5 m. W stropie posiada obszerne kotły wirowe. Za filarem ciągnie się 6-metrowy tunel o metrowej średnicy z niewielkimi stalaktytami i polewami na ścianach. W Komorze Grabowskiego na ścianie zachodniej znajduje się cienka polewa naciekowa. </span><div>  <p><span>Przejście do trzeciej Komory Adolfa Szyszko‑Bohusza obmurowane jest cegłą, a na ścianie umieszczony został pamiątkowy napis: „Zabezpieczenie Smoczej Jamy umożliwiające jej zwiedzanie wykonali w latach 1970‑1976 górnicy z Przedsiębiorstwa Robót Górniczych w Bytomiu pod nadzorem naukowym pracowników Akademii Górniczo‑Hutniczej w Krakowie”. Sala ma 11 m długości, szerokość&nbsp;jej dochodzi do 5,8&nbsp;m, a wysokość&nbsp;do 4 m. W środku 2 masywne ceglane filary (wewnątrz zapewne naturalne ‑ wapienne). W ścianie zachodniej wylot szybu (z 1851 r.) dawnej klatki schodowej prowadzącej do obecnie niedostępnego, zamurowanego wyjścia z jaskini. W&nbsp;południowo wschodnim krańcu tej komory, na poziomie 1 m nad dnem, znajduje się ciasne wejście do Korytarza pod Smokiem, który prowadzi w kierunku południowym. Z&nbsp;Komory Szyszko‑Bohusza na zewnątrz prowadzi 5 m długości korytarz o wapiennym stropie i obmurowanych cegłą ścianach bocznych. Zamyka go od zewnątrz neogotycki portal z 1843 r. z drewnianymi drzwiami. Przed otworem wykonano schodki, które wyprowadzają na bulwary poniżej murów obronnych. </span></p>  <div>&nbsp;</div>  <div><strong>Boczny ciąg Smoczej Jamy</strong></div>  <p><span>Wejście do niego znajduje się we wschodniej ścianie komory Grabowskiego i zostało zamknięte kratą, umieszczoną w 3-metrowym tunelu przebitym w 1974 r. podczas prac konserwatorskich. Tunel o wymiarach 1x1 m doprowadza do salki (6x4 m, do 2 m wysokości) o częściowo skalnym dnie. W jej środkowej części, pod metrowym progiem skalnym znajduje się wejście do stromo opadającego w dół, w kierunku zachodnim ciasnego, kilkumetrowego korytarza zamkniętego gliniastym osadem. </span></p>  <p><span>Z salki w kierunku północno‑wschodnim odchodzi 4 m długości rura skalna. W jej środkowej części, w dnie znajduje się 2,5 m studzienka, nad którą położona jest belka ułatwiająca przejście. Na końcu strop podnosi się, a w dnie opada 3 m próg skalny, trudny do przejścia, ze względu na warstwę błota pokrywającego ściany. Poniżej na dnie, kolejny 1,2 m próg, Za nim korytarz opada, aż do jeziorka. Głębokość&nbsp;stojącej tu wody wynosi ok. 30 cm. Prześwit pomiędzy wodą a stropem dochodzi do ok. 20 cm. W tym miejscu zakończono eksplorację po przebiciu tunelu. Przed jeziorkiem, 2 m nad dnem, pod stropem korytarza znajduje się ciasna rura skalna. Pierwotnie całkowicie wypełniał ją gliniasty osad, jego usunięcie (1983 r.) pozwoliło na obejście jeziorka i odkrycie dalszych korytarzy jaskini.</span></p>  </div>  <span></span><span>Rura omijająca jeziorko wyprowadza do salki (4x6 m), 3 m nad jej dnem. Poniżej tego miejsca znajduje się wylot korytarza z jeziorkiem. Salka podzielona jest oryginalnym żebrem skalnym. Na północnym jej krańcu znajdują się dwie szczeliny znacznej głębokości wypełnione wodą. Na zachód odchodzi niski, 2 m długości tunel doprowadzający do Salki z Przegrodą. Ma ona wymiary ok. 5x5 m, a wysokość sięga w kominach do 8 m. Dzieli ją w połowie ostro zakończone żebro skalne 3 m wysokości. Dalej w kierunku wschodnim prowadzi krótki, opadający w dół korytarz. Dno pokrywa grząskie błoto rdzawego koloru. Doprowadza on do ciągu rozwiniętego na pionowym pęknięciu N‑S., gdzie w lewo za ciasnym przełazem, utworzonym w cienkiej przegrodzie skalnej, znajduje się jeziorko. Dno tego jeziorka, wypełniającego wąską szczelinę, znajduje się na poziomie ok. 196 m n.p.m.</span><div>  <p><span>Za przełazem ciągnie się korytarz o kolistym przekroju, 8-metrowej długości; jego dno pokrywa gruba warstwa gliniastego osadu. W połowie jego długości, na dnie, znajduje się koliste zagłębienie (dawny kocioł). Korytarz skręca na wschód, zamyka go kolejna przegroda z dwoma przełazami na poziomie dna i na wysokości 2 m, które doprowadzają do salki o wymiarach 2x3 m i kopulastym stropie. Na nim w niszach niewielkie stalaktyty do 4 cm długości ‑ jedyne nacieki w tej części jaskini. Całość tego ciągu bywa okresowo zalewana wodą, jedynie w stropie kotłów pozostają „bąble” powietrza; świadczą o tym czyste, jasne ściany nie pokryte ilastym osadem. </span></p>  <p><span>Za salką z naciekami dalsza droga prowadzi przez dwa ciasne przełazy, nazwane od ich odkrywców Zaciskami Andrzejów. Dolny przy dnie bardzo ciasny (ZII), górny położony 1,5 m wyżej to ciasna, kręta rura długości 2 m. Możliwa jest ona do przejścia poprzez spiralne obracanie się dookoła własnej osi (zacisk ZI). </span></p>  <p><span>Za zaciskami znajduje się Wysoki Korytarz długości 5 m i wysokości do 10 m o dnie początkowo poziomym, dalej opadającym w dół, aż do jeziorka. Jest to największy w tej jaskini zbiornik wody, o głębokości do 0,5 m i grząskim, gliniastym osadzie na dnie. Jeziorko należy ominąć trawersem do okna położonego 1,5 m nad wodą. Za oknem znajduje się zejście na dno wysokiej Komory Pod Wielkim Progiem. Tutaj kończy się ciąg jaskini rozwinięty na poziomie zbliżonym do poziomu wody w Wiśle. </span></p>  <p><span>Za komorą o wymiarach 5x4 m znajduje się obszerny komin mający prawie 6 m wysokości. </span><span>Ł</span><span>atwą wspinaczką pokonujemy próg do ujścia korytarza biegnącego w dół w&nbsp;kierunku północno‑zachodnim. W jego dnie znajdowały się ciasne studnie o głębokości 4 m. Doprowadzały one do ciasnego korytarza z jeziorkiem na dnie. Zostały one zasypane podczas prac eksploracyjnych w 1983 r. Koniec korytarza przechodzi w Salę Krzemienną o wymiarach 6x5 m. Na jej ścianach widoczne są wypreparowanie przez wodę buły krzemienne i stąd jej nazwa; dno pokrywa gruzowisko skalne. </span></p>  <p><span>Z końca salki, w kierunku północno‑wschodnim, biegnie niski korytarz, pierwotnie w&nbsp;całości wypełniony osadami, które usunięte zostały podczas eksploracji w 1983 roku. Korytarz po 3 metrach skręca na północ, przechodząc w ciasne rury, które po dalszych trzech metrach doprowadzają do kolejnego rozszerzenia nazwanego Salą Koronacyjną. Ma ona wymiary 4x6 m, a wysokość sięga 2,5 m. W stropie komory znajduje się kocioł wirowy, w którym widoczne są tzw. listwy ascenzyjne, tj. ukośne półki utworzone przez wstępujący strumień wody. Dalej korytarz prowadzi w kierunku północnym. Jest niski i&nbsp;ciasny, biegnie w górę na odcinku 6 m, gdzie zmienia kierunek na północno‑zachodni. Dalej na odcinku 5 m dno jest zagruzowane blokami odpadłymi od stropu, a ściany są spękane (przyczyną jest nacisk znajdujących się nad jaskinią budynków). Korytarz jest ciasny (ZI) i doprowadza do niskiego, silnie zamulonego kanału skalnego o długości ok. 15 m, którego końcowe 5 m nie jest aktualnie dostępne, zasypane zostało materiałem usuniętym z prawego, północnego odgałęzienia eksplorowanego w marcu 1996 r. Odgałęzienie to o długości 10 m jest aktualnie najdalej wysuniętym miejscem w głębi Wzgórza Wawelskiego. Dalsza eksploracja jest tu praktycznie niemożliwa ze względu na brak miejsca na składowanie wydobytego materiału.</span></p>  </div>  <span><br clear="all" /> </span>  <div>  <div>&nbsp;</div>  <div><strong>Korytarz pod Smokiem</strong></div>  <p><span>Jest to odgałęzienie, które prowadzi w kierunku południowym z Komory Szyszko‑Bohusza. Został on częściowo poznany w połowie 1983 r., kontynuację odkryto w 1995 r. Wejście do niego znajduje się w ścianie komory na wysokości 1 m nad jej dnem. Za nim ciągnie się 10 metrowy niski tunel o kolistym przekroju. Doprowadza do salki o&nbsp;wymiarach 3x3 m i wysokości do 1,5 m. Dno korytarza i salki pokrywa gruz wapienny zmieszany z tłustą, rdzawą gliną. Z salki przez niski przełaz i biegnący stromo w dół korytarzyk z niewielkim progiem, dochodzimy do 7 metrowego niskiego korytarza o częściowo skalnym dnie. Na końcu znajduje się niska salka o wymiarach 4x3 m. Dno jej pokrywa ostrokrawędzisty gruz wapiennym z gliną. Z salki w kilku kierunkach odchodzą ciasne korytarzyki zamulone i zagruzowane. Jeden z nich przechodzi w zablokowany gruzem kominek, w drugim znajdują się korzenie drzew. Na powierzchni zalegają kości drobnych kręgowców, skorupki jaj i strzępy folii aluminiowej. Istnieją tu możliwości dalszej eksploracji. W tej części korytarzy wyczuwalny jest przewiew powietrza. </span></p>  <p><span>Jaskinia utworzyła się w wapieniu skalistym górnej jury (oksford). W jej wnętrzu występują liczne formy korozyjne, świadczące o powstaniu w warunkach freatycznych. W&nbsp;jaskini zaznacza się duża ilość dobrze rozwiniętych stropowych kotłów wirowych, a&nbsp;korytarze mają nieregularny przebieg. Na ścianach liczne wżery, drobne kanały, miejscami „gąbczastość krasowa”. Cały dolny ciąg jaskini to szereg niewielkich salek, o&nbsp;znacznej, kilkumetrowej wysokości, poprzedzielanych cienkimi (czasem kilkunastocentymetrowej grubości) przegrodami skalnymi, przeważnie ze szczelinami w dnie, wypełnionymi wodą. Na ścianach kotłów widoczne są&nbsp;poziome i ukośne żebra skalne. Formy te świadczą o&nbsp;cyrkulacji wody w warunkach konwekcyjnych (Gradziński <em>et al</em> 1996) Namuliska w&nbsp;jaskini, a szczególnie w bocznej części, to drobnoklastyczne (ilaste) osady nie zawierające szczątków fauny, powstałe w warunkach freatycznych. Osady pokrywające ściany i strop w najszerszej części jaskini są często różnobarwne (czerwone, żółte, rdzawe). Nacieki w jaskini występują jedynie w Komorze Grabowskiego, na jej zachodniej ścianie, w formie cienkich polew z drobnokrystalicznego kalcytu, oraz polew i niewielkich stalaktytów w korytarzu za filarem w Komorze Grabowskiego. Kilka stalaktytów znajduje się na stropie kotła przy Zacisku Andrzejów. Nacieki z tej jaskini były datowane w&nbsp;Instytucie Nauk Geologicznych Akademii Nauk Białorusi w Mińsku, a ich wiek określono na 1700±70 BP. Okazy datowane znajdują się w Muzeum Geologicznym AGH w Krakowie (Molenda <em>et al.</em> 2000).</span></p>  <p><span>Wewnątrz jaskini wilgotność sięga 100%. Wyczuwalny jest ciągły przewiew powietrza. Silny przewiew występuje w części znanej od dawna, na trasie turystycznej. Temperatura powietrza w głębi bocznych ciągów sięga 11ºC, podobna jest temperatura wody w&nbsp;jeziorkach. Skład chemiczny wody jest odmienny od składu chemicznego wody z Wisły, co świadczy o jej innym pochodzeniu. Wysokie stężenie chlorków wydaje się być związane z ascenzją wód głębszego podłoża, duże zaś stężenie azotanów związane jest z antropopresją (wielowiekowe zamieszkiwanie przez człowieka Wzgórza Wawelskiego). Jedynie przy bardzo wysokich stanach Wisły (np. powódź w roku 1997) wody rzeki przenikają w&nbsp;głąb masywu zalewając niżej położone korytarze. </span></p>  </div>  <span></span><span>W pobliżu południowego otworu jaskini, pod okapem, stwierdzono na ścianach występowanie glonów (zielony nalot) i nielicznych osobników zanokcicy murowej - <strong><em>Asplenium ruta‑muraria</em></strong>. W pobliżu reflektora umieszczonego w Komorze Grabowskiego, przy wejściu do nie udostępnionego ciągu jaskini, także stwierdzono glony oraz mech - <strong><em>Ditrichum flexicaule</em></strong>. W jeziorkach (części niedostępnej do zwiedzania) odnotowano studniczka - <strong><em>Niphargus tatrensis</em></strong>. W głównym, dostępnym do zwiedzania ciągu jaskini, obserwowano pająki, komary i motyle.</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    W 1951 r. prace archeologiczne o niewielkim zakresie przeprowadzono przy  otworze jaskini (R. Hacułska Ledwosowa). W 1966 roku rozpoczęto  kompleksowe badania jaskini i jej najbliższego otoczenia. Prace  prowadzone przez zespół pracowników naukowych AGH, pod kierownictwem  prof. Zbigniewa Strzeleckiego, miały na celu wszechstronne rozpoznanie  górotworu. Ich wyniki stanowić miały podstawę do trwałego zabezpieczenia  zagrożonej zniszczeniem jaskini. Do badań zaproszono ekipę z Wyższej  Szkoły Górniczej w Ostrawie, kierowaną przez doc. Jaroslava Voropinowa,  która stwierdziła metodami geofizycznymi istnienie pustki za wschodnią  ścianą w Komorze Grabowskiego. Przed przystąpieniem do wykonania  zabezpieczenia jaskini w latach 1969 70 Józef Niźnik i Krzysztof  Szuwarowski przebadali namulisko. Stwierdzono, że najstarsze warstwy  kulturowe sięgają XVI wieku. W Komorze Szyszko Bohusza znaleziono grób  pochodzący przypuszczalnie z XVII wieku.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Smocza Jama jest najbardziej znaną jaskinią Polski. Popularność swą zawdzięcza położeniu i w nie mniejszym stopniu legendzie, która umiejscowiła tu smoka. Już w XIII wieku Wincenty Kadłubek na kartach swojej kroniki notuje, że w czeluściach pewnej skały mieszka okrutny potwór. Długosz rozwija obszernej tą legendę, pisze również o kilku grotach znajdujących się pod zachodnią częścią wzgórza. Kolejny kronikarz   Bielski (1551 r.) bez cienia wątpliwości podaje rok 700. jak datę zgładzenia smoka. W późniejszym wydaniu „Kroniki Świata” Bielskiego pojawia się po raz pierwszy nazwa „Smocza Jama”. <br />Teren położony w bezpośrednim sąsiedztwie jaskini był zamieszkiwany od początku XVI w. Najstarsza wzmianka o tym pochodzi z roku 1503, później wielokrotnie w starych dokumentach znajdujemy nazwę „smocza jama” jako określenie miejsca zamieszkania, lokalizacji budynku lub nawet wydawania ksiąg. Jakub Przyłuski, który wydał zbiór przepisów prawnych (1553), nie omieszkał na jednej ze stron dzieła podać, że pisano i drukowano je przy Jamie Smoka. W roku 1565 Zygmunt August poleca zamurować „Smocze Jamy”, aby uniknąć zalewania domów poprzez korytarze jaskini. Od początku XVII wieku przy wejściu funkcjonowała karczma i dom publiczny. Miejsce to zostało zaliczone przez Jana Andrzeja Morsztyna do najsłynniejszych miejsc tego typu w Polsce, i uwiecznione w jednym z jego wierszy. Popularność tego miejsca, a za tym i jaskini, była znaczna; obszerne wzmianki znajdujemy w opisach sporządzanych przez obcokrajowców odwiedzających ziemie polskie (1647, 1659). <br /> <br />Fortyfikacje, których budowę rozpoczęto na początku XVIII stulecia, otoczyły wzgórze pierścieniem murów. W ich linii znalazł się otwór jaskini, który został zamknięty ścianą bastionu. Prace ziemne prowadzone powyżej jaskini spowodowały zawalenie fragmentów stropu. W roku 1829 przez jeden z dwóch otworów w stropie jaskinię zwiedził Ambroży Grabowski, który dostał się do wnętrza po drabinach. W rok później, podczas porządkowania wzgórza, ceglaną kopułą zamknięto otwór w stropie nad środkową częścią jaskini, a drugi obmurowano zamykanym szybem. Teren nad jaskinią nadsypany został do obecnego poziomu. W czerwcu 1842 r. Florian Straszewski własnym kosztem odgruzował jaskinię i oczyścił wejście, umożliwiając jej zwiedzanie. Podczas prac fortyfikacyjnych prowadzonych przez Austriaków od 1850 roku, otwór został ponownie zamurowany. Powstał wówczas szyb z drewnianymi schodami w rejonie południowego krańca jaskini. Tym wejściem, w 1851 wszedł do jaskini cesarz Franciszek Józef. Fragment tych schodów zachował się przy zachodniej ścianie komory południowej. W tym czasie w północnym krańcu jaskini wywiercono studnię, z której czerpano wodę dla potrzeb szpitali wojskowych. Dla pomieszczenia urządzeń wodociągowych wybudowano niewielką basztę przylegającą do muru fortecznego. Pod koniec XIX wieku rozebrano część schodów i odtąd jaskinia pozostawała niedostępna. Przeprowadzono jednak w tym okresie pierwsze prace wykopaliskowe. W roku 1874 Alojzy Alth wykonał badania, powstał także wówczas pierwszy plan jaskini, sporządzony przez Stefana Kuczyńskiego. Wyniki badań opublikowane zostały w 1877 r. Po zakończeniu I wojny, w 1918 roku w baszcie, która pozostała po dawnych wodociągach, wybudowano kręte schody i zainstalowano elektryczne oświetlenie. Od strony południowej urządzono schody, które prowadziły do wyjścia położonego powyżej obecnego otworu (wówczas całkowicie zasypanego). Podczas II wojny światowej jaskinia była zamknięta dla publiczności i wykorzystywana jako schron przeciwlotniczy. Po wojnie, w 1945 roku, usunięto nasypy ziemne i odsłonięto południowy otwór jaskini. <br />Prace zabezpieczające wykonywane były w latach 1972 76 przez Przedsiębiorstwo Robót Górniczych z Bytomia. W trakcie prac, w 1974 roku przebito 4-metrowy tunel do nieznanej próżni (zlokalizowanej przez badaczy z Ostrawy). Okazała się ona niewielką salką, z której prowadził dalej korytarz zamknięty po kilku metrach syfonem. Po zakończeniu prac remontowych uroczyście - w dniu święta górniczego 4 grudnia 1976 r.   otwarto jaskinię dla ruchu turystycznego. <br /> <br />Po dwunastu latach, w styczniu 1983 roku, Andrzej Górny, Andrzej Paulo i Mariusz Szelerewicz, zaproszeni przez kierownika Pracowni Archeologicznej Kierownictwa Odnowienia Zamku Królewskiego, Stanisława Kozioła, podjęli próbę przebycia syfonu zamykającego dalszą drogę. Andrzej Górny zauważył powyżej poziomu syfonu zabłoconą rurę, która po usunięciu osadu doprowadziła do niewielkiej salki położonej za syfonem. Po tygodniu ekipa w tym samym składzie podjęła dalszą eksplorację, osiągając po 40 m zwężenia niemożliwe do przejścia. W trakcie następnego wejścia zwężenia to zostały rozkute i oczyszczone z gliniastego osadu przez Andrzeja Górnego i Andrzeja Paulo i stąd ich nazwa -”Zaciski Andrzejów”. Po ich przejściu odkryto obszerny korytarz i za nim Salę Krzemienną. Dalszą drogę zamknął całkowicie zamulony korytarz. Podczas dwóch kolejnych wejść usunięto osady. Dalszy ciąg korytarzy przez Salę Koronacyjną doprowadził do silnie zamulonych „ciasnot” na północnym krańcu jaskini. W czerwcu 1983 r. Piotr Kulbicki i Janina Wżak, po przekopaniu ciasnego, 4 metrowego tunelu, osiągnęli koniec jaskini w najdalej wysuniętym na północ punkcie. Miejsce to znajduje się pod budynkiem administracyjnym. W pracach eksploracyjnych udział brali także grotołazi z krakowskich klubów: Edward Gajewski, Jacek Szczerba, Janusz Szelerewicz, Andrzej Tyrpa. Prace eksploracyjne zakończono w czerwcu 1983 roku. W trakcie trwania prac eksploracyjnych zostały wykonane pomiary i opracowany został nowoodkrytych ciągów przez Mariusza Szelerewicza. <br />Z inicjatywy Muzeum Geologicznego AGH Akademii Górniczo Hutniczej w Krakowie w lutym, marcu i kwietniu 1995 zorganizowano kolejne sześć wejść do jaskini pod kierownictwem Andrzeja Górnego, z udziałem grotołazów z klubów krakowskich, pracowników Muzeum Geologicznego i Uniwersytetu Jagiellońskiego (Czesław Łukasiewicz, Grzegorz Heim, Miłosz Krawczyk, Artur Kurek, Krzysztof Paul, Olimpiusz Paul, Marcin Pruc, Tomasz Rosiek, Marcin Sajdak, Jacek Sikora, Fabian Starożak). Podjęto próbę eksploracji na końcu jaskini, za Salą Koronacyjną, w odgałęzieniu odchodzącym na północny wschód, gdzie po usunięciu dużego głazu udało się przebyć 8 m korytarza (Andrzej Górny, Sławomir Herod i Czesław Łukasiewicz). W kwietniu zainteresowano się ciągiem odchodzącym na południe z Sali Szyszko Bohusza, gdzie 20.04.1995 r. odkryto kilkanaście metrów korytarza i salkę odchodzącą w kierunku południowo wschodnim (Andrzej Górny i Czesław Łukasiewicz). Ze względu na położenie końca tego ciągu pod rzeźbą smoka, nazwano go Korytarz pod Smokiem. Ostatnią próbę eksploracji w jaskini podjęto 14.03.1996 roku na końcu odgałęzienia północno wschodniego, kiedy to Grzegorz Heim pokonał bardzo ciasny zacisk odkrywając kolejne 6 m korytarza. Na tym eksplorację zakończono, ze względu na ciasnotę i brak miejsca na składowanie usuniętego osadu. W jaskini nadal istnieją możliwości na odkrycie nowych korytarzy, szczególnie w Korytarzu pod Smokiem.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Smocza Jama została zinwentaryzowana w roku 1949 przez K. Kowalskiego (1951) pod nr inw. 1. Dokumentację opracowali A. Górny i M. Szelerewicz (11.1999). Pomiary wykonali P. Kulbicki, J. Szelerewicz i M. Szelerewicz (1983), A. Górny, S. Herod i O. Paul (1995). Dane zaktualizowali w 2009 r. A. Górny i M. Szelerewicz.<br />Plan opracował M. Szelerewicz.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kopernicki I. 1876 (opis i ocena zabytk&#243;w znalezionych w jaskini); Kirkor A.H. 1876 (wzmianka); Alth A. 1877 (plan, opis jaskini, namuliska i badań); Ossowski G. 1882a (wzmianka o badaniach Altha); Ossowski G. 1882b (wymienia); Czarnowski S.J. 1911 (wzmianka i zaznaczenie jaskini na mapie); Demetrykiewicz W., Kuźniar W. 1914 (wzmianka); Danysz-Fleszarowa R. 1933 (wymienia); Ciętak Z. 1935 (wzmianka); Kowalski K. 1951 (opis i plan wg Altha); Berg W. 1969 (plan jaskini z przekrojami w skali 1:50); Strzelecki Z. i in. 1975 (opis badań g&#243;rotworu, liczne przekroje i plany); Czepiel M. 1976 (opis i plan); Kleczkowski A. 1976 (om&#243;wienie warunk&#243;w hydrogeologicznych Zrębu Wawelu, plan i przekr&#243;j); Szelerewicz M., G&#243;rny A. 1986 (opis i plan); Dumnicka E., Wojtan K. 1990 (wyniki badań fauny występującej w wodach jaskini); Rotter A., Szelerewicz M. 1990 (historia, legendy, opis i plan); Heflik W., Matl K. 1991(charakterystyka geologiczna jaskini, mapa, plan i przekr&#243;j, 10 fotografii form krasowych - praca dotyczy jaskini przed odkryciami w 1983 r.); G&#243;rny A. 1995 (plan korytarzy odkrytych na końcu bocznego odgałęzienia w 1995 r. Informacja o eksploracji w Korytarzu pod Smokiem); Firlet E. M. 1996a (fauna ze Smoczej Jamy, rys. studniczka tatrzańskiego); Firlet E.M. 1996b (całościowe opracowanie wszelkich zagadnień związanych z jaskinią, plany, zdjęcia, ryciny, wykaz źr&#243;deł); Gradziński M. i in. 1996 (uwagi o genezie korytarzy najniższego piętra); Wiśniewski W.W. 1997a (notka o zalaniu wodą korytarzy Smoczej Jamy w czasie powodzi w lipcu 1997 roku); Molenda R., G&#243;rny A., Polonius A. 2000 (wynik datowania nacieku z jaskini); Gradziński M., Szelerewicz M. 2004 (wymieniają w wykazie); Szewczyk R. 2005 (opis, plan 2 fot.); Rotter A., Szelerewicz M. 2005 (historia badań i konserwacji jaskini, jej legenda, geologia, opis jaskini , plan na tle wzg&#243;rza Wawelskiego, plan, 11 fot. z wnętrza jaskini, fot. otworu); Motyka J. i in. 2005 (chemizm wody w jaskini na podstawie pobranych w niej pr&#243;bek); Gradziński R. 2006 (plan, przekr&#243;j, 4 fotografie); Tyc A. 2009a (wzmiankuje w aspekcie genezy); Jaskinie Pomostu Krakowskiego 2011 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Baryła J., G&#243;rny A., Pruc M., Słobodzian B., Szelerewicz M. 2000 (opis inwentarzowy i plan).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Mariusz Szelerewicz, Andrzej G&#243;rny
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1594)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1595)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=892" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1231">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1231;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "570372,94".replace(',', '.') + "," + "154630,16".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1231','Jaskinia Dudnica'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Dudnica
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Elektrownia, Mała Jaskinia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-16.05
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;58′02,57″, φ: 49&#176;15′18,45″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SE, 1181 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1181
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                16
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    185
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W lewym orograficznie zboczu Doliny Bystrej, u podn&#243;ża Kalackiej Turni, powyżej wywierzyska Bystrej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Kuźnic idziemy szlakiem wiodącym przez Kalatówki do Doliny Kondratowej. Za Kalatówkami szlak wchodzi w las i trawersuje zbocze Kalackiej Turni. Po około 150 m z lewej strony, tuż przy ścieżce jest urwisko; otwiera się tu widok na bezleśny płytki żleb. Kilka kroków dalej schodzimy przez las pod skałki tego urwiska i odnajdujemy obszerną nyżę wstępną przy syfonach Jaskini Bystrej T.D-16.04. Stąd trawersujemy lekko w dół kilkanaście metrów ku NE, wprost do otworu głównego (1) Dudnicy. Znajduje się on pod małą skałką, na lewym orograficznie zboczu żlebu opadającego od Jaskini Bystrej. Otwór 2, ciaśniejszy, usytuowany jest około 4 m na E i nieco wyżej. Dojście bez trudności. Zwiedzanie do I syfonu jest łatwe, I syfon przy niskich stanach wody można pokonać pontonem lub w ubraniu wodoszczelnym, do pokonania następnych syfonów niezbędne jest użycie sprzętu nurkowego. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Oba otwory są niewielkie, szczelinowe, ciasne. Otw&oacute;r 2 jest częściowo zasypany kamieniami. Otwory prowadzą do obszernego, stromo opadającego korytarza o długości około 10 m. Biegnie on ku NE i zamknięty jest syfonem I, kt&oacute;ry ma zmienną długość, a&nbsp;w&nbsp;okresach wyjątkowo suchych jest tylko jeziorkiem&nbsp;Przed syfonem na prawo odgałęzia się ciasna szczelina prowadząca w stronę powierzchni. Za jej odejściem gł&oacute;wny ciąg skręca na lewo i niebawem zn&oacute;w na prawo. Na drugim zakręcie, w I syfonie otwiera się korytarzyk o przekroju około 1x1,5 m, częściowo zawalony kamieniami. Opada on lekko, a po około 5 m&nbsp;stromo, ku W, w stronę Jaskini Bystrej. Jest wypełniony wodą, kt&oacute;ra wypływa stąd i płynie w głąb jaskini. Za syfonem I ciągnie się około 70-metrowej długości, nieco opadający, szczelinowy korytarz o kierunku 30-40<sup>o</sup>. Jego ściany są silnie rozmyte. Dalej, pod niewielkimi 1&ndash;2-metrowymi prożkami zaczyna się V-kształtny II syfon. Biegnie on w kierunku SE, by po 8 m, przy maksymalnej głębokości 4 m, wyprowadzić do obszernego choć niedługiego korytarza, kt&oacute;ry 8 m dalej ponownie zalany jest wodą po strop. Jest to III syfon, zwany Syfonem Słabika, o owalnym przekroju i litym dnie. Ma on 17 m&nbsp;długości i 3 m&nbsp;głębokości. Za syfonem III dochodzimy do rozszerzenia korytarza, skąd istnieją trzy możliwości zwiedzania: ku S &ndash; 4-metrowy, przewieszony prożek w d&oacute;ł zwany Tajemniczą Studnią doprowadza po kilku metrach do kolejnego, IV syfonu (Syfon Ślicznoty); ku NNW wiedzie ciasny, stromo wznoszący się korytarzyk o owalnym przekroju, kt&oacute;ry po 8 m rozgałęzia się na dwa ciągi o jeszcze mniejszej średnicy (około 0,5&nbsp;m); ku N prowadzi w g&oacute;rę r&oacute;wnie ciasny i trudny do przejścia korytarzyk (korytarzyki te nie zostały zbadane do końca). </span></p>
+<p><span>Z okna, położonego 3 m&nbsp;nad dnem Tajemniczej Studni, prowadzi kr&oacute;tki korytarzyk bezpośrednio nad Syfon Ślicznoty. Syfon ten kontynuuje się ku S i w miejscu jego największej głębokości (7 m) zablokowany jest dużymi otoczakami.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach środkowego triasu (seria wierchowa, fałd Giewontu). Łączy się ona nieznanymi jeszcze, zalanymi wodą kanałami z pobliską Jaskinią Bystrej i razem stanowią okresowo czynny system podziemnego odwodnienia masywu Giewontu. Gł&oacute;wny korytarz powstał na szczelinie SW-NE. Końcowe korytarzyki biegną ku NNW i ku N. Związane są one genetycznie z korytarzem uchodzącym do okna w&nbsp;Tajemniczej Studni. Sama Tajemnicza Studnia jest formą utworzoną p&oacute;źniej, w wyniku rozcięcia dawnego, stosunkowo ciasnego korytarzyka o przebiegu NNW&ndash;SSE. Ściany jaskini są dobrze ogładzone przez wodę płynącą tu okresowo pod ciśnieniem.&nbsp;Za I syfonem widać ciekawe formy rozmywania twardych wapieni dolomitycznych w postaci sterczących ze ścian brzytew i żeber.</span></p>
+<p><span>Dno jest lite, częściowo pokryte otoczakami wapiennymi i granitowymi, częściowo zaś żwirowo-piaszczystymi ławicami. Za pierwszym syfonem są fragmenty dna bez namuliska, w syfonie spotyka się zar&oacute;wno materiał obtoczony, jak i ostrokrawędzisty&nbsp;&ndash; obłamane fragmenty żeber skalnych. Na dnie III syfonu sporadycznie występują otoczaki wapienne i granitowe. Po obu stronach tego syfonu, w korytarzach akumulowany jest na niewielkiej przestrzeni materiał żwirowy. W dnie końcowych korytarzyk&oacute;w można obserwować pozostałości starego namuliska piaszczysto-ilastego. W Tajemniczej Studni jest duże nagromadzenie otoczak&oacute;w granitowych oraz żwiru. </span></p>
+<p><span>Jaskinia okresowo, w czasie stan&oacute;w powodziowych, bywa całkowicie wypełniona wodą, kt&oacute;ra wypływa w&oacute;wczas jej otworami. Przy niższych stanach woda wypływająca ze szczeliny w I syfonie płynie w głąb groty. Zimą, przy bardzo niskich stanach wody, I syfon zmienia się w 8-metrowej długości jeziorko, zwykle jednak odcinek całkowicie zalany ma około 5 m długości. Dalsze syfony prawdopodobnie zawsze wypełnia woda. Przy średnich stanach II syfon zaczyna się wcześniej i łączy w jeden z syfonem III, bywa też zalana całkowicie Tajemnicza Studnia łącząca go z syfonem IV. Podczas szczeg&oacute;lnie śnieżnych zim oba otwory zasypywane są śniegiem. Temperatura powietrza we wstępnej części jaskini wynosiła w dniu 10 marca 1959 r. 5,2<sup>o</sup> C , a temperatura wody w I syfonie 4,6<sup>o</sup>C (Chodorowscy, 1959).</span></p>
+<p><span>Światło dzienne sięga do kilku metr&oacute;w w głąb jaskini. </span></p>
+<p><span>Przy otworach rozwijają się rośliny kwiatowe, nieco głębiej sięgają paprocie, mchy i porosty.</span></p>
+<p><span>We wstępnych partiach występują owady, głębiej &ndash; drobna fauna wodna. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obserwacje geologiczne i hydrogeologiczne w jaskini przeprowadzili T. i S. Zwolińscy (Zwoliński, 1961), W&oacute;jcik (1960b, 1966a, 1968, 1978b) oraz Przybyszewski (1980). T. i S. Zwolińscy obserwowali systematycznie przepływ wody na przestrzeni około 100 m i stwierdzili na podstawie pomiar&oacute;w, że przepływ ten doprowadza okresowo wody podziemne do niżej położonego Wywierzyska Bystrej (Zwoliński, 1961). Badania hydrogeologiczne całego systemu wywierzyskowego przeprowadził Barczyk (2008). Chodorowscy (1959) przeprowadzili badania fizyko-chemiczne w&oacute;d I syfonu. W&oacute;jcik (1968) zalicza jaskinię do najniższego piętra (wg własnego podziału piętrowego jaskiń tatrzańskich), kt&oacute;re modelowane było przez wody z lodowca W&uuml;rm. Zamieszcza też wzmiankę o ruchach obniżających, kt&oacute;re wystąpiły w glacjałach na terenie systemu jaskiń związanych z Wywierzyskiem Bystrej (W&oacute;jcik, 1978b). Uwagi o osadach podali W&oacute;jcik (1960b, 1966a) oraz Przybyszewski (1980).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Na kilka lat przed odkryciem jaskini, bracia Zwolińscy obserwowali okresowy wypływ z niedostępnego otworu, zbyt małego w&oacute;wczas aby przejść. Możliwość ominięcia tego otworu zauważył wsp&oacute;łpracownik Zwolińskich, J&oacute;zef Dobiecki. We wrześniu 1935 r. S. Zwoliński wraz z nim i W. Goryckim rozkopali wąską szczelinę między głazami (otw&oacute;r II) i od g&oacute;ry dostali się do korytarza wiodącego do I syfonu. Szum podziemnego potoku dobiegający z małego otworu przy syfonie I skłonił ich do nadania jaskini nazwy &bdquo;Elektrownia&rdquo;. Stan wody w&oacute;wczas był niski (wylot korytarzyka z dudniącą wodą widoczny był ponad jej lustrem), lecz syfon &ndash; nie do pokonania. W lutym 1936 r. Zwolińscy bez powodzenia pr&oacute;bowali odpompować wodę z I syfonu. W 1949 r., podczas odpompowania wody ze studni wejściowej do Jaskini Bystrej osuszył się i syfon Elektrowni. S. Zwoliński z towarzyszami zwiedzili wtedy jaskinię do II syfonu, o czym opublikowano wzmiankę w prasie używając nazwy Mała Jaskinia. Potem zmieniono nazwę na bardziej regionalną: Dudnica.<br />W 1965 r. M. Nowicki i W. Kosiak, podczas wyprawy AKP &bdquo;Kalmar&rdquo; i AKG Gliwice, pokonali metodą nurkowania swobodnego II syfon oraz odkryli III syfon, nie nurkowali w nim jednak. Wzmianka Szywały (1970) o nurkowaniu w II syfonie przeprowadzonym przez WKP Warszawa jest prawdopodobnie pomyłką i dotyczy akcji, kt&oacute;ra miała miejsce we wrześniu 1968 r. W&oacute;wczas J. Onyszkiewicz (SW PTTK) i E. Petit (płetwonurek i grotołaz z Barcelony) nurkowali w I syfonie, kt&oacute;ry był całkowicie wypełniony wodą i dotarli do II syfonu. Druga wyprawa przeprowadzona w 1968 r. przez M. Nowickiego wykazała, że syfony II i III łączą się w jeden ciąg, kt&oacute;rego pokonanie było zbyt trudne. W dniach 5&ndash;15 lutego 1970 r., podczas kilku akcji AKP &bdquo;Kalmar&rdquo; i AKG Gliwice, pokonano syfon II i III (pierwszy był w&oacute;wczas jeziorkiem). M. Słabik i K. Grajek dotarli nad Tajemniczą Studnię. Nastąpiła awaria aparatu K. Grajka. Podczas akcji ratunkowej M. Słabik wielokrotnie pokonywał syfony, co zostało uhonorowane nadaniem trzeciemu syfonowi nazwy Syfonu Słabika. Odkrywcy sporządzili opis i szkic nowoodkrytych partii. W lutym 1973 r. dalszą eksplorację podjęli M. Lipski (zwany Ślicznotą &ndash; stąd nazwa &bdquo;Syfon Ślicznoty&rdquo;), A. Płachciński i W. Przybyszewski &ndash; uczestnicy wyprawy SW PTTK. Pokonali oni IV syfon do zawaliska oraz suche partie w okolicy Tajemniczej Studni. Sporządzili r&oacute;wnież szkicowy plan jaskini posługując się busolą podwodną, głębokościomierzem i cechowaną liną.<br /><br /> W latach dziewięćdziesiątych wielokrotnie nurkowano w jaskini podczas licznych akcji treningowych nurk&oacute;w jaskiniowych i TOPR, stwierdzając bardzo zmienny poziom wody i częste łączenie się syfon&oacute;w. W latach 1995&ndash;96 W. Bolek przeprowadził eksplorację części ciągu odchodzącego w syfonie I w kierunku Jaskini Bystrej, kt&oacute;ry zaintrygował już Zwolińskich (po odgruzowaniu pokonał około 5 m).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i opis wstępnych partii jaskini, datowany na 23 sierpnia 1952 r., opublikował Kowalski (1953a).<br />Podczas prac nad inwentaryzacją jaskiń tatrzańskich prowadzonych przez OW PTPNoZ pomiary sytuacyjno-wysokościowe położenia otworu metodą ciągu busolowo-taśmowego wykonał R. M. Kardaś przy wsp&oacute;łpracy H. Wachowiak w dniu 21 lipca 1979 r. Pomiary przeprowadzono busolą geologiczną Meridian i taśmą parcianą. Dane zaktualizowała I. Luty (2009).<br />Szkic planu opracowała I. Luty w 1998 r. na podstawie następujących materiał&oacute;w:<br />&ndash;&nbsp;szkic planu zestawiony przez W. Przybyszewskiego w oparciu o plan K. Kowalskiego z 1952 r., szkic AKP &bdquo;Kalmar&rdquo; z 1970 r., nieprecyzyjne pomiary wykonane busolą podwodną, głębokościomierzem i cechowaną liną przez M. Lipskiego, A. Płachcińskiego i W. Przybyszewskiego w 1973 r. oraz wykonany w&oacute;wczas szkic przekroju rozwiniętego fragmentu jaskini (Przybyszewski 1980);<br />&ndash;&nbsp;szkic ciągu odchodzącego od I Syfonu wg W. Bolka (1996).<br />W opisie opr&oacute;cz danych z literatury uwzględniono obserwacje własne i informacje ustne wielu os&oacute;b nurkujących w jaskini w latach dziewięćdziesiątych i p&oacute;źniej. Wsp&oacute;łrzędne geograficzne otworu w oparciu o mapę topograficzną Tatr wydawana przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.gov.pl/">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013).<br />Szkic planu opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Nietknięta ludzką stopą pieczara 1949 (wzmianka o odkryciu i zbadaniu); Zwoliński, S. 1951 (o odkryciu i badaniach w latach międzywojennych); Kowalski, K. 1953a (plan i opis wstępnych partii); Kowalski, K. 1955a (podaje długość i wysokość bezwzględną); Zwoliński, S. 1955b (informacja o odkryciu, fotografia); Normy klasyfikacyjne i wykaz punktacji dr&#243;g jaskiniowych, 1956 (ocena trudności); Zwoliński, S. 1958 (wzmianka bez nazwy); Chodorowscy, W. i A. 1959a (badania fizyko-chemiczne wody); W&#243;jcik, Z. 1960b (osady); Zwoliński, S. 1961 (historia odkrycia, obserwacje hydrologiczne i geologiczne, fotografia); W&#243;jcik, Z. 1966a (uwagi o osadach, genezie, niekt&#243;re dane morfometryczne, lokalizacja na mapkach, w tym geologicznej; W&#243;jcik, Z. 1968 (wzmianka o genezie); Uchmański, B. 1968 (wzmianka o eksploracji); Szywała, W. 1970 (opis eksploracji, szkic nowoodkrytych partii); Kozik, A.1972 (podaje długość); Bzowski, J. 1973 (o zakończeniu eksploracji nurkowej); Płachciński, A., Przybyszewski, W. 1975 (opis eksploracji i nowoodkrytych ciąg&#243;w); Tatry Polskie  1976 (lokalizacja na mapie 1:10 000); Borowiec W. i in. 1977,1978 (dane morfometryczne); W&#243;jcik, Z. 1978b (wzmianka o genezie); Przybyszewski, W. 1980 (plan, szkic i opis); Przybyszewski, W. 1979 (opis eksploracji); Kardaś, R. M. 1980a (wzmianka o pracach inwentaryzacyjnych, bez nazwy); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10 000, bez nazwy); Gradziński, R. i in.1985a (dane morfometryczne, orientacyjna lokalizacja na mapie); Bolek, W. 1992b,c (o problemie do eksploracji, szkic okolic I syfonu); Zwoliński, S. 1993 (opisy akcji eksploracyjnych m. in. z lat 1935-36). Bolek, W. 1996c (nurkowania eksploracyjne w rejonie I syfonu w latach 1995-96, szkic). Bolek, W. 2001 (parametry syfon&#243;w); Jaskinie TPN,  2002 (szkic planu, przekr&#243;j i opis inwentarzowy).; Barczyk, G. 2008 (badania hydrogeologiczne systemu wywierzyskowego).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    [Siarzewski, W., Zwolińska, Z.] 1986 (szkic planu z pomiarami suchych partii S. Zwolińskiego).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(715)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

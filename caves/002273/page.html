@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2273">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2273;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "519813,80".replace(',', '.') + "," + "318244,18".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2273','System Jaskini Olsztyńskiej'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                System Jaskini Olsztyńskiej
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Jaskinia Olsztyńska, System Pustelnicy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.I-03.25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;16′51,00″, φ: 50&#176;43′51,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Olsztyn (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                częstochowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Sokole G&#243;ry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Jaskinia Wszystkich Świętych) - ku NE, 343 m n.p.m.; 3 (Schronisko Wschodnie) - ku SSW, 350 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                341
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                41
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                24,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                29
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    224
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                59
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, G&#243;ry Sokole, Olsztyn, G&#243;ra Pustelnica.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Do jaskini można dojść wieloma drogami:  
+1/ Polną drogą od Olsztyna, oznakowaną czerwoną barwą Szlaku Orlich Gniazd należy dojść (2 km w kierunku południowym) do charakterystycznego zgrupowania zalesionych wzgórz (Sokole Góry). W szerokiej dolinie, rozciągniętej między Górą Knieją po stronie północno-wschodniej (lewej) a Górą Pustelnicą po prawej, szlak skręca na południe w kierunku przełęczy między Pustelnicą a Górą Puchacz. Od tego miejsca należy skręcić w prawo, zgodnie ze szlakiem. Po 130-tu metrach krzyżuje się on z czarnym szlakiem im. B. Rychlik. 700 metrów na zachód od tego miejsca (wzdłuż czarnego szlaku) znajduje się nieduża polanka. 
+2/ Od rynku w Olsztynie idziemy 2 km w kierunku południowym drogą prowadzącą do Biskupic, aż do leśnego parkingu na skraju rezerwatu przyrody „Sokole Góry”. Od parkingu należy udać się drogą leśną (bitą wapiennym rumoszem) ku wschodowi. Po przejściu 1 km, minąwszy skrzyżowanie duktów oznakowane zielonym i czarnym szlakiem, dochodzi się do charakterystycznej wspomnianej już polany. Jest ona położona u podnóża północno-zachodnich zboczy Pustelnicy. 
+3/ Można tu dotrzeć także z innej strony - przez Górę Biakło, kierując się bezpośrednio z rynku Olsztyna znakami czarnego szlaku.  
+Z polanki prowadzi wygodna ścieżka w stronę Jaskini Olsztyńskiej i okolicznych schronisk, w kierunku południowo-wschodnim, pod skalną ścianę Pustelnicy. W dwóch trzecich wysokości zbocza znajduje się otwór Studni Zygmunta. U podnóża skałek jest ścieżka, która po okołu 50-ciu metrach (w lewo, w górę) doprowadza do otworu Jaskini Olsztyńskiej. 20 m dalej znajduje się duży otwór Schroniska Wschodniego. Otwór Jaskini Wszystkich Świętych, w postaci pionowej studni, znajduje się po drugiej, południowo-zachodniej stronie wzgórza. Prowadzi doń ta sama, przecinająca grań Pustelnicy, ścieżka. 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>System Jaskini Olsztyńskiej jest połączony z powierzchnią czterema otworami (stwierdzono także połączenia głosowe z Jaskinią Basietą). Pierwszy to otw&oacute;r Jaskini Olsztyńskiej, posiadający kształt p&oacute;łkolisty o szerokości 3 metr&oacute;w i wysokości 1,7 m. Został on przemodelowany przez szpatowc&oacute;w, o czym świadczą odwierty po ładunkach wybuchowych w jego ścianach i stropie. W odległości 5 m na wsch&oacute;d znajduje się drugi, niepozorny otw&oacute;r tej jaskini, ukryty między skałkami i niekiedy przykryty liśćmi. Jest to mała szczelina między stropem groty a kamieniami na powierzchni, mająca szerokość 0,5 m i wysokość 0,3 m. </span></p>
+<p><span>Schronisko Wschodnie łączy się z powierzchnią ukośną szczeliną, posiadającą szerokość 6 m i wysokość&nbsp;od 0,3 do 1,4 m.&nbsp;Do Jaskini Wszystkich Świętych prowadzi pionowa studnia o głębokości 9 m, kt&oacute;ra w swojej wstępnej części ma kształt nerki o wymiarach 1,5x2,2 m. </span></p>
+<div>&nbsp;</div>
+<p><span>1/ Jaskinia Olsztyńska. Nie przedstawia trudności w zwiedzaniu, miejscami ciasno (zaciski Z-II).</span></p>
+<p><span>Wydaje się, że przytoczone przez Kowalskiego fragmenty opisu groty wg Maślankiewicza nic nie straciły na aktualności: <em>&bdquo;Pierwsza komora, oświetlona przez szerokie dojście światłem dziennym, posiada długość 8 m, szerokość&nbsp;5 m, przy wysokości 1-2 m. Nieregularny strop pokryty jest nerkowatymi naciekami i stalaktytami, kt&oacute;re jednak wszystkie bez wyjątku zostały już poodbijane. Całość silnie okopcona i pokryta nazwiskami pragnących się w ten spos&oacute;b uwiecznić wycieczkowicz&oacute;w... Następnie jaskinia skręca w lewo pod kątem prostym, przy czym poziom jej dna obniża się na przestrzeni 15 m o 3 m. Jaskinia rozszerza się, r&oacute;wnież strop podnosi się. Widoczne są na nim liczne nacieki i wgłębienia z groniastymi utworami. Wysokość stropu sięga 6m, mimo to jest on zniszczony wskutek zupełnego poodbijania stalaktyt&oacute;w. Część ścian została zupełnie pozbawiona zewnętrznej powłoki naciekowej wskutek eksploatacji kalcytu. (...) Z kolei komora ta skręca w prawo, przechodząc w zwężający się wysoki korytarz, kt&oacute;ry dochodzi 10-ciu metr&oacute;w wysokości. Strop tworzy fantastyczne zagłębienia i zanikające szczeliny. Po przebyciu 10 m, na wysokim stropie widoczne są nacieki stalaktytowe w kształcie welon&oacute;w, 8 m dalej dochodzimy do wąskiego przejścia o szerokości nieco tylko większej ponad 1 m, kt&oacute;re zakręca lekko w lewo, prowadząc do rozszerzonej komory. Na stropie zachowały się jeszcze liczne nacieki... Następnie jaskinia skręca w lewo i dochodzi do komory końcowej o rozmiarach 10x10 m. Była ona kiedyś najpiękniejszą częścią groty, a obecnie znajduje się w stanie największego zniszczenia.&rdquo; </em></span></p>
+<p><span>We wschodniej części tej sali, nad 1-metrowym progiem, znajduje się wejście do niskiej bocznej komory (długiej na 7 m, szerokiej na 3 m), w kt&oacute;rej stwierdzono kontakt głosowy z Jaskinią Basietą. W odległości 15m od gł&oacute;wnego otworu, na pierwszym zakręcie w prawo, <span>u podstawy jego zachodniej ściany znajduje się otw&oacute;r bocznego korytarzyka BAKK, biegnącego stromo w d&oacute;ł. Prowadzi on,</span>wg Biernackiego i Kościeleckiego (1967), &bdquo;&hellip;<em>przez dwa zaciski, do niskiej lecz szerokiej komory, zdobnej licznymi stalaktytami sferolitycznymi. Stąd ciasnym korytarzykiem przechodzimy do wysokiej, wydłużonej salki, także bogatej w nacieki. Dalej, przez niezwykle ciasny i trudny zacisk osiąga się rozdroże w Jaskini Wszystkich Świętych</em>.&rdquo; </span></p>
+<p><span>Obecnie formy naciekowe zachowały się w niedostępnych miejscach przystropowych partii i w kominach. Nacieki są czarne, pokryte warstwą sadzy. W niekt&oacute;rych miejscach aktualnie tworzą się nowe, białe ich przyrosty. Namulisko jaskini jest w gł&oacute;wnym ciągu piaszczysto-gliniaste, miejscami pokryte rumoszem, a w BAKK-u piaszczyste. Wg G&oacute;rnego, korytarz BAKK powstał na powierzchni styku ławic.</span></p>
+<div>&nbsp;</div>
+<p><span>2/ Jaskinia Wszystkich Świętych (&bdquo;Awen&rdquo;). Do zwiedzania niezbędna jest lina oraz podstawowe umiejętności taternickie.</span></p>
+<p><span>Jaskinia rozpoczyna się pionową studnią (Studnią Warszawską), o głębokości 9,1 m, kt&oacute;ra doprowadza do zagruzowanej salki. Jej spąg stanowi rumosz skalny przemieszany z pr&oacute;chnicą. W najniższym miejscu znajduje się rozdroże. Na wprost, za ciasnym przesmykiem znajduje się nieduża, niska kom&oacute;rka. Z jej prawej, patrząc od g&oacute;ry, strony otwiera się&nbsp;bardzo małe przejście do Jaskini Olsztyńskiej - BAKK. Zaś z lewej strony, wg odkrywc&oacute;w, &bdquo;...<em>jego lewa odnoga prowadzi do niewielkiego rozszerzenia, na końcu kt&oacute;rego umocowana była krata (zaraz po odkryciu jaskini), zamykająca wejście do dalszego ciągu jaskini. Za &bdquo;kratą&rdquo; widoczny jest zacisk ze śladami licznych naciek&oacute;w, wyłamanych podczas pierwszego przejścia. Zacisk otwiera się do kolejnej studni, kt&oacute;rą zwykle trawersuje się po jej lewej orograficznie stronie. Trawers wyprowadza na naturalny most skalny (Most Herberta), z jednej </em>(południowej - J.Z<em>.</em>)<em> strony podcięty przewieszonym 7-metrowym progiem, z drugiej dogodną do zejścia 7-metrową rynną. Z dna studni, przez korytarzyk pod mostem, dociera się do największej w jaskini komory (Sali Peny), kt&oacute;rej spąg tworzą masy piasku. Sala ta kończy się wyodrębnioną komorą, o dnie sugerującym istnienie syfonu piaskowego...&rdquo;.</em> Osiągnięta w tym miejscu głębokość wynosi &ndash;14 m. </span></p>
+<p><span>Jaskinia ma w częściach podstropowych dobrze zachowaną szatę naciekową, gł&oacute;wnie w postaci stalaktyt&oacute;w. Np. wg opisu Biernackiego: &bdquo;...<em>na ścianach występuje polewa naciekowa z interesującymi formami p&oacute;l ryżowych. Poza stalaktytami i stalagmitami, licznie tutaj reprezentowanymi, wykształciły się także rzadko spotykane nacieki cementacyjno-piaszczyste oraz brekcje kostno-piaszczyste. W dw&oacute;ch misach martwicowych napotkano ekcentryczne pizolity. Stalaktyty były aktywne, czarne o białych końcach</em>...&rdquo;. W najniższym miejscu sali, przechodzącym w rodzaj kr&oacute;tkiego korytarza, znajdują się dobrze zachowane nacieki, występujące pod postacią p&oacute;l ryżowych i dużego stalagmitu pagodowego. Namulisko jest bardzo obfite, w g&oacute;rnej części sali kamienisto-piaszczyste, w dolnej tylko piaszczyste.</span></p>
+<div>&nbsp;</div>
+<div>3/ Schronisko Wschodnie</div>
+<p><span>Opisał je po raz pierwszy Maślankiewicz w 1937 r., a za nim w 1951 - Kowalski: &bdquo;...<em>zostało odkryte i wyeksploatowane przez poszukiwaczy kalcytu. Stanowi ono obniżający się ku końcowi niewielki korytarz. Ściany obecnie w części sztuczne, gdzieniegdzie resztki naciek&oacute;w i kryształ&oacute;w kalcytu. Na dnie odłamki wapienia i kryształ&oacute;w kalcytu oraz piasek</em>...&rdquo; Schronisko jest widne, zimą w całości wymarzające. Poprzez ciasną, niedostępną szczelinę łączy się ona z ostatnią komorą w Jaskini Olsztyńskiej. </span></p>
+<div><span>&nbsp;&nbsp;&nbsp; </span></div>
+<p><span>Jaskinia powstała w wapieniach jurajskich. Geneza powstania systemu jaskiń Pustelnicy została przedstawiona przez Skalskiego i W&oacute;jcika (1968): <em>&bdquo;Układ korytarzy wskazuje, że Jaskinia Olsztyńska powstała gł&oacute;wnie wskutek koncentracji w szczelinach w wapieniu skalistym w&oacute;d infiltrujących na powierzchni masywu Pustelnicy. Można wnosić, że wody płynęły ze wschodu (gł&oacute;wny nurt) i południa (boczny nurt). Korytarze te tworzyły się jednocześnie, wskutek czego w miejscach zawirowań łączących się nurt&oacute;w powstały komory. Korytarze gł&oacute;wne Jaskini Olsztyńskiej są dość duże, co by wskazywało, że rzeki podziemne musiały płynąć nimi przez dłuższy czas. Dawne ciągi jaskiniowe zostały w niewielkim stopniu przemodelowane przez wody dopływające szczelinami z powierzchni. Są one widoczne w części przyotworowej i w Końcowej Komorze. Jedynie w pobliżu otworu od strony Studni Olsztyńskiej </em><span>(Jaskini Wszystkich Świętych - J.Z<em>.) płynęły dwa nurty, kt&oacute;re przyniosły do jaskini allochtoniczne piaski plejstoceńskie. Po ponownym osuszeniu się korytarzy zaczęły się w nich formować nacieki. Na dużą skalę zaczęły się tworzyć pokrywy naciekowe, kt&oacute;rych grubość przekraczała niekiedy ponad 1,5m. W niewielkich poziomych szczelinach, zapewne wskutek przesiąkania wody od wnętrza naciek&oacute;w, powstały stalaktyty sferolityczne. Kształt naciek&oacute;w zar&oacute;wno dziś istniejących, jak i tych, o kt&oacute;rych istnieniu wiemy jedynie na podstawie dawnych rycin, wskazuje, że stalaktyty tworzyły się tu gł&oacute;wnie w jednym etapie, sprzyjającym intensywnemu parowaniu wody. Szata naciekowa tworzy się r&oacute;wnież i dziś, o czym świadczą drobne stalaktyty i perły jaskiniowe powstałe w miejscach niedawno prowadzonej eksploatacji.&rdquo;</em></span>. </span></p>
+<p><span>Wg G&oacute;rnego, gł&oacute;wny korytarz Jaskini Olsztyńskiej jest niewielką pozostałością dużego systemu odwadniającego krasowy masyw, o czym świadczą wyraźnie zaznaczone rynny boczne. Te poziome rozmycia ścian są dowodem swobodnego przepływu wody w strefie wadycznej. </span></p>
+<p><span>Odnośnie Jaskini Wszystkich Świętych: <em>&bdquo;...osady piaszczyste </em><span>(w Sali Peny)<em> zostały przyniesione z powierzchni ciasnym korytarzem, kt&oacute;rego wyloty znajdują się w p&oacute;łnocnej części komory. Materiał ten został wniesiony do Jaskini Wszystkich Świętych, kiedy ostańce Sokolich G&oacute;r były przykryte znacznie grubszą warstwą piask&oacute;w czwartorzędowych niż wsp&oacute;łcześnie. Obecny otw&oacute;r </em>(Studnia Warszawska)<em> był ponorem, kt&oacute;rym rzeka z topiącego się lodowca wpływała w głąb masywu skalnego.&rdquo;</em></span> (Skalski, W&oacute;jcik 1968).&nbsp;</span></p>
+<p><span>W roku 1965 i 1966 w obu jaskiniach były prowadzone badania mikroklimatyczne (Łęski 1971). Wynika z nich, że Jaskinia Olsztyńska należy do typu dynamicznego. Występują w niej duże wahania termiczne, w zależności od temperatury na powierzchni, od -0,5&deg; do +10,5&deg;C. W zimie wymarza do połowy, zaś w końcowej części groty temperatura utrzymuje się powyżej 0&deg;C. Natomiast w Jaskini Wszystkich Świętych mikroklimat jest dynamiczny w części wstępnej, do połączenia z Jaskinią Olsztyńską, oraz statyczny w końcowej sali. W korytarzyku połączeniowym BAKK wyczuwa się przepływ powietrza. Temperatura w tej części groty waha się od +6&deg; do +9,2&deg;C.</span></p>
+<p><span>W latach 1978-1983 w Jaskini Wszystkich Świętych wykonano kompleksowe badania ekologiczne, mikroklimatyczne i brio-florystyczne (Jędrzejko, Ziober 1992). W studni wlotowej, podzielonej na trzy strefy świetlne, znaleziono 19 gatunk&oacute;w naskalnych mszak&oacute;w. Mikroklimat jaskini, zmierzony w miesiącach letnich, w partiach za studnią wlotową, charakteryzował się temperaturą od +7,5&deg; C do +9,0&deg; C oraz wilgotnością względną od 98 do 100%.</span></p>
+<p><span>Być może z powodu istnienia zmiennego mikroklimatu dynamicznego jaskinie te są rzadko odwiedzane przez nietoperze. Kowalski w 1949 r. obserwował w Jaskini Olsztyńskiej podkowce małe. Biernacki i Kościelecki stwierdzili w roku 1966 zimowanie pojedynczych osobnik&oacute;w z gatunku gacek brunatny <strong><em>Plecotus auritus</em></strong> i podkowiec mały <strong><em>Rhinolophus hipposideros</em></strong><em>. </em>W marcu 1992 zimowały w &bdquo;Awenie&rdquo; 3 nocki duże <strong><em>Myotis myotis</em></strong>. W dniu 8.01.2001 w &bdquo;Systemie&rdquo; zimowały 4 nocki Natterera <strong><em>Myotis nattereri</em></strong>, 6 nock&oacute;w dużych <strong><em>Myotis myotis</em></strong>, 4 nocki rude <strong><em>Myotis </em></strong><strong><em>daubentonii</em></strong> i 4 gacki brunatne <strong><em>Plecotus auritus</em></strong> (Postawa 2001).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>O genezie i ewolucji jaskini wypowiadał się W&oacute;jcik (1968). Mikroklimat badał Łęski (1971), a badania bioekologiczne prowadzili Jędrzejko i Ziober (1992).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Już w pierwszej połowie XIX-go wieku Jaskinia Olsztyńska była uznana za dużą atrakcję turystyczną, o czym w 1836 roku pisze Pusch. Warto zacytować opis jaskini z roku 1856 zamieszczony przez Adama Wiślickiego w &bdquo;Księdze Świata&rdquo;: <em>&bdquo;<span>Oto stoimy u wstępu sławnej groty olsztyńskiej: powietrze wilgotne i zimne owiewa nas, przygotowując do tajemniczej wędr&oacute;wki po krętych krużgankach podziemnego zamku. Poprzedzani od przewodnik&oacute;w, przechodzimy wąskie gardło przysionkowe: czerwone światełko kaganka rzuca bladawy odblask, ukazując zdumiałym oczom widok niespodziany, a przytem wspanialszy nad wszelki wyraz. Stajemy u st&oacute;p olbrzymich organ&oacute;w, ulanych ręką potężnej natury, na kt&oacute;rych chyba geniusz jaki w dzień tryumfu lub gniewu przyrody zagra pieśń odrodzenia albo śmierci. Po obu stronach tego przepysznego dzieła natury ciągną się kręte, esowate krużganki, podparte stalaktytowemi kolumnami. P&oacute;łkoliste sklepienie dw&oacute;ch następnych salek, do kt&oacute;rych wchodzi się przez wąskie wrota, podparte w wielu miejscach kolumnadą, zwiesza się w przepyszne, jakby gotyckie kluczniki, spływające na ściany udrapowane i ufalowane wężykowatemi wstęgami. Minąwszy zn&oacute;w ciasne i strome przejście, znajdziemy się w obszernej komnacie, w środku kt&oacute;rej powalony stalagmit tworzy rodzaj nagrobkowego pomnika w kształcie trumny. (...) Grota, kt&oacute;rej zarysy tak słabo oddaliśmy, leży w jednem ze skalistych skupień na południo-wsch&oacute;d sławnego olsztyńskiego zamku; śmiało może ona walczyć o palmę pierwszeństwa z jaskiniami Ojcowa, jeżeli nie co do wielkości, to przynajmniej co do osobliwości. Przytem nagie groty ojcowskie nie czynią takiego wrażenia co olsztyńskie, bogato udrapowane stalaktytami.&nbsp;Wnętrze jaskini jest tak ciemne, iż niepodobna go zwidzać bez światła, spos&oacute;b jednak oświetlenia za pomocą łuczywa, pomimo całej swej poetycznej strony i historyczności, przy postępie dzisiajszej sztuki oświetlania m&oacute;głby być zmieniony, dla wielu powod&oacute;w, a mianowicie dla zdrowia zwidzających i czystości samej groty, dym bowiem ze spalonego łuczywa nie pozwala długo przebywać w tem przepysznem ustroniu, osiadając zaś na ścianach, brudzi je tak, że dziś cała grota przywdziała grobową sukienkę, i w niekt&oacute;rych tylko bardziej oddalonych zakątkach zachowała pierwotną czystość i białość marmurową, tak dla oka przyjemną. Może być, że posępna barwa ścian, ufalowanych w cudne kolumny lub alhambryjskie wieżyczki, dodaje uroku, jednakże białość marmurowa stokroć więcej przyczyniłaby wdzięku temu i tak już prześlicznemu siedlisku echa</span>.&rdquo;</em>&nbsp;</span></p>
+<p><span>Z tego okresu zachowały się także opisy Puscha (1836) i Jastrzębowskiego (1848), kt&oacute;rzy zgodnie uznali jaskinię za najpiękniejszą na ziemiach Polski. Ale wg Kosiorowskiego, już w roku 1898 grota była częściowo zniszczona przez zwiedzających, kt&oacute;rzy poutrącali stalaktyty oraz miejscowych, kt&oacute;rzy je sprzedawali. Jednak totalnego zniszczenia dokonała dopiero eksploatacja kalcytu, prowadzona przez pierwsze 30 lat XX-go wieku. </span></p>
+<p><span>W roku 1909 jaskinia została opisana przez Wr&oacute;blewskiego w przewodniku Polskiego Towarzystwa Krajoznawczego:<em> &bdquo;&hellip;zwiedzić należy wielką grotę w g&oacute;rach Sokolich, odległą o 2 wiorsty od zamku, w lesie. Po drodze mijamy dwie skałki, zdala sterczące jak duże stogi siana na polu - to Biakło i Klec&oacute;wka</em> (czyli Biakło i Lip&oacute;wka - J.Z.). <em>W lesie trzeba iść pod g&oacute;rę, nim dostaniemy się do otworu groty. Sama grota należy do większych, ma liczne korytarze i zakręty. Przed stosunkowo niedawnym czasem, ba, przed 15-20 laty, grota posiadała mn&oacute;stwo pięknych stalaktyt&oacute;w. P&oacute;źniejsi turyści-wandale wszystko to zniszczyli. Odłamywano na pamiątkę sterczące sople. Przyczem do oświetlenia groty używano kopcących łuczyw, wskutek tego strop i ściany są niemiłosiernie okopcone. Wszystko to sprawiło, że jedna z najpiękniejszych grot naszego kraju została zamieniona na loch brudny, okopcony, pełny rumowiska</em><em>.&rdquo;</em>&nbsp;</span></p>
+<p><span>W roku 1937 Maślankiewicz publikuje dość ścisły i rzeczowy opis jaskini Olsztyńskiej (częściowo przytaczany powyżej), wraz z reprodukcją rysunku L. Dymitrowicza z 1874 r. Obszerne tego fragmenty są cytowane przez Kowalskiego w monografii &bdquo;Jaskinie Polski&rdquo;, gdzie jaskinia występuje pod numerem katalogowym 487. Schronisko Wschodnie, wchodzące w skład systemu jaskiniowego Pustelnicy, zostało opisane przez Maślankiewicza w roku 1937 jako odrębna niewielka jaskinia. Załączona jest także fotografia otworu.&nbsp;Schronisko zostało odkryte 30 lat wcześniej przez szpatowc&oacute;w czyli kopaczy kalcytu i także przez nich silnie zmienione. Kowalski zinwentaryzował je (z planem i opisem) pod nr. 486, jako &bdquo;Schronisko w Sokolich G&oacute;rach IV&rdquo;.</span></p>
+<p><span>Historia odkrycia Jaskini Wszystkich Świętych została opisana przez Z. Biernackiego i K. Kościeleckiego (1967b): <em>&bdquo;Pierwsze prace eksploracyjne nad problemem Jaskini Wszystkich Świętych podjęli w 4-metrowej w&oacute;wczas wstępnej studni członkowie Speleoklubu PTTK Warszawa na jesieni 1960 roku. Kontynuowali je częstochowscy grotołazi ze Speleoklubu PTTK i STJ AZS przy Politechnice Częstochowskiej. W roku 1962, na głębokości 8 metr&oacute;w znaleziono brzeszczot starej łopaty - ślad po dawnej pracy szpatowc&oacute;w. Odkrycie korytarzy BAKK w sąsiedniej J. Olsztyńskiej zintensyfikowało prace. 7 lipca 1963 grupa, w składzie H. Kaniut, Z. Biernacki i K. Kościelecki, stwierdziła obsunięcie się spągu, w wyniku wcześniejszych deszczy. Odsłoniła się wtedy szczelina, prowadząca poprzez kilkumetrowy ciasny korytarzyk do małej komory. Kończyła się ona ciasnym, zarośniętym naciekami otworem. Po wyrąbaniu naciek&oacute;w w otworze i przetrawersowaniu zapieraczką znajdującej się za nim studni nastąpiło dojście do naturalnego mostu, z kt&oacute;rego jedna osoba zeszła na dno studni, a druga zjechała na linie do dużej sali. Tego samego dnia dokonano wejścia do znajdującego się w ścianie sali otworu, kt&oacute;ry okazał się niszą, bardzo zresztą bogatą w nacieki.&rdquo;</em></span></p>
+<p><span>W roku 1962 częstochowscy grotołazi: B. i A. Przewłoccy, B. Kopeć i K. Kościelecki, odkryli w Jaskini Olsztyńskiej bardzo ciasny korytarzyk, kt&oacute;ry nazwali (od swoich inicjał&oacute;w) BAKK. 8-go sierpnia 1963 roku St. Kopeć i Z. Biernacki przedostali się nim do Jaskini Wszystkich Świętych.&nbsp;</span></p>
+<p><span>Opis Jaskini Wszystkich Świętych (nazwanej także jako &bdquo;Awen&rdquo;) wraz z planem Z. Łęskiego został opublikowany w Niphargusie (1967) przez Z. Biernackiego i K. Kościeleckiego. Ten sam (choć nie podpisany) plan został umieszczony w roczniku 33 Ochrony Przyrody (Skalski, W&oacute;jcik 1968) przy charakterystyce tzw. &bdquo;Studni Olsztyńskiej&rdquo;. Nazwa ta była propozycją (nieudaną &ndash; J.Z.) zamiany niezbyt fortunnej nazwy &bdquo;Awen&rdquo; na bardziej regionalną. Obecna nazwa jaskini pochodzi od daty &ndash; 1 listopada - pierwszej eksploracji, prowadzonej przez Speleoklub Warszawski w studni wlotowej. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Przedstawiony tu plan Systemu Jaskini Olsztyńskiej, opublikowany w 1986 r., zestawił M. Szelerewicz na podstawie pomiar&oacute;w wykonanych przez A. G&oacute;rnego, A. Tyrpę, J. Zygmunta i M. Szelerewicza w dniu 09 kwietnia 1983 r. Przekr&oacute;j Jaskini Wszystkich Świętych powstał na podstawie zestawienia i zweryfikowania przekroj&oacute;w Z. Łęskiego i M. Szelerewicza. Dane zaktualizował J. Zygmunt w 2009 r.</span></p>
+<p><span>Plan wg M. Szelerewicza i A. G&oacute;rnego (1986), przekr&oacute;j opracował J. Zygmunt.</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span>W 2013 J. Zygmunt opublikował opis systemu z wyłączeniem Schroniska Wschodniego, będący skr&oacute;cona repliką opisu zamieszczonego powyżej. Plan przedstawiony we wspomnianej publikacji jest&nbsp;nieco&nbsp;zmieniony&nbsp; (m.in. podpisany przez trzech autor&oacute;w iż datą 2013) i nie obejmuje Schroniska Wschodniego, opublikowanego jako odrębny obiekt opis i plan jest repliką&nbsp; z dokumentacji zawartej w&nbsp; t.1 inwentarza Jaskinie Wyżyny Częstochowskiej. <em>Przyp. red. 2013 r.</em>&nbsp;</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pusch G. 1831-36 (wzmianka o J. Olsztyńskiej); Wiślicki A. 1856 (opis Jaskini Olsztyńskiej); Wr&#243;blewski 1905 (informacja o Jaskini Olsztyńskiej); Maślankiewicz K. 1937 (opis Jaskini Olsztyńskiej i Schroniska Wschodniego, rysunek); Kowalski K. 1951 (plan, opis Jaskini Olsztyńskiej i Schr. Wschodniego);  Biernacki Z., Kościelecki K. 1967b,c,d (historia odkrycia , plan, opis); Łęski Z. 1967 (mikroklimat); Skalski A.W., W&#243;jcik Z. 1968 (plan, opis, fauna, geneza); Łęski Z. 1971 (mikroklimat); Szelerewicz M., G&#243;rny A. 1986 (plan, opis); Jędrzejko K., Ziober A. 1992 (badania flory mszak&#243;w);  Zygmunt J. 2003  (wykaz jaskiń); Stefaniak K. i in. 2009d (dane morfometryczne  błędna deniwelacja i długość, kr&#243;tka charakterystyka, zakres badań, pn. Jaskinia Olsztyńska i Wszystkich Świętych); Jaskinie Wyżyny Częstochowskiej 2011a  (plan i opis inwentarzowy); Zygmunt 2013 (nieco zmieniony plan w małej skali, replika opisu (skr&#243;conego) z t.1 Jaskinie Wyżyny Częstochowskiej, fot. otwor&#243;w,  dane morfometryczne z wyłączeniem Schroniska Wschodniego, pod nr inwentarzowym wg własnego podziału autora).   
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Zygmunt J. i in. 2000 (dokumentacja); Postawa T. 2001 (niepubl. sprawozdanie z obserwacji nietoperzy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Zygmunt
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1959)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1960)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=83" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

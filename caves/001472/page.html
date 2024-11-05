@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1472">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1472;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565427,07".replace(',', '.') + "," + "152854".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1472','Jaskinia Marmurowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Marmurowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.05
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;53′56,80″, φ: 49&#176;14′22,90″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1770,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                435
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                126
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                24,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                150,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    681
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, zbocze Gładkiego Upłaziańskiego, w g&#243;rnej części Kazalnicy Miętusiej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Idąc czerwonym szlakiem z Doliny Kościeliskiej na Czerwone Wierchy podchodzimy pod Gładkie Upłaziańskie. W miejscu, gdzie szlak przecina ostatni wyraźny żleb spadający do Małej Świstówki, schodzimy ze szlaku i trawersujemy Szerokie wyraźną, nieznakowaną percią biegnącą nad skałami urywającymi się do Małej Świstówki i Dziurawego, aż do niewielkiej skałki, w której znajduje się otwór. Droga przy dobrej pogodzie łatwa, we mgle niebezpieczna. Jaskinia jest trudna w zwiedzaniu, wymaga sprzętu alpinistycznego. W jaskini są osadzone batinoxy, miejscami krucho.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r jaskini dość wysoki (3 m) i szeroki (ok. 2 m) jest rozdzielony na dwie części dużą wantą. Otwiera się on w stropie studni, w kt&oacute;rej po 6 m zjazdu osiągamy szeroką na 3 m p&oacute;łkę, kt&oacute;ra obrywa się 13 m głęboką I studnią, zwaną Plecami Murzyna. Na wprost krawędzi p&oacute;łki w przeciwległej ścianie widoczny jest (dostępny bardzo trudną &ndash; IV- wspinaczką z dna I Studni) wylot biegnącego w g&oacute;rę komina KKTJ, kt&oacute;ry po około 10 m rozdwaja się. Lewe odgałęzienie, początkowo łagodnie nachylone i o dnie pokrytym gruzem, przechodzi w pionowy komin o wysokości około 10 m; prawe odgałęzienie biegnie stromo ku g&oacute;rze i po zmianie kierunku o 90&deg; w lewo, kończy się ciasnymi szczelinami na wysokości +24 m od otworu.</span></p>
+<p><span>Z p&oacute;łki w wejściowej studni zjeżdżamy dalej około 13 m przez przewieszony pr&oacute;g, na pokryte rumoszem dno prawie okrągłej w zarysie salki, mającej około 7 m średnicy. Tu jaskinia rozwidla się na trzy ciągi &minus; dwa z nich to niewielkie, szczelinowe odgałęzienia.</span></p>
+<p><span>Pierwsze to Meander Dudzińskiego, zaczynający się około 10 m nad dnem I Studni, w jej zachodniej części. Jest to kilkumetrowej wysokości szczelina, kt&oacute;rą posuwamy się na r&oacute;żnych wysokościach nad jej dnem&nbsp;Po 15 m osiągamy stromą, zasłaną kamieniami pochylnię, przechodzącą w 5 m wysoki prożek. Tu korytarz rozszerza się do 3 m i osiąga 10 m wysokości. Po następnych 6 m korytarz zwęża się, przechodząc w ciasną, zablokowaną kamieniami, niedostępną szczelinę. Drugi ciąg, zwany Meandrem KKTJ, ma wejście w zachodniej części ściany I Studni. Po około 12 m kończy się on niedostępną szczeliną, a jego lewa, 6 m długa odnoga urywa się w stropie II Studni.</span></p>
+<p><span>Dalsza droga w głąb jaskini wiedzie na wprost w g&oacute;rę przez 4-metrowy pr&oacute;g z zaklinowanych want, a następnie stromą pochylnią pokonywaną zjazdem, kt&oacute;ra doprowadza nad II Studnię o głębokości 22 m. Trawersując studnię (V) można się dostać do korytarzyka około 20 m długości (nie umieszczony na planie). Zjazdem bez kontaktu ze ścianami osiągamy stromo nachylone, pokryte wantami i rumoszem skalnym dno studni, zwane Salą Deszczu. Ku NE odchodzi w g&oacute;rę wąski, szczelinowaty korytarz, przechodzący w komin zablokowany wantami, kt&oacute;rym można się wspiąć około 10 m. Komin przez niewielkie okno łączy się z II Studnią 8 m nad jej dnem. </span></p>
+<p><span>W Sali Deszczu obniżamy się po rumowisku do najniższego punktu sali. Tu rozpoczyna się 15-metrowej długości, ciasny przekop pomiędzy ścianą a zawaliskiem, kt&oacute;ry wyprowadza nad około 50 m głęboką, butelkowatego kształtu Studnię Kandydata. Jej dno, pokryte wantami ma rozmiary 15x8 m. W czasie zjazdu Studnią Kandydata mijamy dwa okna. Wyższe z nich (okno 2 &minus; zawieszone ok. 35 m nad dnem studni), o trapezoidalnym kształcie, możemy osiągnąć wahadłem i wspinaczkowym trawersem. Za oknem znajduje się szczelina, po 10 m w g&oacute;rę i w d&oacute;ł jest zablokowana kamieniami i gruzem. Drugie, tr&oacute;jkątne okno (okno 1) osiągamy po 20 m wspinaczki z dna studni (V, A0). Za oknem wznosi się 15 m wysokości, ślepo kończący się komin, o dnie pokrytym płytkim jeziorkiem&nbsp;średnicy 2 m.</span></p>
+<p><span>Pod południową ścianą na dnie Studni Kandydata bierze początek Meander Trzech Pytań. Po 5 m dochodzimy nad szczelinową studnię 6 m głęboką, za kt&oacute;rą po dalszych 15 m osiągamy 6-metrowy pr&oacute;g. Z progu zjeżdżamy na dno dużej sali o wymiarach 8x5 m i wysokości 29 m, zwanej Marzeniem Prezesa. Dno sali, stromo nachylone ku południowi pokrywają wanty i gruz. W g&oacute;rnej części sali można nawiązać kontakt akustyczny z dnem Studni Kandydata. Z najniższej części sali, wspinając się (VI) poprzez 5-metrowy Pr&oacute;g Młota, osiągamy kilkumetrowy meander, doprowadzający nad dwie niewielkie studzienki &minus; Piaskownice. Zasypane są one piaskiem i rumoszem, a w najbardziej wysuniętej na południe znajduje się najniższy punkt jaskini (&minus;126 m).</span></p>
+<p><span>Wracamy do Sali Deszczu. Z najniższego jej miejsca wspinamy się 4-metrowym progiem z zaklinowanych want na platformę. Stąd 6-metrowym progiem (III+), w padającym deszczu podziemnym, osiągamy korytarz 3 m szerokości i 6 m wysokości, kt&oacute;ry po 10 m przechodzi w wąską szczelinę wyprowadzającą nad III Studnię 48 m głębokości &minus; Czarną Basztę. Po 6 m zjazdu osiągamy p&oacute;łkę z luźno zaklinowanych want (niebezpiecznie!), a po dalszych 30 m zjazdu w kontakcie z kruchymi ścianami osiągamy p&oacute;łkę pokrytą kamieniami. 15 m niżej znajduje się pokryte głazami i rumoszem dno studni o wymiarach 10x6 m. W jego p&oacute;łnocnej części opada ciasny korytarzyk zwany Workiem.&nbsp;Jego koniec stanowi tzw. stare dno na głębokości &minus;86 m. </span></p>
+<p>Jaskinia utworzyła się w wapieniach środkowego triasu, jury i dolnej kredy jednostki Ździar&oacute;w (seria wierchowa, fałd Czerwonych Wierch&oacute;w &minus; Grodzicki i Kardaś 1989), wzdłuż tektonicznie rozszerzonych, pionowych powierzchni ciosowych o biegu 176&lt;span &gt;&deg; (wstępna studnia), 141&lt;span &gt;&deg; (Meander Dudzińskiego i Komin KKTJ), 66&lt;span &gt;&deg;&minus;90&lt;span &gt;&deg; (stary ciąg jaskini) oraz 1760 (partie od Studni Kandydata do dna). W jaskini <span>widoczne są tektoniczne kontakty pomiędzy wapieniami triasu środkowego a niżej leżącymi wapieniami jury (na głębokości około 60 m względem otworu) i wapieniami jury oraz wapieniami urgonu na głębokości około 88 m, w kt&oacute;rych rozwinięte są najgłębsze partie jaskini.</span></p>
+<p><span>Według J. Grodzickiego (1969, 1970) Jaskinia Marmurowa ma genezę tektoniczną, a dokładniej m&oacute;wiąc, szczeliny na kt&oacute;rych się rozwinęła zostały rozwarte w wyniku ruch&oacute;w odprężeniowo-grawitacyjnych masywu, spowodowanych tworzeniem się w plejstocenie glacjalnej morfologii. Tak otwarte szczeliny stanowiły drogę przepływu dla w&oacute;d pochodzących z topniejących lodowc&oacute;w, a obecnie &minus; dla w&oacute;d roztopowych i opadowych. Z. W&oacute;jcik (1978) przedstawia podobny pogląd.</span></p>
+<p><span>W jaskini nie obserwowano występowania naciek&oacute;w, ściany korytarzy i studni są na og&oacute;ł gładkie, bez ślad&oacute;w form wirowych. Osady klastyczne stanowi autochtoniczny rumosz skalny i zawaliska (w starym ciągu jaskini). Jedynie w najniższej partii jaskini spotyka się namuliska piaszczyste &minus; dotychczas nie badane.</span></p>
+<p><span>Światło sięga do dna pierwszej studni. W okresach bezdeszczowych jaskinia jest na og&oacute;ł sucha, jedynie ze stropu wejściowej studni oraz Sali Deszczu pada silny deszcz podziemny. Nie występują stałe strugi wody, a jedyny stały jej zbiornik znajduje się w najniższej partii jaskini. Przewiewu nie wyczuwa się.</span></p>
+<p><span>Roślinność zielona występująca bardzo obficie przy otworze i we wstępnej studni (do p&oacute;łki), nie była dotychczas badana. Stanowią ją gł&oacute;wnie paprocie, mchy i porosty, a także glony. </span></p>
+<p><span>Faunę reprezentują gł&oacute;wnie nietoperze i owady troglokseniczne. B. W. Wołoszyn (1970) stwierdza występowanie w jaskini nietoperzy <strong><em>Myotis myotis</em></strong>. Piksa (1995), podając wyniki monitoringu nietoperzy w jaskiniach Tatr, wymienia dla Jaskini Marmurowej</span><strong><em> Myotis mystacinus</em></strong>. <span>Piksa, K. i Wołoszyn, B. W. (2001) wymieniają następujące gatunki nietoperzy:<strong><em> Myotis myotis</em></strong> /Borkhausen/, <strong><em>Myotis bechsteinii, Myotis mystacinus</em></strong> /Leisler/, <strong><em>Myotis brandtii. </em></strong></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania geologiczne jaskini, obejmujące tektonikę, genezę i wiek przeprowadził J. Grodzicki (1969, 1970), badania litostratygraficzne i tektoniczne prowadzili J. Grodzicki i R. M. Kardaś (1989). B. W. Wołoszyn opisał występowanie nietoperzy (1970).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta na podstawie wskaz&oacute;wek g&oacute;rali przez J. Danysza i J. Kibińskiego z STJ KW Krak&oacute;w w dniu 14 września 1960 r. Dotarli oni tego dnia nad Salę Deszcz&oacute;w. 19/20 września tego roku J. Danysz osiągnął dno Czarnej Baszty, a jego towarzysze &minus; J. Zaorska i J. Kibiński &minus; wiszącą p&oacute;łkę z blok&oacute;w w g&oacute;rnej części tej studni. Najniższy, poznany w&oacute;wczas punkt jaskini (Stare Dno), nazwany Ślepą Kiszką, osiągnęli w dniu 24/25 września 1961 r. J. Danysz, J. Kibiński i J. Zaorska. Według J. Baryły i J. Kibińskiego (1986) miejsce to zostało zasypane w dniu 27 sierpnia 1964 r. wskutek oberwania się platformy z zaklinowanych blok&oacute;w w g&oacute;rnej części Czarnej Baszty. W dniu 12 sierpnia 1981 r. zesp&oacute;ł z KKTJ (B. Madej i B. Samborski ) wspiął się kominem nad salą pod I studnią, odkrywając Komin KKTJ i odnajdując na dnie I studni korytarz nazwany Meandrem KKTJ. Meander Dudzińskiego został wyeksplorowany w dniu 23 lipca 1982 r. przez zesp&oacute;ł z ST PTTK Zakopane &minus; K. Dudzińskiego i Z. Bodurka. 21 sierpnia 1982 r. zesp&oacute;ł z KKTJ (J. Dulęba i A. Madej) odkrywają około 20 m korytarza za oknem nad II Studnią. <br /> W dniach 27-31 marca 1986 r. zesp&oacute;ł ze Speleoklubu Warszawskiego PTTK w składzie M. Adamski, T. K. Pryjma, K. Wardakowski i W. Wasilewski przekopują w dnie Sali Deszcz&oacute;w zawalisko i pokonują Studnię Kandydata. W czasie następnej akcji, w dniach 1-3 maja 1986 r., M. Adamski, M. Kapełuś, T. K. Pryjma, W. Wasilewski i K. Wardakowski docierają do nowego dna jaskini na głębokości 126 m. Kolejna akcja, przeprowadzona w dniach 20-22 lipca 1986 r. (E. Perzyńska, K. Wardakowski i W. Wasilewski), eksploruje okna w Studni Kandydata, odkrywając dwa dotychczas nieznane, ślepe kominy i Jeziorko Straconych Nadziei. W dniu 10 sierpnia 1988 r. (A. Gajewska, M. Francuz, K. Krawiec i S. Stefański (Speleoklub Warszawski) przekopują około 3 m, w 1995 r. podobna pr&oacute;ba nie przynosi widocznych rezultat&oacute;w. W p&oacute;źniejszym okresie wielokrotnie podejmowano pr&oacute;by eksploracji w Piaskownicach oraz w Ślepej Kiszce, jednak bez większych rezultat&oacute;w</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i opis inwentarzowy opublikował Grodzicki (1968a). Dokumentację jaskini opracowali J. Grodzicki i K. Recielski w 1996 r. Dane zaktualizowała I. Luty (2009).<br />Plan opracował T. K. Pryjma.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik Z. 1966a (lokalizacja na mapce, wzmianka); Żelechowski M. 1966 (wzmianka); Grodzicki J. 1968a (plan, przekr&#243;j, opis inwentarzowy); W&#243;jcik Z. 1968 (lokalizacja na mapce); Grodzicki 1969 (dane geologiczne, geneza);Wołoszyn B.W. 1970 (fauna); Grodzicki J. 1971a: (wymienia); Kozik A. 1972a (dane morfometryczne); Kropiwnicka M., Burkacki M. 1976 (wzmianka o wykonaniu dokumentacji fotograficznej); Borowiec W. i in. 1977, 1978 (dane morfometryczne); Parma Ch., Rajwa A. 1978 (wzmiankują); W&#243;jcik Z. 1978c (o genezie); Głazek J. i in. 1979a i b (wzmianki); Parma Ch. 1979 (wzmianka); Kronika 1981c (wzmianka o odkryciach i ospitowaniu); Cikowski W. 1983 (wzmianka o eksploracji w II Studni); Kronika 1983d (informacja o eksploracji w III studni); Orłowski J. 1983 (o eksploracjach KKTJ); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10 000); Gradziński R. i in. 1985a i b (lokalizacja na mapie, dane morfometryczne); Kardaś R. M. 1985f (dane morfometryczne, lokalizacja na szkicu, historia eksploracji); Baryła J., Kibiński J. 1986 (historia eksploracji); Pryjma T.K. 1986 (o odkryciach); Pryjma T.K., Wasilewski W. 1986b (o odkryciach); Wasilewski W. 1987 (o odkryciach); Czubalski A. 1989 (o odkryciu 3 m na dnie); Grodzicki J., Kardaś R.M. 1989 (geologia, tektonika); Grodzicki J. 1991 (dane geologiczne, geneza); Pryjma T.K. 1994 (plan, przekr&#243;j, historia odkryć); Kronika 1995 (o pr&#243;bie kopania na dnie); Piksa K. 1995 (monitoring nietoperzy); Jaskinie TPN  1996 (plan i opis inwentarzowy); Piksa K., Wołoszyn B.W. 2001 (nietoperze); Grodzicki J. 2008 (budowa geologiczna).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Danysz, J., Kibiński, J. 1960 (szkic przekroju 1:500); Grodzicki, J. 1969 (geneza, tektonika, budowa geologiczna, mapa tektoniczna, strukturalna); Grodzicki, J. i in. 2000 (zmiany antropogeniczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Krzysztof Recielski, Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12351)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 
+                    </a>
+                    <a onclick="showImageInfo(977)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1228">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1228;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "570352,29".replace(',', '.') + "," + "154616,93".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1228','Jaskinia Bystrej'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Bystrej
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Kalacka Niżnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-16.04
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;58′01,54″, φ: 49&#176;15′18,03″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SE, 1182 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1192
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                27
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                27
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                26
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                53
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1480
+                </div>
+                <div style="min-height: 15px;">
+                    180
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                630
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia znajduje się w lewym orograficznie zboczu Doliny Bystrej, u st&#243;p Kalackiej Turni, powyżej Wywierzyska Bystrej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Kalatówek idziemy szlakiem prowadzącym do Doliny Kondratowej. Kilkadziesiąt metrów od wejścia w las z lewej strony stromo opadające zbocze tworzy zaklęśnięcie porośnięte lasem.  Osią zaklęśnięcia schodzimy kilkanaście metrów pod niewielką skałkę – u jej stóp znajduje się dolny otwór w postaci obszernej nyży. W lewo opada obudowana belkami studnia, w prawo wznosi się krótki, ślepy korytarzyk. Górny otwór jaskini, udostępniony przekopem przez zwietrzelinę stokową znajduje się wyżej i około 30 m  ku SW. Oba otwory są obecnie zamknięte przez TPN. Dojście i zwiedzanie suchych partii – łatwe, w syfonach potrzebny sprzęt nurkowy.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Studnia opadająca od otworu po 12 m sprowadza do poziomu wody, wypełniającej trzy wstępne syfony o łącznej długości około 60 m i głębokości dochodzącej do 6-7 m. W syfonach, około 1 m pod stropem, znajdują się kładki, po kt&oacute;rych (po uprzednim odpompowaniu wody) pokonywali pozostałe jeziorka odkrywcy jaskini &ndash; T. i S. Zwolińscy.</span></p>
+<p><span>Za syfonami gł&oacute;wny ciąg jaskini rozgałęzia się (Rozdziele) &ndash; kilkanaście metr&oacute;w wcześniej w prawo wstecz ponad 1,5-metrowym prożkiem odchodzi ku g&oacute;rze ciasny, myty, szczelinowy korytarzyk, prowadzący do g&oacute;rnego otworu jaskini, sztucznie przekopanego w 1958 r. przez grotołaz&oacute;w zakopiańskich pod kierunkiem E. Winiarskiego.</span></p>
+<p><span>Od Rozdziela idziemy w lewo (or.) w d&oacute;ł obszernym, ładnie mytym korytarzem dolnego piętra. Po około 40 m dochodzimy do niewielkiego prożka, za kt&oacute;rym w lewo i w prawo odchodzą ciasne szczeliny z ładnymi naciekami. Dalej korytarz skręca w lewo i opada, doprowadzając po kilkunastu metrach na krawędź 2-metrowej studzienki o dnie wypełnionym wodą. Dalej korytarz ostro skręca w lewo i staje się szczelinowy. Po dalszych 10 m pokonujemy skalną barierę, prożek w d&oacute;ł i dochodzimy pod Wielki Komin. Tu ciąg rozgałęzia się.</span></p>
+<p><span>Korytarz biegnący ku SW po kilkunastu metrach doprowadza do rozległego syfonu, kt&oacute;rego początkowe kilkadziesiąt metr&oacute;w można obejść bocznymi, rurowatymi, ciasnymi korytarzykami. Dalszy ciąg syfonu łączy się prawdopodobnie z syfonem w dolnym ciągu korytarza opadającego z Sali z Wodospadem (patrz dalsza część opisu).</span></p>
+<p><span>Wracamy do podn&oacute;ża Wielkiego Komina i wspinamy się (uwaga na stare, drewniane drabiny!) do niewielkich korytarzyk&oacute;w, rozgałęziających się około 27 m wyżej. Są one zablokowane zawaliskiem bądź zamulone, podobnie jak biegnące ku powierzchni ciasne kominki. Jest to najwyższy znany punkt jaskini (+36 m).</span></p>
+<p><span>Ponownie wracamy do podn&oacute;ża Wielkiego Komina. Wspinamy się kilka metr&oacute;w przeciwległą ścianą (SE) i trafiamy do opadającej jego kontynuacji. Schodzimy kilkanaście metr&oacute;w stromo opadającym korytarzem i osiągamy jeziorko Wielkiego Syfonu. Podjęta w 1956 r. pr&oacute;ba jego pokonania przez krakowskich płetwonurk&oacute;w zakończyła się niepowodzeniem. </span></p>
+<p><span>Wracamy do Rozdziela. W prawo w g&oacute;rę (ku W) przedostajemy się poprzez niewielki prożek do dość rozległej, niskiej i stromo nachylonej Sali Pochyłej. Z jej stropu zwisają makarony, pod ścianami można znaleźć zamulone stalagmity. Za Salą Pochyłą mijamy okresowy stawek i po pokonaniu zwaliska przedostajemy się do Sali Pośredniej. Pod jej p&oacute;łnocną ścianą jest skupisko pięknych stalagmit&oacute;w. W małym stawku z pokrywą naciekową występują niewielkie perły jaskiniowe, ścianę pokrywają girlandy i draperie, liczne są także stalaktyty i stalagmity rosnące na polewie naciekowej.</span></p>
+<p><span>Z Sali Pośredniej ciasnym przekopem wśr&oacute;d zawaliska przedostajemy się ku NW do obszernego korytarza, biegnącego ku zachodowi. </span></p>
+<p><span>Po kilku metrach w jego prawej ścianie nad 3-metrowym&nbsp;progiem znajduje się wejście do korytarza. Biegnie on ku NW i po 20 m&nbsp;skręca w prawo. Tu odchodzi w lewo ciasny korytarzyk, całkowicie zamulony po 10 m.&nbsp;Idąc dalej korytarzem w prawo, po kilku metrach osiągamy rozwidlenie.</span></p>
+<p><span>W lewo odchodzi pod kątem prostym ciasny korytarzyk, kt&oacute;ry po skręcie w prawo, a następnie w lewo lekko opada i po 50 m&nbsp;jest zablokowany zawaliskiem. </span></p>
+<p><span>Na wprost korytarz wznosi się i po kilku metrach rozgałęzia się na dwa korytarzyki kończące się zamulonymi kominkami.</span></p>
+<p><span>Wracamy pod 3 m&nbsp;pr&oacute;g w ścianie korytarza biegnącego z Sali Pośredniej. Silnie zamulony korytarz biegnie dalej na zach&oacute;d, na spągu pojawiają się niewielkie kałuże. Po kilkudziesięciu metrach rozwidla się lecz obie odnogi zapełnia namulisko, sięgające prawie do stropu. Występują tu liczne nacieki, wyczuwa się wyraźny przewiew.</span></p>
+<p><span>Wracamy do Sali Pośredniej. Dalsza droga rozpoczyna się zaciskiem w dole zawaliska stanowiącego lewe (or.) ograniczenie sali. Po pokonaniu (na plecach) zacisku przeciskamy się ku SW kilka metr&oacute;w między głazami i wchodzimy do szczelinowego korytarza. Dalej idziemy lekko w d&oacute;ł dość obszernym korytarzem.&nbsp;Po minięciu dw&oacute;ch ślepych odgałęzień w prawej ścianie podchodzimy do 4-metrowego prożka, za kt&oacute;rym znajduje się Komora Zwalisk, w połowie rozdzielona filarem.&nbsp;Za nim w prawej ścianie komory znajduje się kr&oacute;tkie odgałęzienie ze stawkiem i pięknymi naciekami. Za odgałęzieniem komora przechodzi w szczelinowy korytarz &ndash; w jego dnie otwiera się studnia o głębokości 11 m, prowadząca do Gąbki, natomiast na wprost szczelinowy korytarz, powstały na kontakcie tektonicznym wapieni malmo-neokomu i triasu środkowego. Po 25 m&nbsp;opada on stromym progiem nad jeziorko Syfonu SW.</span></p>
+<p><span>Wracamy nad 11-metrową&nbsp;szczelinową studnię i zjeżdżamy do schematycznie tylko skartowanej partii jaskini zwanej Gąbką. Stanowi ona przeplatające się w pionie i poziomie dość obszerne, pięknie myte korytarze, kt&oacute;rymi idąc w prawo przedostajemy się do Sali Wodospad&oacute;w, natomiast idąc w lewo dochodzimy do studni głębokiej na ponad 10 m, sprowadzającej do syfonu prawdopodobnie łączącego się z syfonem za Wielkim Kominem. </span></p>
+<p><span>Sala Wodospad&oacute;w o szerokości do 10 m&nbsp;i długości około 15 m&nbsp;od p&oacute;łnocnego zachodu jest zamknięta 3-metrowym progiem z wodospadem, wypływającym z zamykającego dalszą drogę syfonu SW. Syfon ten, o długości około 8 m&nbsp;i głębokości 2&ndash;4 m, prowadzi do ładnego, mytego korytarza. Po pokonaniu kilku płytkich, okrągłych jeziorek w marmitach w dnie, mijamy niewielką salkę, za kt&oacute;rą korytarz ma charakter szczelinowy. Na zakręcie pod kątem prostym w prawo rozlewa się długie, płytkie jeziorko. W lewej (or.) ścianie, nad 1,5-metrowym prożkiem odchodzi w lewo do tyłu Galeria Błotnych Naciek&oacute;w &ndash; szczelinowy korytarz z ładnymi, zamulonymi naciekami, przechodzący po około 40 m w niedostępną szczelinę.</span></p>
+<p><span>Spod prożka idziemy brodząc w jeziorku około 8 m do zakrętu w prawo, a następnie w lewo. Tu jeziorko kończy się, a w piaszczystym, sypkim namulisku płynie z głębi jaskini niewielka struga wody. Po kilku metrach stajemy nad jeziorkiem następnego syfonu.</span></p>
+<p><span>Syfon nazwany Mylnym ma niewielką długość (kilka metr&oacute;w) i głębokość 5 m. Jest ciasny, a orientację utrudnia mętna woda i powymywane w ścianach ławice wapieni dolomitycznych, między kt&oacute;rymi trzeba szukać drogi. Kończy się niewielkim jeziorkiem z powietrzną kopułką, z kt&oacute;rego dalsza droga prowadzi przez kr&oacute;tki Syfon Płachty. Tu można obserwować kontakt wapieni dolomitycznych triasu środkowego z wapieniami i dolomitami kom&oacute;rkowymi triasu dolnego (kampilu). Za nim korytarz ma formę długiej szczeliny wypełnionej wodą na odcinku około 20 m. Dalej szczelina doprowadza do jeziorka Syfonu Kryształowego pod lewą (or.) ścianą. Ma on dwa kr&oacute;tkie, ślepe odgałęzienia i łączy się bardzo ciasnym zaciskiem z leżącym dalej V Syfonem. </span></p>
+<p><span>Nad jeziorkiem Syfonu Kryształowego znajduje się okno w ścianie, za kt&oacute;rym korytarz kontynuuje się jeszcze około 20 m dalej, ku SSW, i kończy się zawaliskową salką, kt&oacute;rej strop i ściany około 1 m&nbsp;nad spągiem budują słabo scementowane utwory morenowe &ndash; prawdopodobnie przed ostatnim zlodowaceniem było tu wywierzysko. Przy wejściu do salki w lewej (or.) ścianie otwiera się kr&oacute;tka pochylnia o dnie wysłanym grubymi otoczakami wapieni i granit&oacute;w, opadająca do jeziorka wypełniającego wstępną, 10 m&nbsp;głęboką studnię V Syfonu. Ma on około 180 m długości i 28,5 m głębokości. Za nim znajduje się mała kom&oacute;rka z bardzo ciasnym wejściem do następnego syfonu.</span></p>
+<p><span>Jaskinia rozwinęła się w wapieniach i dolomitach triasu dolnego i środkowego oraz w wapieniach malmo-neokomu (seria wierchowa, fałd Giewontu). Większość korytarzy ma przekr&oacute;j poprzeczny zbliżony do koła lub elipsy, a na ścianach i stropach występują zagłębienia wirowe. Korytarze szczelinowe, o pierwotnych tektonicznych kształtach przekroju poprzecznego są nieliczne i występują raczej w g&oacute;rnym piętrze (Sala Pośrednia, Galeria Błotnych Naciek&oacute;w, korytarzyki nad Wielkim Kominem). Korytarze jaskini w większości uwarunkowane są szczelinami ciosowymi o generalnych kierunkach 205&deg;&ndash;210&deg; i 280&deg;&ndash;290&deg;, jedynie szczelinowy korytarz prowadzący z Komory Zwalisk do Sali Wodospad&oacute;w powstał na kontakcie tektonicznym o charakterze uskoku pomiędzy wapieniami malmo-neokomu i triasu środkowego. Jaskinia stanowi obecnie okresowo czynne piętro podziemnego odwodnienia masywu Giewontu. Niższe piętro tego odwodnienia &ndash; system Wywierzyska Bystrej &ndash; prawdopodobnie łączy się z jaskinią Wielkim Syfonem. W czasie stan&oacute;w powodziowych dolnym otworem jaskini wypływa obfity strumień wody (Kowalski 1953a, Zwoliński 1955b, 1961), co wskazuje na zalewanie przez wodę prawie całości obecnie dostępnego ciągu korytarzy.</span></p>
+<p><span>W jaskini powszechnie występują namuliska ilaste &ndash; w dolnym i g&oacute;rnym piętrze oraz piaszczysto-żwirowe &ndash; w g&oacute;rnym piętrze. W obu piętrach widać wyraźnie ślady dawnego wypełnienia jaskini osadami. Zagłębienia wirowe w stropie korytarzy dolnego piętra, szczeg&oacute;lnie we wstępnych syfonach, wypełnione są namuliskiem ilastym (Zwoliński 1961). Najdalszy znany obecnie korytarz, prowadzący do końcowego syfonu, wypełnia namulisko żwirowe z dużymi (kilkanaście cm średnicy) otoczakami granitu, wsp&oacute;łcześnie usuwane (Grodzicki 1987). </span></p>
+<p><span>Szata naciekowa jest, jak na warunki tatrzańskie bogata. Występują powszechnie makarony, polewy, draperie i girlandy, a w małym stawku w Sali Pośredniej &ndash; perły jaskiniowe. Można wyr&oacute;żnić dwie generacje naciek&oacute;w &ndash; starszą, pokrytą cienką warstewką mułu, oraz młodszą, kt&oacute;rą stanowią kremowe i białe nacieki w Sali Wodospad&oacute;w.</span></p>
+<p><span>Zawaliska występują w g&oacute;rnym piętrze jaskini na odcinku Sala Pochyła&ndash;Komora Zwalisk oraz nad Wielkim Kominem. </span></p>
+<p><span>Światło sięga w dolnym otworze do dna studni wejściowej, w g&oacute;rnym do drugiego zakrętu (kilka metr&oacute;w od wejścia). </span></p>
+<p><span>Mikroklimat jaskini nie był badany. Kowalski (1953a) podaje temperaturę 4,6&deg;C zmierzoną 21 marca 1949 r. na Rozdzielu oraz temperaturę wody w g&oacute;rnym piętrze 4,8&deg;C. 11 lutego 1956 r. W czasie og&oacute;lnopolskiej wyprawy do Jaskini Bystrej Chodorowscy (1959) zebrali materiał obserwacyjny na temat warunk&oacute;w środowiskowych w&oacute;d w tej jaskini, obejmujący m in. pomiary temperatury wody. Temperatura ta wzrastała od 2,9&deg;C w syfonie wstępnym do 5,8&deg;C w Wielkim Syfonie. W jeziorkach i stawkach wahania temperatury były mniejsze od 3,3&deg;C do 5,1&deg;C. Po przekopaniu w 1958 r. g&oacute;rnego otworu w jaskini występuje stały przewiew. Przedtem przewiew występował prawdopodobnie jedynie po odpompowaniu wody ze wstępnych syfon&oacute;w. Przebicie nowego otworu spowodowało zmianę mikroklimatu jaskini.</span></p>
+<p><span>W jaskini występuje fauna wodna, kt&oacute;ra badana była przez Chodorowskich (1958, 1959). Spis gatunk&oacute;w zawiera praca z 1958 r., a w publikacji z 1959 r. wymienione są jedynie łącznie dla jaskiń Zimnej, Miętusiej, Kasprowej Niżniej, Bystrej i Bielskiej grupy: <em>Rhizopoda</em>, <em>Ciliata</em>, <em>Rhabdocoela</em>, <em>Neumatoda</em>, <em>Cyclopoida</em> i <em>Syncarida</em>. Sporadycznie można znaleźć kości nietoperzy. Nieliczne nietoperze były obserwowane po otwarciu g&oacute;rnego otworu jaskini. Kowalski (1953a) wzmiankuje występowanie &bdquo;pod otworem wejściowym&rdquo; (dolnym) much&oacute;wek, a także znalezienie w tym miejscu żaby.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>O budowie geologicznej masywu w kontekście jaskini wypowiadali się Rabowski (1959) Zwoliński S. (1955b, 1966), Grodzicki, Kardaś (1989). Genezą jaskini zajmowali się Zwoliński S. (1955b, 1961, 1966), W&oacute;jcik (1959, 1975b, 1976a. 1979) Głazek i in. (1979b). Osadami zajmowali się W&oacute;jcik (1957, 1960b, 1966a, 1979), Gradziński, W&oacute;jcik (1961a), Grodzicki (1987), Głazek, Grodzicki (1996). Hercman (1991) na podstawie datowania naciek&oacute;w i kości kopalnych om&oacute;wiła ewolucję systemu i zmiany środowiska naturalnego. Hydrografią jaskini zajmowali się Kowalski (1955b), Zwoliński S. (1955b, 1961), Zwoliński T. (1966), W&oacute;jcik (1968, 1976a, 1979), Małecka (1981, 1984, 1985, 1993), Głazek, Grodzicki (1996), Łajczak (1996). G. Barczyk (2008) przeprowadził badania hydrogeologiczne systemu wywierzyskowego. Fauną wodną zajmowali się Chodorowska i Chodorowski (1958, 1959), Chodorowski (1959). Okazy pobrane z jaskini (nacieki, otoczaki) znajdują się w zbiorach Muzeum Tatrzańskiego. O minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin pisali Szczygieł J. i in. (2020a).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta przez T. i S. Zwolińskich. W 1924 r. zwr&oacute;cili oni uwagę na możliwość występowania jaskini w tym rejonie, a w 1929 r. znaleźli komin w skałce nad otworem. Prace nad odkopaniem wstępnej studni były przez nich prowadzone od 1929 r. do marca 1933 r. W marcu 1933 r. udaje im się wypompować wodę ze wstępnych syfon&oacute;w i w dniach 23&ndash;29 marca zbadać jaskinię do Wielkiego Komina i Sali Pośredniej (Zwoliński 1961). Następną pr&oacute;bę badań podjęli Zwolińscy na przełomie lutego i marca 1935 r. Udaje się im wtedy dojść do syfonu położonego za Wielkim Kominem i zbadać kominki w Sali Pośredniej. Prace Zwolińskich prowadzone były z udziałem najemnych pracownik&oacute;w.<br /> Kolejna pr&oacute;ba eksploracji podjęta została zimą 1949 r. po uzyskaniu przez Polskie Towarzystwo Tatrzańskie w 1948 r. subwencji z Ministerstwa Komunikacji na badania jaskiń tatrzańskich. Pracami tymi kierował S. Zwoliński. Po odpompowaniu wody ze wstępnych syfon&oacute;w pompą elektryczną, Zwolińscy pokonali Wielki Komin i zbadali ciąg korytarzy, biegnący z Sali Pośredniej ku W i NW (Zwoliński 1961). Wtedy też sporządzili plan znanych partii jaskini, a Kowalski (1953a) sporządził jej opis. Długość jaskini wynosiła w&oacute;wczas około 500 m.<br /> Następnych odkryć dokonano w czasie og&oacute;lnopolskiej wyprawy do Jaskini Bystrej w lutym 1956 r., zorganizowanej przez Koło Jaskinioznawcze PTTK w Zakopanem. Wyprawą kierował E. Winiarski, a uczestniczyli w niej grotołazi z całej Polski. W trakcie wyprawy grupa krakowska przeprowadziła nurkowanie w Wielkim Syfonie, kt&oacute;ry &bdquo;okazał się za głęboki do pokonania w dość prymitywnym aparacie do nurkowania, kt&oacute;ry jeszcze wtedy używano&rdquo; (Zwoliński 1961). Grupa zakopiańska znalazła przejście przez zawalisko w Sali Pośredniej i odkryła rozległe partie biegnące ku SW do Sali Wodospad&oacute;w. Zwolińscy sporządzają wtedy plan całości znanych partii jaskini (łączna długość korytarzy około 900 m), publikowany w &bdquo;W podziemiach tatrzańskich&rdquo; (Zwoliński 1961). Na podstawie wykonanych w&oacute;wczas pomiar&oacute;w, w 1958 r. grotołazi zakopiańscy pod kierunkiem E. Winiarskiego przekopali g&oacute;rny, suchy otw&oacute;r. Od tego czasu jaskinia bywa zwiedzana przez grotołaz&oacute;w z r&oacute;żnych ośrodk&oacute;w. Pewne pr&oacute;by eksploracji podejmowali jeszcze grotołazi zakopiańscy, kt&oacute;rzy w lutym 1965 r. pokonują zawalisko w bliżej nieokreślonym korytarzu. Akcje te, kierowane przez J. Frączka, przynoszą odkrycie około 15 m korytarza zakończonego ciasnym, błotnistym syfonem (Chełpa 1965 &ndash; materiały archiwalne).<br /> Na przełomie 1973 i 1974 r. zorganizowana przez Speleoklub Warszawski PTTK wyprawa kierowana przez J. Grodzickiego pokonuje syfon w Sali Wodospad&oacute;w. A. Płachciński, W. Przybyszewski i S. Sowiak odkrywają za syfonem około 200 m nowych korytarzy i dochodzą do kolejnego syfonu. W końcu stycznia 1974 r. kolejna wyprawa SW PTTK kierowana przez J. Grodzickiego pokonuje kolejne dwa syfony (Mylny i Płachty) &ndash; M. Lipski, A. Płachciński i W. Przybyszewski, odkrywając dalsze około 150 m korytarzy i następny syfon, a J. Grodzicki przy pomocy M. Rutkowskiego sporządza plan odkrytych poprzednio partii między syfonami.<br /> W lutym 1987 r. w czasie pr&oacute;by pokonania V syfonu przez grotołaz&oacute;w z Krakowa (P. Kulbicki &ndash; kierownik, A. Bałas i A. Petrujkić) ginie w nim A. Petrujkić &ndash; płetwonurek jugosłowiański. Pr&oacute;by odszukania ciała w syfonie podejmowane przez GOPR i płetwonurk&oacute;w warszawskich, krakowskich i jugosłowiańskich nie dały rezultatu. Akcja ratunkowa, kierowana przez J. Grodzickiego umożliwiła łatwe dojście do V syfonu poprzez odpompowanie wody z wszystkich poprzedzających syfon&oacute;w. Ciało wydobyli z syfonu płetwonurkowie francuzcy, sprowadzeni przez rodzinę Petrujkić&rsquo;a (Grodzicki 1987).<br /> Po tym wypadku Dyrekcja TPN uniemożliwiła dostęp do jaskini, zamykając oba otwory stałymi zaporami z bali drewnianych &ndash; motywując to koniecznością ochrony w&oacute;d pobieranych z wywierzyska Bystrej przez wodociągi zakopiańskie. Pomimo tego w kolejnych akcjach przeprowadzonych 6 i 13 lutego 1998 r. oraz w grudniu tego samego roku K. Starnawski pokonał V Syfon, osiągając wejście do kolejnego, VI syfonu.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i opis jaskini opublikował w 1949 r. S. Zwoliński, następnie opis inwentarzowy i plan wg Zwolińskiego publikuje K. Kowalski (1953a), a w 1961 r. aktualny (w&oacute;wczas) plan z szerokim opisem eksploracji oraz informacji hydrograficznych i genetycznych publikuje S. Zwoliński. W ramach prac inwentaryzacyjnych OW PTPNoZ pomiary lokalizujące otw&oacute;r (ciąg azymutalno-taśmowy pomierzony przy pomocy busoli geologicznej Meridian i taśmy parcianej) wykonał R. M. Kardaś przy wsp&oacute;łpracy M. Wachowiak w dniu 21 lipca 1979 r. Załączony plan jest zestawiony na podstawie plan&oacute;w S. Zwolińskiego (Kowalski 1953a, Zwoliński 1961), planu J. Grodzickiego z 1974 r. oraz pomiar&oacute;w wykonanych przez J. Grodzickiego w 1974 r. (partie syfonalne) i w 1987 r. przez P. Kulbickiego i J. Grodzickiego. Dane zaktualizowała I. Luty (2009). Wsp&oacute;łrzędne geograficzne otworu w oparciu o mapę topograficzną Tatr wydaną przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.gov.pl/">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013).<br />Plan opracował J. Grodzicki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wrzosek A. 1933 (o otworze i eksploracyjnych zamiarach Zwolińskich); Zwoliński T. 1937 (wzmiankuje); Zwoliński T. 1946 (opis, plan); Zwoliński T. 1947 (opis, plan); Zwoliński T. 1948 (opis, plan); Zwoliński S. 1949 (opis badań, plan, fot.); Kowalski K. 1950 (wzmiankuje o badaniach); Kowalski K. 1951c,g,h (o badaniach); Zwoliński T. 1951 (wzmianka o jaskini i badaniach); Gradziński R. 1951 (wzmiankuje); Kowalski K. 1953a (plan i opis inwentarzowy); Kowalski K. 1955b (wzmiankuje o systemie wywierzyska Bystrej); Zwoliński S. 1955b (charakterystyka systemu, fot. otworu z wypływem wody w 1948 r); Burchart P. 1956 (relacja z og&#243;lnopolskiej wyprawy); Kuczyński M,  Starzecki W. 1956 (wzmianka); Normy klasyfikacyjne i wykaz punktacji dr&#243;g jaskiniowych, 1956 (ocena trudności); Stecki K. 1956 (o planowanej eksploracji); W&#243;jcik Z. 1957c (o perłach jaskiniowych); Chodorowska W., Chodorowski A. 1958 (badania fauny wodnej); Chodorowski A. 1958 (wymienia); Zwoliński T. 1958 (wzmiankuje, kr&#243;tka informacja o jaskini); Burchard P., Kowalski K. 1959 (wzmianka); Chodorowska W., Chodorowski A. 1959 (badania warunk&#243;w środowiskowych w wodach jaskini); Chodorowski A. 1959 (o badaniach biospeleologicznych); Gradziński R. Kowalski K. 1959 (wzmianka o nurkowaniu w 1956 r); Rabowski F. 1959 (budowa geologiczna masywu, zaznacza otw&#243;r na przekroju geologicznym); W&#243;jcik Z. 1959b (geomorfologia jaskini); W&#243;jcik Z. 1959c (wzmianka o wykonaniu przekopu); W&#243;jcik Z., Zwoliński S. 1959 (o przesunięciach tektonicznych); W&#243;jcik Z. 1960b (o otoczakach granitu przy otworze); W&#243;jcik Z. 1960c (wzmiankuje); Gradziński R. W&#243;jcik Z. 1961 (opis szaty naciekowej); Zwoliński S. 1961 (opis, historia badań, hydrografia); Kowalski K. 1962a (wzmiankuje); Stecki K. (jun.) 1963 (o odkryciach partii do Sali Wodospad&#243;w z 1956 r.); Kastory L. 1964 (plan okolic otworu i opis); W&#243;jcik Z. 1966a (osady); Zwoliński T. 1966 (wzmianka o systemie jaskiń Bystrej); Rudnicki J. 1967 (wzmiankuje); W&#243;jcik Z. 1968 geneza i ewolucja systemu); Szywała W. 1970 (o treningowym nurkowaniu); Kozik A. 1972 (wymienia, podaje błędną długość); Radwańska-Paryska Z., Paryski W.H. 1973 (encyklopedyczna notka); Grodzicki J. 1974a (o odkryciach partii za syfonem, plan odkrytych partii); Grodzicki J. 1974b (opis eksploracji za Salą Wodospad&#243;w, opis nowych korytarzy); Grodzicki J. 1974c (opis dalszej eksploracji, plan 1:1000); W&#243;jcik Z. 1974c (wzmiankuje); Grodzicki J. 1975 (wymienia, podaje długość); Kropiwnicka M. 1975 (o szkoleniowym nurkowaniu za Salą Wodospad&#243;w, opis partii za syfonem); W&#243;jcik Z. 1975b (wymienia jako wodną jaskinię zawieszoną); Grodzicki J. 1976 (wymienia, podaje długość); Tatry Polskie  1976 (lokalizacja na mapie 1:10000); W&#243;jcik Z. 1976a (wzmiankuje, og&#243;lna charakterystyka geomorfologiczna); Borowiec W. i in. 1977 (dane morfometryczne); Chabert C. (red.), 1977 (dane morfometryczne, geologiczne, historyczne); Borowiec W. i in. 1978 (dane morfometryczne); Kardaś R.M. 1978a,b (wzmianka o zablokowaniu wejścia zwietrzeliną); Nyka J. 1978 (notka o eksploracji systemu jaskiń Bystrej); Parma Ch., Rajwa A. 1978 (wzmiankują); W&#243;jcik Z. 1978b (wzmianka o ruchach obniżających w glacjale w obrębie systemu jaskiniowego); Głazek J. i in. 1979b (wzmiankują); W&#243;jcik Z. 1979 (o genezie, sedymentacji osad&#243;w); Kardaś R.M. 1980b (dane morfometryczne, historyczne, geologiczne); Parma Ch. 1980 (o historii odkrycia); Sowiak S. 1980 (o nurkowaniu treningowym); Nyka J. 1981 (o eksploracji); Małecka D. 1981 (wzmianka o wywierzysku Bystrej), Stecka Z. 1981 (wzmianka o udziale K. Steckiego (jun.) w eksploracji jaskini); Kardaś R.M. 1982 (dane morfometryczne, geologiczne, historyczne); Gradziński R. i in. 1985a (lokalizacja na mapie, dane morfometryczne); Małecka D. 1984, 1985, 1993 (charakterystyka hydrografii wywierzyska Bystrej); Grodzicki J. 1987 (relacja z akcji ratunkowej, szkic przekroju syfon&#243;w); Grodzicki J., Kardaś R.M. 1989 (o geologii i tektonice masywu); Hercman H. 1991 (datowanie naciek&#243;w i kości kopalnych, ewolucja systemu, zmiany środowiska naturalnego); Zwoliński S. 1993 (opis prac w latach 1933-44, przekr&#243;j partii wstępnych); Głazek J., Grodzicki J. 1996 (wzmiankują o genezie); Łajczak A. 1996 (wzmiankuje o wywierzysku Bystrej); [Gag] 1998 (eksploracja nurkowa – pokonanie V syfonu); Luty I. 1999 (eksploracja nurkowa w V syfonie i w Syfonie Kryształowym); Gradziński M. 2001 (osiągnięcia eksploracyjne); Jaskinie TPN,  2002 (plan i opis inwentarzowy); Barczyk G. 2004 (uwagi o genezie); Barczyk G. 2008 (badania hydrogeologiczne systemu wywierzyskowego, schematyczny plan); Szczygieł J. i in. 2020a (o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Chełpa E. 1965a,b (relacje z wypraw eksploracyjnych w lutym 1965); [Siarzewski W., Zwolińska Z.] 1986 (pomiary, szkice i plany w skalach 1:200, 1:400, 1:500 S. Zwolińskiego); Grodzicki J. 1987 (sprawozdanie z akcji ratunkowej w lutym 1987). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(714)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

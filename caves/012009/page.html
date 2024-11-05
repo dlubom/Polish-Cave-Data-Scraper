@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F12009">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 12009;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "557692,51".replace(',', '.') + "," + "260851,10".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('12009','Schronisko Bramka '); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Schronisko Bramka 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                ?grota Do wrot, ?jaskinia Do wr&#243;t, Jaskinia Bramka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02c.108
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′31,74″, φ: 50&#176;12′43,37″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku N, wys. otw. 400 m n.p.m., wys. otw. nad dnem doliny 50 m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                400
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    4
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Dolina Sąspowska, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Najdogodniejsze dojście prowadzi z parkingu na Złotej Górze, początkowo szlakiem zielonym w stronę Doliny Sąspowskiej. Na wysokości grupy skalnej Krzykała, skręcamy ku zachodowi, opuszczamy wąwóz, którym biegnie szlak i wychodzimy na wierzchowinę. Następnie kierujemy się jej krawędzią ku zachodowi, mijając bezimienną grupę skalną dochodzimy do grzędy skalnej ze Schroniskiem Bramka. Duży otwór schroniska jest dobrze widoczny z daleka. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Schronisko jest rozwinięte w wapieniu skalistym jury g&oacute;rnej wzdłuż pionowej szczeliny ciosowej. Ma genezę krasową; powstało najprawdopodobniej w warunkach freatycznych i zostało przemodelowane w wadycznych. Reliktem wadycznego etapu rozwoju jest zachowana pod osadami forma rynny dennej. Jest fragmentem większej jaskini zniszczonej przez erozję. Innymi fragmentami tej jaskini są zapewne Schronisko koło Schroniska Bramka J.Olk.I-02c.110 i Schronisko Wrota J.Olk.I-02c.109 i Tunelik Saspowski J.Olk.I-02c.106 położony w sąsiedniej grzędzie skalnej.<br />Naciek&oacute;w brak.</p>
+<p>Schronisko suche. Światło sięga do końca.</p>
+<p>Na ścianach miejscami występują glony. W otworze południowym (1.) także mchy i nieliczne rośliny nasienne (<em>Libanotis pyrenaica</em>); na spągu w tym otworze rośliny nasienne (<em>Galium odoratum</em>, <em>Mercurialis perennis</em>). W otworze p&oacute;łnocnym (2.) na ścianach nieliczne mchy.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W latach 1970 i 1973 w schronisku były prowadzone prace wykopaliskowe pod kierunkiem W. Chmielewskiego (T. Madeyska &ndash; inf. ustna 1993 r.). Materiały w&oacute;wczas zebrane opracowywał interdyscyplinarny zesp&oacute;ł: W. Chmielewski (1988) &ndash; archeologia, T. Madeyska (1972, 1977a, 1988, 2006a) &ndash; charakter i geneza osad&oacute;w, genetyczne powiązania z sąsiednimi schroniskami, Z. Bocheński (1988, 1993) i Z. Bocheński i in. (2012) &ndash; szczątki ptak&oacute;w, A. Nadachowski (1982, 1988, 1989b, 1990), B. W. Wołoszyn (1987, 1989), A. Pradel (1988), M. Wolsan (1989a, 1989b) &ndash; szczątki ssak&oacute;w i E. Stworzewicz (1988) &ndash; szczątki mięczak&oacute;w. Ostatnio badania schroniska podjął interdyscyplinarny zesp&oacute;ł kierowany przez M. Kot; prace wykopaliskowe zostały zrealizowane w 2017 r.; znaleziono w&oacute;wczas liczne zabytki mezolityczne w tym zbrojniki tr&oacute;jkątne oraz kości dziecka (Kot, 2018e; Kot i in. 2019a). Materiały są obecnie opracowywane.<br />Namulisko nosi ślady rozkopywania. Najwyższa warstwa namuliska humusowa z gruzem wapiennym, głębiej leżą osady gliniaste ze zmienną domieszką gruzu wapiennego. W osadach znaleziono i następnie oznaczono szczątki ptak&oacute;w (Z. Bocheński, 1988, 1993; Z. Bocheński i in. 2012), płaz&oacute;w, gad&oacute;w i ssak&oacute;w (A. Nadachowski, 1982, 1988, 1989b, 1990; B. W. Wołoszyn, 1987, 1989; A. Pradel, 1988; M. Wolsan, 1989a, 1989b) oraz malakofaunę (Stworzewicz, 1988). W namulisku stwierdzono także obecność znalezisk związanych z paleolityczną kulturą z czasu wczesnego W&uuml;rmu, jak r&oacute;wnież znalezisk kultury komornickiej i kultury ceramiki sznurowej oraz znalezisk określanych jako średniowieczne (W. Chmielewski, 1988). Na szczeg&oacute;lną uwagę zasługuje gr&oacute;b dziecka uważany za mezolityczny i wiązany z kulturą komornicką (W. Chmielewski, 1988; Z. Sulgostowska, 2016b, 2019). Ostatnio wykonane datowanie radiowęglowe wskazuje na zdecydowanie młodszy wiek kości dziecka i sugeruje związek poch&oacute;wku z epoką brązu (kultura łużycka; M. Kot, 2018e).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Schronisko znane od dawna. Najprawdopodobniej jest wymienione w wykazie K. Wr&oacute;blewskiego (1900). Odnosi się do niego r&oacute;wnież wzmianka tego autora m&oacute;wiąca o grocie przechodniej w skale &bdquo;Do Wr&oacute;t&rdquo;. Niewątpliwie to schronisko jest wzmiankowane, lecz bez podania nazwy, przez S.J. Czarnowskiego (1910c). Stosowana obecnie nazwa Bramka jest w starszej literaturze (S.J. Czarnowski 1910c, 1911c; Ojc&oacute;w, ok. 1912; R. Kreczmański 2008; J. Partyka 2008a) odnoszona do Okiennika Sąspowskiego J.Olk.I-02c.101.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Schronisko zinwentaryzowane w lecie 1984 r. przez M. Banasia i R. Urbanika (Banaś, 1985). Ponownie zinwentaryzowane 5.02.1993 r. przez K. Biska i M. Wawrykę Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego. Obserwacje uzupełniające przeprowadził M. Gradziński 16.07.2018 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Wawryka.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wr&#243;blewski K. 1900, 1907 (wzmianka); Czarnowski S.J. 1910c (wzmianka); Madeyska T. 1972 (lokalizacja na mapie, profil osad&#243;w, wzmianki o wyrobach mezolitycznych); Madeyska T. 1977a (opis osad&#243;w, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, wnioski o genetycznym związku z poziomem terasowym d); Madeyska T. 1977b (lokalizacja na mapie, profil osad&#243;w, wzmianki o wyrobach mezolitycznych); Bocheński Z., Oleś T. 1977 (lokalizacja na mapie, ponadto wzmianki o szczątkach kostnych ptak&#243;w znalezionych w schronisku); Madeyska T. 1981 (kr&#243;tki opis, zestawienie wynik&#243;w analiz osad&#243;w, zestawienie gatunk&#243;w kręgowc&#243;w, wzmianki o znaleziskach archeologicznych, lokalizacja na mapie); Madeyska, T. 1982 (wyniki analiz osad&#243;w, zestwienie szczątk&#243;w kopalnej fauny, schemat stratygrafii osad&#243;w, lokalizacja na przeglądowej mapie); Nadachowski A. 1982 (lokalizacja na schematycznej mapie, informacje o dotychczasowych badaniach, kr&#243;tka charakterystyka i stratygrafia osad&#243;w, om&#243;wienie znalezisk szczątk&#243;w kopalnych gryzoni, wykaz gatunk&#243;w); Banaś M. 1985 (położenie, opis, plan); Pulina M., Tyc A. 1987 (lokalizacja poziom&#243;w kulturowych na zbiorczym profilu); Wołoszyn B. W. 1987 (wzmianka o znalezieniu plejstoceńskich szczątk&#243;w nietoperzy); Bocheński Z. 1988 (om&#243;wienie znalezisk kopalnych ptak&#243;w, wykaz gatunk&#243;w); Chmielewski W. 1988 (wzmianki o badaniach i znaleziskach z czasu wczesnego W&#252;rmu, kultury komornickiej, kultury ceramiki sznurowej, i ze średniowiecza); Madeyska T. 1988 (położenie, opis, plan, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, opis i charakterystyka osad&#243;w, diagram ilustrujący wyniki analiz osad&#243;w, interpretacja genetyczna, przekroje i profil osad&#243;w; Nadachowski A. 1988 (kr&#243;tka charakterystyka, om&#243;wienie znalezisk kopalnych kręgowc&#243;w, informacja o znalezieniu szczątk&#243;w kopalnych kręgowc&#243;w, wykaz gatunk&#243;w); Pradel A. 1988 (kr&#243;tki opis, stratygrafia, analiza zęb&#243;w kopalnych chomik&#243;w, dane morfometryczne); Stworzewicz E. 1988 (om&#243;wienie znalezisk kopalnych mięczak&#243;w, wykaz gatunk&#243;w); Bocheński Z. 1989 (wzmianka o znaleziskach szczątk&#243;w kopalnych ptak&#243;w); Nadachowski A. 1989 (wzmianki o znaleziskach szczątk&#243;w gryzoni); Nadachowski A. 1989b (kr&#243;tka charakterystyka, informacja o występowaniu kopalnych gryzoni, wykaz gatunk&#243;w); Nadachowski A. i in. 1989 (og&#243;lna charakterystyka i stratygrafia stanowiska); Wolsan M. 1989a (informacja o znalezieniu kości kopalnych zajęczak&#243;w, , wykaz gatunk&#243;w); Wolsan M. 1989b (informacja o znalezieniu kości kopalnych drapieżnych, wykaz gatunk&#243;w); Wołoszyn B.W. 1989 (wzmianka o znalezieniu plejstoceńskich szczątk&#243;w nietoperzyStworzewicz E. 1990 (wzmianka o występowaniu kopalnych ślimak&#243;w); Parma Ch. 1992 (fot. otworu); Bocheński Z. 1993 (kr&#243;tki opis, lokalizacja na schematycznej mapie, informacja o znalezieniu kości kopalnych ptak&#243;w, wykaz gatunk&#243;w); Gradziński M. i in. 1994a (opis inwentarzowy, plan, lokalizacja na mapie); Madeyska T., Kozłowski S.K. 1995 (plan, przekr&#243;j osad&#243;w, procentowa zawartość szczątk&#243;w r&#243;żnych grup ekologicznych ssak&#243;w, wykaz stwierdzonych gatunk&#243;w kopalnej fauny); Cyrek K. 2002 (lokalizacja jako stanowiska archeologicznego na schematycznej mapie); Madeyska T., Cyrek K. 2002 (lokalizacja na schematycznej mapie stanowisk archeologicznych, wzmianka o znaleziskach środowopaleolitycznych); Ochman K., Wołoszyn B.W. 2003 (wzmianka o znalezieniu kości kopalnych nietoperzy Myotis dasycneme); Dagnan-Ginter A., Zając M. 2005 (wzmianka o znalezieniu grobu); Cyrek K. 2006a (wymienione w wykazie stanowisk paleolitycznych i mezolitycznych, lokalizacja na schematycznej mapie); Kozakiewicz K., Wołoszyn B.W. 2008 (informacja o znalezieniu kości kopalnych nietoperzy, wykaz gatunk&#243;w); Madeyska T. 2006a (opis, opis osad&#243;w, plan, fot. otworu, przekroje osad&#243;w, diagram ilustrujący wyniki analiz osad&#243;w, lokalizacja na mapie); Madeyska T. 2006b (wzmianka o pracach wykopaliskowych); Piotrowska D. 2006b (wzmianka o neolitycznym grobie dziecka); Zając M. 2006 (wzmianka o znalezieniu grobu dziecka kultury komornickiej); Cyrek K. 2007 (lokalizacja na mapie rozmieszczenia archeologicznych stanowisk jaskiniowych); Gradziński M. i in. 2008 (wzmianka o genezie); Pawłowski J. i in. 2008 (lokalizacja na mapie, wiek osad&#243;w na tle osad&#243;w innych jaskiń okolicy Ojcowa, wzmianka o znalezieniu szczątk&#243;w kopalnych mięczak&#243;w i kręgowc&#243;w); Stworzewicz E. 2008 (wzmianka o znalezieniu muszli kopalnych ślimak&#243;w); Bocheński Z. i in. 2012 (zestawienie takson&#243;w kopalnych ptak&#243;w); Wojenka M. 2012 (wzmianka o badaniach Chmielewskiego); Wojenka M. 2014 (wzmianka o znaleziskach mezolitycznych); Stefaniak K. 2015 (kr&#243;tki opis, historia badań, lokalizacja na mapie, wymienione taksony kopalnych kopytnych); Cyrek K., Madeyska T. 2016 (profil osad&#243;w, informacje o znaleziskach paleolitycznych i mezolitycznych – gr&#243;b niemowlęcia); Krajcarz M. T. i in. 2016 (korelacja osad&#243;w lessowych z osadami innych jaskiń, wymienione taksony kopalnych mięczak&#243;w i ssak&#243;w); Sulgostowska Z. 2016b (lokalizacja na mapie rozmieszczenia poch&#243;wk&#243;w paleolitycznych i mezolitycznych w Polsce, informacja o mezolitycznym poch&#243;wku dziecka); Kot M. 2018e (charakterystyka schroniska, historia badań archeologicznych, informacje o badaniach prowadzonych w 2017 r.); Kot M. i in. 2019a (lokalizacja na modelu terenu i schematycznej mapie, wzmianka o badaniach Chmielewskiego i przeprowadzonych przez autor&#243;w w 2017 r. – znalezienie kości dziecka); Sulgostowska Z. 2019 (informacje dotyczące mezolitycznego poch&#243;wku dziecka); Gradziński M. i in. 2020 (opis inwentarzowy, plan, lokalizacja na mapie, pełna bibliografia). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Krzysztof Bisek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13766)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(14558)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

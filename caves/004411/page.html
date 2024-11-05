@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F4411">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 4411;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "566958,44".replace(',', '.') + "," + "153153,69".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('4411','Jaskinia Siwy Kocioł'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Siwy Kocioł
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Szczepanowy Lej, Siwy Kocioł
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.71
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′12,73″, φ: 49&#176;14′32,01″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1827
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                200
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                295,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                295,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1161
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                102
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Małej Łąki, masyw Małołączniaka, Kotliny.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Doliny Małej Łąki podchodzimy niebiesko znakowanym szlakiem przez Przysłop Miętusi i Kobylarz na Kobylarzowe Siodełko. Stąd dalej idziemy szlakiem około 50 m do góry i skręcamy w lewo, na niewyraźną początkowo ścieżkę, prowadzącą w kierunku Wielkiej Turni. Przechodzimy nią w pobliżu Awenu w Ratuszu T.E-12.24 i wychodzimy na plateau za Wielką Turnią. Z plateau schodzimy kilkadziesiąt metrów w dół, mijając z lewej strony wejście w Baranie Schody. Otwór znajduje się w wyraźnym leju krasowym, położonym blisko krawędzi ściany, jaką Kotliny opadają do Baranich Schodów, a później do Niżniej Świstówki.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini o wymiarach 1x1 m posiada w przybliżeniu tr&oacute;jkątny profil. Znajduje się w SW części dna leja, pomiędzy wantami tworzącymi jego ścianę. Za otworem ciągnie się ku S niezbyt obszerny korytarz. Jego dno pokrywa humus i odchody niewielkich ssak&oacute;w. Po kilku metrach docieramy nim do litej ściany i podążamy wzdłuż niej w lewo, po czym wchodzimy do Sali nad Zawaliskiem. <br />Jej pochylone ku zachodowi dno ma wymiary 3x8 m, a wysokość stropu wynosi 2&ndash;3 m. W środku komory znajduje się 2 m pr&oacute;g z want. W najniższej części komory natrafiamy na kolejne progi o wysokości 2 i 4 m. Schodzimy nimi przy pomocy zapieraczki. Bezpośrednio pod drugim progiem znajduje się wejście w zawaliskowy korytarzyk zmierzający pierwotnie ku W, a następnie ku SE. Otwiera się on niewielkim prożkiem do stromego, szerszego już korytarza. Jego strop tworzy gładka płyta, natomiast spąg i prawą ścianę duże wanty. Wkr&oacute;tce zakręca ku W i staje się poziomy. Przed zakrętem, po prawej stronie, znajduje się wejście do ciasnego, zawaliskowego korytarzyka, wracającego kilka metr&oacute;w dalej do gł&oacute;wnego ciągu. Z końca poziomego odcinka w ciągu gł&oacute;wnym opada ku S korytarz. Jego spąg jest pokryty grubą warstwą piasku z czapki krystalicznej. Na końcu korytarza znajduje się przełaz, za kt&oacute;rym wchodzimy do owalnej Piaszczystej Salki. <br />Można się do niej r&oacute;wnież dostać ciasnym ciągiem rozpoczynającym się przed przełazem w piasku. Ciąg ten wypada 5 m nad dnem salki, mającej średnicę około 4 m. W jej wschodniej części, miedzy dużymi wantami, znajduje się przejście w d&oacute;ł do obszernego korytarza. Przejście ma początkowo przebieg ku N, następnie skręca ku SE. Obszerny korytarz ma szerokość 3 m i wysokość około 2 m. Jego pokryty wantami pozlepianymi piaskiem spąg opada stromo ku E i kończy się zawaliskiem. W środkowej części w stropie korytarza otwiera się 16 m wysokości komin, przechodzący w wąskie szczeliny nie do przejścia. Na końcu obszernego korytarza, po prawej stronie, znajduje się zawaliskowe przejście nad Studnię Szczepana (P 47). Jest to koniec Zawaliska (&ndash;51,85 m). <br />Wejście do studni stanowi wąski, pionowy przełaz, 3 m pod nim znajduje się niewielka piarżysta p&oacute;łka. Zjeżdżamy z niej 10 m do bardziej połogiej części studni. Bierze tutaj sw&oacute;j początek ukośny trawers w kierunku NE, prowadzący do Transformatora (dalsza część opisu). <br />Dolna część studni jest pionowa, posiada owalny przekr&oacute;j i głębokość 32 m. Kilka metr&oacute;w poniżej trawersu, wahadłem ku zachodowi możemy się przedostać do okna w ścianie. Znajduje się za nim Ślepy Komin (dalsza część opisu). <br />Zjeżdżamy dalej na dno Studni Szczepana. Pokryte jest ono zawaliskiem wypełnionym piaszczystą gliną. Bezpośrednio pod linią zjazdu można w nim zejść jeszcze 2 m niżej, na Stare Dno (&ndash;100 m). <br />Z dna Studni Szczepana kierujemy się ku W pod 3 m pr&oacute;g. Pokonujemy go zapieraczką i przez szeroką na 70 cm szczelinę wchodzimy do Bocznej Sali. Dno sali opada stromo ku zachodowi i jest pokryte zawaliskiem. W jego najniższej części, przy ścianie, można zejść jeszcze 2,5 m studzienką. Często można w tym miejscu zaobserwować deszcz podziemny. <br /> W stropie Bocznej Sali wznosi się Ślepy Komin (P 35). Do jego środkowej części dostajemy się opisanym wcześniej oknem w Studni Szczepana. G&oacute;rną część należy pokonać początkowo hakowo (A1), a następnie klasycznie (IV). Komin kończy się zawaliskiem na poziomie wejścia do Studni Szczepana. <br />W NW ścianie Bocznej Sali, około 10 m nad jej dnem, znajduje się okno. Wspinamy się do niego klasycznie (IV). Za oknem znajduje się około 5 m kominek zaczopowany kamieniami pozlepianymi gliną z piaskiem.<br />Wracamy do wzmiankowanego wcześniej trawersu w Studni Szczepana. Pokonujemy go ukośnie do g&oacute;ry (A1) i stajemy po kilkunastu metrach wspinania na p&oacute;łce w oknie w studni. W d&oacute;ł biegnie owalny korytarz o średnicy 1 m. Posiada on nazwę Transformator od specyficznego dźwięku, jaki podczas eksploracji wydawało przepływające tędy powietrze. Dno korytarza pokryte jest gruzem posklejanym gliną z piaskiem. Po kilku metrach korytarz zwęża się i urywa progiem (P 5) do owalnej Salki z Pawiem. Z jej końca schodzimy kolejnym, 4 m progiem do drugiej, większej salki (&ndash;72,8 m). W jej NE rogu znajduje się wejście do długiego na 2 m Zacisku Kryptolog&oacute;w (Z2). W przekroju stanowi go pozioma, lekko opadająca szczelina. Pokonanie zacisku ułatwia wymyta w dnie rynna. Zaraz za zaciskiem znajduje się prostopadle przebiegający meander. Schodzimy do niego zapieraczką 2 m, na p&oacute;łkę z zaklinowanych want. Można stąd zejść ku SE w niższe, ślepo zakończone piętro meandra. W jego SE krańcu wypływa z niedostępnej szczeliny ciek. Podążamy wyższym piętrem meandra ku NW, pokonujemy dwa zaciski (ZI) i stajemy na p&oacute;łce nad mytą Studnią Enigma (P 22). <br />Zjeżdżamy obok cieku wody na dno studni. Opada ono w kierunku S i jest pokryte zawaliskiem, w kt&oacute;rym znika woda. Około 4 m nad dnem studni, po stronie E zawieszona jest p&oacute;łka. Osiągamy ją łatwą wspinaczką. Znajduje się tutaj tr&oacute;jkątne wejście do ciągu o nazwie Maszynka do Mięsa. <br />Początkowo idziemy niskim korytarzykiem o dnie pokrytym drobnym gruzem. Przechodzi on wkr&oacute;tce w myty meander, w kt&oacute;rym schodzimy przez dwa progi o wysokościach 4 i 3 m. Dnem meandra sączy się niewielka str&oacute;żka wody. Pod drugim progiem znajduje się krucha pochylnia. Ciągnie się z niej do g&oacute;ry, r&oacute;wnolegle do ciągu, kt&oacute;rym przyszliśmy, kilkumetrowy, ślepy meanderek. Schodzimy pochylnią i docieramy nad wąskie wejście w pierwszy z dw&oacute;ch Prog&oacute;w Minionej Trwogi (P 6). Zjeżdżamy nim na piarżystą pochylnię, na końcu kt&oacute;rej znajduje się drugi pr&oacute;g. Po lewej stronie znajduje się wejście w boczny ciąg.<br />Początkowo wąski meander pnie się stromo do g&oacute;ry, po czym skręca w prawo, opada w d&oacute;ł i urywa się progiem do Krwawej Salki (P 12).<br /> Zjeżdżamy drugim z Prog&oacute;w Minionej Trwogi (P 10) i stajemy na pokrytym wantami dnie Krwawej Salki (&ndash;145,69 m). Rozciąga się ona na wzdłuż płaszczyzny o przebiegu W&ndash;E na długości około 7 m, przy szerokości 4&ndash;2 m. Naprzeciwko podstawy Prog&oacute;w Minionej Trwogi, między wantami pod S ścianą znajduje się wejście nad Pr&oacute;g Rzeźnik&oacute;w (P 14). W większości jest on zbudowany z poklinowanych głaz&oacute;w i należy go pokonywać z ostrożnością. Pod progiem przeczołgujemy się pod dużą, niepewnie zaklinowaną wantą, schodzimy kilka metr&oacute;w szczelinowatą pochylnią i stajemy nad Studnią Dżihad (P 74). W tym miejscu kończy się Maszynka do Mięsa.<br />Po kilku metrach zjazdu, po zachodniej stronie widać ciek wypływający z ciasnej szczeliny nie do przejścia. Kolejne kilka metr&oacute;w niżej, po przeciwnej stronie studni znajduje się wylot ciągu prowadzącego do Sali Intensywnej Geriatrii. Dostajemy się do niego długim wahadłem i kilkumetrowym trawersem (A1). Następnie wspinamy się ku SE pokrytą luźnymi kamieniami pochylnią (łatwo), pod Komin Intensywnej Geriatrii (P 24). Jedną z jego ścian tworzą kamienie posklejane piaszczystą gliną. Wspinamy się na prawo od niej po litej skale (14 m A1) i wchodzimy w kominek (10 m III), kt&oacute;ry po kilku metrach wyprowadza na most z zaklinowanych want. Przechodzimy z niego do niewielkiego korytarzyka pod zawaliskiem. Wspinamy się stąd 4 m miedzy wantami i wchodzimy do niewielkiej salki o zawaliskowym charakterze. Odchodzą z niej ku N i W kr&oacute;tkie, zagruzowane na końcu korytarzyki. Ku S możemy natomiast przejść do Sali Intensywnej Geriatrii. W jej wstępnej części, ku E wznosi się połogi pr&oacute;g o nazwie Sand Beach (P 6). Zawalisko nad nim stanowi najwyżej położony punkt tych partii (&ndash;116,41 m). Dalsza część Sali Intensywnej Geriatrii ciągnie się jeszcze 10 m ku S, skąd prostopadle, w przeciwnych kierunkach odchodzą kr&oacute;tkie zagruzowane korytarzyki. W całości opisywanego ciągu, zwłaszcza w okolicach Sali Intensywnej Geriatrii, występują duże ilości piasku ze skał krystalicznych. Partie te posiadają długość około 125 m.<br />Wracamy do Studni Dżihad i zjeżdżamy na Most przy jej zachodniej ścianie (20 m od krawędzi studni). Opadają z niego ku W kaskady (P 16), na kt&oacute;rych dnie znajduje się Sala Grzechotnik&oacute;w. Około 3 m nad wejściem w zjazd kaskadami znajduje się okno. Wspinamy się do niego łatwo i stajemy przed g&oacute;rną częścią Komina Krakowiak&oacute;w i G&oacute;rali (P 26). Jego podstawa znajduje się 19 m niżej, w Sali Grzechotnik&oacute;w. W kominie sączy się niewielka str&oacute;żka wody. Wspinamy się do g&oacute;ry 7 m (A1) i docieramy do owalnej salki, w kt&oacute;rej p&oacute;łnocnej części wznosi się komin (P 8). Po wspięciu się nim (A1), docieramy do zbyt wąskich do przejścia szczelin. Pod kominem, z niewielkiej niszy, ku NW ciągnie się do g&oacute;ry ciasny Maślany Meanderek. Po kilku metrach znajduje się zacisk ZIII (&ndash;165,51 m). Partie za nim nie zostały jeszcze wyeksplorowane.<br />Wracamy do miejsca w g&oacute;rnej części Komina Krakowiak&oacute;w i G&oacute;rali, gdzie rozpoczęliśmy wspinaczkę. Trawersujemy do okna w przeciwległej ścianie komina (A1) i wychodzimy w g&oacute;rnej części Komina nad Jeziorkiem (P 23). Około 6 m dalej i 4 m wyżej znajduje się wylot meandra, z kt&oacute;rego wypływa ciek wody. Aby się do niego dostać, początkowo trawersujemy (III), a następnie wspinamy się kilka metr&oacute;w do g&oacute;ry (A1). Ciasny meander doprowadza po kilku metrach do Mydlanej Salki, posiadającej owalny kształt. U g&oacute;ry widać kontynuację meandra. Aby się do niej dostać, trzeba wspiąć się 10 m (A1) w strudze spadającej wody. Meander ciągnie się dalej do g&oacute;ry, ku NW, doprowadzając wkr&oacute;tce do Salki Inividia. Za nią natrafiamy na warstwę słabiej rozpuszczalnej skały. Wspinamy się w zachodniej części salki (P 4, trudności IV) do niewielkiego korytarzyka. Woda wypływa tu z wąskiej i niedostępnej dla człowieka szczeliny, zamykającej dalszą drogę (&ndash;160,17 m). Ten, jak i sąsiedni ciąg, znajdujący się nad Kominem Krakowiak&oacute;w i G&oacute;rali, kieruje się wyraźnie pod rejon Starego Dna, stanowiąc kontynuację Bocznej Sali i Studni Szczepana. Zmierzona długość korytarzy nad Salą Grzechotnik&oacute;w wynosi 140 m.<br />Wracamy na Most w Studni Dżihad i zjeżdżamy do Sali Grzechotnik&oacute;w (&ndash;205,51 m). Jej dno pokryte jest głazami. Największy z nich leży nieopodal miejsca, do kt&oacute;rego zjechaliśmy. Sala rozciąga się ku NW na długości 13 m i posiada szerokość 3&ndash;5 m. W jej stropie wznoszą się 2 opisane wcześniej kominy. Podstawę Komina nad Jeziorkiem wyścieła spora ilość piasku. Padający tu deszcz podziemny utworzył mały zbiornik o średnicy 1,5 m i niewielkiej głębokości. W S rogu sali, za wzmiankowaną wcześniej największą wantą, znajduje się wejście do Studni Feniksa (P 81). Początkowo jej przekr&oacute;j jest owalny, o średnicy 2 m. Około 20 m poniżej krawędzi studni odchodzi ku NW ślepy komin, z kt&oacute;rego dopływa woda. Prawdopodobnie prowadzi on pod okolice jeziorka w Sali Grzechotnik&oacute;w. Nieco poniżej, we wschodniej ścianie widać przebicie do Sali Mudżahedin&oacute;w (dalsza część opisu). Po kolejnych 35 m studnia wyraźnie się rozszerza. Od wschodu dochodzi pochylnia spod dna Sali Mudżahedin&oacute;w. Dopływa nią kolejny ciek. U podstawy pochylni znajduje się p&oacute;łka, na kt&oacute;rej można wygodnie stanąć. Na jej wysokości znajduje się g&oacute;rna część wąskiego mostu dzielącego ostatni odcinek studni na dwie części. Zjeżdżamy wschodnią częścią, do dna Studni Feniksa pokrytego r&oacute;żnej granulacji gruzem. Posiada ono nieregularny kształt, przybliżone rozmiary 10x10 m i opada stromo ku S. W najniższym jego miejscu znajduje się lejkowate zagłębienie w zawalisku. Można w nim zejść jeszcze 2 m do jeziorka na piaszczystym dnie. Znajduje się ono na głębokości &ndash;295,42 m i stanowi dno jaskini. Wszystkie cieki w jaskini wpadają do dolnej części Studni Feniksa i giną w zawalisku na jej dnie. <br />Wracamy na Most w Studni Dżihad i zjeżdżamy dalej w d&oacute;ł. Po 10 m osiągamy krawędź kolejnej kaskady. Około 8 m poniżej, w zachodniej ścianie widać ciasne okno. Można się do niego dostać wahadłem. Za oknem znajduje się r&oacute;wnoległa Studnia z Nietoperzem. Posiada ona średnicę około 1,5 m. Najwyższy jej punkt znajduje się 8 m powyżej okna, natomiast 16 m poniżej Studnia z Nietoperzem łączy się kolejnym oknem ze Studnią Dżihad, po czym wypada niżej w Sali Mudżahedin&oacute;w (dalsza część opisu). Studnia z Nietoperzem mierzona od najwyższego punktu, do dna Sali Mudżahedin&oacute;w posiada głębokość 42 m. <br />W Studni Dżihad, naprzeciwko okna, kt&oacute;rym dostaliśmy się do Studni z Nietoperzem znajduje się drugie, znacznie większe okno. Do niego także dostajemy się wahadłem i stajemy na dużej p&oacute;łce z zaklinowanych want. W spągu p&oacute;łki znajduje się przebicie do niższej części Studni Dżihad. Około 4 m dalej na E stajemy przed Kominem Paklenica (P 28). Pod nami widać dno komina. Osiągamy je 4 m zjazdem. Podążając z niego ku S, dochodzimy do kolejnego przebicia do Sali Mudżahedin&oacute;w. Z końca p&oacute;łki wspinamy się ukośnym trawersem po lewej ścianie, nad pierwszą kaskadę Komina Paklenica. Drugą kaskadę pokonujemy r&oacute;wnież po lewej ścianie, w pobliżu cieku (całość 10 m, A1). Ponad nią znajduje się duża p&oacute;łka. Wspinamy się z niej po lewej ścianie, pod wylot kr&oacute;tkiego meanderka (18 m, III, A1). Za nim wznosi się Komin Utrapienia. Wspinamy się 10 m jego prawą ścianą pod niebezpiecznie zaklinowane płyty (A1, III). Po przeciśnięciu się między nimi osiągamy ciasną szczelinę. Wznosi się ona kilka metr&oacute;w i wypada oknem w Kominie Kuny (P 20). Podstawę okna tworzy duża wanta. Możemy stąd zjechać 5 m do podstawy komina. W tym miejscu znaleziony został prawie kompletny szkielet kuny. Wracamy do okna i wspinamy się klasycznie (IV) 15 m na dużą p&oacute;łkę pokrytą gruzem. Około 3 m nad p&oacute;łką widać niewielkie okno. Jest ono wejściem w ciasną szczelinę, kt&oacute;ra staje sie wkr&oacute;tce niedostępna dla człowieka. Miejsce to znajduje się na głębokości &ndash;150,37 m i jak sugerują pomiary, leży w pobliżu Krwawej Salki. Cały ciąg od okna w Studni Dżihad posiada długość 97 m.<br />Wracamy do Studni Dżihad i zjeżdżamy do krawędzi ostatniej kaskady o głębokości 28 m. Odcinek ten pokonujemy w większości bez kontaktu ze ścianą i lądujemy na pokrytym zawaliskiem dnie Sali Mudżahedin&oacute;w. Posiada ona wymiary 10x5 m. Spadają do niej dwa cieki w postaci deszczu jaskiniowego; jeden ze Studni Dżihad, a drugi spod Komina Paklenica. W zachodnim krańcu sali można zjechać 7 m pod poziom zawaliska. Rozpoczyna się tutaj pochylnia, kt&oacute;ra po 17 m wpada do Studni Feniksa..<br /><br />Informacje o jaskini.<br />Jaskinia rozwinęła się w wapieniach triasu środkowego wierchowej jednostki Ździar&oacute;w (fałd Czerwonych Wierch&oacute;w). Utworzyła się prawdopodobnie na tym samym systemie szczelin, co Śnieżna Studnia, tworząc z nią jeden system. Przypuszczalnie obie jaskinie łączą się kt&oacute;rymś z komin&oacute;w w partiach Dziki Zach&oacute;d w Śnieżnej Studni. <br />Szczeliny posiadają w przybliżeniu przebieg W&ndash;E. Większość ciąg&oacute;w ma rozwinięcie niemal pionowe. Najbardziej odchylony od pionu odcinek znajduje się pomiędzy poziomem dna Studni Enigma, a poziomem Sali Grzechotnik&oacute;w, gdzie szczelina posiada upad około &ndash;60&deg;S. Komin Nie Dla Dziad&oacute;w i położone za nim partie ukształtowały się na szczelinie o odmiennym przebiegu względem reszty jaskini.<br />Osady klastyczne w jaskini reprezentują gruzy zlepione piaszczystą gliną, namuliska gliniaste oraz piaszczyste. Znaczną część jaskini wypełniają zawaliska. Największe, o deniwelacji 50 m, rozciąga się na odcinku od otworu do wejścia w Studnię Szczepana. Duże zawaliska znajdują się także na dnie Studni Szczepana, w Bocznej Sali, partiach nad Kominem nie dla Dziad&oacute;w oraz dnach Studni Feniksa i Dżihad. Odcinki o charakterze zawaliskowym można spotkać r&oacute;wnież w Maszynce do Mięsa.<br />Osady organogeniczne występują w niewielkiej ilości i stanowią je nagromadzenia kości oraz odchody nietoperzy. W okolicach otworu zalega humus oraz odchody niewielkich ssak&oacute;w. <br />Pomiędzy Studnią Enigma i Progami Minionej Trwogi na ścianach można znaleźć cienkie polewy z mleka wapiennego. Innych osad&oacute;w chemicznych nie zaobserwowano.<br />Przez Siwy Kocioł przepływa kilka stałych ciek&oacute;w, kt&oacute;re można zaobserwować na odcinkach:<br />&ndash; niedostępne zwężenia na końcu meandra za Zaciskiem Kryptolog&oacute;w&nbsp;&ndash; Studnia Enigma&nbsp;&ndash; zawalisko na jej dnie.<br />&ndash; zachodnia strona g&oacute;rnej części Studni Dżihad (prawdopodobnie jest to kontynuacja cieku kt&oacute;ry ginie pod Studnią Enigma)&nbsp;&ndash; Sala Mudżahedin&oacute;w &ndash; d&oacute;ł Studni Feniksa&nbsp;&ndash; zawalisko na dnie jaskini.<br />&ndash;&nbsp;podstawa Komina nie dla Dziad&oacute;w&nbsp;&ndash; Studnia Dżihad (połączenie z wyżej opisanym ciekiem następuje na poziomie Mostu).<br />&ndash;&nbsp;g&oacute;rna część Komina Paklenica&nbsp;&ndash; Sala Mudżahedin&oacute;w&nbsp;&ndash; Studnia Feniksa (połączenie z dwoma wyżej opisanymi ciekami).<br />&ndash; wąska szczelina nad Salką Inividia&nbsp;&ndash; Sala Grzechotnik&oacute;w&nbsp;&ndash; Studnia Feniksa (na jej dnie połączenie z resztą ciek&oacute;w).<br />Deszcz podziemny występuje w Bocznej Sali. Opr&oacute;cz tego niewielka strużka wody sączy się w Maszynce do Mięsa i Kominie Krakowiak&oacute;w i G&oacute;rali.<br />W jaskini występuje kilka zbiornik&oacute;w wody w postaci kałuż i jeziorek związanych ze stałymi ciekami. Największe z nich to jeziorko w Sali Grzechotnik&oacute;w i jeziorko w najgłębszym punkcie jaskini.<br />Najprawdopodobniej woda z Siwego Kotła spływa do położonej niżej Śnieżnej Studni. Ta z kolei jest przypuszczalnie odwadniana przez Lodowe Źr&oacute;dło, co nie zostało jednak potwierdzone barwieniami.<br />Jaskinia posiada mikroklimat typu statodynamicznego. Środkowa część jaskini ma prawdopodobnie kontakt z powierzchnią, co powoduje, że w gł&oacute;wnym ciągu, do poziomu połowy Studni Dżihad, wyczuwalny jest silny przewiew. Jego zwrot potrafi zmieniać się nawet ciągu kilku minut, zwłaszcza przy temperaturze kilku stopni powyżej zera na powierzchni. Głębsze partie jaskini charakteryzują się mikroklimatem statycznym. <br />Światło bezpośrednie sięga kilka metr&oacute;w od otworu, do końca wejściowego korytarzyka. Światło rozproszone dociera niemal do Sali nad Zawaliskiem.<br />W okolicach otwor&oacute;w rosną rośliny kwiatowe, paprocie, mchy, glony oraz porosty.<br />Wielokrotnie obserwowano wbiegające do otworu świstaki <span style="font-weight: bold; font-style: italic;">Marmota marmota</span>. W przyotworowych partiach jaskini widać ślady ich bytowania i odchody. W Studni z Nietoperzem widziany był nocek wąsatek <span style="font-weight: bold; font-style: italic;">Myotis mystacinus</span> (21.10.2012 r.).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Lej krasowy, w kt&oacute;rym znajduje się otw&oacute;r jaskini, był obiektem zainteresowania środowiska zakopiańskiego od początku lat 90. XX w.&nbsp;Jako miejscem potencjalnego otworu jaskini pierwszy zainteresował się nim Sz. Masny, jednak po jego śmierci, wszelka aktywność w tym miejscu zastygła. Pozostała natomiast nazwa&nbsp;&ndash; Szczepanowy Lej. Kilka lat p&oacute;źniej na problem ponownie zwr&oacute;cił uwagę P. Orawiec. W rezultacie przeprowadzonych przez grono kilku os&oacute;b akcji, 16 lipca 2005 r., udało się znaleźć w SW części leja wejście do jaskini. Jednocześnie nazwa obiektu została zmieniona na Siwy Kocioł.<br /> Poniżej przedstawiona jest szczeg&oacute;łowa chronologia prac prowadzonych w jaskini.<br />16 lipca 2005 r. F. Filar i P. Orawiec odnajdują wejście. F. Filar eksploruje jaskinię do głębokości &ndash;15 m.<br />17 lipca 2005 r. G. Albrzykowski, F. Filar i P. Orawiec docierają, po udrożnieniu szeregu przejść w Zawalisku, nad Studnię Szczepana (&ndash;50 m). <br />19 lipca 2005 r. G. Albrzykowski, F. Filar i P. Orawiec zjeżdżają Studnią Szczepana i osiągają Stare Dno (&ndash;98 m). Mierzą także jaskinię do połowy Zawaliska.<br />30 lipca 2005 r. G. Albrzykowski, F. Filar, M. Kowalczyk, W. Kowalski, P. Orawiec i M. Parczewski wspinają się do okna w Bocznej Sali, za kt&oacute;rym znajduje się ślepy kominek. Mierzą też jaskinię do Starego Dna oraz rozpoczynają prace na dnie Bocznej Sali.<br />10 sierpnia 2005 r. G. Albrzykowski, F. Filar, P. Orawiec i J. Trojan mierzą jaskinię do Bocznej Sali i kontynuują prace na jej dnie.<br />14 sierpnia 2005 r. F. Filar i P. Orawiec kontynuują prace w dnie Bocznej Sali osiągając 2 m postępu w d&oacute;ł.<br />22 sierpnia 2005 r. F. Filar i K. Zaczyński mierzą ciąg do okna w Bocznej Sali. Zjeżdżają także Ślepym Kominem od okna w zachodniej ścianie Studni Szczepana. <br />16 września 2005 r. F. Filar i P. Orawiec wspinają się do okna we wschodniej ścianie Studni Szczepana i odkrywają Transformator.<br />23 września 2005 r. F. Filar i P. Orawiec kontynuują prace w Transformatorze.<br />31 września 2005 r. F. Filar, M. Kowalczyk i P. Orawiec przedostają się za Transformator i docierają dwie salki dalej.<br />28 maja 2006 r. F. Filar i P. Grodecki mierzą partie za Transformatorem.<br />15 lipca 2006 r. G. Albrzykowski, F. Filar i P. Orawiec kończą pomiary za Transformatorem i rozpoczynają prace na Starym Dnie.<br />6 sierpnia 2006 r. F. Filar, M. Kowalczyk i J. Masny eksplorują komin nad wejściem do Studni Szczepana i kontynuują prace na Starym Dnie.<br /> 20 sierpnia 2006 r. F. Filar, W. Kowalski i P. Orawiec kontynuują prace na Starym Dnie i wspinają się do stropu Ślepego Komina.<br />18 listopada 2006 r. F. Filar i P. Orawiec kontynuują prace na Starym Dnie.<br />7 października 2007 r. F. Filar i M. Parczewski odkrywają Zacisk Kryptolog&oacute;w oraz mierzą komin nad Studnią Szczepana. <br />14 października 2007 r. F. Filar i M. Parczewski przeciskają się przez Zacisk Kryptolog&oacute;w i eksplorują nowe partie pod Pr&oacute;g Rzeźnik&oacute;w (około &ndash;160 m).<br />10 listopada 2007 r. F. Filar i M. Parczewski zjeżdżają Studnią Dżihad do Mostu i dalej kaskadami do Sali Grzechotnik&oacute;w. Eksplorują także pierwsze 40 m Studni Feniksa, do głębokości około &ndash;250 m względem otworu.<br />28 grudnia 2007 r. F. Filar i M. Parczewski osiągają dno Studni Feniksa (&ndash;295 m). Kontynuują także eksploracje Studni Dżihad do jej dna w Sali Mudżahedin&oacute;w.<br />30 czerwca 2008 r. F. Filar i M. Parczewski mierzą jaskinię od Zacisku Kryptolog&oacute;w do wejścia do Maszynki do Mięsa. Pr&oacute;bują także przejść zawalisko na dnie Studni Feniksa.<br />01 września 2008 r. J. i M. Parczewscy mierzą Ślepy Komin.<br />13 września 2008 r. F. Filar i M. Parczewski prowadzą pomiary od wejścia do Maszynki do Mięsa do dna Studni Feniksa oraz Studni Dżihad.<br />12 października 2008 r. F. Filar, M. Latoń i M. Rajczak mierzą pierwszą od g&oacute;ry pętlę w Zawalisku.<br />23 listopada 2008 r. F. Filar i M. Parczewski wspinają się Kominem nie dla Dziad&oacute;w i docierają do Sali Intensywnej Geriatrii.<br />13 czerwca 2009 r. F. Filar, M. Kubarek, A. Maślanka i M. Parczewski wspinają się Kominem Krakowiak&oacute;w i G&oacute;rali oraz eksplorują komin w okolicach Sali Intensywnej Geriatrii.<br />15 sierpnia 2009 r. F. Filar i M. Parczewski wspinają się Kominem nad Jeziorkiem i docierają meandrem do Salki Inividia.<br />5 września 2009 r. F. Filar, M. Parczewski i M. Rajczak kartują kominy i partie nad Salą Grzechotnik&oacute;w. <br />21 listopada 2009 r. F. Filar i M. Parczewski mierzą ciąg do Sali Intensywnej Geriatrii odkrywając przy okazji 10 m. Eksplorują także połączenie podstawy Komina Paklenica z Salą Mudżahedin&oacute;w.<br />1 maja 2010 r. F. Filar, M. Kubarek, M. Kwiatkowski i M. Parczewski wspinają się pierwsze 15 m w Kominie Paklenica oraz mierzą Salę Mudżahedin&oacute;w.<br />2 października 2010 r. F. Filar i M. Parczewski kończą wspinaczkę w Kominie Paklenica i pokonują kolejny Komin Utrapienia do zawaliska w stropie.<br />31 października 2011 r. M. Bukowiec, F. Filar, M. Parczewski, M. Targosz i B. Wypych pokonują zawalisko w stropie Komina Utrapienia i wspinają się do końca Komina Kuny. Przy okazji mierzą całość partii do połączenia ze Studnią Dżihad.<br />09 września 2012 r. F. Filar i M. Parczewski mierzą drugą pętlę w Zawalisku, Meander za Zaciskiem Kryptolog&oacute;w, pętlę nad Krwawą Salką i boczne korytarze przy podstawie Komina Paklenica. <br />21 października 2012 r. F. Filar eksploruje i mierzy kaskady pod Studnią Dżihad oraz Studnię z Nietoperzem.<br />27 lipca 2013 r. F. Filar, M. Parczewski i A. Romanek wspinają się do najniższego okna w Studni Feniksa i odkrywają Salkę CD.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W pomiarach jaskini wzięli udział: G. Albrzykowski, F. Filar, P. Grodecki, M. Kubarek, M. Latoń, P. Orawiec, J. Parczewski, M. Parczewski, M. Rajczak, B. Wypych, K. Zaczyński.<br />Wykaz kolejnych aktualizacji planu i przekroju:<br />&ndash;&nbsp;Filar F. 2008: przekr&oacute;j WE.<br />&ndash;&nbsp;Filar F. 2008: zestawienie przekroju Śnieżnej Studni i Siwego Kotła na płaszczyźnie WE.<br />&ndash;&nbsp;Parczewski M. 2008: plan.<br />&ndash;&nbsp;Filar F. 2009: przekr&oacute;j WE jaskini uzupełniony o ciągi nad Salą Grzechotnik&oacute;w i partie w okolicach Sali Intensywnej Geriatrii.<br />&ndash;&nbsp;Filar F. 2012: przekr&oacute;j WE jaskini uzupełniony o ciąg do Komina Kuny.<br />&ndash;&nbsp;Filar F. 2013: przekr&oacute;j WE jaskini uzupełniony o drobne boczne ciągi.<br />&ndash;&nbsp;Parczewski M. 2013: aktualny plan jaskini.<br />Pomiary przeprowadzono przy pomocy topofila Marbach i przyrządu DistoX.<br />Plan opracował M. Parczewski, przekr&oacute;j opracował F. Filar.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Filar F., Parczewski M. 2008 (informacja o odkryciu jaskini, historia eksploracji, przekr&#243;j oraz zestawienie ze Śnieżną Studnią); Filar F., Parczewski M. 2009 (historia eksploracji); Filar F. 2009a (notatka o postępach w eksploracji), Filar F. 2009b (eksploracja Studni Milusi); Filar F. 2009c (opis odkryć nad Salą Grzechotnik&#243;w i nad Kominem nie dla Dziad&#243;w, przekr&#243;j jaskini); Filar F. 2011a (odkrycia we wschodnich ciągach); Filar F. 2011b (opis odkryć nad Kominem Paklenica, przekr&#243;j jaskini), Filar F. 2013a (informacja o drobnych odkryciach, opis inwentarzowy, plan i przekr&#243;j całej jaskini), Filar F. 2013b (skr&#243;towe informacje o najnowszych odkryciach, aktualna długość jaskini); Filar F.  2015a (Wspinaczka w Kominie nad Enigmą, eksploracja partii przy Studni Feniksa, przekr&#243;j jaskini); Jaskinie TPN 2016 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Filip Filar
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(4432)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(4430)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(4431)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3013">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3013;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "526007,23".replace(',', '.') + "," + "208965,93".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3013','Jaskinia Czarne Działy III'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Czarne Działy III
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bm-02.08
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;21′40,00″, φ: 49&#176;44′51,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Ślemień (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                żywiecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                742
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    115
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ślemień, w SW zboczu Małego Gibas&#243;w Gronia (840 m n.p.m.), Beskid Mały.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od wsi Ślemień dochodzimy do leśniczówki „Pod Borem”. Z drogi biegnącej na N od rozstajów skręcamy na NW wyraźną, kamienistą drogę biegnącą wąwozem o zboczach stromych i wysokich. Po minięciu ogrodzonej szkółki leśnej (około 800 m od leśniczówki) dochodzimy do rozstajów i kierujemy się na W (280°). Przy kolejnym rozwidleniu idziemy na NW (310°) i dochodzimy do starego wyrębu. Dalej drogą leśną do miejsca, w którym zaczyna ona zarastać. Już bez ścieżki trawersujemy zbocze nadal w kierunku NW, pokonując niewielkie wzniesienia, mijamy parowy (w dwóch płyną strumienie). Wydostajemy się na „siodełko” (rodzaj obniżenia). Ścieżka biegnie dalej w górę do przełączki w grzbiecie, my kierujemy się na W, na kamieniste wzniesienie. Po około 150 m, po przejściu zarośniętych głazowisk i zapadlisk dochodzimy do otworu Jaskini Czarne Działy I. Stad idziemy w dół, nieznacznie na SE około 35 m. Tu przy drzewie znajduje się otwór jaskini. Dojście nieskomplikowane, otwór łatwy do znalezienia. Zwiedzanie łatwe (trzy niewysokie progi, miejscami ciasno), tylko w studni wejściowej jest pomocna lina (długości 10 m).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>&nbsp;Jaskinia składa się z&nbsp;trzech części.</p>
+<p>I część - otw&oacute;r wejściowy w&nbsp;kształcie tr&oacute;jkąta (1&nbsp;m x 1&nbsp;m) prowadzi do pionowej studni (głębokości 5,5&nbsp;m). Na głębokości 4&nbsp;m ku NW odchodzi kr&oacute;tki, zagliniony korytarz. Ku SW przez mały prożek można przedostać się do salki o&nbsp;długości 4 m, wysokości 2&nbsp;m i&nbsp;szerokiej na 1,2 m. Jej ściany są nieco spękane, dno poziome. Łączna długość tych partii (wskazanych przez&nbsp;M. Rachwańca i&nbsp;M. Krausa) wynosi 6 m.</p>
+<p>&nbsp;Z&nbsp;dna studni wydostajemy się do korytarza-przedsionka z&nbsp;pochyłą wnęką (długości 2,5&nbsp;m). Ku NW kr&oacute;tkim przejściem z&nbsp;progiem (1,8&nbsp;m) w&nbsp;d&oacute;ł schodzimy do dwupiętrowej Wielkiej Sali rozwiniętej na kierunku SE-NW. Na dolnym piętrze sala jest długości 4 m, szerokości do 1,6&nbsp;m i&nbsp;wysokości 6&nbsp;m. Ściany są proste, prawie w&nbsp;całości lite, strop o&nbsp;profilu łamanym - do połowy wysokości sali jest płaski, dalej przechodzi w&nbsp;wąską, płasko zakończoną szczelinę. Poza niedużą, zaglinioną wyniosłością przy ścianie NE dno jest r&oacute;wne. Ku NW dolne piętro sali ogranicza pr&oacute;g. Dalej (nieznacznie w&nbsp;d&oacute;ł) odchodzi już tylko prosty, ślepy korytarz o&nbsp;długości 5,5&nbsp;m. W&nbsp;g&oacute;rę przez pr&oacute;g (wysokości 1,5 m) przechodzimy na drugie piętro sali (długości 3,6 m, szerokości ponad 2&nbsp;m). Ściany są dość r&oacute;wne, dno w&nbsp;środkowej części płaskie, nastromione w&nbsp;części W. Przy ścianie NE znajduje się mały prostokątny otw&oacute;r studzienki. Ku SW za kolejnym progiem (w g&oacute;rę) biegnie korytarz boczny (przeciętnie szerokości 1&nbsp;m). Kończy się on po 3 m, tylko ku SE odchodzi 4&nbsp;m długości ciasna, wysoka szczelina. Od studzienki wejściowej ku SE schodzimy do Małej Sali (długości około 4 m, szerokości do 3&nbsp;m) rozwiniętej na kierunku NW-SE. Jest ona prawie w&nbsp;całości niska (wysokości 1,5&nbsp;m) - strop płaski, tylko w&nbsp;środkowej części przechodzi w&nbsp;wąską 3,8&nbsp;m wysoką, płasko zakończoną szczelinę. Ściany miejscami są nier&oacute;wne, z&nbsp;małymi wnękami. Dno częściowo jest pochyłe, przy ścianie SE znajduje się poprzeczne obniżenie. Ku SE sala przechodzi w&nbsp;ślepy, prosty korytarz (długości 4 m; przeciętnie szerokości 1 m, wysokości 0,4&nbsp;m). W&nbsp;dnie w&nbsp;prostokątnej, ciasnej studni odkryto przejście do nowych partii jaskini.</p>
+<p>II część (opis na podstawie materiał&oacute;w&nbsp;M. Rachwańca).</p>
+<p>Przez wspomnianą wyżej studnię (głębokości 2&nbsp;m) - bardzo niewygodną przy wychodzeniu - schodzimy do prostego korytarza (długości 5,5&nbsp;m) biegnącego ku SW. Na pierwszych 2&nbsp;m jest on wąski i&nbsp;schodzi stromo w&nbsp;d&oacute;ł. Dalej wyr&oacute;wnuje się, jest wysoki i&nbsp;stopniowo się rozszerza do 1&nbsp;m. Ściany są nieznacznie zaburzone i&nbsp;pochylone na SE. Korytarz wychodzi w&nbsp;Drugiej Wielkiej Sali (długości 7 m; szerokości 1,5 m, wysokości 4,5&nbsp;m) z&nbsp;dużą płytą stojącą u wejścia po lewej stronie. Sala jest rozwinięta na kierunku SE-NW. Ściany są lite, nieznacznie pochylone na NE. Strop płaski. Dno miejscami nier&oacute;wne - koło płyty znajduje się przekop do ciasnej szczeliny jeszcze niemożliwej do przejścia.</p>
+<p>Od sali za niskim przejściem, ku SW odchodzi boczny korytarz (wysokości 1,5 m, szerokości 0,3-0,6&nbsp;m) o&nbsp;prostych, nieznacznie zaburzonych ścianach. Po 5&nbsp;m kończy się on skręcając ku NW. W&nbsp;linii prostej ku SW biegnie Wąska Szczelina, za kt&oacute;rą w 2002 r. odkryto nowe partie (III część). Strop opisanego korytarza na całej długości jest zaburzony.</p>
+<p>Ku NW sala stopniowo się zwęża i&nbsp;przechodzi w&nbsp;wąską, wysokości 4&nbsp;m szczelinę. Biegnie ona w&nbsp;g&oacute;rę i&nbsp;po około 7&nbsp;m kończy się niewielkim rozszerzeniem, blisko powierzchni.</p>
+<p>III część - przez Wąską Szczelinę szerokości 20- 30 cm i długości 1 m przedostajemy się do niskiego (1 m) i ciasnego (ok. 0,5 m) korytarzyka o przebiegu NW- SE o kamienistym dnie. W kierunku NW do g&oacute;ry (3 m) poprzez niewielki zacisk wejść można do większej szczeliny (długość 5 m, szerokość 0,7 m, wysokość do 1,5 m) o rozwinięciu w lewo na W- E, kończącej się szerokim, lecz niedostępnym korytarzem (głaz wystający ze ściany). Drugi koniec tejże szczeliny łączy się prostopadle z środkową częścią rozwinięcia Korytarza z Zaciskiem skręcającego lekko na N (długość 4 m). Część na NW prowadzi do g&oacute;ry kończąc się zawaliskiem, w przeciwną stronę biegnie zwężająca się szczelina, kt&oacute;rej koniec styka się z Wąską Szczeliną (widać światło). Od miejsca kt&oacute;rędy weszliśmy, idąc na SE (1,5 m) przez zacisk wychodzimy do dużej Sali z Głazem o wysokości ok. 5 m. Sala rozwinięta jest w dw&oacute;ch kierunkach: NW- SE (cz. 1) i SW- NE (cz. 2).</p>
+<p>Część 1: u dołu szeroka (do 2 m) zwężająca się przy stropie (do ok. 0,5 m), ściany płaskie, SW pionowa, NE pochyła. Na środku znajduje się olbrzymi, wysoki głaz z szeroką podstawą zwężający się ku g&oacute;rze. Dno przy wejściu schodzi w d&oacute;ł pod głaz, skąd następnie można przejść do drugiej części sali. Strop poziomy, płaski. Na SW od sali odchodzi bardzo wąska szczelina długości 4,5 m.</p>
+<p>Część 2: tworzy większą komnatę, szeroką u g&oacute;ry (1,5 m), węższą u dołu (1 m) z pochyłymi ścianami, płaskim stropie i dnem z gruzem średniej wielkości. Między cz. 1 i 2 Sali, znajduje się duży kamień tworzący balkon (wysokość ok. 2 m; wejście studzienką od 2 cz. lub po Głazie z 1 cz.). Sala łączy się z Drugą Wielką Salą niewielkim prześwitem. Na E w pękniętej ścianie widoczny jest tymczasowo niedostępny korytarz (kamień na drodze) - (Wiculski 2002). Po spenetrowaniu dodatkowo 10 m nieplanowanych wcześniej szczelin długość jaskini wzrosła do 115 m.</p>
+<p>Jaskinia osuwiskowa, powstała w&nbsp;piaskowcach istebniańskich dolnych. Dno pokryte rumoszem, gruzem, r&oacute;żnej wielkości głazami (duże są nieliczne) i&nbsp;gliną (w większej ilości w&nbsp;drugiej części). W&nbsp;Małej Sali na ścianie SE zaobserwowano mikroformy naciekowe w&nbsp;postaci p&oacute;l ryżowych (z ciemnym nalotem), grzybk&oacute;w oraz biały nalot z&nbsp;substancji węglanowej.</p>
+<p>&nbsp;Jaskinia jest sucha, tylko w&nbsp;studni wejściowej (po roztopach i&nbsp;opadach) ściany są wilgotne (śliskie), a w 2 części Sali z Głazem po ścianie spływa woda. Przewiew wyczuwalny w&nbsp;studni wejściowej. Tam też sięga światło.</p>
+<p><span>Flory nie obserwowano. Z fauny zaobserwowano: ćmy, pająki, karaluchy (?), 1 salamandrę plamistą i 1 nietoperza (Wiculski 2002). Dodać należy, że w latach 2000- 2005 w jaskini zaobserwowano łącznie 11 nietoperzy (w spisie nie wymienione gatunkowo). Niewykluczone, że występuje tu też mroczek pozłocisty (<strong><em>Eptesicus nilssonii</em></strong>) i gacek szary (<strong><em>Plecotus austriacus</em></strong>) - podane dla całego zespołu jaskiń w artykule Wołoszyna i in. 1994 r. (Mysłajek 2006).&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Do czasu udokumentowania brak wzmianek o tym obiekcie w literaturze. Jednak znana. Odkryta przez nieznane osoby i zwiedzana może w 1988 r. (I część),o czym wydaje się świadczyć data na drzewie. Członkom bielskiego klubu wskazana przez A. Ficka i W. Gałosza.<br /> Dnia 8 kwietnia 1996 r. II część jaskini odkrył B. Nikiel, a prace w przekopie (rozpoczęte dnia 30 czerwca 1996 r.) prowadzą R. Fajt i M. Kraus ze Speleoklubu Bielsko-Biała. Dnia 4 maja 2002 r. III część jaskini odkryli: A. Wiculski i osoby towarzyszące A. Fizia, P. Wyrobek, R. Krowiak</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach inwentaryzacji jaskiń beskidzkich materiał dokumentacyjny zbierano czterokrotnie:<br />- dnia 17 grudnia 1994 r. J. Pukowski i J. Ganszer - dla I części długości 37 m;<br />- dnia 30 czerwca 1996 r. M. Rachwaniec - dla II części długości 27,5 m;<br />- dnia 22 września 1996 r. M. Rachwaniec i M. Kraus - dla Salki G&oacute;rnej, długości 6 m;<br />- dnia 4 maja 2002 r. A. Wiculski i os. tow.- dla III części długości 34,5 m.<br />Pomiary wykonano busolą geologiczną Freiberg i taśmą parcianą. Wsp&oacute;łrzędne geograficzne GPS w 2003 r. pomierzył P. Beczała (Speleoklub Bielsko-Biała). Dane zostały zaktualizowane w 2009 r.</p>
+<p>Plan I&nbsp;części opracował J. Ganszer, II części M.&nbsp;Rachwaniec, III części W. Wiculski (2002 b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ganszer J. 1995a (wzmianka i plan i części jaskini); Jaskinie Polskich Karpat fliszowych 1997b (plan I i II części i opis inwentarzowy); Klassek G., Mleczek T. 1997 (wzmianka o zwiększeniu długości jaskini); Ganszer J. 2000 (ujęta w schemacie rozmieszczenia jaskiń w Małym Gibasowym Groniu); Wiculski A. 2002, 2002b (opis roboczy III części jaskini, wzmianki o faunie, plan i opis III części); Klassek G., Mleczek T. 2002 (wzmianka o zwiększeniu długości jaskini); Mysłajek R. W. 2006 (wzmianki o zaobserwowanych nietoperzach) .
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    M. Rachwaniec, 1996 (roboczy opis nowych partii w Jaskini Czarne Działy III) - rękopis.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2011
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12136)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(2539)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

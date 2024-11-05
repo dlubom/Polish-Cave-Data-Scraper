@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1445">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1445;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563329,74".replace(',', '.') + "," + "153350,84".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1445','Jaskinia Czarna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Czarna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-09.12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;52′13,34″, φ: 49&#176;14′39,79″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                WSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku W, 1294 m n.p.m.; 3 - ku NNE, 1404 m n.p.m.; 4 - ku  WNW, ok. 1330 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1326
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                285
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                241,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                62
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                303,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    6500
+                </div>
+                <div style="min-height: 15px;">
+                    900
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                995
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Gł&#243;wny i drugi otw&#243;r jaskini znajdują się w Dolinie Kościeliskiej,  w masywie Organ&#243;w, wśr&#243;d skałek u podn&#243;ża Czarnej Turni; trzeci otw&#243;r znajduje się w lewym orograficznie zboczu Żlebu pod Wysranki, nad Halą pod Upłazem. Czwarty otw&#243;r położony jest w Czarnej Turniczce, na N i kilka metr&#243;w powyżej gł&#243;wnego  otworu. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Do głównego otworu jaskini podchodzimy z Hali Pisanej, początkowo żółtym szlakiem sprowadzającym z Jaskini Smocza Jama T.E-08.07. Po kilkudziesięciu metrach skręcamy w lewo, w górę stoku wyraźną, wydeptaną ścieżką. Ścieżka ta prowadzi stromo w górę, początkowo przez las, następnie żlebem. W górnej części żlebu skręcamy na lewo przez wiatrołom do otworu jaskini. Idąc do otworu północnego, podchodzimy z Zahradzisk w Dolinie Miętusiej czerwonym szlakiem na Halę Upłaz. Na Hali, w miejscu, gdzie szlak skręca w lewo w górę w kierunku lasu, od szlaku odgałęzia się wyraźna ścieżka wiodąca obok starego szałasu ku południowi (aktualnie –2009 r. – szałas nie istnieje, a ścieżka nie jest wyraźna, częściej schodzi się ze szlaku już na początku hali). Idąc ścieżką przekraczamy koryto Żlebu pod Wysranki obok źródełka w tym żlebie i wspinamy się na zbocze na prawo do góry. Podchodzimy około 100 m, mijając po lewej skałki, w których znajduje się otwór Jaskini Zakopiańskiej T.D-09.01, za którym idziemy stromo do góry skalno-trawiastym progiem, następnie nieco wstecz dochodzimy do północnego otworu Jaskini Czarnej. Dojście do dolnego otworu bez trudności, do północnego – nieco trudne, zwiedzanie jaskini trudne, wymaga sprzętu wspinaczkowego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Jaskinia Czarna ma cztery otwory. Najwcześniej poznanym otworem jest otw&oacute;r gł&oacute;wny, położony w południowo-zachodnich zboczach Organ&oacute;w, pod Czarną Turnią. Jego kształt jest zbliżony do trapezu o wymiarach 2,5x3 m. W otworze znajduje się metalowa krata. Około 2 m nad nim w lewo skos znajduje się soczewkowaty w kształcie otw&oacute;r wysokości ok. 1,5 m. Za nim biegnie kilkumetrowy korytarz, uchodzący w stropie studni wstępnej. Za kratą w otworze gł&oacute;wnym opada na wsch&oacute;d szeroka na 2&ndash;3 m pochylnia, przechodząca po kilkunastu metrach w studnię. Pochylnię i studnię pokonujemy zjazdem, w trakcie kt&oacute;rego mijamy dwie ślepe studzienki. Dno studni przechodzi w 3-metrowej szerokości i 5-m wysokości korytarz, rozwijający się na wsch&oacute;d. Opada on łagodną pochylnią, początkowo pokrytą rumoszem skalnym. Tu po lewej stronie rozpoczynają się partie w rejonie III Komina. </span></p>
+<p><span><strong>Partie rejonu III Komina</strong> (odkryte w czasie pierwszych eksploracji, od ponad 20 lat bardzo rzadko odwiedzane), długości około 450 m, rozpoczynają się kilkunastometrowej wysokości progiem (III+), doprowadzającym do obszernego korytarza, prowadzącego do rozwidlenia. Prawe odgałęzienie początkowo biegnie ku NNW, po około 10 m skręca w lewo, a następnie w prawo, lekko wznosząc się. Po następnym skręcie na prawo prowadzi ono ku W przez prawie 20 m. Dalej skręca lekko w prawo i w lewo, doprowadzając do II otworu jaskini.</span></p>
+<p><span>Lewe, początkowo obszerniejsze odgałęzienie, prowadzi ku SWW. Po kilku metrach obniżamy się przez prożek, za kt&oacute;rym korytarz skręca w prawo i poprzez następny prożek doprowadza do rozwidlenia. </span></p>
+<p><span>Na wprost biegnie ciasny, szczelinowy korytarzyk, wiodący do ciasnej szczeliny, kontynuującej się ku N i ku S, ślepo zakończonej.</span></p>
+<p><span>W prawo w d&oacute;ł, poprzez prożek, biegnie ku N korytarzyk, kt&oacute;ry po kilkunastu metrach skręca ku zachodowi i rozszerza się. Tuż za rozszerzeniem na prawo wstecz odchodzi ciasna odnoga, uchodząca w III Kominie. Korytarzyk biegnie dalej ku zachodowi, wznosząc się i tworząc po kilkunastu metrach charakterystyczny ślimak. Za nim na lewo wstecz można przejść do Sali z Niedźwiedziem &ndash; tu został odnaleziony kompletny szkielet niedźwiedzia. Na wprost korytarzyk po kilkunastu metrach jest całkowicie zablokowany namuliskiem. W okolicy znajduje się czwarty otw&oacute;r jaskini, odkryty 6.01 2001 r.</span></p>
+<p><span>Wracamy do rozwidlenia. W lewo w d&oacute;ł, poprzez mały prożek, schodzimy do obszerniejszego korytarza prowadzącego generalnie ku N. Po około 10 m w lewo odchodzi boczny korytarzyk, ślepo zakończony. Rozszerzającym się korytarzem idziemy lekko w d&oacute;ł, do ostrego zakrętu w prawo. Za nim wchodzimy do rozległej Sali Węgierskiej, na wprost wejścia rozdzielonej trzema skalnymi filarami. Sala łagodnie opada ku NW, w jej bocznym, końcowym odgałęzieniu znaleziono unikatowe gleby poligonalne, opisane przez M. Pulinę (1968a). Z g&oacute;rnego końca Sali odchodzą dwa korytarzyki, łączące ją z III Kominem, mającym formę kilkudziesięciometrowej, stosunkowo wąskiej szczeliny, o deniwelacji około 70 m. </span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu. Po kilkunastu metrach spąg pochylni staje się skalisty i urywa się 5-metrowym, pochyłym progiem, kt&oacute;ry możemy obejść eksponowaną niewielką p&oacute;łką, znajdującą się na ścianie po lewej stronie. Przy końcu wspomnianej p&oacute;łki korytarz rozdzielony jest na dwie części wąskim, około 5-metrowej długości filarem skalnym. Za filarem schodzimy po głazach do obszernej Sali Ewy i Hanki o wymiarach 10x7 m. Tu po lewej stronie w kierunku zachodnim znajduje się wejście do partii Tehuby. </span></p>
+<p><span><strong>Partie Tehuby</strong> (ich długość wynosi 1840 m, deniwelacja względem gł&oacute;wnego otworu &ndash;163,5 m) są drugim na lewo odgałęzieniem ciągu gł&oacute;wnego Jaskini Czarnej idąc od gł&oacute;wnego otworu. Ich owalny g&oacute;rny otw&oacute;r (3,7x1,7 m) widać w Sali Ewy nad 5-metrowym, lekko przewieszonym progiem. Dolny otw&oacute;r, bardzo ciasny, położony jest bezpośrednio pod tym progiem.</span></p>
+<p><span>Do g&oacute;rnego wejścia (&ndash;51,9 m względem gł&oacute;wnego otworu) docieramy z lewej strony eksponowanym trawersem (II). Pod prawą (or.) ścianą, w rozszerzeniu za otworem odgałęzia się ciasna rurka (0,4 m) sprowadzająca stromo w d&oacute;ł do Szczeliny Zapieraczkowej. Omijamy ten ciąg i schodzimy kilkanaście metr&oacute;w gł&oacute;wnym, obszernym korytarzem Tehuby, rozdzielonym na początku filarem skalnym. Na lewo od korytarza widać dwa odgałęziające się korytarzyki, zamknięte przez zawalisko. Na wprost wspinamy się nad Podw&oacute;jną Studzienką do g&oacute;ry, do korytarza o ścianach pokrytych zagłębieniami wirowymi, kt&oacute;ry niebawem opada do 11-metrowej mytej studni sprowadzającej do Sali Czterech. Trawersujemy nad otworem tej studni. Dalej idziemy wznoszącym się i zakręcającym w prawo korytarzem o dnie pokrytym wantami. Docieramy nim do Studni z Datą. Jest to 13-metrowa, szeroka, stroma pochylnia ze żłobkami krasowymi, zamulona na dnie. Ma ona ciasne r&oacute;wnoległe przebicie. Nad jej otworem osmalono datę odkrycia &ndash; sierpień 1961 r. Przy powrocie, na zakręcie korytarza przy prawej (or.) ścianie możemy wejść do szczelinowego, poziomego ciągu, z dwoma około 4-metrowymi kominkami. Pierwszy z nich uchodzi oknem w ścianie naszego korytarza. Występuje tu bogata szata naciekowa (stalaktyty, stalagmity, nacieki grzybkowe i, także na spągu, polewy naciekowe).</span></p>
+<p><span>Wracamy do Podw&oacute;jnej Studzienki (dwie r&oacute;wnoległe rynny ze żłobkami). Schodzimy nią do szczeliny biegnącej prostopadle. Na prawo opada ona stromą Szczeliną Zapieraczkową. My idziemy w lewo, przez 2,2-metrowy prożek w d&oacute;ł, do obszernego korytarza. Stąd na lewo, za okresową kałużą omijamy stromą, szeroką, 8-metrową, wiodącą do g&oacute;ry pochylnię. Pochylnia ta łączy się z bardzo ciasnym korytarzykiem uchodzącym do ciągu gł&oacute;wnego jaskini 5 m poniżej otworu gł&oacute;wnego Tehuby. Za odejściem pochylni odgrzebujemy gliniaste namulisko, kt&oacute;re okresowo zamyka dalszy ciąg korytarza i po około 9 m docieramy do kończącego go zawaliska. Na tym odcinku omijamy trzy widoczne po prawej stronie, wiodące stromo do g&oacute;ry pochylnie, zwężające się w szczeliny nie do przejścia. Druga i trzecia pochylnia łączą się ze sobą. Wszystkie dochodzą do wyżej opisanego, szczelinowego korytarzyka w pobliżu dolnego otworu Tehuby.</span></p>
+<p><span>Wracamy pod 2,2-metrowy prożek i dalej podążamy ku SW dość obszernym korytarzem o dnie zasłanym rumoszem. Jego rozszerzenie nazwano Salą Czterech. Niebawem dochodzimy do rozdwojenia ciągu: lewy korytarz po kilkunastu metrach zakręca na stromą skalną pochylnię, a prawy lekko opada; przy jego dnie pokrytym gruzem odchodzą ku N ciasne odgałęzienia z osuwającym się rumoszem (drugie z nich ma połączenie z Dolnym Korytarzem). Omijamy odgałęzienia i docieramy do podstawy pochylni. Po połączeniu korytarz zwany Dziewiczym biegnie dalej ku SWW. Na jego dnie znajduje się duży stalagmit, a za nim, na prawo widać ciasny otw&oacute;r Rury za Stalagmitem, kt&oacute;ry na razie omijamy. Korytarz Dziewiczy jest myty, w przekroju zbliżony do p&oacute;łkola (3,6x1,8 m). Jego ściany i strop pokrywają polewy naciekowe i mleko wapienne. Występują też stalaktyty, stalagmity, a także niewielkie kolumny i heliktyty. Namulisko gruzowo-gliniaste jest w znacznej części spojone naciekami. Po około 15 m na prawo w d&oacute;ł wiedzie obszerny otw&oacute;r pochyłej studni &ndash; jest to Komin Wariat&oacute;w. Ma on prawie 60 m długości, a jego szerokość miejscami przekracza 5 m. Studnia jest myta na szczelinie i kończy się ślepo.</span></p>
+<p><span>Za odejściem Komina Wariat&oacute;w korytarz skręca nieco na lewo i do g&oacute;ry. Nad małym prożkiem zarośniętym naciekami, w spągu widać między stalagmitami otw&oacute;r wiodący do bocznego, 9-metrowej długości, ciasnego korytarzyka, kt&oacute;ry prowadzi stromo w d&oacute;ł. Idziemy dalej, do g&oacute;ry, obszernym (około 2,5x2 m), mytym korytarzem. Na jego ścianach widać brunatne polewy naciekowe, stalaktyty oraz nacieki grzybkowe. Dwa filary skalne rozdzielają niebawem ten ciąg na r&oacute;wnoległe odnogi (lewa z nich jest zamulona na końcu). Dalej następuje zmiana charakteru korytarza. Przechodzi on w wysoką, lecz wąską (0,5 m) szczelinę, kt&oacute;ra opada do zawaliskowej Sali Dobrej Nadziei (około 6x3 m). Przy wejściu do niej widać lustro tektoniczne. Dno Sali tworzą wielkie, zaklinowane wanty, pomiędzy kt&oacute;rymi można zjechać do położonej 8 m niżej komory z głębokimi żłobkami krasowymi. Stąd w d&oacute;ł obszernym, mytym korytarzem, z pochyłym prożkiem w rozszerzeniu na zakręcie w lewo (Sala Titowa), docieramy po trzydziestu paru metrach Korytarzem Kosmonaut&oacute;w nad otw&oacute;r pochyłej studni (Ślizgawka). Na wprost po 18 m korytarz jest zamulony. Wcześniej na prawo od niego wiedzie wąska odnoga łącząca się zaraz ze Ślizgawką, a przy końcu na lewo do g&oacute;ry &ndash; ślepa rurka (Wyrzutnia Rakietowa). </span></p>
+<p><span>Zjeżdżamy mytą na szczelinie Ślizgawką 16 m do korytarza o dnie zasłanym rumoszem. Rozdziela się on wkr&oacute;tce na dwie odnogi: prawą o dnie skalnym i lewą &ndash; zasłaną rumoszem. Dochodzą one do Rozdziela.</span></p>
+<p><span>Wracamy do otworu Rury za Stalagmitem. Ciasny początkowo korytarz (0,5 m) przechodzi w obszerną, wymytą na szczelinie rurę (1,7x1 m). Jej ściany pokrywa mleko wapienne, nacieki grzybkowe, drobne stalaktyty i stalagmity. Dno skalne. Ciąg ten wiedzie stromo w d&oacute;ł ponad 60 m. Na końcu rozdwaja się i obie odnogi dochodzą do poziomego Dolnego Korytarza w miejscu biwakowym zwanym też Salką z Kredensem. Stąd, przez ciasny otw&oacute;r ukryty za dużym głazem dostajemy się do stromo opadającej ku N Rury za Kredensem, długiej na ponad 60 m, zakończonej okresowym syfonem (&ndash;139,5 m względem gł&oacute;wnego otworu). Jej średnica wynosi średnio 0,5 m. Na ścianach widać nacieki grzybkowe. Dno skalne, miejscami pokryte drobnym, rumoszem autochtonicznym. Za syfonem korytarz zmienia charakter na szczelinowy i kontynuuje się jeszcze 40 m w coraz wyższej szczelinie. Widać w niej kominki rozdzielone filarami skalnymi. Dalej korytarz biegnie do g&oacute;ry. Za zaciskiem wchodzimy do obszernej, długiej szczeliny o gładkich ścianach. Można wspiąć się nią kilkanaście metr&oacute;w, a po przejściu poziomego odcinka jeszcze wyżej, kominkami, kt&oacute;re stają się w końcu zbyt ciasne do przejścia. W tym ciągu wyczuwa się bardzo silny przewiew. </span></p>
+<p><span>Wracamy do Biwaku (Salki za Kredensem). Stąd idziemy ku zachodowi. Za Jeziorkiem Tehuby, błotnistym tu Dolnym Korytarzem, docieramy do Sali Taty Winiarskiego (ok. 10x4x9 m). Sala rozwinięta jest na pochyłej szczelinie z zaklinowanym w niej zawaliskiem. Idąc na wprost piarżystą p&oacute;łką przy lewej ścianie sali, trafiamy do bocznego ciągu o długości ponad 55 m. Wznosi się on stromo ku S na początku szeroką do 4 m pochylnią, dalej wąską (0,3&ndash;0,5 m) soczewkowatą szczeliną. Szczelina dochodzi do skośnie przebiegającego korytarza, zakończonego dwoma kominkami połączonymi wyżej w jeden.</span></p>
+<p><span>Na dno Sali Taty schodzimy przez 6-metrowy pr&oacute;g z wielkich want. Stąd ku </span><span>E</span><span>SE szczelinowy korytarz po około 25 m doprowadza nas do Rozdroża. Zbiegają się tu liczne odgałęzienia: pierwsze dwa widoczne na lewo (opisane wcześniej) wiodą do Ślizgawki; następne (rozpoczynające się nad prożkiem) łączy się z r&oacute;wnoległym do niego, 27-metrowej długości korytarzem wznoszącym się stromo ku SW, a uchodzącym r&oacute;wnież w Rozdzielu. Na wprost od otworu tego korytarza schodzimy szerokim na 3&ndash;4 m, wysokim ciągiem, zasłanym dużymi wantami. Zakończony jest on wysoką na około 10 m i długą na kilkanaście metr&oacute;w Salą pod Białą Płytą. W jej zachodnim krańcu, przez przełaz nad wantami, dostajemy się do obszernego korytarza o dnie gliniasto-gruzowym. Wiedzie on do szczelinowej Sali pod Głazem. Część jej stropu tworzy zaklinowane między ścianami zawalisko, nad kt&oacute;rym przebiega korytarz. Korytarz ten o dnie gruzowo-gliniastym wznosi się ku SE. Poza zasięgiem prześwit&oacute;w do wyżej opisanej Sali, jest on myty, a jego ściany pokrywa gruba warstwa mleka wapiennego i inne nacieki. Kończy go niewielka kom&oacute;rka z 7-metrowym ślepym kominkiem, uchodząca ciasnym przełazem w Rozdzielu.</span></p>
+<p><span>Z dna Sali pod Głazem, przy N ścianie, można w dw&oacute;ch miejscach zejść do kilkunastu metr&oacute;w w zawalisko (ciasno). Z zachodniego krańca sali ku SW stromo wznosi się 25-metrowy korytarz zamknięty rumoszem, a ku W wiedzie ciasny przełaz. Za przełazem wchodzimy do małej, prawie okrągłej kom&oacute;rki. W jej W ścianie widać dwa niewielkie otwory. Dolny (0,8x0,6 m) wiedzie do bardzo ciasnego korytarza prowadzącego w d&oacute;ł. Na jego ścianach występują nacieki, rumosz spaja polewa naciekowa. Po dwudziestu kilku metrach, za trudnym zaciski, otwiera się poprzeczna, prawie pionowa szczelina. Na prawo po kilkunastu metrach kończy się ona ślepo, na lewo, od jej SW zakończenia odchodzi do g&oacute;ry zawaliskowy korytarz. Idąc w d&oacute;ł szczeliny (pod zaklinowaną wantą), po 10 m, za niezwykle trudnym zaciskiem, dostajemy się do bardzo ciasnego korytarzyka sprowadzającego do jej dolnych partii. Na lewo, w d&oacute;ł szczelina wkr&oacute;tce staje się zbyt ciasna do przejścia. Tu znajduje się najniższy punkt Jaskini Czarnej -241,5 m (-163,5 m względem gł&oacute;wnego otworu). W ciągu tym często spływa strużka wody, wyczuwa się też bardzo silny przewiew.</span></p>
+<p><span>Wracamy do okrągłej małej kom&oacute;rki i wchodzimy do niewielkiego, soczewkowatego otworu (0,4x0,7 m), widocznego w jej ścianie nad wyżej opisanym ciągiem. Otw&oacute;r prowadzi do Labiryntu Wiatr&oacute;w, nazywanego tak ze względu na silny przewiew. Ciasnym korytarzykiem o skalnym dnie przez dwa łatwe zaciski docieramy do ciągu rozwiniętego na szczelinie SW&ndash;NE. W d&oacute;ł wiedzie on do skośnie przebiegającego korytarza uchodzącego za przekopem do Sali AKT (&ndash;142,2 m względem gł&oacute;wnego otworu). Sala ta (ok. 8 x10x6 m), rozwinięta na przecięciu dw&oacute;ch szczelin, ma charakter zawaliskowy. Jej dno pokrywają duże wanty. Obszerny korytarz odchodzący stąd na prawo zakończony jest zawaliskiem; korytarz wiodący na lewo wznosi się dalej progami (3 i 4 m) i łączy z poprzeczną szczeliną, kt&oacute;rą docieramy do uprzednio wymienionego ciągu SW&ndash;NE. </span></p>
+<p><span>W okrągłej kom&oacute;rce przy otworze Labiryntu Wiatr&oacute;w ma też początek około dwudziestometrowy, stromo opadający ciąg z podw&oacute;jną komorą, kontynuującą się szczeliną zakończoną Zaciskiem z Ogonkiem. Ciąg ten nie jest przedstawiony na planie; jego otw&oacute;r wt&oacute;rnie zamknęło namulisko. Przez odkrywc&oacute;w był uważany za najniższy punkt jaskini.</span></p>
+<p><span>Wracamy do Biwaku i dalej idziemy Dolnym Korytarzem ku E. Omijamy po lewej stronie otw&oacute;r ślepego odgałęzienia zwanego Kiblem. Dalej Dolny Korytarz opada w kierunku błotnistego obniżenia, zakręca w prawo i wznosi się stromo na odcinku około 25 m (fragment ten nazwano Salą Teresy). Korytarz jest tu obszerny, myty. Na ścianach widać nacieki grzybkowe, mleko wapienne i brunatne polewy. Dno jest gruzowo-gliniaste, na niekt&oacute;rych wantach widać minerały zielone i fragmenty luster tektonicznych. Z g&oacute;rnej części ciągu wznosi się na prawo szeroka (do 6 m), niska (do 0,5 m) pochylnia o dnie miejscami pokrytym gruzem. Po trzydziestu kilku metrach jest ona ciasna i wąska. Przez niskie zaciski można przejść do korytarza w g&oacute;rnym ciągu. Okresowo przejście zamyka osypujący się rumosz.</span></p>
+<p><span>Za Salą Teresy Dolny Korytarz wiedzie poziomo ku E i niebawem rozgałęzia się: na lewo, ku E pokonujemy dwa progi w zawalisku zablokowanym w wąskim, mytym korytarzu i przez ciasny przełaz docieramy do komory z płaskim, płytowym stropem, przechodzącej w Pochyły Korytarz; na prawo (ku S) wiedzie myty, stromy korytarz nazwany Kominem Samob&oacute;jc&oacute;w. Jego dno pokryte ruchomymi wantami spiętrza się w kilka prog&oacute;w. Po około 24 m, omijając kr&oacute;tkie odgałęzienia, docieramy do poprzecznie przebiegającego, szczelinowego korytarza. Ku południowemu zachodowi wznosi się on i przechodzi w obszerny, myty ciąg o dnie gruzowo-gliniastym. Od tego ciągu odchodzi na lewo ciasne odgałęzienie zakończone wąskimi szczelinami, a nieco dalej niewielki kominek i na prawo studzienka. Ku NE prowadzi pochyła szczelina wysokości około 8 m. Pokonujemy w niej do g&oacute;ry 4,8-metrowy pr&oacute;g, docierając do filara skalnego rozdzielającego 4-metrowym progiem g&oacute;rną i dolną część szczeliny na dwa ciasne korytarzyki. Oba prowadzą do Pochyłego Korytarza, ale wcześniej przecina je poprzecznie korytarz wznoszący się na prawo (ku E). Zamyka go niebezpieczne zawalisko, z kt&oacute;rego osypuje się rumosz i duże wanty. Przed zawaliskiem na prawo (ku S) wiedzie pionowo do g&oacute;ry soczewkowata w przekroju Szczelina Zapieraczkowa. Można dotrzeć nią do opisanej na początku Podw&oacute;jnej Studzienki.</span></p>
+<p><span>Pochyły Korytarz o długości ponad 50 m ma przebieg NE. Jest on wysoki na ponad 6 m i szeroki na 3&ndash;5 m. Rozwinął się na szczelinie pochylonej ku NW. Na ścianach widać miejscami mleko wapienne, nacieki grzybkowe i drobne stalaktyty, a ściana SE jest poorana żłobkami. Dno pokrywają duże wanty i gruz wapienny. Po około 25 m w prawo wznosi się stromo czterdziestokilkumetrowy boczny ciąg wymyty na szczelinie rozwinięcia Pochyłego Korytarza. Ma on kilka kr&oacute;tkich odn&oacute;g. Na ścianach występuje mleko wapienne i polewy naciekowe. Mniej strome odcinki dna pokrywa drobny rumosz i glina z dużą zawartością kości nietoperzy. Za udostępnionym podczas kartowania zaciskiem zauważono kilkanaście nietoperzy.</span></p>
+<p><span>Opuszczamy boczny ciąg i idziemy dalej ku N, aż do pochyłego progu skalnego, kt&oacute;ry można obejść ciasnym korytarzem z lewej strony. Nad progiem na prawo widać otw&oacute;r około dwudziestometrowej rurki (0,4x0,7 m), kt&oacute;rą często spływa woda. Spod progu na wprost dochodzimy do zamulonego Syfonu Tehuby (&ndash;97,7 m względem gł&oacute;wnego otworu). Przed syfonem, na prawo do g&oacute;ry odgałęziają się Partie nad Syfonem o długości prawie 140 m. Zaczyna je szeroka (do 6 m), stroma pochylnia z pięciometrowym kominkiem, pokrytym naciekami. Po 15 m przechodzi ona w myty korytarz z osadem gruzowo-gliniastym. Za odejściem na prawo kilkunastometrowego, pochyłego komina, korytarz zakręca na lewo i przybiera charakter szczeliny w zawalisku, następnie opada do zwężenia z progiem w d&oacute;ł. Dalej szczelina zawaliskowa biegnie stromo w d&oacute;ł ku NW, rozgałęziając się wielokrotnie w system korytarzy i niskich kom&oacute;r. Jej najniżej schodzącym, niezwykle ciasnym odgałęzieniem docieramy, po przebyciu kilku kałuż, do małego syfonu (-96,5 m względem gł&oacute;wnego otworu), położonego w pobliżu Syfonu Tehuby.</span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu jaskini, do Sali Ewy. Przy ścianie przeciwległej do wejścia w Partie Tehuby, natykamy się na skoncentrowany deszcz podziemny padający przez cały rok, poza mroźnymi zimami. Za salą, kamienisty korytarz gł&oacute;wnego ciągu prowadzi nieznacznie w g&oacute;rę, w kierunku p&oacute;łnocno-wschodnim i po kilkunastu metrach, nad niewielkim progiem (Pr&oacute;g Rabka) rozdziela się widlasto na dwie części. Lewą odnogą (na jej ścianach występują polewy naciekowe i nacieki grzybkowe) po około 15 metrach dochodzimy do zawaliska, przez kt&oacute;re można przecisnąć się (bez trawersowania filara) do prawego korytarza wiodącego pod pr&oacute;g. Do prawego korytarza dostajemy się też trawersem niewyraźną p&oacute;łką po lewej stronie, przewijając się przez filar rozdzielający korytarze. Za trawersem kamienisty korytarz 1,5&ndash;2 m szerokości wznosi się i po kilkunastu metrach doprowadza do kolejnego rozwidlenia. Na wprost w kierunku p&oacute;łnocno-wschodnim opada kamienisty korytarz, kt&oacute;ry po około 30 metrach kończy się ślepo. W swojej środkowej części korytarz ten połączony jest z kontynuacją ciągu gł&oacute;wnego pionowym kominem. Dalsza droga prowadzi ku południowemu wschodowi. Wspinamy się 5-metrowym progiem (IV). Za nim korytarz gwałtownie skręca ku p&oacute;łnocnemu zachodowi i stopniowo obniża się do 1 metra. Za przełazem, po lewej stronie spotykamy wspominane wcześniej połączenie, na wprost, zaś korytarz osiąga 4 m szerokości i stromo opada w kierunku wschodnim i rozszerzając się tworzy Salę Francuską. Sala, prostokątna w swoim zarysie, ma wymiary 12x30 m i osiąga wysokość kilkunastu metr&oacute;w. Jej dno zalegają duże głazy i kamienie. Za Salą Francuską rozwija się w kierunku wschodnim korytarz o szerokości 4&ndash;5 m i wysokości około 5 m. Po około 20 m korytarz ten płynnie przechodzi w Salę Łukową. Ma ona zarys wydłużonego prostokąta w wymiarach 5x25 m. Sala ma dno lekko pochyłe, spąg pokrywa namulisko kamienisto-gliniaste. We wschodnim końcu sali, we wnęce, z g&oacute;ry opada ciek wodny tzw. Czarne Kaskady. </span></p>
+<p><span>Wspinamy się Czarnymi Kaskadami około 15 m do dużego okna widocznego nad ich podstawą. Za oknem opada 20-metrowej głębokości studnia, rozwinięta na rozmytej szczelinie. Z jej dna idziemy kilkanaście metr&oacute;w korytarzem o szczelinowym charakterze, z załamaniem w kształcie litery Z, aż do okresowego syfonu, kt&oacute;ry można wyczerpać. Przy syfonie w prawo odchodzi w kierunku gł&oacute;wnego ciągu niezwykle ciasna szczelina. Na wprost za zaciskiem korytarz kontynuuje się około 25 m. Po pokonaniu następnego zacisku pod wiszącą wantą, dochodzimy do niewielkiej salki, zakończonej ciasną rurą (0,7 m średnicy), zasypaną drobnym rumoszem. Cały ten ciąg powstał na rozmytej szczelinie, w kt&oacute;rej środkowej części widać zablokowane zawalisko. Ściany są mokre, gładkie i bez naciek&oacute;w, dno pokrywa namulisko gruzowo-gliniaste.</span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu. Dalsza droga wiedzie w kierunku wschodnim nieznacznie w g&oacute;rę, korytarzem 4-metrowej szerokości, o skalnym spągu. Po kilkunastu metrach charakter korytarza zmienia się i przez kolejnych około 40 metr&oacute;w ma kształt pochylonej w prawo, elipsoidalnej rury o litym spągu. Rura ta opada pod kątem około 35<sup>o</sup>. W jej g&oacute;rnej części na styku lewej ściany ze spągiem obserwujemy na długości około 6 m szczelinę bardzo stromo opadającą, w dole łączącą się z partiami za Studnią Herkulesa. Gł&oacute;wny ciąg doprowadza nas do miejsca, w kt&oacute;rym silnie nachylony korytarz, osiągający tu wysokość kilku metr&oacute;w, rozdziela skalny most. Stąd po około 10 m w d&oacute;ł za wspomnianym mostem, odchodzi w g&oacute;rę na prawo g&oacute;rna część Studni Herkulesa. Natomiast na wprost zjeżdżamy 25 m do dna studni stromym (blisko 45</span><span><sup>o </sup></span><span>nachylenia), mytym korytarzem o kształcie pochylonej soczewki, szerokiej na 5&ndash;6 m i wysokości 2,5 m. Okresowo spływa tu strużka wody. Przy jej lewej ścianie na znacznej długości widać szczelinę, częściowo zasypaną gruzem. Dalej korytarz staje się prawie poziomy. Na lewo odchodzi 11-metrowe, błotniste odgałęzienie, zamulone na końcu. Na wprost docieramy do zamulonego i zalanego wodą syfonu. Występują tu liczne konkrecje wapienno-piaskowe, ściany pokryte są cienką warstwą mleka wapiennego, występują też drobne stalaktyty. Tuż przed syfonem w prawo, bardzo stromo do g&oacute;ry odchodzi boczny ciąg 10-metrowej długości. Za zakrętem kończy go r&oacute;wnież zamulony syfon.</span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu i wspinamy się przy wspomnianym uprzednio moście w prawo, 6 metr&oacute;w w g&oacute;rę po żłobkowanej ścianie, po kt&oacute;rej okresowo spływa woda. W tym miejscu, ze stropu pokrytego kotłami wirowymi, pada deszcz podziemny. Za progiem, jaki tworzy tu most, trawersujemy po prawej ścianie Studnię Herkulesa niewyraźną i nachyloną p&oacute;łką skalną (III), kt&oacute;rą po około 10 metrach osiągamy korytarz. Wygodniej jest za filarem zjechać kilkanaście metr&oacute;w w d&oacute;ł, do niewielkiej p&oacute;łki, z kt&oacute;rej już łatwo można wyjść do g&oacute;ry, do zachodniej krawędzi studni. Z p&oacute;łki opada 3-metrowy pr&oacute;g, pod kt&oacute;rym zaczyna się uprzednio wspomniany zjazd w kierunku syfonu.</span></p>
+<p><span>Za trawersem Studni Herkulesa, podążając dalej gł&oacute;wnym korytarzem, po około 15 metrach dochodzimy do rozstaju dr&oacute;g. Na wprost, wznoszącym się, 4-metrowej szerokości korytarzem, o spągu zasłanym kamieniami, idziemy w kierunku wschodnim i osiągamy skalny balkon, z kt&oacute;rego opadają bardzo stromo nachylone, pożłobione pochylnie, z niewielkimi ciekami wodnymi, sprowadzające do korytarza biegnącego niżej. Z balkonu wspinamy się przez znajdujący się po prawej stronie, 5-metrowej wysokości pr&oacute;g (III+, miejsce V), po czym stajemy u podn&oacute;ża dość stromo nachylonego, o rurowatym charakterze korytarza, kt&oacute;rym po niezbyt trudnej (II-III), dwudziestoparometrowej wspinaczce osiągamy tzw. stanowisko pośrednie w Kominie Węgierskim. Ciąg ten popularnie nazywany jest obejściem Komina Węgierskiego. </span></p>
+<p><span>Wracamy do wcześniej wspomnianego rozstaju dr&oacute;g za trawersem Studni Herkulesa. Tu, po lewej stronie, u podstawy korytarza, kt&oacute;rym podążaliśmy w g&oacute;rę, obrywa się 3-metrowy pr&oacute;g z zaklinowanych want, za kt&oacute;rym zaczyna się opadający stromo, szczelinowy korytarz o szerokości około 2 m, kt&oacute;ry po kilkunastu metrach rozszerza się . Na jego dnie zalegają głazy spojone kalcytem i pokruszone polewy naciekowe. Po około 20 m z prawej strony dochodzą z g&oacute;ry strome, pożłobione pochylnie, opadające spod wcześniej opisywanego balkonu. My podążamy wznoszącym się korytarzem o dnie pokrytym polewami spajającymi rumosz i po około 40 m osiągamy podstawę Komina Węgierskiego. Podstawa komina tworzy salę o wymiarach 8x5 m. Z sali ku wschodowi prowadzi lekko w g&oacute;rę, po głazach, korytarz przechodzący po około 10 m w komin nachylony pod kątem 50</span><span><sup>o</sup></span><span>. Komin, szeroki na 3-5 m, po około 30 m kończy się zawaliskiem. U podstawy opisanego komina w lewo, stromo w d&oacute;ł odgałęzia się myty korytarz o charakterze meandra. Jego spąg tworzy namulisko gruzowo-gliniaste, kt&oacute;re po około 30 m wypełnia korytarz po strop.</span></p>
+<p><span>Sam Komin Węgierski to szeroki od 6 do 8 metr&oacute;w, stromo nachylony (50-60</span><span><sup>o</sup></span><span>) pr&oacute;g, rozwijający się w kierunku południowo-zachodnim, kt&oacute;rym wspinamy się około 40 metr&oacute;w (III) i osiągamy wcześniej opisywane stanowisko pośrednie. Umiejscowione jest ono w 2/3 wysokości Komina, na niewielkiej p&oacute;łeczce, pod jego prawą ścianą. Ze stanowiska trawersujemy po polewach naciekowych (III) w poprzek komina pod lewą ścianę, na wygodną p&oacute;łkę. Stąd, prosto w g&oacute;rę, zapieraczką w szczelinie (III) lub wspinaczką po skalnym żebrze (IV) dostajemy się na g&oacute;rę komina. Stąd podążamy na wsch&oacute;d 7-metrowej szerokości korytarzem, o ścianach pokrytych mlekiem wapiennym, dość stromo wznosząc się po głazach spojonych polewami naciekowymi, z nielicznymi stalagmitami. Po około 40 metrach dochodzimy do rozwidlenia. Na wprost, ku wschodowi biegnie korytarz doprowadzający do <strong>Partii Kr&oacute;lewskich</strong>. </span></p>
+<p><span>Z rozwidlenia za Kominem Węgierskim stromy korytarz na wprost prowadzi przez pr&oacute;g o 3 m wysokości i dalej pnie się w g&oacute;rę. Jego spąg pokrywa skalny rumosz. Po kilkunastu metrach stajemy pod wysokim, 25 metrowym progiem, kt&oacute;ry (przede wszystkim w g&oacute;rnej części) pokrywa bogata szata naciekowa. Wspinając się progiem, kt&oacute;rego szerokość wynosi około 4 m, mijamy kolejne okna: po lewej stronie &ndash; okno wiodące do Studni Niepokoju, po prawej &ndash; trzy kolejne okna (na wysokości 8 m, 10 m i 15 m), prowadzące do połączenia z Partiami Kr&oacute;lewskimi, a także prowadzące do połączenia schodzącego w d&oacute;ł pod pr&oacute;g. Komin i ciągi nad nim mają charakter kaskadowy, tworząc platformy, układające się piętrowo i oddzielone progami. Z platform odchodzą, przypominając gąbkę, liczne korytarze w r&oacute;żnych kierunkach, kt&oacute;re zataczając pętle łączą się ze sobą w r&oacute;żnych miejscach, bądź wyprowadzają do Komina Niepokoju. Komin Niepokoju, w g&oacute;rnej części rozdwojony, jest przedłużeniem Studni Smoluchowskiego. Most skalny rozdzielający komin stanowi platformę pokrytą dużą ilością pięknych naciek&oacute;w, wśr&oacute;d kt&oacute;rych pośrodku wyr&oacute;żnia się jeden wielki, regularny stalagmit. Korytarze w otoczeniu Komina Niepokoju są dość wąskie (od 0,5&ndash;2,0 m) i w większości mają charakter szczelinowy. Tylko kaskady są dość obszerne i mają po kilka metr&oacute;w wysokości oraz szerokości.</span></p>
+<p><span>Wracamy do rozwidlenia. Gł&oacute;wny ciąg skręca pod kątem 90</span><span><sup>o</sup></span><span> ku S, by po kilkunastu metrach ponownie zakręcić na wsch&oacute;d. Po zakręcie korytarz zwęża się do około 4 m, a na jego dnie zalegają ogromne wanty utrudniające poruszanie się. Po kilku metrach schodzimy 2-metrowym progiem utworzonym z zaklinowanych blok&oacute;w skalnych. Dalej korytarz ma wyr&oacute;wnany, gruzowy spąg, na kt&oacute;rym występują stalagmity, a ściany pokrywają nacieki i mleko wapienne. W połowie korytarza pod lewą ścianą znajduje się niewielkich rozmiar&oacute;w, okresowe jeziorko. Po około 40 m dochodzimy nad krawędź 70-metrowej Studni Smoluchowskiego. Dogodne miejsce do zjazdu znajduje się po lewej stronie, w niewielkiej wnęce, rozwiniętej na pionowej szczelinie, dokąd dostajemy się trawersem po lekko nachylonej, śliskiej p&oacute;łce. Przy wejściu do wnęki napotykamy intensywnie padający deszcz podziemny. Stąd 25-metrowym zjazdem osiągamy dno korytarza wysokiego na około 30 m i 2 m szerokiego, rozwiniętego na szczelinie, zaczynającego się w połowie Studni Smoluchowskiego. Wracając w kierunku zachodnim, po 4 m dochodzimy nad krawędź kontynuacji studni. Początkowo studnia opada kilkanaście metr&oacute;w kaskadową pochylnią, pokrytą obfitymi naciekami, by prawie pionowo opaść do zawaliskowego dna 20 m niżej. Dolna część studni ma charakter pochyłej szczeliny, szerokiej na 1&ndash;3 m, na ścianach są widoczne zagłębienia wirowe.</span></p>
+<p><span>Wracamy do korytarza w połowie studni. Idąc ku wschodowi po gliniastym spągu pokrytym niewielkimi kałużami, po około 12 m dochodzimy do jeziorka zajmującego całą szerokość korytarza. Jeziorko nazywane Szmaragdowym ma blisko 20 m długości i około 2 metry szerokości i osiąga ponad 5 metr&oacute;w głębokości. Pokonujemy je trawersem (III+) około 5 m nad taflą wody. Wspinamy się zrazu zapieraczką między schodzącymi się tu ścianami, osiągając niewielki most skalny, dalej szczelina korytarza rozszerza się i wspinaczka odbywa się prawą ścianą, po polewach kalcytowych. W stropie widać otwory dw&oacute;ch studni, sprowadzających do gł&oacute;wnego ciągu z Partii Wawelskich. Po osiągnięciu wschodniego brzegu Szmaragdowego Jeziorka, 6 m dalej dochodzimy do progu 7-metrowej wysokości. Wspinamy się prawą stroną (III) i wychodzimy na wyższy poziom wcześniej opisanej szczeliny, ciągnącej się od Komina Smoluchowskiego. Kontynuuje się ona dalej na wsch&oacute;d, mając tu około 2 m szerokości. Ściany pokrywają polewy naciekowe i mleko wapienne. Spąg zasłany jest głazami i grubymi, odpękniętymi polewami naciekowymi. Po około 35 m dochodzimy do Sali z Filarem. W jej prawej ścianie otwiera się wejście do Komina Żłobistego, prowadzącego do Partii Wawelskich. Tu całą szerokość korytarza zajmuje ogromna, oderwana ze stropu wanta, stanowiąc wraz z innymi 4-metrowej wysokości, przewieszony pr&oacute;g. Pokonujemy go wspinaczkowo (IV). Nad progiem korytarz biegnie dalej na wsch&oacute;d. Idąc po spągu z want i polew naciekowych po około 50 metrach osiągamy prawie pionowy Pr&oacute;g Furkotny, u podstawy kt&oacute;rego pada intensywny deszcz podziemny. Pokonujemy go wspinając się około 12 m (III+) szczeliną z zaklinowanymi wantami i osiągamy Salkę Krzyżową. Tu w stropie, na wysokości około 20 m, znajdują się zaklinowane ogromne wanty. Dalej korytarz (Korytarz Usypiskowy) zwęża się do szerokości około 1&ndash;1,5 m i po kilkunastu metrach doprowadza nas do krawędzi kolejnego progu &ndash; Białego Prożku, zwanego też Prożkiem Białego Błota. (S. Kotarba na swoim planie Partii Wawelskich mylnie nazywa to miejsce Salką Krzyżową, kt&oacute;ra jest w rzeczywistości znacznie niżej, przed Korytarzem Usypiskowym). Stąd prowadzi najłatwiejsza doga do Partii Wawelskich.</span></p>
+<div><strong><span>Partie Wawelskie</span></strong>.</div>
+<p><span>Długość ich wynosi 880 m (+ ok. 50 m), a deniwelacja 115 m &ndash; licząc wraz z Kominem Żłobistym. Stanowią g&oacute;rne piętro jaskini i rozbudowane są powyżej gł&oacute;wnego ciągu na odcinku Szmaragdowe Jeziorko &ndash; korytarz łączący Prożek Białego Błota ze Studnią Imieninową.</span></p>
+<p><span>Dotychczas znanych jest pięć miejsc łączących ciąg gł&oacute;wny jaskini z Partiami Wawelskimi. Są to: Komin Żłobisty, Mleczna Studnia i studnia r&oacute;wnoległa do niej, boczny korytarzyk biorący początek z Salki nad Białym Prożkiem oraz kominek w stropie korytarza poniżej Białego Prożka.</span></p>
+<p><span>Z salki nad Białym Prożkiem ku SW, ponad wylotem Korytarza Usypiskowego, wiedzie poziomy korytarz utworzony na pionowej szczelinie. Po 8 m osiągamy niewielką salkę o tr&oacute;jkątnym przekroju i szerokości do 4 m. Spąg zalegają głazy skalne. Z salki ku </span><span>W</span><span>SW wiedzie kilkumetrowej długości korytarz, zakończony ciasnym przełazem w zawalisku. Przełaz ten otwiera drogę w Partie Wawelskie, wyprowadzając do Rozdroża. </span></p>
+<p><span>Z Rozdroża wiodą trzy drogi:</span></p>
+<div>&ndash; ku SW &ndash; w kierunku Komina Żłobistego;</div>
+<p><span>&ndash; ku W &ndash; w g&oacute;rne piętra Partii Wawelskich i nad Mleczną Studnię;</span></p>
+<p><span>&ndash; ku E &ndash; w kierunku Gzymsu i najdalej ku NE wysuniętemu połączeniu z ciągiem gł&oacute;wnym Jaskini Czarnej.</span></p>
+<p><span>Wariant pierwszy rozpoczyna się pionową szczeliną 4-metrowej długości, wyprowadzającą do salki 8x3 m. Z salki bierze początek około 20-metrowej długości Kruchy Korytarz. Ma on zawaliskowy charakter i tworzy go seria ciasnych, kruchych i niebezpiecznych przełaz&oacute;w. Dalszy jego ciąg jest w litej skale lecz niezbyt obszerny. Po 8 m dochodzimy do skrzyżowania. W lewo wstecz, ku E, wiedzie niski ciasny korytarzyk kończący się prawdopodobnie po kilku metrach (niezbadany). W prawo początkowo ku W, a potem ku </span><span>W</span><span>SW wiedzie lity lecz wąski, a p&oacute;źniej także niski korytarzyk, zakończony ślepo po około 20 m niewielką salką (4x2 m). Natomiast na wprost wąski korytarzyk wiedzie ku </span><span>W</span><span>SW, po 6 m skręca pod kątem prostym na lewo i po 2 m doprowadza do okna znajdującego się 48 m ponad podstawą Komina Żłobistego. Zjazd po 8 m sprowadza na rozległą piarżystą p&oacute;łkę w kominie. Stąd po strawersowaniu na przeciwległą stronę komina (bez trudności lecz przydatna asekuracja) rozpoczynamy 40-metrowej długości zjazd kominem. Początkowo ma on przekr&oacute;j około 2x4 m, ku dołowi nieco się rozszerza. Podstawę komina stanowi korytarz ciągu gł&oacute;wnego Jaskini Czarnej (w 2/3 odcinka pomiędzy Jeziorkiem Szmaragdowym a Kominem Furkotnym). Z piarżystej p&oacute;łki w kominie, nad 1,5-metrowej prożkiem ku </span><span>E</span><span>NE, wiedzie lekko wznosząc się, obszerny korytarz o przekroju pękatej soczewki wysokości do 4 m i szerokości do 3 m. Spąg pokryty jest drobnym rumoszem skalnym. Po około 26 m zamyka go zawalisko lecz pod stropem, kilka metr&oacute;w przed zawaliskiem, widnieje wylot ciasnego korytarzyka. Wiedzie on w kierunku przeciwnym, niż ten, kt&oacute;rym tu doszliśmy i po 12 m wyprowadza nieopodal podn&oacute;ża Komina Klasycznego, w obszernym korytarzu, kt&oacute;ry prowadzi ku </span><span>W</span><span>SW, a następnie ku W. Początkowo, na odcinku około 20 m, jego przekr&oacute;j jest zbliżony do tr&oacute;jkąta r&oacute;wnobocznego o boku około 4 m, opadający spąg pokryty jest głazami i rumoszem skalnym. W połowie tego odcinka w prawej, NNW ścianie widoczne są trzy niewielkie okienka, połączone ciasnym r&oacute;wnoległym korytarzykiem. Kolejny, około 30-metrowej długości odcinek gł&oacute;wnego korytarza ma przekr&oacute;j pionowej soczewki o maksymalnej wysokości do 6 m i szerokości do 3 m. Spąg jest tu pokryty polewami naciekowymi, pokrywającymi całkowicie leżący pod nimi gruz skalny. Końcowy fragment tego odcinka nieco stromieje, doprowadzając do płytkiego Wiszącego Jeziorka o powierzchni 16 m<sup>2</sup>. Jeziorko ogranicza bariera naciekowa, tworząc po swej drugiej stronie 2-metrowy prożek. Poniżej niego napotykamy wolno stojący, masywny stalagmit o średnicy około 1 m przy podstawie i wysokości około 1,2 m, oraz kilka innych, znacznie mniejszych. Ściany korytarza pokrywa tu gruba warstwa mleka wapiennego, a spąg, początkowo poziomy, gwałtownie stromieje, obrywając się obszerną Mleczną Studnią (konieczna lina), sprowadzającą do gł&oacute;wnego ciągu Jaskini Czarnej w rejonie pierwszego prożka za Szmaragdowym Jeziorkiem. G&oacute;rna krawędź studni jest przedzielona mostem skalnym dzielącym ją na przestrzeni kilku metr&oacute;w na dwie r&oacute;wnoległe części o wymiarach 4x3 m i 6x3 m. Po połączeniu obu części osiąga ona przekr&oacute;j około 12x4 m. Całkowita jej głębokość wynosi 44 m (do p&oacute;łki w gł&oacute;wnym ciągu Jaskini Czarnej 36 m), a ściany pokryte są grubą warstwą mleka wapiennego. Po przeciwległej, zachodniej stronie studni widnieje wylot niewielkiego korytarza (konieczna lina), kt&oacute;ry po 14 m obrywa się kolejną studnią 48-metrowej głębokości (konieczna lina). Posiada ona przekr&oacute;j okręgu o średnicy około 3 m i po około 30 m otwiera się w stropie korytarza ciągu gł&oacute;wnego Jaskini Czarnej, w rejonie mostka skalnego nad Szmaragdowym Jeziorkiem. </span></p>
+<p><span>Wracamy pod Komin Klasyczny. Rozwinięty jest na szczelinie o przebiegu SSW&ndash;NNE. a jego wymiary w rejonie podstawy wynoszą 5x2 m i ku g&oacute;rze się zmniejszają. Na wysokości 40 m znajduje się zwężenie, tworzące trudny zacisk. Ponad zaciskiem, po kilku metrach szczelina jest zablokowana kamieniami scementowanymi polewą. Ściany komina są myte, częściowo pokryte polewami, (IV&ndash;V). Na wysokości 12 m (konieczna lina) ponad podstawą komina znajduje się niewielkie okienko. Z okienka ku ENE, początkowo się wznosząc, wiedzie ku g&oacute;rze soczewkowaty, dość ciasny korytarzyk. Po około 20 m przechodzi w stromo wznoszącą się ciasną rurę, kt&oacute;ra dalej kontynuuje się systemem małych prożk&oacute;w tworzących Korkociąg. Powyżej niego korytarzyk kontynuuje się jeszcze około 10 m i uchodzi w stropie 3,5 m ponad spągiem niżej leżącego korytarza, o przekroju soczewki lub tr&oacute;jkąta o maksymalnych wymiarach 1,5x2 m i wiodącego w dw&oacute;ch kierunkach: w d&oacute;ł ku SSW i w g&oacute;rę ku NE. Idąc w d&oacute;ł, po kilku metrach dochodzimy do rozgałęzienia; w lewo w tył ku NE wiedzie podobny r&oacute;wnoległy, niżej położony korytarz, doprowadzający po 20 m nad skraj kaskadowej studni.</span></p>
+<p><span>Z rozgałęzienia na wprost ku SW, a p&oacute;źniej ku W wiedzie, opadając łagodnie w d&oacute;ł, około 30-metrowej długości korytarz, doprowadzający ponownie w rejon podn&oacute;ża Komina Klasycznego. W środkowej części tworzy on na przestrzeni kilku metr&oacute;w r&oacute;wnoległe g&oacute;rne piętro, w końcowej części przecięty jest prożkami o głębokości 1,0 i 2x2,5 m.</span></p>
+<p><span>Wracamy do miejsca w korytarzu, do kt&oacute;rego dotarliśmy idąc przez Korkociąg. Stąd wiodący początkowo w g&oacute;rę ku NE, dość niski korytarz po 16 m doprowadza także nad skraj wcześniej wspomnianej, kaskadowej studni. Rozwinięta jest ona na szczelinie o generalnym przebiegu S&ndash;N i tworzą ją serie małych prożk&oacute;w o łącznej wysokości 8 m (przydatna lina). Ponad studnią, ku p&oacute;łnocy kontynuuje się stromy korytarz z charakterystyczną rynną denną. Po 10 m raptownie skręca on ku W, i powyżej prog&oacute;w 3- i 1-metrowego, kontynuuje się jeszcze około 35 m, zmieniając kierunek na SW. Korytarz ten, o soczewkowatym przekroju, stopniowo zmniejsza swe wymiary do 0,5x1 m. Po 10 m po lewej stronie widnieje wylot ciasnego, ślepego kominka o wysokości 8 m. Korytarz przechodzi w stromą pochylnię 3 m wysokości, zamuloną na końcu, a w stropie przed pochylnią widnieje wylot szczelinowego kominka 8-metrowej wysokości, zablokowanego pod stropem wantami. Jest to najwyższy punkt Partii Wawelskich i zarazem Jaskini Czarnej +62 m (+140,0 m względem gł&oacute;wnego otworu).</span></p>
+<p><span>Wracamy na dno kaskadowej studni. Ma ono wymiary 6x3 m i pokryte jest rumoszem skalnym. Wiodą stąd dwie dalsze drogi: ku NEE, powyżej 2-metrowego progu, biegnie początkowo dość obszerny korytarz o ścianach pokrytych mlekiem wapiennym &ndash; Biała Ulica. Po około 10 m w lewej ścianie znajdują się dwa małe okienka wiodące do dw&oacute;ch kilkumetrowej długości Mlecznych Korytarzyk&oacute;w r&oacute;wnoległych do siebie i Białej Ulicy, bardzo ciasnych. Ograniczone są one z lewej (W) strony 3-metrowej wysokości kominkiem, ponad kt&oacute;rym ciasna szczelina po kilku metrach zwęża się, a po prawej stronie (E) &ndash; ciasnym korytarzykiem z małym jeziorkiem pośr&oacute;d mlecznych grobli. Korytarzyk ten, ze względu na unikatowe formy naciek&oacute;w z mleka wapiennego, nie był badany. Biała Ulica kontynuuje się jeszcze około 30 m, przechodząc ku końcowi w wąską, pionową szczelinę, całkowicie zablokowaną wantami.</span></p>
+<p><span>Wracamy pod studnię. Tu, poprzez ciasny przełaz wiodący ku zachodowi, wydostajemy się do stromo opadającego korytarza, z niepewnie poklinowanymi na spągu dużymi wantami (bardzo niebezpieczne). Jest on po 10 m podcięty 3,5-metrowym progiem (zejście szeroką zapieraczką &ndash; krucho!) Pod nim na wprost dalsza droga zamknięta jest przez zawalisko, natomiast w kierunku przeciwnym, ku NEE &ndash; obszernym korytarzem o zawaliskowym charakterze dochodzimy po kilkunastu metrach do Rozdroża &ndash; czyli dotarliśmy tu drogą oznaczoną na wstępie jako wariant drugi.</span></p>
+<p><span>Wariant trzeci z Rozdroża wiedzie ku wschodowi. Jest to zawaliskowy, niezbyt obszerny korytarzyk długości około 12 m, zakończony ślepą, zwężającą się ku g&oacute;rze szczeliną. Kilka metr&oacute;w wcześniej, dwa niskie przełazy na lewo w d&oacute;ł ku N sprowadzają do niskiej salki (8x2 m). Z niej ciasny, niski korytarzyk po kilku metrach doprowadza do zacisku, utworzonego przez zaklinowaną wantę. Dalej korytarz przybiera formę pionowej, około 4 m wysokiej szczeliny o szerokości 1-2 m, wiodącej ku NE. Po 16 m dolna część szczeliny jest zablokowana wantami. Zapieraczką, wąskim Gzymsem wydostajemy się na jej wyższy poziom Po kilku metrach przy spągu odchodzi boczny korytarzyk, rozpoczynający się skrajnie trudnym zaciskiem, kt&oacute;ry po kilkudziesięciu metrach (nie umieszczony na planie), otwiera się w stropie korytarza ciągu gł&oacute;wnego, w rejonie Studni Imieninowej. Gł&oacute;wna szczelina ponad Gzymsem kontynuuje się jeszcze około 20 m, zmniejszając swą wysokość do około 2 m i stopniowo się zwężając. Korytarz kończy skalna przegroda dzieląca szczelinę na dwie części o szerokości około 15 cm każda. </span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu &ndash; do salki nad Białym Prożkiem. Zjeżdżamy około 8 m Białym Prożkiem, tworzącym spiralną studzienkę (miejsce to zwane bywa także Ślimakiem). U jego podstawy w lewo wstecz odchodzi Korytarz Buławowy. Ciąg gł&oacute;wny kontynuuje się na wprost, w tym samym kierunku co dotąd, nieznacznie opadając. Po kolejnych 25 m osiągamy miejsce zwane Biwakiem. W tym miejscu korytarze rozchodzą się w trzech kierunkach. Na południe rozwija się tzw. Biały Labirynt, stanowiący 110-metrowej długości system ciasnych korytarzyk&oacute;w o ścianach pokrytych białym mlekiem wapiennym. Dwa pozostałe korytarze biegną prawie r&oacute;wnolegle w kierunku p&oacute;łnocno-wschodnim. Prawy &ndash; po kilkunastu metrach kończy się ślepo. Lewy, kt&oacute;rym podążamy (znajdują się tu nacieki wapienne w postaci stalagmit&oacute;w) &ndash;&nbsp;po około 20 m doprowadza nad krawędź Studni Imieninowej. Tu otwiera się kilka dr&oacute;g w głąb jaskini.</span></p>
+<p><span>Droga przez G&oacute;rne Partie prowadzi trawersem nad Studnią Imieninową (Most Trwogi &ndash; II). Za trawersem ciąg rozwidla się. </span></p>
+<p><span>Odnoga prowadząca na ENE łączy się z Korytarzem Żurko, wyprowadzającym nad Brązowy Pr&oacute;g. </span></p>
+<p><span>Korytarz schodzący w d&oacute;ł 3-metrowym prożkiem, po kilku metrach doprowadza do miejsca częściowo zalanego wodą (w okresach obfitych deszcz&oacute;w korytarz w tym miejscu potrafi być całkowicie zalany, tworząc okresowy syfon). Za przełazem z wodą idziemy po błotnistym spągu i po kilkunastu metrach dochodzimy do obszernego Korytarza Triumfalnego, 2,5-metrowej szerokości i 5-metrowej wysokości. Korytarz ten rozwija się w dwu przeciwległych kierunkach. W lewo, na zach&oacute;d, po kilkunastu metrach doprowadza do partii Hula-Hula. Stanowi je kilka odn&oacute;g, łączących się między sobą i biegnących generalnie ku SW, natomiast na wprost kontynuuje się jeszcze kilkanaście metr&oacute;w i kończy się zamuleniem. Według informacji podanej przez W.W. Wiśniewskiego (1991), partie te łączą się zar&oacute;wno z okolicami Studni Imieninowej (okolice Mostu Trwogi), jak też ze Ślepym Zaułkiem &ndash; z tym ostatnim nawet w trzech miejscach. </span></p>
+<p><span>W prawo, na wsch&oacute;d, po kamienistej pochylni schodzimy kilkanaście metr&oacute;w, a następnie wraz z korytarzem skręcamy na p&oacute;łnocny wsch&oacute;d i po około 30 m osiągamy krawędź Brązowego Progu, nad kt&oacute;rym rozpoczyna się Korytarz Żurko, biegnący początkowo ku NE, a następnie ku SW. Po kilkudziesięciu metrach łączy się on poprzez boczne odgałęzienie z Korytarzem Trzech Studni, a na wprost doprowadza pod Studnię Imieninową. </span></p>
+<p><span>Brązowy Pr&oacute;g, 8-metrowej wysokości, pokonujemy zjazdem i osiągamy przestronny korytarz (Ślepy Zaułek). W lewo wstecz kontynuuje się on około 20 m i przechodzi w system ciasnych korytarzyk&oacute;w o łącznej długości około 330 m (nie wszystkie są wykazane na planie &ndash; informacja wg W.W. Wiśniewskiego 1991), łączących się z partiami Hula-Hula i z Korytarzem Triumfalnym (partie te były kartowane przez zesp&oacute;ł M. Gradzińskiego w 1991, ale autor nie udostępnił, ani nie opublikował tych materiał&oacute;w). Na wprost korytarz biegnie lekko w d&oacute;ł i za niewielkim skrętem doprowadza po kilkunastu metrach do obszernego Korytarza Mamutowego, wiodącego do Sali Św. Bernarda z dna Studni Imieninowej (Dolnymi Partiami). Kilka metr&oacute;w przed połączeniem Ślepego Zaułka z Korytarzem Mamutowym, w lewej ścianie otwiera się wylot ciasnego korytarzyka biegnącego do Sali Św. Bernarda.</span></p>
+<p><span>Wracamy nad Studnię Imieninową. Droga przez Dolne Partie prowadzi z dna studni, do kt&oacute;rej zjeżdżamy, dostając się na jej krawędź kamienistą pochylnią odchodzącą w prawo i doprowadzającą do niewielkiej p&oacute;łki p&oacute;łmetrowej szerokości, obrywającej się zasadniczą studnią 22-metrowej głębokości. Studnię pokonujemy zjazdem na linie i lądujemy w około 5-metrowej szerokości korytarzu, rozwiniętym na szczelinie. Z tego miejsca korytarz kontynuuje się w dwu kierunkach. </span></p>
+<p><span>Na południowy zach&oacute;d odchodzi wysoki, około 3-metrowej szerokości Korytarz Żyrafowy o kamienistym spągu, kt&oacute;ry po 50 m dochodzi pod niewysoki pr&oacute;g z want. Nad progiem korytarz zmienia charakter, rozszerza się do około 4-metrowej średnicy tunelu, kt&oacute;ry po kilkunastu metrach zamknięty jest skalnym zawaliskiem. Z dna Studni Imieninowej w stronę przeciwną (czyli na p&oacute;łnocny wsch&oacute;d) wiedzie Korytarz Mamutowy, szeroki na około 5 m i wysoki do 7 m, o spągu z głaz&oacute;w i kamieni. Po 40 m nieznacznie zwęża i obniża się do 4 m, by po kilku metrach znowu osiągnąć poprzednie rozmiary, a w jego spągu obserwujemy duże namulisko gliniaste z niewielkimi jeziorkami i kałużami (przed nimi, w stropie otwiera się wylot Korytarza Trzech Studni). Po około 80 m Korytarz Mamutowy doprowadza do dużej sali Św. Bernarda. Kilkanaście metr&oacute;w przed Salą Św. Bernarda, z Korytarza Mamutowego w lewo wstecz odchodzi opisany uprzednio Ślepy Zaułek, prowadzący pod Brązowy Pr&oacute;g.</span></p>
+<p><span>Sala Św. Bernarda rozwinięta jest na planie prostokąta o wymiarach 16x12 m. Jej spąg pokryty jest dużymi wantami i rumoszem skalnym. Sala nachylona jest w kierunku południowo-wschodnim. Nieco na południe od ujścia do sali Korytarza Mamutowego, w ścianie otwiera się wylot prowadzącego ku południowemu zachodowi Korytarza Trzech Studni. Korytarz o długości około 120 m, uchodzi oknem w stropie Korytarza Mamutowego, kilka metr&oacute;w przed pierwszym dużym jeziorkiem Korytarz Trzech Studni łączy się także z &bdquo;Partiami Mlecznego Kominka&rdquo; (połączenie odkryte w początkach 1990 r. przez zesp&oacute;ł K. Adryana &ndash; fide Wiśniewski, 1991), o długości około 171 m i skartowanymi przez wspomniany już uprzednio zesp&oacute;ł M. Gradzińskiego &ndash; z opisu tych partii, zamieszczonego w artykule W.W. Wiśniewskiego (1991), trudno ustalić, gdzie w gł&oacute;wnym ciągu znajduje się wejście do nich, gdyż autor używa nazw, nie występujących na dostępnych planach jaskini.</span></p>
+<p><span>Z sali w kierunku wschodnim opada obszerny, 7-metrowej szerokości korytarz Colorado, kt&oacute;ry po kilkunastu metrach zwęża się i obniża, aż wreszcie gliniaste namulisko wypełnia cały przekr&oacute;j korytarza, tworząc ogromny, zamulony syfon. </span></p>
+<p><span>W p&oacute;łnocnej części sali odchodzi w g&oacute;rę Pr&oacute;g Latających Want, początkowo po piargu, a następnie dwoma niewielkimi progami skalnymi. Pr&oacute;g ten rozdzielony jest na dwie części. Prawa, obszerniejsza, rozwinięta na szczelinie, wznosi się stromo ku g&oacute;rze. Lewą, dogodniejszą do wspinania, pokonujemy początkowo zacięciem (III+), kt&oacute;re po około 10 m przechodzi w pochylnię usłaną kamieniami. Pochylnia doprowadza do kamiennego zawaliska zamykającego lewą odnogę Progu Latających Want. Cztery metry przed zawaliskiem, ku południowemu wschodowi w prawo, odchodzi niewielki, ciasny, szczelinowy korytarzyk, doprowadzający po kilku metrach do prawej odnogi Progu Latających Want w jego 2/3 wysokości. Stąd wspinamy się (IV+, miejscami krucho) jeszcze około 8 metr&oacute;w i osiągamy g&oacute;rę Progu Latających Want, utworzonego z blok&oacute;w skalnych. Dalej korytarz biegnie na p&oacute;łnoc. Po 3 metrach trawersujemy nad lewą odnogą korytarza, opadającą kamienistą pochylnią ku południu i po około 6 m zamkniętą zawaliskiem Jest to g&oacute;rna część zawaliska zamykającego lewą odnogę Progu Latających Want. Za trawersem pokonujemy 2-metrowy pr&oacute;g i wchodzimy do korytarza o charakterze meandra szerokości około 0,8 m. Meander po kilkunastu metrach doprowadza nas do p&oacute;łnocnego otworu. W dnie korytarza, przy otworze, znajdujemy namulisko gliniaste z dużą ilością humusu. Otw&oacute;r, o szerokości 1,2 m przy wysokości 1,8 m, wyprowadza nas na zalesione, lewe orograficznie zbocze Żlebu Pod Wysranki, nad Halą Upłaz.</span></p>
+<p><span>Jaskinia utworzyła się w obrębie serii wapiennych triasu środkowego, malmo-neokomu i urgonu jednostki Organ&oacute;w, w jej dolnym elemencie tektonicznym &ndash; antyklinie Upłazu Miętusiego (Grodzicki 1978a, Grodzicki i Kardaś 1989). Istotną rolę w genezie jaskini odgrywają tektonicznie rozwarte powierzchnie międzywarstwowe, a także tektoniczny kontakt pomiędzy utworami triasu środkowego i utworami malmo-neokomu w postaci strefy uskokowej, na kt&oacute;rej powstały Partie Tehuby. Jest on także widoczny w okolicach Hula-Hula oraz Korytarza Mamutowego i zaznacza się licznymi, dobrze widocznymi lustrami tektonicznymi (szczeg&oacute;lnie w partiach Tehuby) oraz &ndash; we wschodniej części jaskini &ndash; dyskordancją pomiędzy ławicami wapieni triasu środkowego (32</span><span><sup>o</sup></span><span>/83</span><span><sup>o</sup></span><span>N) a powierzchnią kontaktu z utworami malmo-neokomu (92/79</span><span><sup>o</sup></span><span>S). W niekt&oacute;rych miejscach na wspomnianym kontakcie widoczne są czerwone wapienie bulaste bajosu i batonu, kt&oacute;re spotyka się także w obrębie utwor&oacute;w triasu środkowego w postaci syngenetycznych żył klastycznych. M. Gradziński (1995) &ndash; przy okazji badań naciek&oacute;w manganowych &ndash; kwestionuje tektoniczny charakter tego kontaktu, jednak nie podając żadnych udokumentowanych obserwacji, poza powszechnie znanym z literatury przedmiotu og&oacute;lnym stwierdzeniem o luce sedymentacyjnej, istniejącej w obrębie serii wierchowych pomiędzy utworami triasu i malmu, co oczywiście nie tylko nie wyklucza możliwości p&oacute;źniejszego powstania nieciągłości tektonicznej, ale jej sprzyja.</span></p>
+<p><span>W genezie Partii Tehuby istotną rolę odegrały także otwarte szczeliny międzywarstwowe o kierunku WSW&ndash;ENE, upadające stromo (średnio 45</span><span><sup>o</sup></span><span>) ku NW oraz prostopadłe do nich pęknięcia. Gł&oacute;wny ciąg jaskini utworzył się na rozwartych tektonicznie powierzchniach ciosowych i międzywarstwowych &ndash; te ostatnie odgrywają szczeg&oacute;lną rolę na odcinku Studnia Herkulesa &ndash; Ślimak. Przy Studni Herkulesa bieg i upad wapieni triasu środkowego wynosi 267</span><span><sup>o</sup></span><span>/45&deg;N, a rozwarcie szczeliny międzywarstwowej w ich obrębie sięga około 0,8 m. Idąc w głąb jaskini i wznosząc się do Komina Węgierskiego obserwujemy stromienie warstw do wartości upadu 85</span><span><sup>o</sup></span><span>N z jednoczesnym lekkim skrętem biegu ku W, powyżej Komina Węgierskiego. Studnia Smoluchowskiego powstała na przecięciu wspomnianej szczeliny międzywarstwowej, z rozwartą powierzchnią uskoku o biegu 30</span><span><sup>o</sup></span><span>/88&deg;S. Pomiędzy Studnią Smoluchowskiego a Salką Krzyżową korytarze powstały na tej samej, szeroko otwartej (do 1 m) szczelinie o biegu 85</span><span><sup>o</sup></span><span>/85&deg;N. Szczelina ta, na uskoku w Salce Krzyżowej, zmienia bieg i upad na 70</span><span><sup>o</sup></span><span>/65</span><span><sup>o</sup></span><span>S i kontynuuje się do Ślimaka. Dalej, ponownie na uskoku, upad warstw zmienia się na p&oacute;łnocny i w okolicy Brązowego Progu jest ścięty stromo nachyloną, tektoniczną powierzchnią kontaktu z malmo-neokomem. Utwory malmo-neokomu i urgonu zapadają stromo ku p&oacute;łnocy (70</span><span><sup>o</sup></span><span>&ndash;80</span><span><sup>o</sup></span><span>), przy biegu zbliżonym do 110</span><span><sup>o</sup></span><span>. Istotną rolę w formowaniu się korytarzy jaskini odgrywają także rozwarte powierzchnie młodych uskok&oacute;w o przebiegu N&ndash;S, wyraźnie przesuwające bloki w obrębie masywu oraz uskoki o kierunkach </span><span><span>W</span></span><span>NW</span><span><span>&ndash;E</span></span><span>SE i NW&ndash;SE.</span></p>
+<p><span>Z. W&oacute;jcik (1966a, 1968) uważa jaskinię Czarną za podziemny przepływ potoku Kościeliskiego. Według niego poszczeg&oacute;lne piętra jaskini (7, 8, 9, 10 i 11 piętro jaskiń wyr&oacute;żniane w stosunku do obecnego dna Doliny Kościeliskiej) tworzyły się w syfonalnej strefie zr&oacute;wnań, stanowiąc być może kontynuację gł&oacute;wnego ciągu Jaskini Miętusiej. J. Rudnicki (1967), nie wypowiadając się jasno o genezie tego systemu sugeruje, że najwyższe piętro (IV wg jego pogląd&oacute;w na rozw&oacute;j jaskiń systemu Lodowego Źr&oacute;dła) mogło powstawać niezależnie od Doliny Kościeliskiej. Według J. Grodzickiego (1970, 1991) trzy piętra Jaskini Czarnej, położone odpowiednio na wysokościach ok.1400 m n.p.m., 1300 m n.p.m. i 1200 m n.p.m. powstawały w morfologii odmiennej niż obecna i odprowadzały wodę z południa ku p&oacute;łnocy, do obecnego Żlebu pod Wysranki. Najniższe piętro jaskini (partie Tehuby) mogły zasilać wodą dolne piętro Jaskini Zimnej, o czym wydaje się świadczyć barwienie wody, przeprowadzone przez T. Dąbrowskiego i J. Rudnickiego (1967) w Kominie Herkulesa, udowadniające wypływ w&oacute;d z jaskini w położonym na p&oacute;łnoc okresowym wywierzysku w Organach na wysokości 1100 m n.p.m. Większość korytarzy jaskini ma kształty przekroju wskazujące na formowanie ich przez wody przepływające pod ciśnieniem, jednak korytarze szczelinowe, o zachowanych pierwotnych cechach tektonicznych, występują licznie w obrębie niższego piętra (partie Tehuby &ndash; korytarz do Dziurawej Salki, korytarz za Rozdzielem, Pochyły Korytarz), w środkowym piętrze za Kominem Herkulesa (w okolicy Czarnych Kaskad), a także w g&oacute;rnym piętrze jaskini (Szmaragdowe Jeziorko, korytarze w partiach Wawelskich i w okolicy p&oacute;łnocnego otworu). Podobnie tektoniczny charakter, niezatarty p&oacute;źniejszymi procesami korozji i erozji, ma Studnia Smoluchowskiego, uformowana na poprzecznym uskoku, kt&oacute;ry jest prawdopodobnie formą znacznie młodszą od korytarzy, kt&oacute;re przecina (i łączy). Wydaje się, że jego wiek można wiązać z formowaniem się partii Tehuby. </span></p>
+<p><span>Wszyscy wspomniani uprzednio autorzy są zgodni co do młodotrzeciorzędowego wieku kształtowania się jaskini. J. Rudnicki (1967) widzi w Jaskini Czarnej najstarszy jaskiniowy system Doliny Kościeliskiej, pochodzący być może ze starszego trzeciorzędu. Z. W&oacute;jcik (1966a, 1968) zalicza system Jaskini Czarnej do 7&ndash;11 piętra jaskiń w odniesieniu do obecnego dna Doliny Kościeliskiej, z czego wynika 5 etap&oacute;w ewolucji systemu w młodszym trzeciorzędzie. J. Grodzicki (1970, 1991) uważa, że system kształtował się w młodszym trzeciorzędzie &ndash; starszym plejstocenie w odmiennej morfologii, a wytworzenie się najniższego piętra spowodowało skośne dźwignięcie masywu Tatr na przełomie trzeciorzędu i czwartorzędu i wywołana tym ewolucja morfologii, polegająca m. in. na uformowaniu się Doliny Kościeliskiej. M. Gradziński (2000) na podstawie analizy kierunk&oacute;w&nbsp;paleoprzepływ&oacute;w twierdzi, że J. Czarna&nbsp;rozwinęła się gł&oacute;wnie w warunkach freatycznych, i że prowadziła wody ze wschodu na zach&oacute;d.</span></p>
+<p><span>W jaskini powszechnie występują osady klastyczne i chemiczne. Osady klastyczne badał Z. W&oacute;jcik (1966a, 1968). Według niego, mulasto-piaszczysto-żwirowe osady (badane gł&oacute;wnie w partiach Tehuby) stanowią sedymenty potoku Kościeliskiego. Zawierają one stosunkowo mało materiału krystalicznego (maksimum 10% granit&oacute;w we frakcji 8&ndash;2 mm i tylko 2&ndash;4% we frakcjach 2&ndash;0,06 mm), co zdaniem autora świadczy o niewielkim obszarze odsłaniania się skał krystalicznych w g&oacute;rnej części Doliny Kościeliskiej w okresie formowania się jaskini. We wszystkich badanych profilach osad&oacute;w występuje znacząca domieszka margli albu (od kilku do 16%), co dowodnie świadczy o przepływie w&oacute;d z rejonu Hali Pisanej ku Żlebowi pod Wysranki. Najobficiej osady klastyczne występują w końcowym odcinku jaskini, stanowiąc wypełnienie korytarza gł&oacute;wnego ciągu o miąższości przekraczającej kilka metr&oacute;w. Zamulenie końcowej części gł&oacute;wnego ciągu było przyczyną rozwinięcia się na wyższym poziomie systemu wąskich korytarzy, z kt&oacute;rych jeden wyprowadza obecnie na powierzchnię terenu (otw&oacute;r p&oacute;łnocny). Świadczy to o znaczącym spadku zdolności transportowej w&oacute;d przepływających przez system pod koniec okresu formowania się g&oacute;rnego piętra, spadku wywołanego znacznym zmniejszeniem się ilości wody wnikającej do systemu.</span></p>
+<p><span>Wśr&oacute;d zawalisk, powszechnie występujących w jaskini J. Grodzicki (1969, 1970) wyr&oacute;żnia trzy generacje &ndash; najstarsza z nich, w g&oacute;rnym piętrze jaskini, jest pokryta naciekami, kt&oacute;rych wiek J. Rudnicki (1967) określał na dolno-czwartorzędowy. Zawaliska w środkowym piętrze są młodsze, nieco zmienione i z niewielką ilością materiału ilastego. Najmłodsze zawaliska występują w dolnym piętrze, gdzie zasypują częściowo gleby poligonalne (Pulina 1968), pochodzące z ostatniego glacjału.</span></p>
+<p><span>Szata naciekowa jest stosunkowo bogata, szczeg&oacute;lnie w środkowym i g&oacute;rnym piętrze jaskini. Są to nacieki grzybkowe (we wstępnej części jaskini), stalaktyty, stalagmity, polewy naciekowe i mleko wapienne. Największe nagromadzenia naciek&oacute;w twardych można obserwować w partiach Kr&oacute;lewskich, partiach Wawelskich (gdzie występuje stalagmit o wysokości 1,5 m) i w dolnej części Komina Smoluchowskiego w postaci grubych polew, draperii i stalagmit&oacute;w, a także w bocznych korytarzykach i kominkach gł&oacute;wnego ciągu w środkowym piętrze. W partiach Kr&oacute;lewskich znaleziono unikatowe w Tarach Zachodnich stanowisko występowania pereł jaskiniowych, opisanych przez K. Oleksynową (1971). U podn&oacute;ża Komina Węgierskiego występują nacieki piaszczyste, mające formę regularnych kopuł, osadzonych na stromej powierzchni ściany i składające się z ziaren kwarcu spojonych krystalicznym węglanem wapnia. W strefie kontaktu pomiędzy wapieniami triasu środkowego i malmo-neokomu w g&oacute;rnym piętrze jaskini występują nacieki manganowe (Gradziński 1995). Mleko wapienne występuje gł&oacute;wnie w partiach Wawelskich oraz Białym Labiryncie, tworząc cienkie (do kilku cm) pokrywy na ścianach korytarzy (Mleczna Studnia, Biała Sala) i pola ryżowe. Według J. Głazka i J. Grodzickiego (1996) nacieki najwyższego piętra Jaskini Czarnej mogły powstawać już w okresie pontu, charakteryzującego się ciepłym i wilgotnym klimatem. </span></p>
+<p>W jaskini występuje niewiele stałych zbiornik&oacute;w wody. Największe z nich to Szmaragdowe Jeziorko, mające długość ponad 15 m, szerokie na 1,5 do 2,5 m i o głębokości przekraczającej 6 m (jego dno jest pokryte grubą warstwą płynnego mułu i iłu) oraz (być może okresowe) jeziorko występujące w korytarzu nad Mleczną Studnią w Partiach Wawelskich, o powierzchni około 16 m2. Kałuże wody występują powyżej Czarnych Kaskad, powyżej Komina Węgierskiego w partiach Kr&oacute;lewskich, w partiach Wawelskich oraz w końcowej części jaskini &ndash; w Korytarzu Mamutowym. Stałych strug wody nie obserwuje się, jedynie w okresach opad&oacute;w na powierzchni i roztop&oacute;w <span>występują okresowe strugi spływające do Komina Herkulesa, w korytarzu doprowadzającym do Komina Węgierskiego, w Kominie Żłobistym, a także w Partiach Tehuby. Intensywny deszcz podziemny obserwuje się w Kominie Smoluchowskiego, a także w partiach Wawelskich. Obecnie wody wnikające do jaskini odpływają poprzez najniższe ciągi (Komin Herkulesa, partie Tehuby, Studnia Smoluchowskiego) do okresowego wywierzyska w Organach lub Lodowego Źr&oacute;dła (Dąbrowski i Rudnicki 1967). W okresie funkcjonowania jaskini jako podziemnego systemu odwodnienia, wody przepływające przez jaskinię wypływały na powierzchnię w Żlebie pod Wysranki.</span></p>
+<p><span>Światło sięga do pierwszej sali pod otworem gł&oacute;wnym (południowo-zachodnim) i kilka metr&oacute;w w głąb korytarzyka wyprowadzającego do otworu p&oacute;łnocnego. Mr&oacute;z sięga do końca sali pod otworem południowo-zachodnim, do Sali Węgierskiej w rejonie III Komina (wpływ II otworu jaskini) i kilkanaście metr&oacute;w w głąb od otworu p&oacute;łnocnego. Warunki występowania w jaskini lodu i jego formy opisał M. Pulina (1971) wraz z M. Pulinową (1972). Mikroklimat badał w latach 60-tych M. Pulina (1968, 1974). Podaje on, że strefa mikroklimatu dynamicznego sięga około 400 m w głąb gł&oacute;wnego ciągu od otworu jaskini, dalej natomiast panuje strefa mikroklimatu statycznego, gdzie roczna amplituda temperatury nie przekracza 0,5</span><span><span>&deg;</span></span><span>C. W Jaskini Czarnej obserwowano przepływ powietrza osiągający 2 m<sup>3</sup>/sec. Obecnie, po otwarciu p&oacute;łnocnego otworu, warunki mikroklimatyczne jaskini uległy zasadniczej zmianie. Obserwuje się stały przepływ powietrza pomiędzy otworami i prawdopodobnie cały gł&oacute;wny ciąg jaskini znajduje się w strefie mikroklimatu dynamicznego. W strefie mikroklimatu statycznego znajdują się w części Partie Tehuby. </span></p>
+<div><span>Okolice gł&oacute;wnego otworu porasta kosodrzewina i świerki, otw&oacute;r p&oacute;łnocny otwiera się w silnie porośniętym roślinnością stoku Żlebu pod Wysranki. Badania flory przyotworowej i w jaskini dotychczas nie prowadzono. W Partiach Tehuby I. Luty obserwowała w okolicach biwaku pleśnie i grzyby.</span></div>
+<p><span>W jaskini występują liczne szczątki kostne. Z najciekawszych to kompletny szkielet niedźwiedzia znaleziony w Sali z Niedźwiedziem w okolicy II otworu. Szkielet został przekazany Zakładowi Paleozoologii Uniwersytetu Wrocławskiego. B.W. Wołoszyn (1967, 1970) opisuje z Jaskini Czarnej następujące gatunki: <strong><em>Myotis mystacinus, Myotis bechsteinii, Myotis myotis, Myotis natterei, Myotis dasycneme, Myotis daubentonii, Plecotus auritus, Barbastella barbastellus, Eptesicus nilssonii </em></strong>(<strong style="font-weight: normal; font-style: italic;">Chiroptera</strong>); <strong><em>Talpa europaea, Sorex alpinus</em></strong> (<strong style="font-weight: normal; font-style: italic;">Insectivora</strong>)<strong>; <em>Pitymus tatricus, Clethrionomys</em></strong><em> <strong>glareolus </strong></em>(<strong style="font-weight: normal; font-style: italic;">Rodentia</strong>); <strong><em>Ursus arctos, Martes martes </em></strong>(<strong style="font-weight: normal; font-style: italic;">Carnivora</strong>). A. Skalski (1969) opisuje z jeziorka nad Studnią Herkulesa <strong><em>Onychiurus armatus var. multituberculatus </em></strong>STACH (<em>Collembola</em>), a W. M. Weiner (1990) <strong><em>Protaphorura janosik</em></strong> (<em>Onychiuridae</em>). Obserwowano nietoperze w Partiach Tehuby oraz (liczne) w g&oacute;rnych korytarzach Partii Wawelskich. W jaskini jest prowadzony monitoring nietoperzy.</span></p>
+<p><span>Piksa (1995) omawia monitoring nietoperzy prowadzony w latach 1994-1995, &nbsp;wymienia następujące gatunki: </span><strong><em>Myotis brandtii,</em></strong><strong><em> Myotis myotis</em></strong><span> /Borkhausen, 1779/, <strong><em>Myotis daubentonii</em></strong> , <strong><em>Plecotus auritus /L./, Eptesicus nilssonii</em></strong> /Keyserling/, a Piksa (1998) wymienia ponadto <strong><em>Myotis mystacinus</em></strong> /Leisler/ i <strong><em>Barbastella barbastellus &ndash; </em></strong>najwyższa lokalizacja w Tatrach. </span><span>Piksa i Nowak (2000), badając 11 gatunk&oacute;w nietoperzy, określili Jaskinię Czarną, jako największe zimowisko w Tatrach (265 osobnik&oacute;w), a w innej pracy (Piksa i Nowak, 2002) podkreślają oni, że jest to największe zimowisko w Polsce i Karpatach.</span><span> Piksa i Wołoszyn (2001) wymieniają następujące gatunki nietoperzy:&nbsp;</span><strong><em>Myotis myotis</em></strong>, <strong><em>Myotis bechsteinii,</em></strong><strong><em><span> Myotis nattereri</span></em></strong>, <strong><em>Myotis mystacinus</em></strong><span> /Leisler/,<strong><em> Myotis brandtii,</em></strong></span><strong><em> Myotis dasycneme,</em></strong><strong><em><span> Myotis daubentonii, Eptesicus nilssonii</span></em></strong><span>; Piksa i Nowak (2001)notują występowanie<strong><em> Barbastella barbastellus</em></strong>, a Piksa i Nowak (2002 b) &ndash;<strong><em>&nbsp;</em></strong></span><strong><em>Myotis bechsteinii</em></strong><strong><em> . </em></strong><span>Piksa i Nowak (2004) podają wyniki monitoringu nietoperzy prowadzonego w latach 1997&ndash;2004.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania genezy jaskini prowadzili Z. W&oacute;jcik (1966a, 1968, 1982), J. Rudnicki (1967), J. Grodzicki (1969, 1970, 1980, 1991) . Badania geologiczne przeprowadził J. Grodzicki (1969, 1970, 1978a). Osady klastyczne opracował Z. W&oacute;jcik (1966a, 1968), gleby poligonalne w Sali Węgierskiej &ndash; M. Pulina (1968), a badania naciek&oacute;w prowadził M. Gradziński (1995). Mikroklimat jaskini opisał M. Pulina (1974). Fauną interesowali się A. Skalski (1969), B. W. Wołoszyn ( 1964, 1970) i W. M. Weiner (1990). W jaskini prowadzony był też eksperyment medyczny &ndash; wyprawa Sekcji Grotołaz&oacute;w Kajman (AKW Gliwice) w składzie K. Mazik, R. Cichy, H. Krzemiński, M. Wojciechowski i E. Żuk przebywała w jaskini od 18 grudnia 1975 do 9 stycznia 1976 r. (Wiśniewski 1978c) celem badania wpływu odosobnienia na psychofizyczną kondycję człowieka. <br /> W p&oacute;źniejszym okresie badania naukowe w jaskini prowadzili: M. Gradziński (1995a) &ndash; geneza tzw. kalcytu igłowo-wł&oacute;knistego na podstawie badań z tej jaskini, chociaż nie jest ona wymieniona; Glosari i in. (2000) &ndash; badania wieku naciek&oacute;w; Kicińska (2000) &ndash;paleokierunki cyrkulacji w&oacute;d; M. Gradziński (2000) &ndash; uwagi o genezie; Kicińska (2004a) &ndash; paleoprzepływy, uwagi o genezie; Nowicki (2004) &ndash; ewolucja w świetle datowania naciek&oacute;w; Nowicki i Hercman (2004) &ndash; analiza naciek&oacute;w jako źr&oacute;dło danych o paleoklimacie; M. Gradziński i in. (2009) &ndash; uwagi o genezie; M. Gradziński i Kicińska (2000) &ndash; geneza jaskini na podstawie scallops&oacute;w; G. Barczyk (2008) &ndash; badania hydrogeologiczne systemu wywierzyskowego Lodowego Źr&oacute;dła.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Historia odkryć w Jaskini Czarnej jest obecnie trudna do odtworzenia. Jedyny w miarę szczeg&oacute;łowy opis pierwszego okresu eksploracji podaje J. F. Rabek (1962). Dane o eksploracji, prowadzonej przez SG AKT Wrocław w okresie p&oacute;źniejszym są niekompletne i opierają się na materiałach opublikowanych w wydawnictwie &bdquo;XV lat w podziemiach g&oacute;r&rdquo; wydanym z okazji piętnastolecia istnienia Sekcji Grotołaz&oacute;w AKT Wrocław.<br /> Jaskinia została odkryta w dniu 17 lipca 1961 r. przez członk&oacute;w Sekcji Grotołaz&oacute;w Akademickiego Klubu Turystycznego z Wrocławia: Janusza F. Rabka, Janusza Fereńskiego i Romana Bebaka. Odszukali oni otw&oacute;r wypatrzony poprzedniego dnia z Kominiarskiego Wierchu i zeszli pochylnią nad krawędź studni.<br />18 i 19 lipca 1961 r. wspomniany uprzednio zesp&oacute;ł oraz Zbigniew W&oacute;jcik zbadali gł&oacute;wny ciąg do Studni Herkulesa i osiągnęli jej dno.<br />17 sierpnia 1961 r. SG AKT organizuje dużą, liczącą 20 uczestnik&oacute;w, wyprawę eksploracyjną, kierowaną początkowo przez Bronisława W. Wołoszyna, a następnie przez Teresę Janasz. W takcie tej wyprawy, drugiego jej dnia w nocy, piorun poraża w otworze jaskini dw&oacute;ch uczestnik&oacute;w &ndash; Piotra Wojciechowskiego i Antoniego Ogorzałka &ndash; na szczęście bez poważniejszych konsekwencji (złamanie łopatki u P. Wojciechowskiego). W trakcie tej wyprawy zostaje zbadany gł&oacute;wny ciąg do Komina Węgierskiego oraz rejon III Komina i większość Partii Tehuby (m. in. g&oacute;rny ciąg przez Korytarz Dziewiczy do Sali Dobrej Nadziei, w dolnym ciągu &ndash; Jeziorko Tehuby, Sala Taty Winiarskiego i Zacisk Wiatru).<br />18 &ndash; 22 grudnia 1961 r. &ndash; akcja rekonesansowa kierowana przez B. W. Wołoszyna działa z biwaku założonego nad Jeziorkiem Tehuby. Odkryto Rurę za Kredensem, Labirynt Wiatru i Komin Samob&oacute;jc&oacute;w oraz Salę Węgierską i II otw&oacute;r.<br />5 &ndash; 15 luty 1962 r. &ndash; wyprawa kierowana przez T. Janasz, licząca 20 uczestnik&oacute;w, eksploruje kominy w stropie gł&oacute;wnego ciągu, Salkę z Niedźwiedziem w rejonie III Komina. W Tehubie dokonane są drobne odkrycia w Sali Węgierskiej. Zesp&oacute;ł Kazimierz Głazek i Joachim Wachowicz pokonuje Komin Węgierski, dochodząc do Studni Smoluchowskiego, odkrywając i eksplorując partie Kr&oacute;lewskie. W trakcie wyprawy grupa naukowa kierowana przez Jana Rudnickiego (Speleoklub Warszawski PTTK) kartuje całą jaskinię, z wyjątkiem partii odkrytych nad Kominem Węgierskim.<br />23 kwietnia 1962 r. &ndash; wyprawa kierowana przez T. Janasz , 18 uczestnik&oacute;w. Zostaje osiągnięte dno Studni Smoluchowskiego, J. Wachowicz pokonuje trawers Studni Smoluchowskiego i dociera do podn&oacute;ża Progu Furkotnego.<br />17 &ndash; 28 sierpnia 1962 r. &ndash; wyprawa kierowana przez J. Wachowicza, licząca 22 osoby. W trakcie tej wyprawy pokonany jest pr&oacute;g Furkotny, Studnia Imieninowa, odkryto Salę Św. Bernarda i Colorado. <br />17 &ndash; 23 grudnia 1962 r. &ndash; wyprawa kierowana przez J. Wachowicza. Eksploracja partii za Progiem Furkotnym, m. in. Korytarza Żyrafowego i Brązowego Labiryntu.<br />W lutym 1963 r. odbywa się wyprawa szkoleniowo-naukowa, kierowana przez Mariana Pulinę. 25 uczestnik&oacute;w (w tym goście z NRD i Holandii). Prowadzone są badania naukowe i kartowanie jaskini.<br />Latem 1963 r. odbywa się kilka wypraw organizowanych przez SG AKT, ale brak informacji o dokonaniu jakichkolwiek odkryć. <br />27 grudnia 1963 r. &ndash; 4 stycznia 1964 r. &ndash; wyprawa SG AKT kierowana przez Janusza Fereńskiego. Przekopuje ona zamulenia w kilku korytarzach położonych za Szmaragdowym Jeziorkiem, odkrywając około 130 m nowych partii, i podejmuje pr&oacute;bę przekopania Colorado, osiągając jedynie 10 m postępu. Wyprawa kończy prace kartograficzne, kt&oacute;rych efektem jest zestawiony przez M. Pulinę plan w skali 1:400, opracowany na podstawie pomiar&oacute;w M. Puliny, J. Rudnickiego, Jerzego Iwanickiego, Z. W&oacute;jcika i wielu innych (opublikowany zmniejszonej wersji w opracowaniu &bdquo;XV lat w podziemiach g&oacute;r&rdquo;, 1970, nie obejmującej całości znanych w&oacute;wczas partii jaskini), kt&oacute;ry aż do dziś był jedynym planem Jaskini Czarnej.<br />Kolejne wyprawy podjęły pr&oacute;by przekopania zamulonego syfonu w Colorado. Odbyły się one w lutym 1965 r. (kierował Roman Galar, 25 uczestnik&oacute;w), na przełomie 1965 i 1966 r. (26 grudnia &ndash; 4 stycznia, kierownicy Bernard Uchmański i R. Galar, 29 uczestnik&oacute;w, pr&oacute;ba przekopania Colorado i w dnie Komina Herkulesa).<br />10 &ndash; 20 lutego 1966 r. Andrzej Koleśnik kieruję wyprawą liczącą 18 uczestnik&oacute;w, kt&oacute;ra podejmuje ponownie pr&oacute;bę kopania w Kominie Herkulesa.<br />Kolejną pr&oacute;bę przekopania Colorado wrocławianie podejmują w lutym 1969 r. Wyprawa kierowana przez Adama Hajdukiewicza, licząca 20 uczestnik&oacute;w osiąga kilka metr&oacute;w postępu w syfonie. Pr&oacute;bę przekopania tego syfonu podejmują ponownie także na przełomie 1969/1970. Wyprawa kierowana przez Adama Hajdukiewicz liczyła 60 uczestnik&oacute;w, a postęp eksploracji wyni&oacute;sł kilka metr&oacute;w.<br />W p&oacute;źniejszych latach w Partiach Tehuby wyeksplorowano też szereg bocznych ciąg&oacute;w. Eksplorację prowadzili gł&oacute;wnie grotołazi wrocławscy i krakowscy, brak jednak o tym bliższych danych. Niewielkich odkryć dokonali też członkowie Speleoklubu Warszawskiego (Żarski, P. 1979, Kulbicki, P. 1979) a także uczestnicy inwentaryzacji prowadzonej przez OW PTPNoZ. <br />Dalsze odkrycia są udziałem grotołaz&oacute;w z Krakowa, kt&oacute;rzy w 1975 r. zlokalizowali metodami radiometrycznymi położenie p&oacute;łnocnego otworu na zboczu Żlebu pod Wysranki.<br />20 sierpnia 1975 r. Jerzy Rożen i Ryszard Kujat (Krak&oacute;w) oraz Igor Pietrzak (Gliwice) i Ireneusz Woszczyna (Częstochowa) przekopali końcowy odcinak korytarzyka nad Progiem Latających Want wychodząc na powierzchnie p&oacute;łnocnym otworem.<br />29.10. &ndash; 1.11.1978 r. &ndash; początek eksploracji Partii Wawelskich przez grotołaz&oacute;w krakowskich: przejście Komina Żłobistego i korytarza biorącego początek z piarżystej p&oacute;łki, oraz osiągnięcie okna 8 m powyżej p&oacute;łki, wynikiem czego zostaje poznanych około 300 m nowych, piętrowo ułożonych korytarzy, osiągnięcie najwyższego punktu Partii Wawelskich +140 m (Andrzej Bałas, Andrzej Ciszewski &ndash; kierownik, Ewa W&oacute;jcik).<br />3 &ndash; 6 stycznia 1979 r. grupa ze Speleoklubu Warszawskiego PTTK (M. Burkacki, G. Barański, E. Iżykowski, P. Kulbicki, B. Nowicka, M. Rekus, A. Trybulec i P. Żarski) przekopuje zawalisko w rejonie Labiryntu Wiatr&oacute;w, osiągając Zacisk z Ogonkiem, odkrywając około 20 m ciągu oraz pokonali kilkanaście metr&oacute;w nad (znanym już wcześniej grotołazom krakowskim) kominem w ciągu za Rurą za Kredensem.<br />17 &ndash; 18.03.1979 r. &ndash; dalsza eksploracja Partii Wawelskich: odkrycie kolejnych około 200 m korytarzy, w tym osiągnięcie krawędzi Mlecznej Studni oraz znalezienie przejścia omijającego znaczną część kruchych, ciasnych korytarzy, wyprowadzające w zawaliskowej salce w kt&oacute;rej utknęli pierwsi odkrywcy (A. Ciszewski &ndash; kierownik, Mikołaj Czyżewski, Zygmunt Gruza, Jerzy Kramarz, Jan Orłowski, E. W&oacute;jcik).<br />14 &ndash; 15 sierpnia 1982 r. zesp&oacute;ł ze Speleoklubu Warszawskiego (A. Banaszczyk, S. Gabiński, M. Kapełuś, M. Lis i A. Trybulec) ponawia pr&oacute;bę przekopania zawaliska za Zaciskiem z Ogonkiem.<br />3 &ndash; 6 lutego 1987 r. A. Czubalski, K. i K. Jankowscy, oraz (wymiennie) A. Nowak, W. Czepiel, M. Szafirski, R. Szczęsny i W. Szuk ze Speleoklubu Warszawskiego PTTK w kilku akcjach wyczerpali okresowy syfon w Czarnych Kaskadach i odkryli za nim 25 m korytarza.<br />W ostatnich latach eksplorację w końcowych partiach jaskini prowadziły zespoły z Krakowa. Zesp&oacute;ł kierowany przez K. Adryana na początku 1990 r. odkrywa połączenie Korytarza Trzech Studni z Partiami Mlecznego Kominka. Zesp&oacute;ł kierowany przez Michała Gradzińskiego (Gradziński 1991, Wiśniewski 1991) od maja 1990 do końca grudnia 1991r. w 10 akcjach skartował około 1200 m korytarzy w końcowej części jaskini, odkrywając połączenia Ślepego Zaułka z Partiami Hula-Hula i Korytarzem Trimfalnym, Partii Hula-Hula z gł&oacute;wnym ciągiem w okolicy Mostu Trwogi (być może jest to Korytarz Żurko?) oraz partii Mlecznego Kominka z gł&oacute;wnym ciągiem. Pomijając fakt nieprecyzyjnej informacji o długości wykonanych ciąg&oacute;w (wg Wiśniewskiego 1991 &ndash; razem pomierzono 1128 m korytarzy, w tym 126 m gł&oacute;wnego ciągu i 1202 m bocznych korytarzy. Suma tych wartości wynosi jednak1326 m, a nie 1128 m!), trudno ustalić przebieg tych korytarzy, gdyż w artykule używane są nazwy nie występujące na &bdquo;wrocławskim&rdquo; planie jaskini (np. Sala z Okularami &ndash; z tekstu wynika, że znajduje się w gł&oacute;wnym ciągu w G&oacute;rnych Partiach; Komin nad Inkrustacją, Komin Wr&oacute;ć po Linę, Partie Mlecznego Kominka). Niestety, mimo pisemnych propozycji udostępnienia tych materiał&oacute;w do druku&nbsp; (bądź opracowania pełnej dokumentacji Jaskini Czarnej z wykorzystaniem wszystkich materiał&oacute;w pomiarowych i obserwacyjnych posiadanych przez Zesp&oacute;ł Inwentaryzacji Jaskiń Tatrzańskich PTPNoZ) na zasadzie umowy o dzieło i zgodnie z przepisami prawa autorskiego przekazanych jesienią 1994 r., M. Gradziński odrzucił możliwość jakiejkolwiek wsp&oacute;łpracy. Tak więc opublikowana dokumentacja jest z konieczności niepełna.<br /> Filar (2002a) opublikował informację o przekopaniu czwartego otworu w pobliżu Sali z Niedźwiedziem, w rejonie III Komina w dniu 4.02.2001 w zespole F. Filar i B. Stoch-Michnia (problem zauważyli i rozpoczęli eksplorację 6.01.2001). W kwietniu. grotołazi z ST wykonali dokumentację stanu jaskini dla TPN (Kronika &ndash; jaskinie 2005).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i przekr&oacute;j Jaskini Czarnej zestawił M. Pulina na podstawie pomiar&oacute;w wykonanych przez liczny zesp&oacute;ł w pierwszym roku po odkryciu jaskini, a opublikował go w postaci szkicu J. F. Rabek (1962). P&oacute;źniej (data opracowania nieznana), prawdopodobnie w 1964 lub 1965 roku zostaje zestawiony przez M. Pulinę i powielany w postaci ozalid&oacute;w tzw. &bdquo;plan wrocławski&rdquo;, przedstawiający w skali 1:400 wszystkie znane w&oacute;wczas korytarze Jaskini Czarnej. Nie obejmuje on niestety przekroju jaskini (choć wg W.W. Wiśniewskiego &ndash; 1991 &ndash; przekr&oacute;j taki istniał), stąd na przekroju zamieszczonym w niniejszej dokumentacji nie zaznaczono (z braku niezbędnych danych) korytarzy, kt&oacute;rych przebieg został ustalony w oparciu o &bdquo;plan wrocławski&rdquo;. W tym samym czasie M. Trzeciakowski (SG AKT Wrocław) sporządza dokumentację fotograficzną (materiały w Muzeum Speleologii w Żaganiu).W latach 1972-73 zesp&oacute;ł Naukowego Koła Geodet&oacute;w AGH w Krakowie, kierowany przez Władysława Borowca wykonuje precyzyjny pomiar gł&oacute;wnego ciągu jaskini od otworu gł&oacute;wnego do Colorado, znacząc w jaskini punkty pomiarowe ciągu. Do tych punkt&oacute;w R. Kujat nawiązuje w 1975 r. swoje szkieletowe ciągi azymutalno-taśmowe, celem zlokalizowania p&oacute;łnocnego otworu jaskini. Ciągi wykonane przez tego autora (archiwum PTPNoZ), o nieznanej dacie wykonania, zostały także poprowadzone poprzez Korytarz Trzech Studni i na odcinku bocznego połączenia pomiędzy Salą Św. Bernarda a Mostem Trwogi nad Studnią Imieninową (nie nawiązany do ciągu Borowca), a także przez Korytarz Żurko do odnogi korytarza w G&oacute;rnych Partiach nad Studnią Imieninową, uznawanej dawniej za ślepą. Pozostałe ciągi nie mogły być umieszczone na planie z braku punkt&oacute;w odniesienia. Odkrywcy Partii Wawelskich w trakcie akcji eksploracyjnych dokonali pomiar&oacute;w odkrytych partii, wyniki pomiar&oacute;w w postaci planu i przekroju zestawił w 1981 r. Stanisław Kotarba w oparciu o zastabilizowane w jaskini punkty pomiarowe W. Borowca.<br />W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ pomiary Partii Tehuby wykonała I. Luty podczas akcji w latach 1979, 1980, 1981, przy wsp&oacute;łpracy R. Bieganowskiego, J. Miastkowskiego, M. Kapełuś, M. Lisa, T. Kilańczyk, J. Telchona, Z. Panufnika. Obserwacje i pomiary uzupełniła ona w 1995 r. przy wsp&oacute;łpracy J. i Ł. Po&scaron;epnych. Do pomiar&oacute;w używano busoli geologicznej Meridian, zestawu Suunto oraz taśmy parcianej. W przetwarzaniu danych z 1981 r. uczestniczył M. Burkacki. W lipcu 1995 r. zesp&oacute;ł ze Speleoklubu Bobry (Żagań) kierowany przez H. Zyzańską i R. Kondratowicza w ramach aktualizacji materiał&oacute;w terenowych zebrał dane umożliwiające zestawienie planu i przekroju gł&oacute;wnego ciągu jaskini. <br />Zestawiony plan jaskini zawiera następujące elementy:<br />&ndash; plan i przekr&oacute;j gł&oacute;wnego ciągu jaskini został zestawiony przez H. Zyzańską i R. Kondratowicza (wraz z partiami Kr&oacute;lewskimi) w oryginalnej skali 1:500;<br />&ndash; plan i przekr&oacute;j partii Tehuby oraz Komina Herkulesa został zestawiony przez I. Luty w oryginalnej skali 1:400;<br />&ndash; plan i przekr&oacute;j partii Wawelskich został zestawiony przez S. Kotarbę w oryginalnej skali 1:200;<br />&ndash; korytarze naniesione na plan zgodnie z ich przebiegiem na &bdquo;planie wrocławskim&rdquo; (Biały Labirynt, Czarne Kaskady, Ślepy Zaułek, Partie Hula-Hula) są przedstawione linią przerywaną &ndash; ze względu na r&oacute;żnice odległościowo-kątowe pomiędzy &bdquo;planem wrocławskim&rdquo; a nowszymi pomiarami;<br />&ndash; Korytarz Trzech Studni i Korytarz Żurko zostały naniesione na plan według ciąg&oacute;w szkieletowych R. Kujata (1975) i są przedstawione linią przerywaną mniej więcej zgodnie z ich zarysem na &bdquo;planie wrocławskim&rdquo;;<br />&ndash; korytarze rejonu III Komina są przedstawione w osobnej ramce bez siatki wsp&oacute;łrzędnych, zgodnie z ich przebiegiem przedstawionym na &bdquo;planie wrocławskim&rdquo;, w nawiązaniu do punkt&oacute;w wykazanych na planie gł&oacute;wnego ciągu.<br />Oś Y siatki wsp&oacute;łrzędnych załączonego do niniejszej dokumentacji planu jest zorientowana zgodnie z kierunkiem p&oacute;łnocy geograficznej &ndash; z tego też względu nie pokrywa się z siatką przyjętą przez W. Borowca, kt&oacute;rej oś Y jest zorientowana zgodnie z kierunkiem, jaki miał południk magnetyczny w 1972 (73?) roku. Należy mieć na uwadze fakt, że wykonywane po 1974 r. pomiary azymutalno-taśmowe, oparte na punktach zastabilizowanych w jaskini przez W. Borowca nie uwzględniały (prawdopodobnie) ani aktualnej wartości deklinacji magnetycznej, ani też poprawki na deklinację magnetyczną siatki wsp&oacute;łrzędnych W. Borowca, a niezamknięcie ciąg&oacute;w było zapewne traktowane jako błąd ciągu, wyr&oacute;wnywany następnie odległościowo i kątowo w oparciu o wsp&oacute;łrzędne punkt&oacute;w nawiązań. Stąd też punkty tych ciąg&oacute;w są obarczone istotnym, dodatkowym błędem lokalizacji wprowadzonym przez wyr&oacute;wnywanie. Nieznany jest także błąd lokalizacji przebiegu korytarzy, wykazanych na &bdquo;planie wrocławskim&rdquo; &ndash; niewątpliwie poza błędami kątowymi występują tu także błędy odległościowe. W sumie, poza gł&oacute;wnym ciągiem, Partiami Tehuby i Partiami Wawelskimi, pozostałe elementy planu mają jedynie wartość przybliżoną, a nawet orientacyjną. Ostatnio odkryty rejon czwartego otworu nie został wliczony do danych o długości jaskini. Dane wysokościowe na załączonym planie i przekroju jaskini podawane są względem otworu gł&oacute;wnego,&nbsp; znajdującego się 78 m poniżej najwyższego otworu jaskini. Dane zaktualizowała I. Luty (2009). Uwaga: lokalizacja otworu jaskini na mapie topograficznej Tatr wydanej przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.govpl">http://maps.geoportal.govpl</a>) jest błędna (j. Grodzicki 2013).<br />Plan zestawił J. Grodzicki.<br />Opisy opracowali: gł&oacute;wnego ciągu &ndash; K. Recielski i H. Zyzańska; partii Tehuby oraz Komina Herkulesa &ndash; I. Luty; partii Kr&oacute;lewskich &ndash; H. Zyzańska; partii Wawelskich &ndash; S. Kotarba. Pozostałe teksty (dane geologiczne, hydrologiczne, mikroklimatyczne, faunę i florę) opracował J. Grodzicki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Rabek J.F. 1962 (opis odkrycia i eksploracji, zdjęcia, szkic planu przekroju); W&#243;jcik Z. 1963b (informacje o odkryciach); Jodłowski S. 1964 (informacje o odkryciach, dokumentowaniu i badaniach naukowych); Dąbrowski T. i Rudnicki J. 1964 (badania przepływ&#243;w); Wołoszyn, B.W. 1964 (subfosylna fauna kręgowc&#243;w); Bac M. i Grochocka K. 1965 (budowa geologiczna masywu); Ostromęcki A. 1965 (eksploracja w Colorado); Baryła J. 1966h (pr&#243;ba eksploracji partii Wawelskich); W&#243;jcik Z. 1966a (badania osad&#243;w, geneza); Zwoliński T. 1966 (lokalizacja, data odkrycia); Dąbrowski T. 1967a (przepływy podziemne); Dąbrowski T. i Rudnicki J. 1967 (przepływy krasowe); Rudnicki J, 1967 (geneza i wiek); Wołoszyn B.W. 1967 (wymienia nietoperze); Pulina M. 1968a (opis występowania gleb poligonalnych); Pulina M. 1968b (mikroklimat); W&#243;jcik Z. 1968 (osady, geneza, wiek); Skalski A. 1969 (o znalezieniu Onychiurus armatus); Uchmański B. 1969b (fotografia); Grodzicki J. 1970 (geneza, wiek, ewolucja); Parma Ch., Rajwa A. 1970 (podają długość i głębokość); Pulina M. 1970 (dane o historii badań, genezie, wieku); Wołoszyn B.W. 1970 (fauna nietoperzy); XV lat... 1970 (historia eksploracji, plan M. Puliny); Oleksynowa K. 1971 (o perłach jaskiniowych); Pulina M. 1971 (o formach lodowych);Głazek J. i in. 1972 (wzmiankują); Pulinowa M, Pulina M, 1972 (o występowaniu lodu); &#211;smy kontynent 1973 (o filmie kręconym w jaskini); Pulina M. 1974a (mikroklimat); Pulina M. 1974b (wzmiankuje przy rozważaniach o denudacji chemicznej Tatr); W&#243;jcik Z. 1974a,b (wzmiankuje); Grodzicki J. 1976a (dane morfometryczne); Tatry Polskie 1976 (lokalizacja); W&#243;jcik Z. 1976c (podaje wczesnotrzeciorzędowy wiek); Kujat R., Rożen J. 1977 (informacje o odkryciu p&#243;łnocnego otworu); Wiśniewski W.[W.] 1977a (wzmianki o odkryciach); Wiśniewski W.[W.] 1977c (informacje o pomiarach i odkryciu p&#243;łnocnego otworu); Grodzicki J. 1978a (budowa geologiczna, tektonika, ewolucja); Trzeciakowski M. 1978 (fotografia otworu); Wiśniewski W.W. 1978c (o eksperymentalnym biwaku 20. dniowym); W&#243;jcik Z. 1978d (wiek jaskini); Ciszewski A. 1979a (informacje o odkryciach); Głazek J. i in. 1979a,b (wzmiankują); Kujat R. 1979 (plan korytarza prowadzącego do p&#243;łnocnego otworu); Kulbicki P. 1979 (informacja o eksploracji w Labiryncie Wiatr&#243;w); Żarski P. 1979 (odkrycia w partiach Tehuby, szkic odkryć); Walenta K. 1980 (informacja o wykonaniu zdjęć i odkryciach w partiach Tehuby); Kardaś R.M. 1981 (długość i głębokość); Luty I. 1981a (informacja o skartowaniu 400 m w partiach Tehuby); Kotarba S. 1981 (informacje o odkryciach); Sygowski M. i in. 1982 (eksploracja w Labiryncie Wiatr&#243;w); W&#243;jcik Z. 1982 (wymienia w rozważaniach genetycznych); Kotarba S. 1983b (zarys historii eksploracji partii Wawelskich); Kotarba S. 1983c (opis Partii Wawelskich); Kotarba S.,1983d (plan i przekr&#243;j W-E Partii Wawelskich); TATRY POLSKIE 1984 (lokalizacja otworu); Kardaś R.M. 1984e (wzmianka o odkryciach); Gradziński R. i in. 1985a (dane morfometryczne); Gradziński R. i in. 1985b (lokalizacja na mapie z naniesionym ciągiem jaskini); Kardaś R.M. 1985a (o odkryciach); Kardaś R.M. 1986h (odkryciach); Kardaś, R. M. 1986i (długość i deniwelacja); Kapełuś M. 1987 (informacja o eksploracji za Zaciskiem z Ogonkiem); Baryła J. 1988b (informacja o kopaniu w Colorado); Weiner W.M. 1990 (o występowaniu Protaphorura janosik); Gradziński M. 1991 (o kartowaniu Ślepego Zaułka); Wiśniewski W.W. 1991 (informacje o odkryciach i akcjach pomiarowych); Jaskinie TPN 1995 (plan, przekr&#243;j i opis inwentarzowy); Gradziński M. 1995a (geneza tzw. kalcytu igłowo-wł&#243;knistego, jaskinia nie jest wymieniona); Gradziński M. 1995b (o nieścisłościach dokumentacji); Gradziński M. i in. 1995a,b (o mikrobialnej genezie naciek&#243;w manganowych); Głazek J., Grodzicki J. 1996 (wzmiankują o genezie); Gradziński M. 1996 (o nieścisłościach w opisie); Piksa K. 1998 (nietoperze); Nowak J. 1998b (liczenie nietoperzy – 198 osobnik&#243;w 5 gatunk&#243;w); Gradziński M. 2000 (poglądy o genezie); Kicińska D. 2000 (o paleokierunkach cyrkulacji w&#243;d); Glosar T. i in. 2000 (badania wieku naciek&#243;w); Piksa K., Nowak J. 2000, 2001, 2002, 2002 b (nietoperze); Piksa K., Wołoszyn B. 2001 (nietoperze);  Filar F. 2002a (o odkryciu czwartego otworu i partii przy nim, plan nowych partii, opis); Gradziński M., Kicińska D. 2002 (geneza jaskini na podstawie scallops&#243;w); Kronika – jaskinie 2002 (o eksploracji i przekopaniu czwartego otworu, plan i opis nowych partii); Kicińska D. 2004a (paleoprzepływy, uwagi o genezie); Nowicki T. 2004 (ewolucja w świetle datowania naciek&#243;w); Nowicki T., Hercman H. 2004 (analiza naciek&#243;w a paleoklimat); Piksa K., Nowak J. 2004 (monitoring nietoperzy w latach 1997-2004); Kronika – jaskinie 2005 (dokumentacja stanu jaskini dla TPN); Gradziński M. i in. 2005 (uwagi o genezie naciek&#243;w manganowych); Kicińska D. 2005 (geneza w świetle badań przepływ&#243;w); Fryś P., Gradziński M., Kicińska D. 2006 (wzmianka o genezie); Barczyk G. 2008 (badania hydrogeologiczne systemu wywierzyskowego, schematyczny plan, charakterystyka); Gradziński M. i in. 2009 (uwagi o genezie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    „plan wrocławski” w skali 1:400; Kujat, R. 1975 (dziennik pomiar&#243;w); Grodzicki, J. 1969 (geneza, wiek i ewolucja, tektonika, budowa geologiczna); Grodzicki, J. 1980 (geneza, ewolucja i wiek); Trzeciakowski, M. (dokumentacja fotograficzna); Wiśniewski W.W. (kilkaset dokument&#243;w); Grodzicki, J. i in. 1999 (zmiany antropogeniczne) . 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty, Stanisław Kotarba, Jerzy Grodzicki, Rajmund Kondratowicz, Halina Zyzańska, Krzysztof Recielski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(944)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(945)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

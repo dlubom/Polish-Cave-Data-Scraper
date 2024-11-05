@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2077">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2077;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "564635,74".replace(',', '.') + "," + "241691,90".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2077','Jaskinia Twardowskiego'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Twardowskiego
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.BK-02.10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′10,43″, φ: 50&#176;02′20,34″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Krak&#243;w (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                Krak&#243;w
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Komunalny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW, 215 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                215
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                12,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                16,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    500
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Brama Krakowska, Zręby Południowe, Skałki Twardowskiego (Park Twardowskiego), Krak&#243;w-Podg&#243;rze.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia położona jest w zachodniej części Skałek Twardowskiego. Od przystanku MPK przy ulicy Tynieckiej (w pobliżu wejścia do jednostki WP) kierujemy się w stronę wejścia do jednostki i dalej ścieżką wzdłuż betonowego ogrodzenia, aż do obszernego otworu jaskini położonego u podnóża niewielkiej ścianki skalnej. W odległości 10 m w kierunku zachodnim (w lewo) w skalistym zboczu porośniętym trawą znajduje się, niewielki, drugi otwór jaskini(obecnie zasypany). Zwiedzanie uciążliwe   niektóre korytarze bardzo ciasne (zaciski Z I i Z II), błotniste, w kominku pod Salą Główną zablokowane, grożące oberwaniem się głazy.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <div>
+<p><span>Otw&oacute;r wejściowy o szerokości 2,5 m, i wysokości 2 m wprowadza do obszernej sali. W otworze widać pozostałości muru z blok&oacute;w wapiennych, kt&oacute;ry zamykał jaskinię w okresie II wojny światowej. Za otworem gł&oacute;wnym otwiera się sala o ponad 30 m długości, szerokości do 10 m i wysokości od 2 do 4 metr&oacute;w. Ściany są okopcone. Dno&nbsp;sali jest nier&oacute;wne, nachylone w głąb, końcowy fragment sali znajduje się ok. 4 m poniżej poziomu wejścia. Dno sali gliniaste, z gruzem wapiennym i większymi blokami jest zaśmiecone. Namulisko nosi liczne ślady po wykopach, największy z nich znajduje się w odległości 11 metr&oacute;w od otworu z lewej strony. W jego dnie istniało połączenie z kominkiem odchodzącym z dolnych partii jaskini. W stropie sali, w odległości 5 m od otworu, znajduje się niewielki komin, kt&oacute;rego koniec położony jest na poziomie 4,1 m powyżej otworu ‑ jest to najwyżej położone miejsce jaskini.</span></p>
+<p><span>Sala stanowi gł&oacute;wny element jaskini. Odchodzą z niej liczne boczne odgałęzienia. Dla uproszczenia można m&oacute;wić o korytarzach po lewej i prawej stronie. Ciągi te wyraźnie r&oacute;żnią się genezą; korytarze po prawej stronie sali to system owalnych kanał&oacute;w nie wykazujących związku ze spękaniem skały, zaś ciągi po lewej to niskie i szerokie korytarze powstałe gł&oacute;wnie na rozmyciach międzyławicowych.</span></p>
+<p><span>Bezpośrednio w otworze, w kierunku zachodnim, znajduje się niskie wejście do korytarza o długości 11 m prowadzącego do drugiego otworu (obecnie wejście do niego jest zasypane gruzem wapiennym). W korytarzu znajduje się szczelinowa studzienka 2 m głębokości. Na ścianach, stropie i dnie korytarzyka występują liczne nacieki, takie jak masywne okołostalagmitowe polewy, stalaktyty i kolumny, na ścianach ponadto widoczne są żebra i kilkucentymetrowej grubości polewy. </span></p>
+<p><span>Za otworem drugim znajduje się niska salka (2x2 m) o stromym, nachylonym dnie, kt&oacute;re pokrywa gruz. Z niej prowadzą dwa korytarze; w kierunku p&oacute;łnocnym niska, niedostępna szczelina, zaś w kierunku zachodnim ciasna, zagruzowana rura. Stwierdzono w niej możliwość połączenia z końcem korytarza w Jaskini Niskiej ‑ do połączenia jaskiń brakuje ok. 2 m. Uzyskano tutaj kontakt głosowy. Korytarz prowadzący do drugiego otworu posiada połączenie z salą gł&oacute;wną przez 4 metrowy, niski korytarzyk, kt&oacute;ry wyprowadza w sali w odległości 3 metr&oacute;w na lewo od otworu. </span></p>
+</div>
+<p><span>W prawo, w kierunku zalanego kamieniołomu, odchodzi system kanał&oacute;w freatycznych o owalnym przekroju do 1 m szerokości, bez widocznego założenia litologicznego i tektonicznego. Utworzone one są w wapieniu uławiconym, kredowatym, z dużą ilością gąbek, jeżowc&oacute;w i ramienionog&oacute;w, miejscami wypreparowanych w ścianach. Dno tych korytarzy wypełniają osady piaszczyste. Najdłuższy z nich, Piaskowa Rura, opadający stromo w kierunku wschodnim, ma długość 35 metr&oacute;w, jego końcowy fragment znajduje się 12,7 m poniżej otworu jaskini. W tym miejscu cały przekr&oacute;j korytarza zapełniony jest piaszczystym osadem z tkwiącymi w nim otoczakami wapiennymi. W połowie korytarza znajduje się Salka z Tabliczką o długości 6 m, z kominem o ścianach pokrytych cienką polewą naciekową. W salce na ścianie znajduje się wyryty napis ‑ tablica z 1912 roku o treści: &bdquo;Grotę z przyległościami powiększono i uporządkowano St. B. i M. T. 15/1‑5/4 1914.&rdquo; W 1993 r., podczas eksploracji najniższej części korytarza, do salki wsypano duże ilości piasku zmieniając jej rozmiary i zasypując połączenie z korytarzami znajdującymi się na p&oacute;łnoc od salki. Wejść do nich można z NE końca sali schodząc niskim, stromym, szerokim początkowo na 4 m korytarzem, o dnie częściowo skalnym, utworzonym na anastomatycznym rozmyciu międzyławicowym. Z korytarza tego odchodzi w kierunku NW ciasny, niski korytarz łączący się z innym, odchodzącym z końca sali w kierunku NE. Korytarzyk ten jak i sala przebiegają w osi antykliny lub nieciągłości na brzegu biohermy. Wszystkie korytarze rozwinięte po wschodniej stronie sali mają ogładzone ściany. </span></p>
+<div>
+<p><span>Po przeciwnej stronie sali, w kierunku NW (ku Wiśle) rozbudowany jest rozległy system korytarzy tworzących trzy piętra. Rozwinięte są one poziomo, na pionowych pęknięciach i rozmyciach międzyławicowych. Powstały w wapieniu uławiconym z dużą ilością buł krzemiennych oraz w dolomitach. Dno tych partii wypełnia rdzawy, gliniasty, tłusty osad z otoczakami wapiennymi i krzemieniami. Do tej części jaskini prowadzą dwa wejścia znajdujące się po lewej stronie sali, w połowie jej długości i na jej końcu. Trzecie połączenie istniało w wykopie na środku sali, ale obecnie uległo ono zawaleniu. Wchodząc pierwszym z nich (w odległości 14‑16 m od otworu) docieramy do bardzo niskiego, szerokiego anastomotycznego rozmycia, gdzie przez ciasne rury (w jednej zacisk Z II) dochodzimy do niskiego 8 metrowego korytarza wypełnionego gliniastym, rdzawym osadem z gruzem wapiennym na dnie. Opisany ciąg stanowi najwyższe piętro jaskini i nie posiada połączenia z innymi niżej położonymi ciągami. </span></p>
+<p><span>Na końcu sali (w lewo), stromą pochylnią o długości 4 m, szerokości do 2 m i wysokości do 1,5 m dochodzimy do Salki z Belką. W połowie pochylni w kierunku NE prowadzi niski korytarz o skalnym dnie, zakończony zwężeniem niedostępnym dla człowieka. </span></p>
+<p><span>Salka z Belką o wysokości do 2 m, i wymiarach 4x4 m ma dno pokryte gruzem i dużymi fragmentami ławicy wapiennej odpadającej ze stropu. Sala jest zaśmiecona, znajduje się tu duża belka służąca jako siedzenie dla odwiedzających. Z sali ku NW prowadzą trzy r&oacute;wnoległe, 2 metrowe niskie przełazy, uchodzące do wysokiego korytarza utworzonego na pionowym pęknięciu SW‑NE. W gliniastym dnie utworzył się 0,5 m prożek, pod kt&oacute;rym rozwija się kilkumetrowy, niski korytarz na poziomym rozmyciu międzyławicowym. Pod stropem korytarza 2 m nad dnem znajduje się anastomotyczne rozmycie łączące go z Salką z Belką. </span></p>
+<p><span>Z Sali ku W idzie początkowo niski, o kolistym przekroju, 7 metrowy korytarz doprowadzający do rozszerzenia 3x2 m(Salka z Progiem) z progiem 1,5 metrowym w dnie&nbsp;i odchodzącym z niego na niższy poziom niskim korytarzem 7 metrowej długości, ciągnącym się w kierunku NE (aktualnie jest on niedostępny). W dnie korytarza występuje rdzawe, gliniaste namulisko zmieszane z dużą ilością autochtonicznych krzemieni. Na końcu osady wypełniają cały przekr&oacute;j korytarza. Na końcu Salki z Progiem odchodzący poprzez 1 m prożek w d&oacute;ł ciasny korytarzyk łączy ten ciąg z Labiryntem. Kontynuacją Salki z Progiem w kierunku SW jest 7 metrowy, ciasny korytarz, biegnący początkowo poziomo, potem lekko w g&oacute;rę, o częściowo skalnym dnie. Na odcinku poziomym często tworzy się kałuża utrudniająca przejście. Korytarz wyprowadza w rozszerzeniu (2x1,5 m) o wysokości do 1 m, dalej w kierunku SE metrowy korytarz wyprowadza do końcowego korytarza Labiryntu kontynuującego się dalej Partiami Dla Koneser&oacute;w, a w kierunku SW i dalej po 3 m NW bardzo niskim korytarzu o szerokości 1,5 m po kolejnych 3 m wypełnionego w znacznej mierze ilastym osadem. </span></p>
+</div>
+<p><span>Partie dla Koneser&oacute;w to system bardzo ciasnych, niskich korytarzy o długości ok. 50 m o generalnym przebiegu NW‑SE. Są to rury w anastomotycznie rozmytych szczelinach międzyławicowych, kt&oacute;re były w znacznej mierze wypełnione ilastym, czerwono‑brunatnym, osadem z krzemieniami i skrasowiałymi bloczkami wapiennymi. Aktualnie korytarze w znacznej mierze są pozbawione namuliska usuniętego podczas prac eksploracyjnych, kt&oacute;re prowadzono kierując się przewiewem powietrza. Końcowy fragment partii jest położony ok. 6 m poniżej korytarzy w Jaskini Niskiej, z kt&oacute;rą jest niewątpliwie połączony. </span></p>
+<div>
+<p><span>Wracamy do&nbsp;Salki z Belką. W kierunku SE, za zwężeniem pomiędzy blokami znajduje się niski, 5 metrowy korytarz w znacznej mierze wypełniony osadami; pod koniec ciasna pochylnia o gliniastym dnie doprowadza do rury freatycznej o średnicy ok. 1,5 m, prowadzącej w kierunku SW. Dno pokrywa tłusta rdzawa glinka, bloki wapienne i krzemienie. Po 8 metrach w dnie pojawia się rynna denna, korytarz opada, a strop obniża się i po dalszych 5 metrach doprowadza do rozgałęzienia. W prawo ku NW niski 3 metrowy korytarzyk doprowadza do poprzecznego 7 m korytarza, utworzonego na szczelinie NW‑SE łączącego ten ciąg z Salką z Progiem. Ku SW ciągnie się ciasny korytarz prowadzący do Partii dla Koneser&oacute;w. Z rozgałęzienia na południe, za rurą z zaciskiem Z II, znajduje się niskie przejście o gliniastym dnie, doprowadzają do korytarzy dolnego piętra jaskini (Labirynt). Z korytarza‑rury freatycznej, w jego ścianie południowo‑wschodniej, rozciąga się rozległe anastomotyczne, poziome rozmycie, w nim na si&oacute;dmym metrze od wejścia do korytarza ciasny, kolisty tunel 5 metrowej długości wyprowadza do rozszerzenia, z kt&oacute;rego w d&oacute;ł odchodzi studzienka i pochylnia prowadząca do dolnych partii, a w g&oacute;rę ciasne kominy doprowadzają do sali przy wejściu. W tunelu znajdują się liczne stalaktyty (ok. 5 cm długości). Na dnie, szczeg&oacute;lnie w lecie, występuje kałuży woda. Z komina 2 m nad wyjściem z tunelu, odchodzi w kierunku NW ciasny, 8 metrowy korytarz przechodzący pod dnem Sali Gł&oacute;wnej. Strop komin&oacute;w jest aktualnie zablokowany gruzem wapiennym, kt&oacute;ry osunął się z wykopu w sali. Poprzez 1,5 m studzienkę w dnie i kr&oacute;tką, ciasną pochylnia dochodzimy do dolnego piętra jaskini. Tworzy je system ciasnych korytarzy‑rur w większości średnicy ok. 1 m. W dnie występuje rdzawy, gliniasty osad, wypełniający w znacznej części korytarze. Korytarze usytuowane są bezpośrednio pod otworem wejściowym i wstępną częścią Sali Gł&oacute;wnej na poziomie ok. 10 m poniżej. Zauważalny jest tutaj silny przewiew; istnieją tutaj r&oacute;wnież szanse na odkrycie dalszych korytarzy. </span></p>
+<p><span>Jaskinia powstała w wapieniu uławiconym mikrytowo‑ziarnistym i organogenicznym i częściowo w dolomicie. Utworzona została w warunkach freatycznych; widoczny jest związek z pionowymi pęknięciami ciosowymi i rozmyciami międzyławicowymi. W jaskini widoczne są cztery wyraźne poziomy anastomoz&oacute;w. Na ścianach sal i korytarzy widoczne są liczne freatyczne formy erozyjne: kotły wirowe, kanały anastomotyczne i rury. Odmienne układy warstw - w części NW (ku Wiśle) i E (ku SE), sugerują założenie jaskini na spękanej w przegubie formie antyklinalnej, lub nieciągłości w biohermie na jej brzegu. W ścianach w części NW występuje kilka poziom&oacute;w ławic krzemiennych. W części E brak krzemieni, wapienie są kredowate z licznymi gąbkami, ramienionogami i jeżowcami. Jaskinia jest częścią rozległego systemu pr&oacute;żni w Zrębie Zakrz&oacute;wka. Łączy się z jaskinią Niską, dym z ognisk palonych w Sali Gł&oacute;wnej wydostaje się latem w Jaskini Jasnej.</span></p>
+</div>
+<p><span>W jaskini występują r&oacute;żnorodne formy naciekowe. Dość liczne są stalaktyty i kolumny, widoczne lecz często niedostępne, w poziomych, anastomotycznych rozmyciach. Występują r&oacute;wnież charakterystyczne dla jaskini niskie stalagmity z rozległymi polewami okołostalagmitowymi. Ściany miejscami pokrywają polewy o grubości do kilku centymetr&oacute;w, żebra i zasłony. W kominkach łączących dolne piętro jaskini z Salą Gł&oacute;wną występują oryginalne, p&oacute;łprzeźroczyste grzybki naciekowe z krystalizującego kalcytu. Część naciek&oacute;w jest biała, często brunatnie zabrudzona gliniastym osadem, wszystkie są zbudowane z drobnokrystalicznego kalcytu. Duże stalagmity datowane w laboratorium C‑14 Politechniki Śląskiej mają wiek od 8500 do 810 lat BP. Datowane okazy znajdują się w Muzeum Geologicznym AGH w Krakowie. Niekt&oacute;re z naciek&oacute;w przyrastają w dalszym ciągu (np. w korytarzu odchodzącym z końca sali w kierunku NE); są to białe, kilkunastocentymetrowej długości makarony z kroplami wody. </span></p>
+<p><span>Namulisko w jaskini jest r&oacute;żnorodne. W Sali Gł&oacute;wnej zostało częściowo przekopane podczas badań archeologicznych (Gruszecki, 1878), nie stwierdzono jednak występowania warstw antropogenicznych. Na powierzchni jest humusowe (kilkanaście centymetr&oacute;w), a w głębi gliniaste z gruzem wapiennym. W części NE dno wypełniają piaski r&oacute;wnoziarniste białe lub rdzawe ‑ ilaste, z otoczakami wapiennymi. W części SW wszystkie korytarze wypełniają osady rdzawo‑gliniaste, zmieszane z otoczakami wapiennymi, autochtonicznymi krzemieniami, większymi blokami wapiennymi i gruzem na powierzchni. </span></p>
+<p><span>Jaskinia&nbsp;ma mikroklimat dynamiczny, występują w niej silne przewiewy, zależne od temperatury na zewnątrz. Powietrze w otworze porusza się często dwukierunkowo - pod stropem zimą wypływa ciepłe powietrze, dołem wpływa zimne, co sprzyja powstawaniu naciek&oacute;w lodowych. Część opadająca ku Wiśle charakteryzuje się silnymi przewiewami, natomiast część opadająca na wsch&oacute;d jest słabo przewiewna. </span></p>
+<div>Światło sięga kilkanaście metr&oacute;w w głąb sali, w głębi korytarze są ciemne.</div>
+<p><span>W pobliżu gł&oacute;wnego otworu, na ścianach pod okapem obserwowano niewielkie skupienia glon&oacute;w i porost&oacute;w oraz pojedyncze osobniki paproci ‑ zanokcicy murowej <strong><em>Asplenium ruta‑muraria</em></strong>. Dno w rejonie otworu, w miejscach mniej zdeptanych, porastają m.in<em>.: <strong>Artemisia vulgaris</strong>, <strong>Cardaminopsis arenosa</strong>, <strong>Stellaria media</strong>, <strong>Urtica dioica</strong></em> oraz płone osobniki traw. W Sali Gł&oacute;wnej na ścianach stwierdzono występowanie galaretowatych utwor&oacute;w zawierających sinice Dinococcales (Pyrrophyta) (Starmach 1963). </span></p>
+<p><span>W partiach przyotworowych, obserwowano much&oacute;wki i komary. Stwierdzono występowanie pajęczak&oacute;w: <strong><em>Tegenaria silvestris</em></strong><em>, <strong>Porrhomma convexum</strong>, <strong>Nesticus cellulanus</strong> </em>(Sanocka‑Wołoszynowa, 1981). W jaskini obserwowano podkowca małego <strong><em>Rhinolophus hipposideros</em></strong> i nocka dużego <strong><em>Myotis myotis</em></strong> (Harmata 1992, Nowak, Kozakiewicz 2001). W korytarzu pomiędzy otworami gnieździły się lisy; pozostały po nich liczne szczątki kostne, pochodzące z przyniesionej zdobyczy. </span></p>
+<p><span>W okolicy otwor&oacute;w na ścianach widoczne są ślady po pionowych otworach strzałowych. Zniszczeniu uległa część korytarza pomiędzy otworami, miało to prawdopodobnie miejsce podczas prowadzonych prac fortyfikacyjnych w okresie I i II wojny światowej. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsze badania w jaskini przeprowadził Sołtan w 1876 roku, kt&oacute;ry fragmentarycznie rozkopał namulisko, badania nie przyniosły pozytywnych wynik&oacute;w. W Sali Gł&oacute;wnej namulisko zostało częściowo przekopane podczas badań archeologicznych (Gruszecki, 1878), nie stwierdzono jednak występowania warstw antropogenicznych. <br />Od kwietnia 1997 r. prowadzone są przez Jacka Motykę z Zakładu Hydrogeologii i Ochrony W&oacute;d AGH prace badawcze nad chemizmem w&oacute;d z wykropleń w jaskiniach Zrębu Zakrz&oacute;wka. Zesp&oacute;ł grotołaz&oacute;w kierowany przez Andrzeja G&oacute;rnego z Muzeum Geologicznego AGH systematycznie (co tydzień) pobiera pr&oacute;bki wody i wykonuje pomiary temperatury w kilkudziesięciu punktach w jaskiniach Zakrz&oacute;wka. Przy okazji odkryto kilka nowych korytarzy. <br />Duże stalagmity datowane w laboratorium C 14 Politechniki Śląskiej mają wiek od 8500 do 810 lat BP. Datowane okazy znajdują się w Muzeum Geologicznym AGH w Krakowie. <br />Od 2000 przy użyciu metod geofizycznych roku prowadzone są przez pracownik&oacute;w WGGiOŚ AGH badania kartograficzne. Zastosowano metodę georadarową przy użyciu anten o r&oacute;żnej częstotliwości. Ustalono istnienie rozległego systemu pustek podziemnych występujących na kliku poziomach (Jędrys, Krajewski 2002, Jędrys, et al. 2002, Karczewski 2007) wyniki badań zachęciły do podjęcia dalszej eksploracji podziemnej.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia jest znana od bardzo dawna. Najstarsza znana wzmianka pochodzi z 1865 roku. W tej jaskini legenda umiejscowiła pracownię alchemiczną mistrza Twardowskiego. Polemizował z tym faktem Bąkowski (1909), kt&oacute;ry uważał, że siedzibą mistrza była jaskinia odkryta w roku 1880 w czasie budowy kościoła w Podg&oacute;rzu (tzw. Krzemionki Podg&oacute;rskie); jaskinia ta została zaraz po odkryciu zniszczona. Jaskinia Twardowskiego musiała być uznaną atrakcją, bo w wielotomowym &bdquo;Słowniku Geograficznym Kr&oacute;lestwa Polskiego&rdquo; wydawanym na przełomie lat 1880 1902 wzmianki o niej znajdujemy wielokrotnie, a z roku 1898 roku pochodzi opis zwiedzania: Z zadumy wyrywa cię głos pastuszka, kt&oacute;ry proponuje zwiedzanie &bdquo;groty Twardowskiego&rdquo;. Chłopiec prowadzi cię krok&oacute;w parę ku południowi, widzisz, jak wzg&oacute;rze nagle stromo się urywa, obchodzisz dokoła i oto w wapiennej opoce spostrzegasz Czarny, ziejący chłodem otw&oacute;r jaskini. Chłopak dobywa z wiadomej sobie skrytki łuczywo, światło zapalone, podnosisz kołnierz i wkraczasz do jaskini. Niewielkie to zagłębienie ciągnie się ku wschodowi. Wilgotne, stęchłe, pełne kapiącej kroplami wilgoci, kt&oacute;ra szelest sprawia. Tu pastuszek, drżącym głosem, oglądając się bojaźliwie, opowiada ci naiwnie historyję znajomości jaką zawarł tu ze &bdquo;złym&rdquo; czarownik Twardowski. Pochodnia dymi nieznośnie.. kilka nietoperzy ze swojej strony pragnie ci się bliżej przyjrzeć, dotykając prawie twej twarzy błoniastemi skrzydły. Nogi więzną w rozmiękłej ziemi, pierś z trudnością oddycha zatęchłem powietrzem, a od wnijścia oślepiający blask wesołego słonka wpada i z każdym powiewem woń pol dolata. Opuszczamy grotę, a rozochocony datkiem pastuszek proponuje, abyś karczmę &bdquo;Rzym&rdquo; odwiedził.. <br />Ok. 1912 (?) roku w części wschodniej prowadzono prace mające na celu oczyszczenie jaskini, w trakcie prac usunięto część osad&oacute;w z Sali z Tabliczką. Z tego też okresu pochodzi precyzyjny plan w skali 1:500, na kt&oacute;rym naniesiono kontury czterech jaskiń, plan ten znajdujemy w pracy Kuźniara (1921) wraz z kr&oacute;tkim opisem jaskini. Podczas budowy fortyfikacji przez Niemc&oacute;w w 1944 roku otw&oacute;r został zamurowany. Kowalski sporządzając inwentarz tej jaskini stwierdza, że otw&oacute;r &bdquo;do niedawna był zamknięty&rdquo;. <br />Początek zainteresowania grotołaz&oacute;w tą jaskinią to rok 1966, w kt&oacute;rym Jerzy Balwierz, Jerzy Chrobak, Andrzej G&oacute;rny i Andrzej Tomczyk odgruzowali i przekopali ciasne przejścia odkrywając dzięki temu ok. 100 m nowych korytarzy. Są to partie kt&oacute;re prowadzą w kierunku SE za Salką z Belką, korytarz na końcu sali w jej przedłużeniu, ciasne korytarzyki w anastomozach na SE od niej i końcowy korytarz w partiach na NW od tej sali. Na przełomie 1992 i 1993 roku odkopano piaskową rurę zasypując częściowo salkę z Tabliczką (członkowie Krakowskiego Klubu Turystyki Jaskiniowej). W tym samym okresie Paweł Ostrowski i T. Pawłowski odkrywają ok. 100 m nowych korytarzy w partiach na SW od Salki z Belką, eksplorują je ponownie w październiku 1993 roku, odkrywając dolne partie. Są oni r&oacute;wnież odkrywcami początku korytarza z naciekami, rozpoczynającego się na początku Sali i prowadzącego w kierunku II otworu. <br />W listopadzie i grudniu 1997 r. eksplorowano korytarz z gł&oacute;wnego otworu w kierunku Jaskini Niskiej i odsłonięto nowy, zachodni otw&oacute;r jaskini (Andrzej G&oacute;rny, Miłosz Krawczyk, Marek Rosiek, Tomasz Wajzyk). W styczniu 1998 r. (A. G&oacute;rny, M. Krawczyk, Piotr Malina i T. Wajzyk) odgruzowano kominki pod Salą, i odkryto korytarz pod Salą, kt&oacute;ry doprowadził do połączenia z dnem wykopu w Sali (wkr&oacute;tce zresztą uległ on zawaleniu). W 1997 r. Bogdan Słobodzian podaje długość jaskini na ok. 375 m.&nbsp; W latach 2004 - 2007 prowadzone były systematyczne prace w ciągu biegnącym na SW od Sali z Belką przez Salkę z Progiem. Odkryte zostało 70 m korytarzy łącząc ciąg z Labiryntem i nowe Partie dla Koneser&oacute;w. Udział w pracach wzięło ponad 20 os&oacute;b z klub&oacute;w krakowskich, Speleoklubu Bielsko Biała i Speleoklubu Częstochowa, największy w nich udział mieli: Andrzej G&oacute;rny, Norbert Sznober (SCC) i Tomasz Rosiek (G&oacute;rny 2007).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zinwentaryzowana została przez Kowalskiego (1951) pod poz. 3, znane były w&oacute;wczas korytarze o długości 150 m. Kolejne inwentarze, kt&oacute;re szczeg&oacute;łowo podawały dane o jaskini to praca Czepiela (1976), gdzie podaje długość 195 m, oraz przewodnik Szelerewicza i G&oacute;rnego (1986), w kt&oacute;rym długość znanych partii wynosi już 225 m.. W okresie od października 1998 r. do kwietnia 1999 r. P. Migała i P. Zgaga wykonali pomiary, kt&oacute;re ustalają długość na 430 m i deniwelację na 16,8 m (+4,1, 12,7 m) i opracowują nowy plan jaskini (Migała, Zgaga 2000). <br />Dokumentację sporządził A. G&oacute;rny (11.1999 r.). Dane zaktualizował w 2009 r. A. G&oacute;rny.<br />Plan opracowali P. Migała, P. Zgaga (1999 r.) oraz N. Sznober (2007).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Sto obraz&#243;w natury, 1865 (   wzmianka); Gruszecki A. 1878 (wiadomość o zbadaniu przez M. Sołtana); Grota Twardowskiego.. 1898 (literacki opis zwiedzania Jaskini Twardowskiego); Bąkowski K.,1909 (wzmianka); Czarnowski S. 1911 (wymienia); Orłowicz M. 1919 (wzmianka); Kuźniar W. 1921 (plan, mapa położenia); Leszczycki S. 1930 (fot. otworu); Dandysz-Fleszarowa R. 1933 (wymienia); Ciętak Z. 1935 (wymienia); Żabiński W. 1947 (wzmianka); Sosnowski K. 1947 (opis); Kowalski K. 1951 (opis i plan, informacje o eksploracji); Starmach K. 1963 (galarety z sinic, nowe gatunki Dinococcales (Pyrrophyta) ; Harmata W. 1973b (podkowiec mały Rhinolophus hipposideros i nocek duży Myotis myotis w jaskini; Czepiel M. 1976 (opis i plan); Rook E. 1980 (wymienia znaleziska archeologiczne nie określone kulturowo); Sanocka-Wołoszynowa E. 1981 (wymienia z jaskini 3 gatunki pajęczak&#243;w); Szelerewicz M., G&#243;rny A. 1986 (opis i plan, lokalizacja na mapie); G&#243;rny A., Paulo A. 1993 (opis jaskini, plan, lokalizacja otworu na mapie geologicznej Zrębu Zakrz&#243;wka); Pazdur M. i in. 1994 (wyniki datowania naciek&#243;w); G&#243;rny A. i in. 1997 (wymieniają, plan w zestawieniu, informacja geologiczna); Słobodzian B. 1997e (wykaz jaskiń zachodniej części Skałek Twardowskiego, wzmianki o eksploracji, mapka); Motyka J., Postawa A. 1998 (wymieniają); Motyka J. i in. 1999 (w tabeli skrajnego i średniego stężenia jon&#243;w Cl, SO4 i NO3, na mapie izolinii stężeń chlork&#243;w w jaskiniach Zrębu Zakrz&#243;wka, na mapie izolinii stężeń siarczan&#243;w w jaskiniach Zrębu Zakrz&#243;wka, na mapie izolinii stężeń azotan&#243;w w jaskiniach Zrębu Zakrz&#243;wka, szczeg&#243;łowe wyniki zmienności jonu chlorkowego w wybranych punktach, zmienność koncentracji jonu Cl&#175; w wykropleniach w jaskini Twardowskiego na tle opad&#243;w (tabele), fot. rury freatycznej, plan na mapie kierunk&#243;w lateralnego przemieszczania się znacznika); G&#243;rny A. i in, 1999 (zaznaczona na mapie prędkości i kierunk&#243;w przemieszczania się znacznika); Goc P., et al. 2000 (zdjęcie otworu, naciek&#243;w z kroplami wody i rury freatycznej, w tabeli stężeń azotan&#243;w w jaskiniach Zrębu Zakrz&#243;wek, plan na mapie izolinii stężeń azotan&#243;w, tabeli zmian stężeń azotan&#243;w w punkcie T1); Migała P., Zgaga P. 2000 (plan jaskini); Motyka J. i in. 2000 (lokalizacja na mapie geologicznej Zakrz&#243;wka, plan na rozmieszczeniu jaskiń Zakrz&#243;wka, plan na mapie izolinii chlork&#243;w w jaskiniach Zrębu Zakrz&#243;wka, w tabeli pionowej prędkości migracji w&#243;d przez strefę aeracji, w tabelach zmian koncentracji jonu Cl&#175; w zależności od opad&#243;w  punkty T1 i T4, plan na mapie kierunk&#243;w i prędkości lateralnego przemieszczania się znacznika); Nowak J.,2001 (inf. o wykonaniu przez Pawła Migałę i Piotra Zgagę nowego planu jaskini, plan); Nowak J., Kozakiewicz K. 2001 (nocek duży Myotis myotis w jaskini); Motyka J. i in. 2001 (plan na mapie kierunk&#243;w lateralnego przemieszczania się znacznika); Nowak J. 2001 (plan jaskini); Wojkowski J. 2001 (obserwacje mikroklimatyczne dane m. in. z jaskini); Jędrys J., Krajewski M. 2002 (plan jaskini na tle rozmieszczenia profili georadarowych, echogram znad korytarza w jaskini, model struktury uskokowej zrębu Zakrz&#243;wka z przekrojem jaskini); Jędrys J. i in., 2002 (plan na mapie rozmieszczenia jaskiń na Zakrz&#243;wku,, echogram nad korytarzem w jaskini); Gradziński M., Szelerewicz M. 2004 (wymieniają w wykazie); Mrozińska-Broda T., Czerwik-Marcinkowska J. 2004 (galarety z sinic w jaskini); G&#243;rny A. 2007 (plan systemu jaskiń na Zakrz&#243;wku, odkrycie nowych partii w jaskini o długości ok. 50 m, długość jaskini wynosi 500 m); Karczewski J. 2007 (2 echogramy z badań Jaskini Twardowskiego z widocznymi refleksami pustek na głębokościach 12 14 m i 28 30 m); Jaskinie Pomostu Krakowskiego 2011 (plan i opis inwentarzowy).
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Baryła J., G&#243;rny A., Pruc M., Słobodzian B., Szelerewicz M. 2000 (opis inwentarzowy i plan).
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Mariusz Szelerewicz, Andrzej G&#243;rny
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1605)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

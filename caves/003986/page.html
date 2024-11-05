@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3986">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3986;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "282763,84".replace(',', '.') + "," + "345419,49".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3986','Jaskinia Gwiaździsta (S-5.32)'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Gwiaździsta (S-5.32)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                S.III-04.32
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Sudety
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 15&#176;54′26,03″, φ: 50&#176;56′04,77″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wojciesz&#243;w (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                złotoryjski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                dolnośląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                WNW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                542
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                190
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                65
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                65
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    562
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sudety Zachodnie, Wojciesz&#243;w, G&#243;ry Kaczawskie, G&#243;ra Połom, w południowo-zachodnim stoku G&#243;ry Połom (664 m n.p.m), na VI poziomie eksploatacyjnym czynnego kamieniołomu.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od stacji kolejowej Wojcieszów Górny idziemy główną szosą w dół Doliny Kaczawy, a następnie w lewo ul. Robotniczą i dalej drogą prowadzącą do kamieniołomów. Za zakładem przeróbczym, który pozostaje po lewej stronie, po około 500 m znajduje się wejście w prawo na poziom eksploatacyjny (VI). Kierując się na wyraźny pionowy żleb w ścianie kamieniołomu spadający do Jaskini Jasnej, około 150 m przed nią, po lewej stronie znajduje się otwór w poziomym spągu pola eksploatacyjnego. Droga dojścia bez trudności - można dojechać samochodem. Z uwagi na czynny zakład górniczy należy każdorazowo termin wejścia do jaskini uzgodnić z kierownictwem kamieniołomu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r ma kształt tr&oacute;jkąta nieregularnego o wymiarach 1,0x0,7 m. Usytuowany jest wśr&oacute;d gruzu skalnego pokrywającego w niekt&oacute;rych miejscach poziom eksploatacyjny. Studnia wejściowa jest dość ciasna i rozszerza się dopiero po około 8 m. Zjazd, cały czas w kontakcie z jedną ze ścian, kończy się po kilkunastu metrach. Studzienka przechodzi tam w rodzaj wąskiego i stromego korytarzyka o spągu pokrytym odłamkami skał. Na głębokości 21 m korytarz rozszerza się i rozwidla na trzy niezależne drogi (Rozdroże). Na południowy zach&oacute;d, stromo w g&oacute;rę, można się wspiąć do G&oacute;rnych Partii. Doprowadza do nich korytarz o szerokości 1 m i wysokości 2 m. Ściany jego i spąg pokrywają naciekowe polewy barwy jasnopomarańczowej. W g&oacute;rze korytarz rozwidla się na dwie odnogi. W miejscu rozwidlenia spąg jego pokryty jest sporymi blokami skalnymi. Wznoszące się dalej lewe (orograficznie) odgałęzienie kończy się niebawem rurowatym korytarzem o średnicy 1,5 m. Prawym odgałęzieniem po 3 m dochodzi się do poprzecznego kr&oacute;tkiego korytarzyka o obu odnogach wznoszących się stromo w g&oacute;rę. Najwyższy w tym miejscu punkt jaskini znajduje się 5 m poniżej powierzchni terenu.<br />Na p&oacute;łnoc (z Rozdroża) można się przedostać do dość wysokiej, ładnie mytej, meandrującej szczeliny, kt&oacute;ra doprowadza do Bocznego Ciągu. Po 6 m w lewo w d&oacute;ł znajduje się wejście do ślepej studzienki o głębokości 6 m. Dno jej jest zaglinione, a ściany pokrywają ciemnobrązowe polewy kalcytowe. Po przeciwnej stronie wlotu do ślepej studzienki można wejść do opadającej stromo w d&oacute;ł dość niskiej szczeliny, wyklinowującej się po 7 m. Meandrująca szczelina wznosi się dalej w g&oacute;rę, a następnie skręca na p&oacute;łnocny wsch&oacute;d i opada w d&oacute;ł nachyleniem przekraczającym 65<span>&deg;</span> by na głębokości 37 m osiągnąć szerokość około 30 cm. Nie dochodząc do jej dna można zwiedzić niewielką salkę ze ścianami pokrytymi polewami kalcytowymi i zagruzowanym dnie, do kt&oacute;rej wejście znajduje się 6 m ponad dnem zasadniczej szczeliny Bocznego Ciągu. W miejscu gdzie szczelina jest najwęższa znajduje się zacisk o długości około 0,5 m, za kt&oacute;rym szczelina zn&oacute;w się poszerza do około 1,5 m. Po sześciu metrach korytarz rozgałęzia się. Prawy doprowadza po kilku metrach do salki, z kt&oacute;rej biegnie zwężający się korytarz kończący się zaciskiem łączącym te partie z leżącymi poniżej Sali pod Wiszącą Wantą. Lewe odgałęzienie korytarza opada stromo w d&oacute;ł do niewielkiej salki. Z niej w d&oacute;ł do dość szerokiego korytarza, z kt&oacute;rego biegnie w g&oacute;rę ślepo zakończony dziesięciometrowy kominek o nachyleniu 66<span>&deg;</span> oraz stromo w d&oacute;ł do salki z dwoma okresowymi niewielkimi zbiornikami wody (0,1 m głębokości; 0,9x0,3 m). Z salki w lewo kr&oacute;tkim korytarzem poziomo nad ostatni odcinek bocznego ciągu, kt&oacute;ry opada stromo (60<span>&deg;</span>) na skaliste, szczelinowate dno znajdujące się na głębokości 57 m. Dno korytarzy i sal tej części jaskini pokryte jest drobnym żwirem i gliną. Szata naciekowa jest skąpa aczkolwiek nad okresowym jeziorkiem znajdował się sporych rozmiar&oacute;w biały stalaktyt (wg J. Krawca). Zasadniczy ciąg jaskini kontynuuje się z Rozdroża w kierunku wschodnim zwężającym się korytarzem opadającym stromo w d&oacute;ł. Spąg zaścielają skalne bloki, a ściany pokrywają naciekowe polewy. Na głębokości 29 m z lewej strony znajduje się wejście do niewielkiej wnęki o ścianach pokrytych ciemnobrązowymi naciekami. Wysokość wnęki wynosi około 2 m, szerokość 1,8 m, a głębokość 3 m. W prawej ścianie wnęki, tuż przy spągu znajduje się wejście do studzienki o przekroju 0,8x0,6 m. Studzienka sprowadza dwoma stopniami do miejsca, gdzie trawersując poziomo można dojść do szczeliny o szerokości 0,3 m, kt&oacute;ra ukośnie w d&oacute;ł opada do Sali pod Wiszącą Wantą (kontakt głosowy). Schodząc niżej po głazach gł&oacute;wnym korytarzem dochodzi się do rozszerzenia nad przewieszonym progiem (balkonik), kt&oacute;re stanowi g&oacute;rną część Sali pod Wiszącą Wantą. W prawo odchodzi niski, poziomy, szczelinowaty korytarzyk wyklinowujący się w dalszej części. Nieco poniżej balkoniku, r&oacute;wnież w prawo lecz w d&oacute;ł i to bardzo stromo, sprowadza ciasny, rurowaty korytarzyk, łączący się z południowo-wschodnim krańcem Sali pod Wiszącą Wantą. Idąc z balkoniku wprost w d&oacute;ł, a następnie z odchyleniem w lewo można osiągnąć najłatwiej spąg Sali pod Wiszącą Wantą. Można tam r&oacute;wnież dostać się zjeżdżając z balkoniku w linii spadku ściany (zwiedzając jaskinię 2 sierpnia 1986 r. stwierdziłem, że wisząca wanta, czyli blok skalny wielkości sporej szafy - spadła na dno Sali i w aktualnym stanie nie rozdziela ona już dr&oacute;g zejścia z balkoniku co uprzednio czyniła). Sala pod Wiszącą Wantą ma wymiary 2,5x9 m i wysokość do 8 m. Dno jej zaściela gruz skalny, a centralnym punktem jest blok o wysokości ponad 2 m. W kierunku p&oacute;łnocno-zachodnim strop Sali obniża się tworząc sporą wnękę. Zaczynająca się w niej pionowa szczelina łączy się ze studzienką mającą sw&oacute;j początek na głębokości 29 m. Ściany Sali pokrywają ładne nacieki ciemnobrązowej barwy w formie polew i kaskad. Zar&oacute;wno szata naciekowa jak i ściany powleczone są r&oacute;wnież ciemnobrązową warstewką gliny. Z dna Sali, spod st&oacute;p p&oacute;łnocno-wschodniej ściany sprowadzają w d&oacute;ł dwa korytarze. Jeden, mniej więcej w środku jej długości, o nachyleniu 63<span>&deg;</span> jest ciasny i kończy się na głębokości 49 m. Drugi zaś, w formie wysokiej (do 5 m) i wąskiej (do 0,5 m) szczeliny, przecinając jeszcze dwa rozmyte pęknięcia podobne w typie morfologicznym i usytuowane niemal prostopadle do niej, sprowadza stromo w d&oacute;ł (45<span>&deg;</span>) na głębokość 54 m, gdzie się wyklinowuje. Wyżej wspomniane rozmyte pęknięcia łączą się z Bocznym Ciągiem przez zacisk. Przewiewu powietrza nie stwierdzono. Ściany szczelin pokryte grzybkowymi naciekami, a spąg kamieniami i gliną. Z południowo-wschodniego krańca Sali pod Wiszącą Wantą można się wspiąć w g&oacute;rę około 3 m do wysokiej szczeliny przypominającej meander. U jej początku, w prawo w g&oacute;rę, biegnie kominek łączący się z g&oacute;rną częścią Sali tuż pod balkonikiem. Środkową częścią szczeliny można przejść, po zaklinowanych głazach spojonych gliną, kilka metr&oacute;w, aż nad niewielkich rozmiar&oacute;w w rzucie poziomym (1,0 x2,5 m), lecz wysoką na około 10 m Małą Salę. Po zejściu na jej, lekko opadające na wsch&oacute;d, dno, zauważyć można wejścia do czterech korytarzy. Trzy z nich to niskie i nie dłuższe nad kilka metr&oacute;w odnogi (w kierunku południowym wznosi się pod kątem 15<span>&deg;</span> i ślepo kończy po 3 m, ze wschodniego narożnika Sali opada w d&oacute;ł pod kątem 12<span>&deg;</span> i kończy po 2 m oraz z najniższego miejsca Sali, ciasny i niski korytarzyk osiąga około 10 m długości biegnąc łukiem w lewo najpierw łagodnie w d&oacute;ł, a potem poziomo). W żadnym z tych trzech korytarzyk&oacute;w nie stwierdzono przewiewu. Czwartą odnogę stanowi dolna część meandrowatej szczeliny. Dostęp do dalszych części jaskini możliwy jest z południowo-zachodniego narożnika Sali. Trzeba się wspiąć kilka metr&oacute;w wąskim i pionowym kominkiem, kt&oacute;ry stopniowo zmniejsza nastromienie jednocześnie się rozszerzając i doprowadza do rozwidlenia. Po prawej zejście 1,5 m w d&oacute;ł niedużej komory (1x1x3 m). W jej dnie stawek okresowy o średnicy 0,5 m (w maju 1985 r. wody było 15 cm, natomiast w sierpniu 1986 r. nie stwierdzono obecności wody, a jedynie wilgotne błoto). Po lewej zaś wejście do Naciekowego Korytarzyka. Przed nim stalagmit o średnicy u nasady 10 cm i wysokości 20 cm. Nad nim dwie rurki białej barwy (w maju 1985 r. był tam biały stalaktyt o długości 30 cm) z niewielką draperią. Wejście do Naciekowego Korytarzyka ma wymiary 0,5x0,6 m. Ściany jego, spąg i strop pokryte są polewami barwy pomarańczowej do ciemnobrązowej. Gdzieniegdzie tylko występują śnieżnobiałe fragmenty szaty naciekowej. Nachylenie jego spągu wynosi 56<span>&deg;</span>, a długość 5 m. Korytarzyk urywa się p&oacute;łtorametrowej wysokości progiem do Sali Buddy. Sala ta, kształtu wydłużonego prostokąta o dłuższej osi usytuowanej wzdłuż kierunku NW-SE ma wymiary 1,5x7,5 m i wysokość około 7 m. Spąg ma zasłany głazami i gliną. Jednakże u południowo-wschodniego krańca jej dno stanowi lita skała. Naprzeciwko wlotu Naciekowego Korytarzyka biegnie w d&oacute;ł pokryty gliną spąg niewielkiej wnęki o długości 1,5 m. Ponadto są jeszcze z Sali Buddy dwa odgałęzienia: pierwsze sprowadza przez 1,5 m pr&oacute;g w jej spągu do niskiego korytarza (1,5 m) łagodnie opadającego (15<span>&deg;</span>) i kończącego się po 5,9 m w głazowisku, oddzielającym go od Sali z Dziurawym Dnem. Można przejść przez głazowisko pomiędzy kamieniami bezpośrednio na spąg Sali lub też po jego wierzchu aż do krawędzi, kt&oacute;rą urywa się do Sali (wysokość około 5 m). Nad samą krawędzią głazowiska wznosi się, zwężający się ku g&oacute;rze kominek o średnicy 1 m, kt&oacute;rego ściany pokrywają polewy kalcytowe ciemnobrązowe. Sala z Dziurawym Dnem ma wymiary 5,3x9,2 m i zr&oacute;żnicowaną wysokość od 1 do 4 m. Jej spąg, pokryty gliną i głazami, opada w kierunku p&oacute;łnocno-wschodnim pod kątem około 20<span>&deg;</span>. Strop nosi znamiona silnej działalności erozyjnej wody w postaci miejscowych zagłębień i szerszych wymyć pomiędzy kt&oacute;rymi pozostały dość duże żebra. Między głazami zaścielającymi dno można wejść do ślepej studzienki o głębokości 2 m oraz w innym miejscu do korytarzyka wyprowadzającego nad końcową studzienkę. Jej pokryte głazami dno znajduje się na głębokości 60 m. Przewiewu powietrza nie stwierdzono. Drugi ciąg z Sali Buddy zaczyna się u jej południowo-wschodniego ograniczenia. Jest to szeroka, wymyta w białym wapieniu szczelina o szerokości do 1 m i wysokości do około 8 m. Wznosi się ona w g&oacute;rę w kierunku południowym ze średnim nachyleniem 30<span>&deg;</span>. Po 6 m w lewo w d&oacute;ł kilkumetrowa studzienka, a po dalszych kilku, następna. Łączą się one w niewielkich poziomych partiach na głębokości 45 m tworząc ślepe odgałęzienie z ciasną studzienką kończącą się na głębokości 49 m. Nad odgałęziającymi się studzienkami rozszerzenie w szczelinie i podwyższenie jej stropu o około 2 m (można tam wejść stromym zacięciem z nad drugiej studzienki). Idąc dalej wznoszącą się szczeliną osiągnąć można jej najwyższy punkt. Zwęża się tam ona do około 30 cm przy wysokości 1,5 m wprowadzając przez 3 m długości korytarzyk do małej salki o obniżonym (2 m) dnie. Wymiary dna salki 1,5x1,5 m. W kierunku p&oacute;łnocno-zachodnim wznosi się pod kątem 35<span>&deg;</span> korytarzyk o wymiarach 0,7x2,5 do 0,5 m i długości 4,1 m. Jego ściany, strop i spąg pokrywają polewy naciekowe ciemnobrązowe. Końc&oacute;wka korytarza jest r&oacute;wnież zalana polewą kalcytową. W przeciwległym kącie salki opada pod kątem 45<span>&deg;</span> korytarzyk kończący się ślepo po 4 m. Przekr&oacute;j korytarza 0,7x1,2 m. W tym samym kierunku, lecz 2,5 m wyżej ponad dnem salki, od poziomej płyty kamiennej bierze początek korytarzyk o przekroju 0,8x1,5 m i długości 4,4 m. Doprowadza on do Dalekich Sal. Pierwsza z nich o spągu pokrytym głazami opada wzdłuż osi podłużnej (W-E) pod kątem 36<span>&deg;</span> w kierunku wschodnim. Wymiary sali 10,9x2,5 m , a wysokość od 2 do 4,5 m. Jej ściany i strop pokrywają nacieki w formie kaskad i polew czerwonobrunatnych oraz niewielkich białych draperii i rurek oraz stalaktyt&oacute;w długości do 10 cm. Głazy zalegające jej dno są r&oacute;wnież pokryte polewami kalcytowymi. U wschodniego krańca Sala obrywa się progiem wysokości 2,5 m do kolejnej Salki (3,7x1,2x8,0 m) z podobną szatą naciekową. W jej zagruzowanym dnie obniżenie rzędu 1,5 m leżące na głębokości 46 m licząc od otworu wejściowego. Pod progiem rozdzielającym Dalekie Sale znajduje się wnęka o długości około 2,5 m. Końcową częścią tych partii jaskini jest szczelina znajdująca się na przedłużeniu drugiej z Dalekich Sal. Jej długość wynosi 4,9 m a szerokość 0,6 m. Wysokość szczeliny od 4 do 12 m. Po sforsowaniu około 10 m w g&oacute;rę szczeliny można dojść kr&oacute;tkim korytarzykiem, o wymiarach 0,6x1,2 m do przewężenia, za kt&oacute;rym znajduje się Psia Studnia o głębokości 17 m. Ma kształt szczelinowy, zwężający się w niekt&oacute;rych miejscach do 0,3 m. Ściany pokrywają polewy kalcytowe i nacieki grzybkowe. Z dna studni w kierunku wschodnim opada stromo w d&oacute;ł wyklinowująca się na głębokości 59 m szczelina, a w p&oacute;łnocno-wschodnim obszerny korytarz z zagruzowanym spągiem opada w d&oacute;ł, poprzez pionowy pr&oacute;g 3,5 m wysokości do Salki, z kt&oacute;rej rozgałęziające się szczeliny sprowadzają do studzienki końcowej. Dno pokryte rumoszem skalnym i gliną. Na ścianach draperie i nacieki grzybkowe. Występują znaczne sączenia wody znikającej w spągu (wg J. Szynalskiego).<br />Jaskinia, jak wszystkie występujące na g&oacute;rze Połom, powstała w marmurach wieku dolnokambryjskiego. Jaskinię Gwiaździstą można zaliczyć do jaskiń o rozwinięciu pionowym. Większa część jej element&oacute;w rozwiniętych jest w pionie i, za wyjątkiem Sali z Dziurawym Dnem, wymiar pionowy dominuje nad szerokością podziemnych pustek. Od otworu począwszy, gł&oacute;wny ciąg jaskini opada stromo w d&oacute;ł ze średnim nachyleniem 68<span>&deg;</span> by już w odległości poziomej wynoszącej 20 m osiągnąć głębokość 49 m. Tym nie mniej dość rozległe są horyzontalne partie na głębokości 40-50 m. Mierzona poziomo odległość najdalszych punkt&oacute;w tych części wynosi 54 m. Rozpoczynają się one wnęką w Sali pod Wiszącą Wantą na p&oacute;łnocnym zachodzie, a kończą szczeliną za Dalekimi Salami na południowym wschodzie. Łączna długość korytarzy i sal tych partii wraz z Salą z Dziurawym Dnem wynosi 267 m. Przyjmując za M. Puliną trzy poziomy jaskiń w Połomie należałoby chyba, niezależnie od obszernych stosunkowo partii poziomych, zaliczyć Gwiaździstą do pionowych pustek łączących poziom II z III. W jaskini spotyka się zr&oacute;żnicowane przekroje form poziomych i pionowych. Dominują pustki typu szczelinowego, wąskie i wysokie lecz nie brakuje też przekroj&oacute;w okrągłych (kominy, g&oacute;rne partie) charakterystycznych dla form tworzonych przez wodę pod ciśnieniem. Na ścianach i stropie Bocznego Ciągu, Sali z Dziurawym Dnem oraz szczelinie doprowadzającej do Dalekich Sal zaobserwowano liczne wgłębienia, wnęki i kotły. <br />Nie przeprowadzono badań osad&oacute;w jaskiniowych, a jedynie poddano powierzchownym oględzinom. Na ich podstawie można stwierdzić co następuje: gł&oacute;wny korytarz opadający poniżej studni wejściowej ma aż do głębokości 32 m (balkonik) dno zasłane skalnym rumoszem pochodzącym najprawdopodobniej z powierzchniowych odstrzał&oacute;w. Został on wsypany do jaskini w trakcie pracy spychacza przed zauważeniem otworu oraz w p&oacute;źniejszym okresie, kiedy otw&oacute;r był zasypywany przez pracownik&oacute;w kamieniołom&oacute;w. Znaczna część rumoszu zgromadziła się na Rozdrożu, gdzie korytarz znacznie się rozszerza i traci nastromienie. Ponadto skalny gruz i rumosz, kt&oacute;ry jednak nie pochodzi z aktualnych wsyp&oacute;w, lecz stanowi materiał akumulacyjny, często z odłamkami szaty naciekowej, zalega dna Sal: pod Wiszącą Wantą, Buddy, z Dziurawym Dnem, Dalekich oraz Psiej Studni i studzienki na głębokości 60 m. Jest on tam w większości pokryty czerwonobrązowymi glinami, kt&oacute;re r&oacute;wnież stanowią podstawowy materiał pokrywający dna skalnych pr&oacute;żni. W dużym nagromadzeniu można te gliny spotkać na dnie 6 m studzienki w Bocznym Ciągu, w szczelinach sprowadzających z Sali Pod Wiszącą Wantą na głębokości 49 i 54 m, na dnie meandrowatej szczeliny wyprowadzającej z tejże Sali oraz we wnęce w Sali Buddy i bocznych odgałęzieniach Małej Sali. Spąg szczeliny przy zacisku w Bocznym Ciągu pokryty jest drobnym piaskiem.<br /> Szata naciekowa jest dosyć bogata, a wykształcona przede wszystkim w formie skorup na ścianach i spągu. Barwa polew z reguły jest czerwonobrązowa. Polewy występują w studni wejściowej, Partiach G&oacute;rnych, studzienkach Bocznego Ciągu, we wszystkich wnękach korytarzy i sal, Sali Pod Wiszącą Wantą, Sali Buddy, Korytarzyku Naciekowym, kominie nad Salą z Dziurawym Dnem i Dalekich Salach oraz Psiej Studni. Opr&oacute;cz skorup występują nacieki kaskadowe, kolumnowe, draperie, a ponadto stalaktyty i stalagmity. Nie brakuje oczywiście r&oacute;wnież popularnych makaron&oacute;w choć ich ilość jest niewielka. Najefektowniejsze nacieki znajdują się w Salach: Buddy, Dalekich i Pod Wiszącą Wantą oraz Naciekowym Korytarzyku. Opr&oacute;cz czerwonobrązowych polew występują tam śnieżnobiałe stalaktyty i draperie. W szczelinach i studniach spotkać można nacieki grzybkowe. Wszystkie nacieki są wilgotne i nie zauważono na nich proces&oacute;w wietrzenia. Niestety, dobrze widoczne są pęknięcia skorup i kaskad spowodowane najprawdopodobniej robotami strzałowymi (Naciekowy Korytarzyk, Sala Buddy i Sala pod Wiszącą Wantą).<br />Światło dzienne dociera tylko do końca studni wejściowej. Woda występuje w formie sączeń po ścianach i lokalnych wykropleń ze stropu. Tylko w komorze, tuż przy Korytarzyku Naciekowym stwierdzono w maju 1985 r. stawek o średnicy około 50 cm. W sierpniu 1986 r. w stawku nie było wody. Okresowe zbiorniki wody zaobserwowano też w Bocznym Ciągu. <br />Fauny ani flory jaskiniowej nie zaobserwowano.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pracownicy zatrudnieni na poziomie VI kamieniołom&oacute;w wojcieszowskich 11 kwietnia 1985 r., w spągu poziomu eksploatacyjnego stwierdzili odkrycie otworu. Był to otw&oacute;r Jaskini Gwiaździstej. Pierwszego wejścia na głębokość około 15 m dokonali: R. Stański i E. Szymański (pracownicy kamieniołom&oacute;w) dnia 22 kwietnia 1985 roku. Dw&oacute;jka ta dnia 28 kwietnia 1985 roku zeszła gł&oacute;wnym ciągiem najprawdopodobniej na głębokość 49 m do ślepej szczeliny pod Salą pod Wiszącą Wantą.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W dniach 1 i 12 maja 1985 r.: P. Rojek, T. Rojek i R. Stański zwiedzili i skartowali jaskinię (z wyjątkiem Bocznego Ciągu poniżej zacisku oraz Dalekich Sal z Psią Studnią). Dalekie Sale przeszli najprawdopodobniej jako pierwsi grotołazi z Wrocławia, a skartowali je 12 sierpnia 1986 r.: J. Krawiec, P. Rojek i T. Rojek. Następnie J. Krawiec oraz J. Szynalski&nbsp; dnia 12 października 1986 r. przekopali zacisk w Bocznym Ciągu by w dniu 18 października 1986 r. w składzie powiększonym o K. Kiedosa, W. Kramka i W. Wielgusa dokonać zejścia na dno Bocznego Ciągu oraz połączyć go z partiami poniżej Sali pod Wiszącą Wantą. W tym samym dniu skartowano całość Bocznego Ciągu. Dw&oacute;ch grotołaz&oacute;w z Żagania odnalazło dojście do Psiej Studni i do dna jaskini w dniu 1 maja 1987 r. Następnego dnia partie te zostały skartowane przez zesp&oacute;ł żagańsko-wałbrzyski kierowany przez J. Krawca. W 1994 r. eksploatacja w kamieniołomie zagłębiła się poniżej VI poziomu, na kt&oacute;rym leżał otw&oacute;r Jaskini Gwiaździstej. W listopadzie 1994 r. część jaskini została zniszczona. W wyniku prowadzonej eksploatacji marmur&oacute;w jaskinia obecnie nie istnieje.<br />Dane zaktualizował A. Szynkiewicz w 2014 r.<br />Plan opracował T. Rojek.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Tak
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pulina M. 1977 (wzmianka); Rojek T. 1985 (rysunek uproszczonego przekroju, informacja o odkryciu); Rojek T. 1987 (plan, przekr&#243;j, opis inwentarzowy); Jaskinie Sudet&#243;w 1996 (plan i opis pod nr. S-5.32); Rogala W. 1996b (wzmiankowana); Szynkiewicz A. i in. 2001 (pan, opis).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tadeusz Rojek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3958)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(3959)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

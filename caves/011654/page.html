@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11654">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11654;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "555037,20".replace(',', '.') + "," + "262038,68".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11654','Jaskinia pod Kościołem Zachodnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia pod Kościołem Zachodnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Sąspowska, H&#246;hle von Saspowo, Jaskinia Sąspowska zachodnia, Grota W Sąspowie, jaskinia Sąspowska, Jaskinia zachodnia w g&#243;rze kościelnej w Sąspowie, grota zachodnia, Jaskinia pod Kościołem w Sąspowie, Jaskinia Sąspowska „Pod Kościołem” Zachodnia, 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02c.05
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;46′18,36″, φ: 50&#176;13′22,74″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Jerzmanowice-Przeginia (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Kościelny
+|                Ojcowski Park Narodowy - otulina
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                430
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    38
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sąsp&#243;w, Dolina Sąspowska, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od skrzyżowania dróg we wsi Sąspów idziemy w dół doliny drogą asfaltową ok. 600 m, do podnóża skalistego wzgórza, na którym jest usytuowany kościół. Widoczny z drogi otwór jaskini jest położony ponad stromym trawiastym stokiem, ok. 50 m na zachód od południowego otworu Jaskini pod Kościołem Wschodniej J.Olk.I02c.06 i bezpośrednio powyżej obudowanego źródła znajdującego się na dnie doliny. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za otworem o wysokości 2,5 m i szerokości 3,5 m znajduje się obszerny korytarz, kt&oacute;ry doprowadza poprzez dwa zwężenie do salki końcowej o szerokości ok 5 m. W stropie jaskini są rozwinięte kotły wirowe o średnicy do 40 cm i kominy (najwyższy o wysokości 2 m).</p>
+<p>Jaskinia powstała w wapieniu skalistym jury g&oacute;rnej. W rejonie otworu w wapieniach są dobrze widoczne r&oacute;żnorodne struktury sedymentacyjne (m.in. stromatactis). Przebieg korytarzy jest uwarunkowany przebiegiem pionowych i ukośnych szczelin ciosowych. Na skrzyżowaniu dw&oacute;ch system&oacute;w szczelin powstały kominy w stropie.</p>
+<p>Jaskinia ma genezę krasową; została uformowana w warunkach freatycznych. T. Madeyska (1977a, 1988) na podstawie położenia hipsometrycznego jaskini przypisuje jej wiek p&oacute;źnoplioceński lub wczesnoczwartorzędowy.</p>
+<p>Warstwa zewnętrzna namuliska w rejonie otworu humusowa, w głębszej części jaskini gliniasta z gruzem wapiennym. W niższych warstwach namuliska występują osady gliniaste z gruzem wapiennym i pokruszonymi naciekami, zaś w najniższej laminowane gliny pylaste (T. Madeyska, 1988). Ponadto w osadach jaskini udokumentowano dwie neolityczne warstwy kulturowe (kultura lendzielska), a także wyroby z czas&oacute;w rzymskich i ze średniowiecza (B. Marciniak, 1974; E. Rook E. 1980; J. Lech, 1981, 1982; W. Chmielewski, 1988). Badania archeologiczne wykazały, że jaskinia pełniła dla ludności kultury lendzielskiej funkcję pracowni obr&oacute;bki krzemienia, a także okresowej osady i była ściśle powiązana z pobliskimi kopalniami krzemienia (J. Lech 1973b, 1981, 1982).</p>
+<p>W jaskini występują r&oacute;żne rodzaje polew ze skonsolidowanego mleka wapiennego (polewy z kożuchowego mleka wapiennego, pola ryżowe, nacieki wełniste) oraz stalaktyty.</p>
+<p>Mikroklimat w części przyotworowej zależny od warunk&oacute;w panujących na powierzchni.</p>
+<p>Światło sięga kilkanaście metr&oacute;w w głąb. Jaskinia w końcowej części ciemna i wilgotna. Niska zawartość azotan&oacute;w w wodach perkolacyjnych świadczy o braku zanieczyszczeń antropogenicznych (P. Goc i in. 2000).</p>
+<p>W otworze na ścianach występują glony, a na spągu liczne rośliny nasienne (m.in. <em>Achillea</em> sp., <em>Carum carvi, Geranium robertianum, Mycelis muralis</em>, <em>Rumex</em> sp., <em>Urtica dioica)</em>.</p>
+<p>W jaskini stwierdzono obecność (12.09.1995 r.) much&oacute;wek, pająk&oacute;w oraz motyli (ciem &ndash;<em> Scoliopteryx libatrix i Triphosa dubitata</em>). W jaskini odnotowano obecność jednego gatunku pająka (E. Sanocka-Wołoszynowa, 1981). Występowanie w jaskini pojedynczych nietoperzy było wielokrotnie rejestrowane w literaturze (A. Węgiel i in. 2001; J. Nowak i in. 2002; W. Grzywiński i in. 2004, 2006, 2015; J. Nowak i W. Grzywiński 2007, 2012, 2017; K. Kozakiewicz i B. W. Wołoszyn 2008). Łącznie zaobserwowano przedstawicieli sześciu gatunk&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsze badania wykopaliskowe w jaskini prowadził J. Zawisza prawdopodobnie pomiędzy 1871 a 1874 r. (Zawisza J. 1874). Efektem tych badań było znalezienie szydła kościanego i ułamk&oacute;w krzemiennych. Niestety zachowane informacje nie pozwalają na ustalenie czy znaleziska te pochodzą z tej jaskini, czy z sąsiedniej Jaskini pod Kościołem Wschodniej. M. Kot i in. (2019b) sugerują, że rekonesansowe badania namuliska przeprowadził S. Krukowski w 1919 r. Badacz ten nie opublikował wynik&oacute;w, ani nawet nie upublicznił faktu prowadzenia badań. W 1970 r. w jaskini prowadzono prace wykopaliskowe pod kierownictwem W. Chmielewskiego (T. Madeyska &ndash; inf. ustna 1993 r.).<br />Materiały w&oacute;wczas zebrane opracowywał interdyscyplinarny zesp&oacute;ł. Materiały archeologiczne opracowali B. Marciniak (1974), E. Rook (1980); J. Lech (1981, 1982) i W. Chmielewski (1988); charakter i genezę osad&oacute;w T. Madeyska (1972, 1977a, 1988, 2006a), szczątki ptak&oacute;w Z. Bocheński (1988, 1993), M. Lorenc (2006a, 2006b, 2007, 2008, 2013) i Z. Bocheński i in. (2012), szczątki ssak&oacute;w K. Kowalski (1979), A. Pradel (1981, 1988), A. Nadachowski (1982, 1988, 1989b, 1990), B.W. Wołoszyn (1987, 1989), M. Wolsan (1989a, 1989b); &ndash; oraz szczątki mięczak&oacute;w E. Stworzewicz (1988).<br />W osadach jaskini stwierdzono szczątki licznych takson&oacute;w kopalnych kręgowc&oacute;w (K. Kowalski, 1979; A. Pradel, 1981, 1988; A. Nadachowski, 1982, 1988, 1989b, 1990; B. W. Wołoszyn, 1987, 1989; Z. Bocheński, 1988, 1993; M. Wolsan, 1989a, 1989b; Z. Bocheński i in, 2012), a także 14 gatunk&oacute;w kopalnych mięczak&oacute;w (E. Stworzewicz, 1988).<br />Ostatnio badania jaskini podjął interdyscyplinarny zesp&oacute;ł kierowany przez M. Kot. Prace wykopaliskowe zostały zrealizowane w 2018 r. Znaleziono w&oacute;wczas liczne zabytki krzemienne (ok. 20 tys.; Kot 2018c; Kot i in. 2019a). Materiały są obecnie opracowywane.<br />E. Sanocka-Wołoszynowa (1981) prowadziła w jaskini badania pajęczak&oacute;w.<br />Od początku bieżącego wieku w lutym każdego roku w ramach og&oacute;lnopolskiej akcji Dekada Spisu Nietoperzy prowadzony jest systematyczny monitoring nietoperzy (J. Nowak i in. 2002; W. Grzywiński i in. 2004, 2006; J. Nowak i W. Grzywiński 2007, 2012, 2017).<br />Skład chemiczny w&oacute;d perkolacyjnych analizował w latach 1996&ndash;1998 J. Motyka wraz z zespołem (Goc i in. 2000).<br />Jaskinia figuruje w rejestrze zabytk&oacute;w nieruchomych pod numerem 1912 (D. Jaskanis, 1998).<br />Jaskinia była w 1990 r. celem sesji terenowej podczas konferencji archeologicznej poświęconej Stefanowi Krukowskiemu (J. Lech 2006c).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od dawna. Została odnotowana w 1783 r. w rękopiśmiennym opisie parafii Sąsp&oacute;w (Wiśniewski 1997h, 1997l). Pierwsza publikowana wzmianka jej dotycząca pochodzi od J. Zawiszy (1874). W literaturze (zwłaszcza archeologicznej) jest często nazywana Jaskinia Saspowska Zachodnia. Pomimo tego konsekwentnie stosujemy użytą przez Kowalskiego (1951) nazwę Jaskinia pod Kościołem Zachodnia, gdyż jest ona r&oacute;wnież szeroko rozpowszechniona w literaturze (np. chiropterologicznej). Ponadto istotnym jest uniknięcie możliwych pomyłek z na wp&oacute;ł homonimiczną nazwą Jaskinia Sąspowska, odnosząca się do zupełnie innego obiektu.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zinwentaryzowana 22.10.1947 r. przez K. Kowalskiego; wymieniona przez M. Szelerewicza i A. G&oacute;rnego (1986). Ponownie zinwentaryzowana 25.09.1994 r. przez M. Wawrykę z pomocą M. Zawady. Korektę dokumentacji sporządzili M. Gradziński i M. Wawryka 12.09.1995 r., oraz K. Bisek i M. Wawryka 17.09.1995 r. Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego. Obserwacje uzupełniające przeprowadził M. Gradziński 31.10.2019 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował M. Wawryka.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zawisza J. 1874 (wzmianka o prowadzeniu badań w dw&#243;ch jaskiniach Sąspowskich, dotyczy obu jaskiń położonych pod kościołem w Sąspowie); Kohn A. 1876 (wzmianka o badaniach Zawiszy w jaskiniach w Sąspowie i o znaleziskach archeologicznych); Ossowski G. 1885 (lokalizacja na załączonej schematycznej mapie); Czarnowski S.J. 1899 (wzmianka, lokalizacja na schematycznej mapie); Wr&#243;blewski K. 1900 (wzmianka o dw&#243;ch jaskiniach niedaleko kościoła w Sąspowie, błędna informacja o usytuowaniu w jednej z tych jaskiń źr&#243;dła Sąsp&#243;wki); Czarnowski S.J. 1911 (wzmianka, lokalizacja na schematycznej mapie); schematycznej mapie); Danysz-Fleszarowa R. 1933 (wymieniona w wykazie); Ciętak Z. 1935 (wymieniona, lokalizacja na mapie); Kowalski K. 1951 (opis inwentarzowy, plan, lokalizacja na mapie); Lech J. 1971 (wzmianka o znalezieniu przez Chmielewskiego w osadach trzech zespoł&#243;w kultury lendzielskiej interpretowanych jako ślady czasowych obozowisk g&#243;rnik&#243;w krzemienia); Madeyska T. 1972 (lokalizacja na schematycznej mapie, profil osad&#243;w, wzmianka o znalezieniu warstw kulturowych z zabytkami kultury lendzielskiej); Marciniak B. 1974 (fide Chmielewski, 1988, opracowanie materiał&#243;w zebranych w trakcie prac wykopaliskowych kierowanych przez Chmielewskiego); Czepiel M. 1976 (wymieniona w wykazie); Bocheński Z., Oleś T. 1977 (wzmianka o znalezieniu kości kopalnych ptak&#243;w); Madeyska T. 1977a (opis osad&#243;w, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, wnioski o genetycznym związku jaskini z poziomem terasowym c i p&#243;źnoplejstoceńskim lub wczesnoczwartorzędowym wieku); Kowalski K. 1979 (opis znalezisk kości p&#243;źnoglacjalnych lub holoceńskich Sicista betulina); Kulczycka-Leciejewiczowa A. 1979 (wzmianka o neolitycznej pracowni obr&#243;bki krzemieni,); Madeyska T. 1979 (cechy osad&#243;w, informacja o znaleziskach archeologicznych); Rook E. 1980 (charakterystyka stanowiska: ceramika grupy malickiej kultury lendzielskiej, kultury puchar&#243;w lejkowatych, wi&#243;ry krzemienne i wyroby nie neolityczne); Lech J. 1981 (położenie, opis, om&#243;wienie, charakterystyka i statystyczna analiza znalezisk krzemiennych z tej jaskini); Madeyska T. 1981 (opis osad&#243;w, wzmianka o występowaniu warstw kulturowych z zabytkami neolitycznymi, zestawienie wynik&#243;w analiz osad&#243;w, zestawienia stwierdzonych takson&#243;w kopalnej fauny); Pradel A. 1981 kr&#243;tki opis osad&#243;w, wymieniona część takson&#243;w kopalnej fauny, analiza biometryczno-morfologiczna uzębienia i niekt&#243;rych cech czaszki kopalnych Cricetus cricetus); Sanocka-Wołoszynowa E. 1981 (wykaz stwierdzonych gatunk&#243;w pają&#243;w); Lech J. 1982 (wzmianka o badaniach Chmielewskiego i znalezieniu dw&#243;ch kulturowych warstw neolitycznych kompleksu lendzielsko-polgarskiego z inwentarzem krzemiennym i ceramiką, charakterystyka znalezisk); Nadachowski A. 1982 (informacje o dotychczasowych badaniach, kr&#243;tka charakterystyka osad&#243;w, om&#243;wienie znalezisk szczątk&#243;w kopalnych gryzoni, wymienione taksony); Lisoń D. 1985 (wzmianka o zinwentaryzowaniu); Szelerewicz M., G&#243;rny A. 1986 (wymieniona w wykazie, lokalizacja na mapie); Wołoszyn B.W. 1987 (wzmianka o znalezieniu plejstoceńskich szczątk&#243;w Barbastella barbastellus); Bocheński Z. 1988 (wyniki badań szczątk&#243;w kopalnych ptak&#243;w znalezionych w osadach, wymienione taksony); Chmielewski W. 1988 (wzmianki o znaleziskach z okresu rzymskiego i ze średniowiecza, wzmianka o zasiedlaniu przez g&#243;rnik&#243;w poszukujących krzemieni); Madeyska T. 1988 (położenie, opis i plan, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, opis i charakterystyka osad&#243;w, diagram ilustrujący wyniki analiz osad&#243;w, interpretacja genetyczna, profil osad&#243;w); Nadachowski A. 1988 (kr&#243;tka charakterystyka stanowiska, om&#243;wienie znalezisk kopalnych kręgowc&#243;w, tabelaryczne zestawienie znalezisk); Pradel A. 1988 (kr&#243;tki opis, stratygrafia, analiza zęb&#243;w kopalnych chomik&#243;w, dane morfometryczne); Stworzewicz E. 1988 (om&#243;wienie znalezisk kopalnych mięczak&#243;w, wykaz znalezisk); Nadachowski, 1989b (kr&#243;tka charakterystyka w wykazie stanowisk, informacja o występowaniu kopalnych gryzoni); Nadachowski A. i in. 1989 (og&#243;lna charakterystyka stanowiska, stratygrafia); Wolsan M. 1989a (informacja o znalezieniu kości kopalnych zajęczak&#243;w); Wolsan M. 1989b (informacja o znalezieniu kości kopalnych drapieżnych, wymienione); Wołoszyn B.W. 1989 (informacja o znalezieniu kości kopalnych Plecotus auritus); Bocheński Z. 1993 (kr&#243;tki opis, informacja o znalezieniu kości kopalnych ptak&#243;w, wymienione taksony); Gradziński M. i in. 1995b (opis inwentarzowy, plan, lokalizacja na mapie); Madeyska T., Kozłowski S. K. 1995 (plan, przekr&#243;j osad&#243;w, wykaz stwierdzonych gatunk&#243;w kopalnej fauny); Wiśniewski W.W. 1997h (informacje o uwzględnieniu w rękopiśmiennych opisach parafii sporządzonych 1783 r. na zlecenie prymasa Michała Jerzego Poniatowskiego); Jaskanis D. 1998 (wymieniona w wykazie zabytk&#243;w archeologicznych p.nr. 1912); Goc P. i in. 2000 (wyniki analiz stężenia azotan&#243;w w wodach); Lech J. 2001b (wzmianka o obozowisku neolitycznym związanym z pobliską kopalnią krzemienia); Lech J. 2001c (wzmianki o wykorzystywaniu w neolicie podczas eksploatacji krzemieni oraz znaleziskach z czas&#243;w rzymskich i ze średniowiecza); Węgiel A. i in. 2001 (kr&#243;tka charakterystyka, informacja o stwierdzeniu nietoperzy, wymienione gatunki); Cyrek K. 2002 (lokalizacja jako stanowiska archeologicznego na schematycznej mapie); Nowak J. i in. 2002 (informacje o występowaniu nietoperzy, wymienione gatunki); Grzywiński W. i in. 2004 (podsumowanie występowania nietoperzy, lokalizacja na schematycznej mapie); Dobrzańska H. 2006 (wymieniona w wykazie stanowisk z okresu rzymskiego i wczesnej fazy wędr&#243;wek lud&#243;w); Grzywiński W. i in. 2006 (informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Lorenc M. 2006a (stratygrafia osad&#243;w skład gatunkowy kopalnych ptak&#243;w, zesp&#243;ł szczątk&#243;w jest interpretowany jako resztki pokarmowe drapieżnych ptak&#243;w); Lorenc M. 2006b (kr&#243;tka charakterystyka i profil osad&#243;w, wyniki datowania 14C nieokreślonej kości ptaka); Madeyska T. 2006a (opis, opis osad&#243;w, plan, przekroje osad&#243;w, diagram ilustrujący wyniki analiz osad&#243;w); Cyrek K. 2007 (lokalizacja na mapie rozmieszczenia archeologicznych stanowisk jaskiniowych); Lorenc M. 2007 (stratygrafia osad&#243;w, położenie, charakterystyka osad&#243;w, przekr&#243;j osad&#243;w, wykaz gatunk&#243;w ptak&#243;w użytych do obliczenia wskaźnika termicznego, wyniki datowania 14C nieokreślonej pr&#243;bki z warstwy 3); Nowak J., Grzywiński W. 2007 (informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Kozakiewicz K., Wołoszyn B.W. 2008 (informacja o występowaniu nietoperzy oraz o znalezieniu kości kopalnych nietoperzy); Lorenc M. 2008 (kr&#243;tka charakterystyka osad&#243;w, tabelaryczne przedstawienie stratygrafii osad&#243;w vistuliańskich i zr&#243;żnicowania kopalnych ptak&#243;w, oszacowanie średniej temperatury lipca w czasie młodszego dryasu na 13,5&#176;C); Pawłowski J. i in. 2008 (wiek osad&#243;w na tle osad&#243;w innych jaskiń okolicy Ojcowa, wzmianka o znalezieniu szczątk&#243;w kopalnych mięczak&#243;w i kręgowc&#243;w); Bocheński Z. i in. 2012 (wyniki datowania 14C, stratygrafia, zestawienie takson&#243;w kopalnych ptak&#243;w); Nowak J., Grzywiński W. 2012 (informacja o występowaniu nietoperzy, wykaz gatunk&#243;w); Lorenc M. 2013 (lokalizacja na schematycznej mapie, profil osad&#243;w, wyniki datowań 14C kości ptak&#243;w, wniosek o redepozycji kości z warstw młodszych); Grzywiński W. i in. 2015 (wzmianka o występowaniu nietoperzy); Stefaniak K. 2015 (kr&#243;tki opis, historia badań, wymienione taksony kopalnych kopytnych); Cyrek K., Madeyska T. 2016 (lokalizacja na schematycznej mapie, profil osad&#243;w, informacje o znaleziskach paleolitycznych i neolitycznych); Krajcarz M. T. i in. 2016 (wzmianki o osadach lessowych, korelacja z osadami innych jaskiń, zestawienia dat 14C oraz kopalnych ptak&#243;w i ssak&#243;w); Nowak J., Grzywiński W. 2017 (informacje o występowaniu nietoperzy, wykaz gatunk&#243;w); Kot M. 2018c (charakterystyka jaskini, historia badań archeologicznych, informacje o badaniach prowadzonych w 2018 r); Kot M. i in. 2019a (lokalizacja na modelu terenu i schematycznej mapie, wzmianka o badaniach przeprowadzonych przez autor&#243;w w 2018 r); Gradziński M. i in. 2020 (inwentarzowy opis, plan, pełna bibliografia, lokalizacja na mapie). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Marcin Wawryka-Drohobycki, Krzysztof Bisek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(14248)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+                    <a onclick="showImageInfo(13659)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        położenie otworu
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

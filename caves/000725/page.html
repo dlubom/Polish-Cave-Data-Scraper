@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F725">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 725;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "624091,0811".replace(',', '.') + "," + "289807,8288".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('725','Jaskinia Sawickiego'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Sawickiego
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                N-2.72
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Niecka Nidziańska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;44′56,00″, φ: 50&#176;27′44,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Busko-Zdr&#243;j (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                buski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2, 3,4 - NW, 234 m n.pm.; 5 - ku g&#243;rze, 236,5 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                234
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    173
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                51
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia położona jest u podn&#243;ża garbu (tzw. Skałki) ograniczającego od południa system rozległych obniżeń krasowych na południe od wsi Bronina, około 250 m na zach&#243;d od drogi Bronina-Owczary. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Dojście prowadzi polnymi ścieżkami od tej drogi, w kierunku kępy drzew na pagórku. Otwory jaskini zlokalizowane są w ścianie skalnej wznoszącej się nad okresowym jeziorkiem. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Jaskinia posiada co najmniej siedem połączeń z powierzchnią, z których pięć można uznać za otwory dostępne dla człowieka. Otwory są naturalne, z wyjątkiem otworu nr 5 wszystkie występują u podnóża ściany skalnej. Pierwszy od strony północno-wschodniej, największy otwór (1) ma kształt owalny, wysokość do 1 m, szerokość 4,6 m, następny otwór (2) - również owalny - ma wysokość 0,5 m i szerokość 0,7 m. Dwa dalsze otwory (3 i 4) rozwinięte są na spękaniach i mają kształty dzwonowate ze szczelinami w stropie, wysokość odpowiednio 1 m i 1,4 m, szerokość - 1 m i 0,7 m. Otwór 5, południowo-zachodni, położony na progu skalnym w obrębie zbocza stanowi soczewkowatą szczelinę otwartą ku górze o długości 0,8 m i szerokości 0,3 m. Jaskinia łączy się ponadto z powierzchnią niewielkim oknem, do którego doprowadza kanał częściowo zasypany rumoszem i gałęziami. Jeszcze jeden otwór w ścianie oraz niedostępna studzienka nad ścianką skalną również połączone są prawdopodobnie z pustkami jaskini. </span></p>  <p><span>Północno-wschodnia część jaskini stanowi sieć połączonych z sobą, w większości dość ciasnych kanałów krasowych rozwiniętych wzdłuż spękań o kierunkach SW-NE, SE-NW oraz S-N. Głównym elementem centralnej i południowo-zachodniej części jaskini jest korytarz łączący otwór 3 z otworem 5, wzdłuż którego rozwinięte są niskie, zawaliskowe sale oraz boczne kanały krasowe. Większość korytarzy tej części jaskini ma rozciągłość SW-NE lub zbliżoną. Pustki jaskini prawie nigdzie nie osiągają wysokości pozwalającej na wyprostowanie się, jednak początkowa część głównego korytarza za otworem nr 3 jest stosunkowo obszerna. Około 5 m za tym otworem, w tzw. Rozdrożu, korytarz ten - początkowo biegnący w kierunku południowo-wschodnim - rozdziela się na kilka odnóg. Lewa, północno-wschodnia doprowadza po 2 m do miejsca, z którego w różnych kierunkach odchodzą ciasne kanały tworzące sieć, połączoną z otworami 1 i 2. W prawo, nieco wstecz można przejść z Rozdroża do korytarza biegnącego od otworu nr 4 (równolegle do głównego korytarza) oraz obszernej, lecz bardzo niskiej salki. Główny ciąg biegnie z Rozdroża w kierunku południowym. Łączy się on po prawej stronie ze wspomnianą wyżej salką a po dojściu bocznego, rurokształtnego kanału od strony prawej skręca na południowy-zachód. Korytarz ten doprowadza po 10 m do niskiej Sali na Płytach, której charakterystycznymi elementami są bloki i płyty skalne tworzące miejscami progi i prożki. </span></p>  <p><span>Na początku tej sali, u wylotu korytarza od strony prawej (zachodniej) otwierają się rozległe ale bardzo niskie (trudno dostępne i nie penetrowane) pustki utworzone między grawitacyjnie rozwartymi ławicami. We wschodniej części sali, wzdłuż spękania o kierunku SW-NE rozwija się ciasny, owalny korytarzyk, łączący się prawdopodobnie z kanałami, które odchodzą wcześniej od głównego ciągu. Z kolei pod płytami skalnymi zachodniej części sali biegnie krasowy kanał kontynuujący się równolegle do głównego korytarza wychodzącego z sali.</span></p>  <p><span>Główny ciąg wychodzi z sali w kierunku południowo-zachodnim i ma kształt soczewki stromo pochylonej na SE. W jego prawej ścianie znajdują się wyloty wspomnianego kanału oraz bocznych wnęk szybko wyklinowujących się. Jeden z kanałów biegnie do okna na ścianie skalnej. W rejonie otworu nr 5 główny korytarz rozszerza się, a po jego lewej stronie rozwija się sieć kanalików krasowych o kierunkach SSW-NNE oraz WSW-ENE. Szersze z nich są dostępne na kilkumetrowych odcinkach. Najdłuższy doprowadza za zaciskiem do ciasnej salki i kominka o wysokości około 2 m ze zwisającymi blokami skalnymi (niebezpiecznie). Równolegle nad nim, bezpośrednio od otworu 5 biegnie kanał przechodzący w (niebezpieczne) zawalisko (być może w okolicach kominka). </span></p>  <p><span>Jaskinia występuje w gipsach serii ewaporatowej miocenu. Większa jej część utworzona jest w gipsach szablastych i szkieletowych, zaś niższe korytarze jej południowo-wschodniego fragmentu - w wielkokrystalicznych gipsach szklicowych spągowej części serii. Jaskinia stanowi sieć kanałów krasowych stanowiących podziemny odpływ wód z ciągu bezodpływowych depresji rozwiniętych na północ od garbu gipsowego, który oddziela je od doliny rzeczki. Jaskinia Sawickiego jest najbardziej podobna - spośród jaskiń Niecki Nidziańskiej - do systemów jaskiniowych Podola, zarówno pod względem układu korytarzy (zwłaszcza w części północno-wschodniej), jak i ich kształtu. Wśród korytarzy przeważają kanały o przekrojach owalnych (rurokształtne), dzwonowatych, gruszkowatych rozwinięte wzdłuż spękań ciosowych. Oprócz nich występują jednak odcinki (sale) o charakterze zawaliskowym. Na ścianach korytarzy obserwuje się zróżnicowane formy mikrorzeźby powstałe w wyniku selektywnej korozji krasowej. Szczególnie bogate są one w okolicach otworu nr 5. </span></p>  <p><span>Dno większości korytarzy przykrywa czarny lub ciemnoszary muł, tworzący jednak prawdopodobnie jedynie cienki płat na podłożu gipsów. Miejscami, zwłaszcza na płytach skalnych w salkach, odsłania się skalne dno. Przy otworze nr 5 występuje gruz skalny. </span></p>  <p><span>Wiosną i wczesnym latem znaczne fragmenty jaskini zalane są wodą, zaś otwory nr 1, 2, 3 i 4 są niedostępne, położone (częściowo) poniżej zwierciadła wody okresowego jeziorka tworzącego się u podnóża ściany skalnej. Niewielkie kałuże utrzymują się również jesienią w dnie korytarza pomiędzy Salą na Płytach a otworem nr 5. </span></p>  <p><span>Większa część jaskini jest mroczna, jednak znaczna ilość otworów i proste odcinki korytarzy powodują, że światło dzienne sięga stosunkowo głęboko. Całkowicie ciemny (pozbawiony poświaty) jest w ciągu głównym jaskini odcinek w okolicy Sali na Płytach, a także większość bocznych korytarzy. </span></p>  <p><span>W jaskini stwierdzono ślady pobytu (w tym odchody) drapieżników (kuny, lisa), a także szkielet prawdopodobnie lisa. Występują również komary, pajęczaki, muszle błotniarki.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                      <p><span>&nbsp;Wnętrze jaskini nie było dotąd opisane w literaturze, jednak “<em>tworzenie się drobnych wydrążeń i jaskiń</em>” w ściance skalnej nad jeziorkami na południe od Broniny obserwował L. Sawicki (1918-19), który już wówczas zwrócił uwagę na podobieństwo tych zjawisk do krasu gipsowego Podola. Brak zniszczeń mikrorzeźby ścian stwierdzany w wielu korytarzach sugeruje, że większa część jaskini nie była - przynajmniej od dłuższego czasu - penetrowana. Jedynie w rejonie najwyższego otworu (5) występują ślady obecności człowieka (śmieci). Otwory jaskini zauważone zostały przez J. Urbana jesienią 1997 r., w trakcie wykonywania waloryzacji Szanieckiego Parku Krajobrazowego.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Dokumentację jaskini sporządzili w 19.09.1998 r. J. Baryła i J. Urban oraz 2.10.1998 r. J. Gubała i J. Urban. Lokalizację otworu jaskini wykonał 11.04.2009 r. A. Kasza przy pomocy odbiornika GPS Map60 CSx. Zaktualizował A. Kasza (2009 r.).<br />Plan opracował J. Urban.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Sawicki L. 1918-19 (opis form powierzchniowych krasu, wzmianka o jaskiniach); Urban J. 1997 (wzmiankuje); Jaskinie Niecki Nidziańskiej 1998 (dokumentacja, plan); Gubała J., Kasza A., Urban J. 1999a (opis, plan, fotografie); Chwalik A., Głazek J., Gubała J., Kasza A., Urban J. 2002 (opis, plan ); M.Sz. 2002 (wzmianka); Urban J., Gubała J., Kasza A. 2002 (długość); Wiśniewski W.W. 2002c (kr&#243;tki opis, długość);  Urban J., Gubała J., Kasza A. 2003 (kr&#243;tki opis, plan, fotografia); Urban J. (opis, fotografie); Urban J., Andreychouk V., Gubała J., Kasza A. 2008 (wzmianka).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jan Urban, Andrzej Kasza
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(236)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

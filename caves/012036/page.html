@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F12036">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 12036;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "558039,89".replace(',', '.') + "," + "260268,79".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('12036','Schronisko Wylotne '); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Schronisko Wylotne 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Wylotna, ?grota Przechodnia, ?grota Wylotna v. Matusowa, jaskinia Wylotnia, jaskinia Wykotna, Dziurawiec, Jaskinia Wylotne, Nad Tatar&#243;wką, Tatar&#243;wka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02c.134
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′48,95″, φ: 50&#176;12′24,39″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku S, wys. otw. 370 m n.p.m., wys. otw. nad dnem doliny 30 m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                370
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    24
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, Dolina Sąspowska, skały Wielka Katarzyna, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Schronisko jest położone w dolnej części południowej grani skał Wielka Katarzyna. Najdogodniejsze dojście prowadzi z dna Doliny Sąspowskiej ukośnie w górę zbocza od południowej krawędzi skały Szalej. Duże otwory schroniska są z daleka dobrze widoczne. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Za otworem zachodnim (1.) o p&oacute;łokrągłym kształcie, szerokości u podstawy ok. 6 m i maksymalnej wysokości 2,5 m znajduje się obszerny korytarz prowadzący do otworu południowego (2.). W jego pobliżu znajduje się kr&oacute;tki, boczny, zwężający się na końcu korytarzyk.</p>
+<p>Schronisko powstało w wapieniu skalistym jury g&oacute;rnej wzdłuż pionowych szczelin ciosowych. W spągu znajduje się dobrze wykształcona forma rynny dennej, kt&oacute;ra jest obecnie w całości wypełniona osadami. Schronisko ma genezę krasową. Jest fragmentem większej jaskini zniszczonej przez erozję, kt&oacute;ra zapewne była początkowo formowana w warunkach freatycznych. Forma rynny dennej (obecnie pokryta osadami &ndash; T. Madeyska-Niklewska 1969a; T. Madeyska 2006d) świadczy o p&oacute;źniejszym modelowaniu schroniska przez wody płynące w warunkach wadycznych. Czas powstania schroniska T. Madeyska (1977a) wiąże z intensywnym przepływem w&oacute;d w czasie interglacjału wielkiego.</p>
+<p>Osady schroniska osiągają maksymalną miąższość ok. 3 m. Najniższa warstwa, kt&oacute;ra wypełnia rynnę denną, jest złożona z materiału piaszczystego i mułowego deponowanego przez płynącą wodę (T. Madeyska 1977a). Powyżej znajduje się kompleks osad&oacute;w gliniasto-gruzowych o miąższości do 2 m. Zawartość gruzu jest r&oacute;żna w poszczeg&oacute;lnych warstwach. Kompleks osad&oacute;w gliniasto-gruzowych jest warstwowany. Jednakże poszczeg&oacute;lne warst w y podległy postsedymentacyjnym deformacjom, zapewne na skutek osiadania i pełznięcia (S.K. Kozłowski 2006b; T. Madeyska 2006d). Efektem tego jest znaczące zaburzenie pierwotnego układu stratygraficznego. Zewnętrzna warstwa namuliska jest humusowa z gruzem i blokami wapiennymi.</p>
+<p>Schronisko suche. w bocznym korytarzu zacienione.</p>
+<p>Na ścianach lokalnie występują glony i porosty. W otworze p&oacute;łnocnym, w zasięgu okapu na spągu nieliczne rośliny nasienne (Anthriscus sp., Galium odoratum).</p>
+<p>W bocznym korytarzyku zauważono pająki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W latach 1962&ndash;1966 prowadzono w schronisku badania wykopaliskowe pod kierunkiem W. Chmielewskiego (T. Madeyska &ndash; inf. ustna, 1993 r.). Zebrane materiały archeologiczne były przedmiotem publikacji W. Chmielewskiego (1970a), zostały także wykorzystane w opracowaniach o charakterze podręcznikowym (W. Chmielewski, 1964, 1967, 1973, 1975). Synteza dotycząca tych materiał&oacute;w została opublikowana w formie monograficznego opracowania w 2006 r. (S. K. Kozłowski, 2006b, 2006c, 2006f) i zawiera zestaw artykuł&oacute;w częściowo napisanych na podstawie prac magisterskich wykonanych wcześniej pod opieką W. Chmielewskiego (T. Boroń, 2006; K. Jackowska, 2006; H. Kr&oacute;lik, 2006; M. Milewski, 2006; M. Targosz, 2006). Schronisko Wylotne jest jednym z najważniejszych stanowisk środowego paleolitu w Polsce. Informacje o znaleziskach tego wieku znajdujemy w światowej literaturze dotyczącej paleolitu, większości polskich podręcznik&oacute;w archeologii, artykułach monograficznych, wydawnictwach encyklopedycznych i popularnonaukowych, a także w wielu przewodnikach turystycznych dotyczących obszaru OPN. Materiały neolityczne i młodsze znalezione podczas badań wykopaliskowych wzmiankuje E. Rook (1980) a szczątki kopalnej fauny opracowali A. Nadachowski i in. (2015a). Genezę schroniska a także genezę i stratygrafię osad&oacute;w wypełniających omawiała T. Madeyska (T. Madeyska-Niklewska, 1969a; T. Madeyska, 1977a, 2006d).<br />Najstarsze osady piaszczysto-mułowe są uważane za powstałe w czasie interglacjału eemskiego (A. Nadachowski i in. 2015a). Kompleks gliniasto-gruzowy był deponowany w czasie od schyłku ostatniego interglacjału po MIS 2 (T. Madeyska, 2006d; A. Nadachowski i in. 2015a). Niestety brak jest dokładnych datowań radiometrycznych osad&oacute;w Schroniska Wylotnego (patrz M. Lorenc, 2013). Stratygrafia osad&oacute;w Schroniska Wylotnego została ustalona na podstawie cech osad&oacute;w i por&oacute;wnań z innymi stanowiskami jaskiniowymi.<br />W osadach gliniasto-gruzowych stwierdzono obecność trzech poziom&oacute;w kulturowych kultury mikocko-prądnickiej (W. Chmielewski, 1970a, 1975; S. K. Kozłowski, 2006b, f). Og&oacute;łem znaleziono tam pond 14 tys. artefakt&oacute;w (odpowiednio 1975, 4725 i 5801 w poszczeg&oacute;lnych poziomach kulturowych licząc od dołu profilu; S. K. Kozłowski, 2006b). Są to pięściaki, noże typu prądnickiego, zgrzebła i narzędzia typu &bdquo;groszak&rdquo;. Zaznacza się tendencja do wzrostu liczby zgrzebeł w g&oacute;rę profilu, wraz ze spadkiem liczby pozostałych narzędzi (Kozłowski, 2006f). Najmłodszy poziom kulturowy został stwierdzony w warstwie oznaczonej jako 5, kt&oacute;ra posiadała wyraźne ciemne zabarwienie (T. Madeyska-Niklewska, 1969a; W. Chmielewski, 1970a). Poziomy kulturowe są uważane za wczesnovistuiliańskie (przed MIS 4; A. Nadachowski i in. 2015a). Obfitość zabytk&oacute;w archeologicznych świadczy, że schronisko trzykrotnie było miejscem stałego obozowiska &bdquo;łowc&oacute;w paleolitycznych&rdquo;. Ponadto w osadach schroniska stwierdzono znaleziska reprezentujące paleolit g&oacute;rny i mezolit, kultur nadcisańskich oraz znalezisk średniowiecznych (W. Chmielewski, 1970, 1988; E. Rook, 1980;).<br />Osady schroniska zawierają liczne kości kręgowc&oacute;w (A. Nadachowski i in. 2015a). Najliczniej reprezentowane są niedźwiedziowate, a zwłaszcza niedźwiedź jaskiniowy (Ursus spelaeus s.l.; 205 fragment&oacute;w kości pochodzących przynajmniej od 14 osobnik&oacute;w; A. Nadachowski i in. 2015a). Ponadto stwierdzono kości kopytnych. Nagromadzenie kości, przynajmniej w części, jest efektem działalności człowieka. Część kości nosi ślady oddziaływania ognia lub intencjonalnych, mechanicznych uszkodzeń (A. Nadachowski i in. 2015a). Schronisko jest pozbawione naciek&oacute;w.<br />Zostało wpisane 29.10.1924 r. przez Radę Konserwator&oacute;w do Inwentarza Zabytk&oacute;w Nieruchomych pod nr 434 (Z Ministerstwa, 1924).Schronisko było zwiedzane w ramach konferencji &bdquo;The Archaeological Cultures and the Subdivision of Early W&uuml;rm in Central Europe&rdquo; w październiku 1970 r. Schronisko było też celem sesji terenowych podczas 9. Sympozjum Speleologicznego w październiku 1977 r, jak r&oacute;wnież w 1990 r. podczas sesji terenowej konferencji poświęconej Stefanowi Krukowskiemu.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Schronisko znane od dawna. Zapewne pierwsza wzmianka jest autorstwa S.J. Czarnowskiego (1899). Pierwszy plan sporządził S.J. Czarnowski (1911c).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zinwentaryzowane 26.10.1947 r. przez K. Kowalskiego. Wymienione przez M. Szelerewicza i A. G&oacute;rnego (1986). Ponownie zinwentaryzowane 21.02.1993 r. przez M. Wawrykę przy pomocy M. Barskiego. Pomiary wykonano przy pomocy busoli Freiberg i taśmy z wł&oacute;kna szklanego. Obserwacje uzupełniające przeprowadził M. Gradziński 23 i 27.07.2018 r., kt&oacute;ry przy pomocy odbiornika Garmin GPSmap 62 ustalił wsp&oacute;łrzędne geograficzne otworu.<br />Plan opracował A. Amirowicz.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Czarnowski S.J. 1899 (wzmianka); Wr&#243;blewski K. 1900 (wymienia w wykazie „grotę” Przechodnią i Wylotną vel Matusową – w obu przypadkach prawdopodobnie chodzi o Schronisko Wylotne); Wr&#243;blewski K. 1907 (kr&#243;tki opis Schroniska Wylotnego z błędnie podaną lokalizacją); Czarnowski S.J. 1911 (położenie, kr&#243;tki opis); Czarnowski S.J. 1911c (opis, plan, położenie, lokalizacja na schematycznej mapie); Z Ministerstwa, 1924 (oficjalna informacja o wpisaniu do rejestru Zabytk&#243;w Nieruchomych p.nr. 434); Żurowski J. 1929b (wzmianka o uznaniu za zabytek); Danysz-Fleszarowa R. 1933 (wymieniona w wykazie); Ciętak Z. 1935 (wymieniona w wykazie, lokalizacja na mapie); Kowalski K. 1951 (opis inwentarzowy, plan, lokalizacja na mapie); Chmielewski W. 1964 (informacje o znaleziskach zespołu ojcowskiego grupy prądnickiej); Kostrzewski J. i in. 1965 (wzmianka o znaleziskach narzędzi krzemiennych grupy prądnickiej); Kowalski K. 1965 (wzmianka o znaleziskach paleolitycznych); Chmielewski W. 1967 (informacja o znalezieniu trzech poziom&#243;w kultury mikocko-prądnickiej, ilustracja znalezisk); Chmielewski W. 1968 (wzmianka o występowaniu krzemiennych narzędzi mikocko-prądnickich przeobrażonych na skutek działania zamrozu); Chmielewski W. 1969a (opis i interpretacja znalezisk kultury mikocko-prądnickiej, charakterystyka narzędzi); Chmielewski W. 1969b (korelacja poziom&#243;w kulturowych z innymi stanowiskami z Polski); Madeyska-Niklewska T. 1969 (położenie i opis, lokalizacja na schematycznej mapie, plan, opis osad&#243;w, przekroje osad&#243;w i ich korelacja z osadami Jaskini Koziarni i Jaskini Nietoperzowej, diagram ilustrujący wyniki analiz osad&#243;w); Chmielewski W. 1970 (opis i interpretacja znalezisk kultury mikocko-prądnickiej, plan schroniska z zaznaczonymi polami wykop&#243;w, rozmieszczenie znalezisk); Madeyska-Niklewska T. 1970 (opis osad&#243;w i interpretacja genezy); Madeyska T. 1972 (lokalizacja na schematycznej mapie, om&#243;wienie osad&#243;w, profil, wzmianka o znaleziskach kultury mikocko-prądnickiej i neolitycznych); Chmielewski W. 1973 (wzmianka o znalezieniu trzech warstw kulturowych kultury mikocko-prądnickiej, ilustracje narzędzi krzemiennych); Chmielewski W. 1975 (informacje o znaleziskach kultury mikocko-prądnickiej – 3 zespoły z warstw 5, 6 i 7, om&#243;wione pięściaki, zgrzebła i noże – w tym noże prądnickie, pozycja stratygraficzna znalezisk, wymienione w zestawieniach stanowisk z interglacjału emskiego i wczesnego W&#252;rmu i stanowisk kultury mikocko-prądnickiej); Kozłowski J.K., Kozłowski S.K. 1977 (om&#243;wienie narzędzi krzemiennych – zespoły typu Wylotne, lokalizacja jaskini na mapie rozmieszczenia środkowopaleolitycznych stanowisk z pięściakami w Europy Środkowej, charakterystyka stanowiska, stratygrafia osad&#243;w i ich zawartość kulturowa); Madeyska T. 1977a (opis osad&#243;w, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, wnioski o genetycznym związku z poziomem terasowym e i o prawdopdobnym powstaniu jaskini w interglacjale wielkim); W&#243;jcik Z. 1978 (wzmianka o zwiedzeniu podczas XI Sympozjum Sekcji Speleologicznej PTP, uwagi o genezie kotł&#243;w stropowych); Madeyska T. 1982a (wzmianka o znaleziskach kultury mikocko-prądnickiej, lokalizacja na przeglądowej mapie, schemat stratygrafii osad&#243;w); Szelerewicz M., G&#243;rny A. 1986 (wzmianka o uznaniu za zabytek, wymienione w wykazie, lokalizacja na mapie); Pulina M., Tyc A. 1987 (lokalizacja poziom&#243;w kulturowych z jaskini na zbiorczym profilu); Chmielewski W. 1988 (wzmianki o badaniach i znaleziskach kultury mikocko-prądnickiej – ok. 11 tys. wyrob&#243;w krzemiennych i znaleziskach neolitycznych, opinia o trzykrotnym „stałym” osadnictwie paleolitycznym); Madeyska T. 1988 (wzmianki o badaniach, opis, lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, profil osad&#243;w); Gradziński M. i in. 1994a (zinwentaryzowane, położenie, opis, historia poznania, plan, błędna lokalizacja na mapie); Madeyska T. 2000a (wzmianki o znaleziskach kultury mikocko-prądnickiej i o genezie schroniska); Madeyska T. 2001 (wzmianka o znaleziskach mikocko-prądnickich, fot. otworu); Lech J. 2001 (wzmianki o wykorzystywaniu w czasach paleolitu, lokalizacja na schematycznej mapie, wzmianka o badaniach archeologicznych Chmielewskiego); Madeyska T., Mirosław-Grabowska J. 2001 (wzmianka o osadach z czasu zlodowacenia Wisły); Madeyska T., Cyrek K. 2002 (wzmianki o genetycznym związku z powstaniem poziomu terasowego e oraz o trzech zespołach kultury mikocko-prądnickiej, lokalizacja na schematycznej mapie i diagramie wysokościowego rozmieszczenia jaskiń w Dolinie Sąspowskiej, plan, przekr&#243;j osad&#243;w); Kozłowski J.K. 2004 (wzmianka o znaleziskach środkowopaleolitycznych, om&#243;wienie funkcji użytkowej narzędzi mikockich); Lech J. 2004 (wzmianka o wykopaliskach w latach 1962–1967, fot. wnętrza); Rydzewski J. 2005 (wzmianka o śladach doraźnego obozowiska z początku ostatniego zlodowacenia); Boroń T. 2006 (charakterystyka mikocko-prądnickich krzemiennych narzędzi bifacjalnych, rozkład znalezisk w warstwach kulturowych); Chochorowska E. 2006 (wymienione w wykazie, lokalizacja na schematycznej mapie, podane numery inwentarzowe zabytk&#243;w); Cyrek K. 2006a (położenie, kr&#243;tki opis osad&#243;w, charakterystyka znalezisk paleolitycznych, stratygrafia kulturowa Jury Ojcowskiej z zaznaczoną pozycją znalezisk z jaskini, wymienione w wykazie stanowisk paleolitycznych i mezolitycznych); Cyrek, 2006b (wzmianka o asymetrycznych nożach tylcowych); Jackowska K. 2006 (charakterystyka mikocko-prądnickich narzędzi krzemiennych z warstwy 5, morfometria i ilustracje znalezisk); Kozłowski J.K. 2006 (lokalizacja na przeglądowej mapie stanowisk z czasu OIS 5d–5a i 4); Kozłowski S.K. 2006b (położenie, opis lokalizacja na mapie, plan, kr&#243;tka charakterystyka znalezisk archeologicznych, schematyczny przekr&#243;j osad&#243;w, dystrybucja zabytk&#243;w archeologicznych w warstwach kulturowych); Kozłowski S.K. 2006c (charakterystyka mikocko-prądnickich krzemiennych groszak&#243;w, ilustracje znalezisk); Kozłowski S.K. 2006f (charakterystyka zespoł&#243;w mikockich w kontekście analogicznych stanowisk z Polski i Europy, trendy zmienności narzędzi krzemiennych w profilu); Kr&#243;lik H. 2006 (charakterystyka mikocko-prądnickich krzemiennych drapaczy, rozmiary drapaczy i ich rozmieszczenie w warstwach kulturowych); Madeyska T. 2006a (opis, wzmianki o badaniach i osadach); Madeyska T. 2006d (położenie, opis, charakterystyka osad&#243;w, przekr&#243;j osad&#243;w); Mańka D. 2006 (wzmianka); Mańka D. i in. 2006 (wzmianki o środkowopaleolitycznych „nożach prądnickich” noszących ślady przekształcania i reperacji); Milewski M. 2006 (charakterystyka mikocko-prądnickich narzędzi krzemiennych z warstwy 8/7); Targosz M. 2006 (charakterystyka mikocko-prądnickich narzędzi krzemiennych z warstwy 6, morfometria i ilustracje znalezisk); Cyrek K. 2007 (lokalizacja na mapie rozmieszczenia archeologicznych stanowisk jaskiniowych); Gradziński M. i in. 2008 (wzmianka dotycząca kształt&#243;w korytarzy); Urbanowski M. 2009 (wzmianki o środkowopaleolitycznych „nożach prądnickich” noszących ślady przekształcania i reperacji); Lorenc M. 2013 wyniki datowań 14C kości Ursus spelaeus); Sudoł M., Cyrek K. 2013 (błędne położenie na schematycznej mapie, analiza intencjonalnie modyfikowanych środkowopaleolitycznych narzędzi krzemiennych); Serwatka K. 2014 (analiza morfometryczna narzędzi bifacjalnych); Nadachowski A. i in. 2015a (historia badań, stratygrafia osad&#243;w, wykaz takson&#243;w kopalnej fauny, liczba kości ze śladami uszkodzeń spowodowanych przez człowieka lub drapieżniki, om&#243;wienie znalezisk); Sytnyk O. 2015 (wzmianka o znaleziskach mikockich); Valde-Nowak P. 2015 (wzmianka o trzech mikockich poziomach kulturowych); Cyrek K., Madeyska T. 2016 (profil osad&#243;w, lokalizacja na schematycznej mapie, informacje o znaleziskach archeologicznych z paleolitu); Krajcarz M. T. i in. 2016 (wzmianka o osadach lessowych, korelacja z osadami innych jaskiń, wymienione gatunki kopalnych ssak&#243;w); Richter J. 2016 (wzmianka o znaleziskach środkowopaleolitycznych zaliczanych przez autora do typu „Mousterian with a Micoquian option”); Śliwiński W. 2016 (uwagi dotyczące nazewnictwa); Wiśniewski A. 2016 (lokalizacja na mapie rozmieszczenia stanowisk paleolitu środkowego w Polsce, informacja o znaleziskach z czasu MIS 5d-MIS 4 – Keilmessergruppe-kultura mikocka, charakterystyka znalezisk); Frick J.A. i in. 2017a (dyskusja dotycząca terminologii i znaczenia środkowopaleolitycznych noży bifacjalnych); Frick J.A. 2020 (dyskusja dotycząca stosowania terminu mikocki – Micoquian m.in. na przykładzie znalezisk ze Schroniska Wylotnego, pozycja chronologiczna znalezisk); Gradziński M. i in. 2020 (opis inwentarzowy, plan, lokalizacja na mapie, pełna bibliografia). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13799)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 2
+                    </a>
+                    <a onclick="showImageInfo(14622)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

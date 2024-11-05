@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1781">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1781;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "486376,0626".replace(',', '.') + "," + "354230,7623".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1781','Jaskinia Szachownica I'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Szachownica I
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Wl-01.25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;48′20,00″, φ: 51&#176;03′17,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Lipie (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kłobucki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody Szachownica
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku E, 215 m n.p.m.; 3 - ku W, 215 m n.p.m.; 4 - ku SE, 215 m n.p.m.; 5 ku g&#243;rze, 215 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                215
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                6
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                6,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                12,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    690
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                123
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Wieluńska, Wapiennik, Krzemienna G&#243;ra.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Do Rezerwatu Szachownica można dotrzeć kierując się z miejscowości Lipie drogą do Parzymiechów, by po przebyciu około 1,5 km skręcić w kierunku Rozalina. Droga prowadzi przez Rozalin i dalej prosto przez las, duktem aż do tablic informacyjnych w bezpośrednim sąsiedztwie rezerwatu (od drogi Lipie-Parzymiechy - 4 km). Do tego miejsca można też dojść z Góry Draby szlakiem niebieskim (około 3,5 km). W jaskini istnieje zagrożenie obrywami skał. Ze stropu i ścian odpadają nieraz duże bloki wapienne, niektóre korytarze mają mocno strzaskane ściany i strop. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <div>  <p><span>Otwory jaskini położone są w rozległym wyrobisku rozcinającym szczytową część Krzemiennej Góry o przebiegu N-S długości 150 m i szerokości 70 metrów. Jaskinię tworzy ciąg 8 obszernych sal i korytarzy (tworzących pętlę), oraz odchodzące od nich we wszystkich kierunkach ciągi o niezmienionej, pierwotnej rzeźbie krasowej. Obszerne ciągi powstały przez poszerzenie rozległego systemu naturalnych próżni podczas podziemnej eksploatacji wapienia. Sale i łączące je korytarze mają znaczną kubaturę, a&nbsp;ich długość wynosi około 280 metrów. Pozostałe korytarze i sale są znacznie mniejszych rozmiarów, a ich przekrój, w większości przypadków, ma kształt soczewki, ich długość wynosi 410 metrów. Przeważają korytarze rozwinięte na pęknięciach NE-SW, NNE-SSW i W-E. Ciągi sal utworzone są na kierunkach W-E. Całość ma rozciągłość południkową 85 m i równoleżnikową 90 m. System dostępny jest 5&nbsp;otworami; w tym 7 metrową studnią.</span></p>  <p><span>Otwór 1, główny (od zachodu), o szerokości 10 i wysokości 3-4 metrów, ma charakterystyczny, ugięty brachysynklinalnie strop z wapieni skalistych. Dno, stromo opadając, sprowadza do Sali Wejściowej mającej 20 m długości i 15 m szerokości. Na dnie zalegają duże bloki wapienia ze świeżego obrywu ze stropu. W kierunku E za filarem skalnym otwiera się Sala Przejściowa, w kierunku N od filara -</span><span /><span> Sala z Piargami. </span></p>  <p><span>W południowej części Sali Wejściowej znajduje się przejście do Sali Złomisk, o&nbsp;długości 20 m i szerokości 8 metrów, rozwiniętej na kierunku W-E. </span></p>  <p><span>Z SW części Sali Wejściowej ku W biegnie ciąg o długości 32 m, krzyżujących się, niskich korytarzy, o maksymalnej szerokości 0,8 m, rozwiniętych na szczelinach NE-SW i W-E. </span></p>  </div>  <span><br clear="all" /> </span>  <div>  <p><span>W części środkowej Sali Złomisk w kierunku S odchodzi 6 metrowy korytarz dzielący się na dwie 7 metrowe odnogi: ku SW biegnie ciasny korytarz z niedostępną dalej szczeliną na końcu, w kierunku E rozwija się korytarz o szerokości 0,4 m wyprowadzający w&nbsp;2&nbsp;otworze. </span></p>  <p><span>Ze wschodniej części Sali Złomisk w kierunku E odchodzą dwa równoległe, 8&nbsp;metrowe korytarze łączące się w salce o wymiarach 3x3 m. Z niej ku E odchodzi 8&nbsp;metrowy korytarz prowadzący lekko w górę, a ku SW 7 metrowy korytarz, wyprowadzający w otworze 3.</span></p>  <p><span>Otwór 2 i 3 znajdują się w półkolistym wyrobisku, 8 metrowej średnicy, rozcinającym znajdujący się tutaj pierwotnie system korytarzy. Otwór 3 jest półkolisty, 8 metrowej szerokości, odchodzą z niego jeszcze dwa korytarze: 8 metrowy w kierunku E, 10 metrowy w&nbsp;kierunku SE, mające przy wejściu 2 m szerokości, stopniowo zwężające się i zakończone niedostępnymi szczelinami.</span></p>  <p><span>W N-E końcu Sali Złomisk otwiera się przejście do Sali Przejściowej, największej w&nbsp;jaskini, będącej zarazem przedłużeniem Sali Wejściowej w kierunku wschodnim. Ma ona długość 30 m, szerokość 18 m i wysokość sięgającą do 4,5 m. W części zachodniej przechodzi ku N w Salę z Piargami (10x15 m), a w części wschodniej jej kontynuacją jest Sala Puchacza. </span></p>  <p><span>Pod północną ścianą w Sali Przejściowej znajdują się duże bloki wapienne ze świeżych obrywów ze stropu oraz dwa korytarze łączące ją z Sala Amonitową. W&nbsp;południowo-zachodniej części Sali znajduje się obszerny, 4 otwór o szerokości 15 m i wysokości 4 m. Dno pokrywa gruz i duże bloki wapienne. W SE końcu Sali Puchacza znajduje się wejście do 2 metrowej długości korytarza wprowadzającego do kolejnej Sali -</span><span><span> wyrobiska o&nbsp;wymiarach 7x8 metrów -</span><span /><span> z której odchodzą korytarze na szczelinach o kierunkach SW-NE i NW-SE. Partie te mają łączną długość około 50 m. </span></span></p>  <p><span>W północnej części Sali Puchacza, na wschodniej ścianie, znajdują się kominki i&nbsp;poszerzona krasowo, pionowa szczelina o przebiegu N-S, wypełnione brunatnym, ilasto-piaszczystym osadem, zalegającym również częściowo na dnie sali. W części NE sali rozpoczyna się korytarz, doprowadzający po 11 metrach na dno studni otworu 5. Korytarz jest sztucznym wyrobiskiem, w którym na dnie leżą duże bloki wapienne o&nbsp;wysokości do 1,8 m. Ku W odchodzą od niego kolejne dwa niskie korytarzyki, oddzielone od siebie filarami skalnymi, wyprowadzające w Wielkiej Sali. </span></p>  <p><span>Otwór 5 stanowi 7 metrowa studnia krasowa o 1,5 metrowej średnicy i ścianach nieco poszerzonych podczas eksploatacji wapienia. Otwór studni znajduje się na wierzchowinie, w lesie, w szczytowej części Krzemiennej Góry. Z dna studni w&nbsp;kierunku W niski początkowo, szeroki na 4,5 m korytarz wyprowadza w Wielkiej Sali, a w kierunku SE niski korytarzyk, o dnie opadającym doprowadza do Partii z&nbsp;Grzybkami -</span><span> systemu korytarzy i sal około 120 m długości. Doprowadzają tam również inne korytarze: jeden z NE końca Wielkiej Sali i drugi, do którego wejście znajduje się 3 m na E od dna studni. Partie te maja zdecydowanie odmienny charakter od pozostałej części jaskini. Korytarze tworzą zamykające się pętle, mają deniwelację około 5,5 m, a ze studnia wejściową tworzą pionową formację o głębokości 11,9 m.</span></p>  </div>  <span><br clear="all" /> </span>  <div>  <p><span>Korytarze Partii z Grzybkami, mają ogładzone przez wodę ściany o przekroju soczewkowym, z licznymi zagłębieniami wirowymi i kolistym przebiegu S-N, SE-NW i&nbsp;SW-NE. Na dnie zalega gruz wapienny, duże głazy i ilasto-</span><span>piaszczyste, brunatne, namulisko. Korytarz, który zaczyna się w NE krańcu Wielkiej Sali, początkowo niski, o&nbsp;dnie opadającym w dół, dalej o wysokości do 2 m doprowadza po 19 metrach do Sali ze Studnią. Sala ta, o wymiarach 5x5 m i wysokości&nbsp;3 m jest kolektorem, w którym schodzą się ze korytarze z 4 kierunków. Studnia o głębokości 1,6 m jest owalna (jej dłuższa oś ma 2,4 m), na dnie jest zapełniona piaszczysto-ilastym osadem i gruzem wapiennym. W&nbsp;kierunku NW, w górę, 4 metrowy, obszerny korytarz zablokowany jest rumoszem wapiennym. W kierunku N sala kontynuuje się 6 metrowym, biegnącym w&nbsp;górę, 3&nbsp;metrowej szerokości korytarzem, skręcającym następnie ku E, który schodząc w dół rozgałęzia się i poprzez system krzyżujących się korytarzy doprowadza do Sali ze Studnią i do korytarzy pod studnią wejściową. Partie z Grzybkami posiadają stabilny mikroklimat, są wilgotne i nie wymarzają jak ciągi sal pomiędzy otworami 1 i 4. Występują tutaj nacieki grzybkowe pokrywające miejscami znaczne powierzchnie ścian i głazy na dnie korytarzy.</span></p>  <p><span>Wracamy do Wielkiej Sali. Wraz z Salą Amonitową tworzą one jeden ciąg o&nbsp;długości 26 m, szerokości do 12 m i wysokości do 5 m, przechodząc ku zachodowi w&nbsp;Salę Rozdroże o wymiarach 9x7 m. Ku S poprzez 6 metrowy korytarz łączy się ona z&nbsp;Salą z Piargami. Na dnie Sali Wielkiej i Amonitowej od południa zalegają duże bloki i&nbsp;płyty wapienne, na dnie pod ścianą północną w gliniastym namulisku z drobnym gruzem wapiennym znajdują się dziesiątki zagłębień po kapiącej ze stropu wodzie (wykapków).</span></p>  <p><span>Od północy, równolegle do ciągu sal Wielkiej, Amonitowej i Rozdroże ciągnie się 20&nbsp;metrowy obszerny chodnik, oddzielony od nich filarami skalnymi, od którego odchodzą dwa ciągi naturalnych korytarzy. </span></p>  <p><span>Pierwszy ciąg, o długości około 50 m, biegnie w kierunku NNE. Stanowi go prostolinijnie biegnący korytarz 25 m długości i odchodzące od niego w kierunku NW 2&nbsp;korytarzyki. </span></p>  <p><span>W pierwszym z nich w dnie znajduje się studnia, rozwinięta na szczelinie o głębokości 2&nbsp;m. </span></p>  <p><span>Ciąg drugi o długości około 60 m odchodzi ku N na wysokości Sali Rozdroże i ma prostolinijny przebieg na odcinku 25 m; pod koniec wznosi się i ma bardzo spękany strop i ściany. W dnie korytarza wyerodowana jest rynna denna, a jego profil jest soczewkowy. Odchodzą od niego krótkie, kilkumetrowe, boczne korytarzyki, rozwinięte na pionowych pęknięciach WNW-ESE.</span></p>  </div>  <span><br clear="all" /> </span>  <div>  <p><span>Jaskinia o genezie krasowej jest w znacznym stopniu zmieniona przez górniczą eksploatacje wapienia. Powstała w wapieniach uławiconych, kredowatych zawodziańskich górnej jury (środkowy oksford). Ławice mają do kilkudziesięciu centymetrów miąższości, miejscami z krzemieniami, na powierzchniach szczególnie silnie zwietrzałych widoczne są liczne fragmenty gąbek, amonity, ramienionogi i&nbsp;struktury mikrobialne. Jaskinia częściowo jest utworzona również w wapieniach skalistych, tworzących jednak głównie strop komór i cały nadkład nad jaskinią. Warstwy w skali całego systemu leżą generalnie poziomo, lokalnie tworzą jednak formy brachysynklin i brachyantyklin w związku z czym miejscami upady warstw sięgają </span>30°<span><span> (Głazek i in. 1978). Korytarze rozwinięte są na dwóch systemach pękań ciosowych WNW-ESE i NNE-SSW oraz ENE-WSW i NNW-SSE. W partiach jaskini niezniszczonych podziemną eksploatacją wapienia wyróżniają się charakterystyczne korytarze o przekroju soczewkowym, prostolinijnym przebiegu z rynnami dennymi, na ścianach licznie występują zagłębienia wirowe, a naroża krzyżujących się korytarzy są ostre. Te między innymi cechy, jak również jednofazowy rozwój korytarzy całego systemu, jak i odmienna od innych jaskiń Wyżyny Krakowsko-Wieluńskiej sytuacja geomorfologiczna pozwoliła na wyodrębnienie nowego typu jaskiń proglacjalnych (Głazek i in. 1977, 1978). Powstanie jaskini związane jest z topnieniem lądolodu podczas młodszego zlodowacenia środkowopolskiego Warty (Głazek i in.1977, 1978, 1980).</span></span></p>  <p><span>Szata naciekowa w jaskini reprezentowana jest głównie przez nacieki grzybkowe licznie występujące w Partiach z Grzybkami, gdzie pokrywają one znaczne powierzchnie ścian i&nbsp;głazów leżących na dnie korytarzy lub występują na warstewkach polewy naciekowej o&nbsp;grubości około 1 cm, pokrywającej powierzchnię namuliska. Są one barwy jasnożółtej, przeświecające, zbudowane z drobnokrystalicznego kalcytu. Występują pojedynczo lub tworzą graniaste skupienia, mają do 1 cm wysokości. Podczas kartowania Partii z&nbsp;Grzyb-kami (sierpień 2008 r.) znaleziono otoczak granitowy pokryty częściowo naciekiem grzybkowym (Górny A., Szelerewicz M. 2008) . </span></p>  <p><span>W 4 metrowym korytarzu odchodzącym na SW od Sali Amonitowej zachowały się nacieki występujące zapewne również w korytarzach zniszczonych górniczą eksploatacja w jaskini. Są tutaj niewielkie stalaktyty do 10 cm długości, zasłony z&nbsp;języczkami nacieku wełnistego i polewy pokrywające ściany i ostrokrawędzisty gruz wapienny na dnie korytarzyka. Nacieki w tym korytarzu są mleczno-białe i brunatne z&nbsp;drobnokrystalicznego kalcytu, przyrastające obecnie. </span></p>  <p><span>Osady w jaskini to w znacznej jej części ostrokrawędzisty gruz i bloki i duże płyty wapienne, w wielu miejscach jest to materiał świeżo odpadły ze ścian i stropu. W&nbsp;partiach z grzybkami i pod północną ścianą w Sali Puchacza w dnie znajdują się fluwioglacjalne osady ilasto-piaszczyste. Występują w nich kwarcowe żwiry i otoczaki skał granitowych.</span></p>  <p><span>Jaskinia należy do jaskiń dynamicznych, jej naturalny, pierwotny mikroklimat został zmieniony przez powiększenie kubatury naturalnych korytarzy przez górnicza eksploatację wewnątrz jaskini, duże sztuczne otwory znajdujące się na osi W-E wymusiły silną cyrku-lację pomiędzy nimi. W okresie letnim (08.2008 r.) kiedy temperatura na zewnątrz sięgała 25</span>°<span><span>C pomiędzy otworami tworzyły się silne przewiewy. Jaskinia tworzy nieckę w Górze Krzemiennej co sprzyja gromadzeniu się w niej mas zimnego powietrza, temperatury w jaskini nie są stałe, tak jak w większości jaskiń Wyżyny Krakowsko-Wieluńskiej (6-8</span>°<span>C), lecz zależą w znacznym stopniu od zewnętrznych warunków atmosferycznych. Dzienna amplituda temperatury jest wysoka, a kierunki przepływów powietrza są zmienne. Zimą ciąg sal pomiędzy otworami jaskini wymarza. Woda wypełniająca szczeliny zamarzając powoduje odpadanie całych ławic dużych bloków wapienia. Odpadają też całe płaty ze ścian, co widoczne jest na ścianach pokrytych zielonymi glonami, gdzie widoczne są świeże, białe plamy. Mikroklimat jaki panował w jaskini przed jej zniszczeniem zachowany jest w Partiach z Grzybkami, wilgotność tutaj jest duża i istnieją warunki do powstawania nacieków. W Sali Wielkiej i Amonitowej znajdujących się poza głównym przewiewem pomiędzy otworami wilgotność jest również wysoka, ściany i strop pokryte są kroplami wody, która skapując tworzy na dnie jamki egutacyjne.</span></span></p>  <p><span>Znaczne partie jaskini są jasne, światło w okolicy otworów 1 i 4 sięga na odległość kilkunastu metrów. Na ścianach w zasięgu światła rozwijają się glony, tworząc na nich zielone pokrywy na znacznych powierzchniach. </span></p>  </div>  <span><br clear="all" /> </span>  <p><span>W jaskini licznie występują pajęczaki. Jaskinia jest miejscem zimowania nietoperzy: dotychczas stwierdzono przebywanie 10 gatunków nietoperzy. Maksymalnie zanotowano hibernowanie 1477 osobników w kwietniu 1987 r. (Wołoszyn i in. 1996). Gatunki dominujące to: nocek Nattera <strong><em>Myotis nattereri</em></strong>, nocek duży <strong><em>Myotis myotis</em></strong>, mopek <strong><em>Barbastella barbastellus</em></strong>. Gatunki średnio liczne: nocek rudy <strong><em>Myotis daubentonii</em></strong>, gacek brunatny <strong><em>Plecotus auritus</em></strong>, nocek wąsatek <strong><em>Myotis mystacinus</em></strong>, nocek Brandta <strong><em>Myotis brandtii</em></strong>. Gatunki występujące nielicznie: nocek Bechsteina <strong><em>Myotis bechsteinii</em></strong>, nocek łydkowłosy <strong><em>Myotis dasycneme </em></strong>(Wołoszyn in. 1996). W jaskini nietoperze tworzą również kolonie przejściowe np. podczas kartowania jaskini (09.2008) obserwowano w Sali Przejściowej kolonię nocka dużego o liczebności około 30 osobników, pod która tworzyła się warstwa guana widoczna z oddali.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia została odsłonięta, zniszczona i w znacznym stopniu zmieniona przez podziemną eksploatację wapienia w szczytowej części Krzemiennej Góry. Eksploatacja prowadzona była od dawna. Na mapie z 1839 roku na tym terenie zaznaczony został piec wapienny, a w odległości około 1 km od kamieniołomu znajdowała się karczma. Sto lat później, na mapie WIG zaznaczony jest kamieniołom na Krzemiennej Górze w obrysie podobnym do tego jaki znamy dzisiaj. Można wnosić, że dla wydobycia tak dużej ilości materiału dla potrzeb budownictwa lokalnego (Głazek i in. 1978) potrzebny był znaczny przedział czasowy. Komory po poszerzonych naturalnych korytarzach jaskini mają dużą kubaturę, bardzo duże jest też wyrobisko w wierzchołku Krzemiennej Góry. Kamieniołomy działały na Krzemiennej Górze do 1962 roku. Trudno ocenić czy jaskinia znana była w stanie przed eksploatacją wapienia, miała więcej otworów, gdyż niektóre korytarze zablokowane są rumoszem z powierzchni terenu. Wiadomość o istnieniu jaskini pojawiła się bardzo późno, zlokalizował ją Andrzej Wierzbowski w 1972 prowadząc kartowanie geologiczne tego terenu. Do roku 1973 skartowano około 600 m korytarzy (Głazek i in. 1978). Zarządzeniem Ministra Leśnictwa i Przemysłu Drzewnego z dn. 11.10.1978 roku, na terenie wzgórza Krzemienna Góra, utworzony został rezerwat przyrody „Szachownica” o powierzchni 12,70 ha (Monitor Polski), gdzie przedmiotem ochrony jest między innymi Jaskinia Szachownica I. Od 13.11.2007 r. zatwierdzona jako Obszar Ochrony Siedlisk w ramach sieci Natura 2000 (Szachownica PLH 240004). <br />W wyniku wybrania wapienia i znacznego poszerzenia  naturalnych korytarzy w znacznym stopniu naruszona została stateczność górotworu, również zmiana warunków klimatycznych w jaskini przyczynia się do bardzo szybko postępującej erozji, istnieje groźba nagłego zawalenia się stropu w ciągu sal pomiędzy otworami głównym (1) i 4. Stale obserwuje się odpadanie fragmentów stropów i ścian. Jaskinia jest obiektem często odwiedza-nym, choć w stanie obecnym stanowi duże niebezpieczeństwo dla zwiedzających. Ze względu na fakt, że jest jednym z miejsc w kraju gdzie zimuje największa ilość nietoperzy powinna być niedostępna do zwiedzania w miesiącach od października do maja. <br />We wrześniu i październiku 2008 sporządzono nową dokumentację kartograficzną jaskini, skartowano nieuwzględnione na dotychczas publikowanych planach Partie z Grzybkami, o długości około 120 m, znane odwiedzającym jaskinię od dawna.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Pierwszy plan i opis inwentarzowy opublikowali Głazek, Bednarek,  Szynkiewicz, Wierzbowski (1978). Aktualną dokumentację sporządzili we  wrześniu 2008 r. A. Górny i M. Szelerewicz. Pomiary wykonali w okresie  sierpień-wrzesień M. Golanko, A. Górny, A. Kurek, J. Szelerewicz i M.  Szelerewicz. <br />Plan opracował M. Szelerewicz.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Szynkiewicz A. 1975 (wzmianka o odkryciu jaskini, fotografia otworu gł&#243;wnego); Skalski A.W. 1976 (podaje, że jaskinia Szachownica jest najdłuższą jaskinią Wyżyny Krakowsko-Częstochowskiej i ma długość około 1000 m.); Głazek J. i in. 1977 (system jaskini Szachownica jako nowy genetycznie typ jaskiń (jaskinie proglacjalne); Głazek J. i in. 1978 (poznanie jaskiń Systemu Szachownicy, sytuacja geologiczno-morfologiczna, opis systemu jaskiń i ich geneza, plan systemu Jaskini Szachownica, mapa geomorfologiczna okolic Krzemiennej G&#243;ry, przekr&#243;j geologiczny przez Krzemienna G&#243;rę, zdjęcie otworu wejściowego, gł&#243;wnego [1], 2 zdjęcia z wnętrza jaskini); Kasiński J.R., Krajewski K.P. 1978 (struktura i geneza naciek&#243;w grzybkowych tworzących się bezpośrednio na podłożu skalnym dotychczas nie opisywanych,13 fotografii); Monitor Polski Nr 33, 1978 (Zarządzenie Ministra Leśnictwa i Przemysłu Drzewnego z dnia 11.10.1978 w sprawie uznania za rezerwat przyrody); Głazek J., Szynkiewicz A. 1980 (wymieniona jako szczeg&#243;lny przypadek rozwoju w plejstocenie młodych jaskiń proglacjalnych, przekr&#243;j przedstawiający stosunek osad&#243;w czwartorzędowych do form krasowych w p&#243;łnocnej części Wyżyny Wieluńskiej); Głazek J. i in. 1980 (sytuacja geologiczna systemu, geneza jaskini, plan); Horzemski J. 1980 (wzmianka o zwiedzaniu jaskini podczas XII Sympozjum Sekcji Speleologicznej Polskiego Towarzystwa Przyrodnik&#243;w im. M. Kopernika i informacja o uznaniu jaskini Szachownica za geologiczny rezerwat przyrody); Głazek i in. 1982 (w streszczeniu om&#243;wione krasowe i jaskiniowe regiony Polski zawarte w tomie przygotowanym z okazji 8 Międzynarodowego Kongresu Speleologicznego [Bowling Green, Kentucky, USA, lipiec 1981]); Lesiński G.,1983 (nietoperze w jaskini); Szelerewicz M. 1984 (w wykazie najdłuższych jaskiń Jury); Szelerewicz M., G&#243;rny A. 1986 (opis inwentarzowy jaskini, plan, plan systemu jaskiń Szachownicy, w pełnym wykazie jaskiń jako VI.D.1.); Zygmunt J. 1988: (podaje między innymi, że w lutym 1988 roku, podczas I Og&#243;lnopolskiej Dekady Spisu Nietoperzy, w jaskini Szachownica hibernowało 900 nietoperzy); Wiśniewski W.W. 1989 (w zestawieniu najdłuższych jaskiń Wyżyny Krakowsko-Wieluńskiej); Harmata W. 1993 (nietoperze w jaskini); Wołoszyn B.W. 1993 (nocek Bechsteina [Myotis bechsteini] w jaskini); Skalski A.W. 1994b (w waloryzacji jaskiń Wyżyny Krakowsko-Częstochowskiej jaskinia dostaję wysoką ocenę jako kwatera największej w Polsce jaskiniowej kolonii nietoperzy); Kurek A. 1995: (w wykazie jaskiń o długości przekraczającej 40 metr&#243;w); Fuszara E. i in. 1996 (m.in. nietoperze hibernujące w jaskini Szachownica); Gradziński M., Szelerewicz M. 2004 (w wykazie jaskiń Wyżyny Krakowsko-Wieluńskiej o długości większej niż 40 m); Urban J. 2006 (wymieniona wśr&#243;d najważniejszych rezerwat&#243;w przyrody, na mapie ważniejszych miejsc ochrony jaskiń); W&#243;jcik A.J. 2008 (geomechaniczne problemy stateczności stropu w jaskini); G&#243;rny A., Szelerewicz M. 2008 (opis i plan jaskini); Tyc A. 2009a (wzmiankuje w aspekcie genezy); Jaskinie Wyżyny Wieluńskiej 2010 (plan i opis inwentarzowy). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Szynkiewicz A. 1993 (opis jaskini); Polonius A. 2001 (ocena możliwości zabezpieczenia jaskini na podstawie przesłanek geomorfologiczno-geologicznych); Bednarek J., Głazek J., Rudnicki J., Szynkiewicz A., Wierzbowski A. 1977 (w projekcie rezerwatu geologicznego „Szachownica); Wołoszyn B.W., Gradziński M., Kosiński M., Postawa R. 1996 (plan ochrony jaskini i rezerwatu „Szachownica”); Kowalski M., Lesiński G., Ignaczak M. 2002 (nietoperze w jaskini w zimie w latach 1981-1999).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Mariusz Szelerewicz, Andrzej G&#243;rny
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1313)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=1818" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

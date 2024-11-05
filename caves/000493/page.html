@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F493">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 493;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "567047,78".replace(',', '.') + "," + "152839,85".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('493','Jaskinia nad Kotlinami'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia nad Kotlinami
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Jaskinia Wielka Śnieżna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-12.06
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′16,96″, φ: 49&#176;14′21,81″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1875,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                225
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                433,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                433,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1465
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Małej Łąki, Czerwone Wierchy, NE zbocze Małołączniaka, Kotliny (Kolibiska).
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Niewielki otwór jaskini (często oznaczany tyczką) położony jest w zagłębieniu u podnóża niewysokiego pasa skałek. W otworze znajduje się krata. W pobliżu są otwory Jasnego Awenu T.E-12.05 (poniżej, 40 m na wschód) oraz Jaskini Małołąckiej T.E-12.07 (na tej samej wysokości, około 70 m na południe). Dojście: Doliną Małej Łąki przez Niżnią Świstówkę, Przechód i Wyżnią Świstówkę do otworu Jaskini Śnieżnej T.E-13.01, a następnie na południe percią u podnóża ścian, do rozpoczynającego się nieopodal trawiasto-skalistego żlebka. Nim w górę (na krótkim odcinku trudności I). Żlebek przechodzi wyżej w rodzaj trawiastej depresji, którą idziemy w górę na krawędź Kotlin. Stąd w górę i nieco w prawo, wzdłuż słabo wyróżniającej się trawiastej grządki pod zamykający Kotliny pas skałek, pod którymi znajduje się otwór jaskini. Można też dojść od strony Doliny Miętusiej, trawersując na południowy zachód od niebieskiego szlaku. Trawers zaczynamy kilkadziesiąt metrów powyżej Kobylarzowego Siodełka (miejsce gdzie szlak skręca w prawo po wyjściu z Kobylarzowego Żlebu na ramię Małołączniaka). Dojście łatwe, lecz w czasie mgły i zimą może być trudne orientacyjnie. Zimą otwór zasypywany jest śniegiem i wymaga odkopywania. Zwiedzanie trudne, wymaga użycia dużej ilości lin i pełnego zestawu sprzętu. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia Nad Kotlinami od czasu połączenia z Jaskinią Śnieżną 19 maja 1968 r. do 1 stycznia 1996 r. (dołączenie Wielkiej Litworowej), stanowiła g&oacute;rne wejście do systemu Wielkiej Śnieżnej, używane podczas przejść całości deniwelacji i trawersowania jaskini. Do dziś jej otw&oacute;r ma zasadnicze znaczenie komunikacyjne, będąc jednym z dw&oacute;ch najczęściej używanych wejść do systemu.<br /> Niewielki otw&oacute;r o charakterze studzienki prowadzi do korytarzyka rozszerzającego się zaraz w zasłaną gruzem pochylnię schodzącą nad Studnię Zlotową o głębokości 74 m. Studnią zjeżdżamy zrazu wzdłuż pochyłej ściany, a następnie zupełnie pionowo (ostatni pionowy odcinek liczy 42 m). W stropie studni znajdują się dwa okna dostępne po 10 i 17 m wspinaczki, oba zablokowane możliwymi do rozebrania zawaliskami. Zjazd doprowadza do Korytarza Piarżystego. Jest on szeroki do około 12 m i wysoki na kilka metr&oacute;w; dno zalega gruz skalny. Jego odnoga wiodąca w g&oacute;rę po kilkunastu metrach zablokowana jest głazami. Występują tu liczne bloki granitu. W drugą stronę korytarz opada. W pobliżu dna studni znajduje się ślepy komin w stropie. Nie został on udokumentowany pomiarowo, wg. relacji (Kobyłecki 1967) ma 18 m wysokości. Nieco dalej po prawej stronie znajduje się niewielka boczna salka, do kt&oacute;rej opada końcowa studnia Jasnego Awenu. Punkt połączenia jaskiń znajduje się na głębokości &ndash;84 m (&ndash;61 m w stosunku do otworu Jasnego Awenu).<br /> Za zwężeniem kończącym Piarżysty Korytarz znajduje się 7 m studzienka zwana Beczką (dawniej Studnia pod Stalaktytami). Pojawia się w niej niewielka struga wody. Posuwamy się dalej korytarzykiem o charakterze meanderka. Poprzez prożki 1,5 m i 4,7 m (lina konieczna) docieramy nad liczącą 12 m Studnię Piętrową. Ma ona dwa odgałęzienia rozdzielone mostem skalnym. Trawersujemy pierwsze odgałęzienie i zjeżdżamy drugim z nich. W najniższej części dna ponownie pojawia się struga wody, napływająca od strony Beczki. Podchodzimy po piarżystym dnie korytarza. Skręca on stopniowo w prawo, po kilkunastu metrach zaczyna opadać i kończy się. Dalsza droga prowadzi ciasnymi przejściami w prawo, w d&oacute;ł przez niewielkie prożki (większy 2,5 m). Po zejściu stajemy w poprzecznym korytarzyku, kt&oacute;ry w prawo opada i kończy się zwężeniem, a w lewo w g&oacute;rę doprowadza do rozszerzenia w kt&oacute;rego dnie znajdują się otwory prowadzące do dwudzielnej Studni pod Wantą (15 m). Trawersujemy ją i zjeżdżamy dalszym otworem. W studni pojawia się woda. Z jej dna obszerny, wyścielony gruzem skalnym korytarz prowadzi nad kolejną&nbsp;&ndash; Studnię z Mostami (44 m). Jest to duża studnia, kt&oacute;rej odgałęzieniem za mostem skalnym spływa towarzysząca nam dotychczas woda, a na przeciwnej ścianie inna struga. Intensywność przepływ&oacute;w zmienia się w zależności od stanu w&oacute;d i może osiągać spore rozmiary. Nie dały pozytywnych rezultat&oacute;w pr&oacute;by sprawdzenia możliwości eksploracyjnych po prawej or. stronie studni (okno, kt&oacute;re okazało się nyżą) i w sąsiadującej części stropu (lity). Do spenetrowania została ewentualnie część wschodnia stropu.<br /> Dno Studni z Mostami stanowi obszerna, wydłużona sala o dnie pokrytym rumoszem, przechodząca w szeroki i wysoki korytarz, wymyty na szczelinie. W jego skalnym dnie otwiera się szczelinowa, kilkumetrowa ślepa studzienka. Korytarz opada 3-metrowym progiem, po czym skręca w prawo przechodząc w dosyć wąski meander. Po około 30 m rozdziela się on na dwa odgałęzienia. Oba meanderki łączą się ponownie w Czerwonej Salce. Lewy prowadzi g&oacute;rą i opada do salki progiem, a prawy obniża się i przyjmuje dopływ wody ze wspomnianej salki, niknący w kończącym go syfoniku. Skręcamy w lewo, pod prąd potoku i wchodzimy do Czerwonej Salki od dołu. Strugi wody dopływają do salki z g&oacute;ry, po lewej ścianie. Przez prożek w g&oacute;rę (2,3 m) wchodzimy ponownie do wąskiego meandra. Po nieco ponad 30 m rozszerza się on, a z lewej strony dopływa struga wody, ponorująca następnie pod prawą ścianą. Obszerniejszy już, myty korytarz prowadzi w d&oacute;ł (pr&oacute;g 3 m) i po kilku metrach załamuje się progiem stromej pochylni (6 m), urywającej się do studni zwanej Mokrą Czterdziestką (Studnia pod Płytą). Okrągła w przekroju, 36-metrowa studnia ma z prawej strony duży dopływ wody w postaci intensywnego deszczu. Woda ta zbiera się na zasłanym głazami i rumoszem dnie tworząc niewielkie jeziorko. Podchodzimy w g&oacute;rę po stromo spiętrzających się głazach do kolejnego rozszerzenia, będącego dnem obszernego komina. W najwyższym punkcie dna, w prawo, znajduje się wejście do Studni Szywały. Natomiast w głębi w g&oacute;rę ciągną się rozbudowane kominy r&oacute;wnoległe do Mokrej Czterdziestki.<br /> Rozpoznane wspinaczkowo partie kominowe, nie udokumentowane jednak pomiarami, liczą łącznie około 140 m długości. Tworzą one pętlę, w kt&oacute;rej po 60 m wspinaczce można dotrzeć do salki w stropie komina. Stąd przez meander z prożkami (10 i 2 m) i zaciskiem można zjechać z powrotem nad Studnię Szywały. Rejon ten posiada tylko szkicowy przekr&oacute;j (Bolek 1991b) i został wrysowany jedynie na przekroju jaskini. W ścianie, pomiędzy Mokrą Czterdziestką, a r&oacute;wnoległym do niej kominem nad wejściem do Studni Szywały, znajduje się okno do Sali Piotrusia. Leży ono na skalnym moście około 27 m powyżej wzmiankowanego wejścia, a około 4 m poniżej krawędzi, kt&oacute;rą pochylnia w ciągu gł&oacute;wnym opada do Mokrej Czterdziestki. Dno niewielkiej Sali Piotrusia stromo wznosi się. Z jej najwyższego punktu wąski korytarzyk po kilku metrach doprowadza do zacisku. Za nim przez 3 m prożek docieramy do niewielkiej salki, za kt&oacute;rą meanderek kontynuuje się w d&oacute;ł. Po kolejnym rozszerzeniu kończy się on ciasną szczeliną. Ciąg Sali Piotrusia liczy łącznie około 54 m.<br /> Ponad miejscem, skąd zaczyna się zjazd do Studni Szywały, można się wspiąć przez kilka prożk&oacute;w w zawieszonym nad nią meandrze do Partii Głodnych. Meanderek ten wyprowadza na dno obszerniejszego komina o wysokości około 30 m. Na wysokości 20 m odchodzi kolejny stromy meanderek z dwoma kr&oacute;tkimi, ślepymi odgałęzieniami. Za zaciskowym zwężeniem osiągamy rozszerzenie z kończącymi go szczelinami i około 8 m ślepym kominkiem. Całość Partii Głodnych liczy około 103 m.<br /> W miejscu gdzie zaczyna się zjazd do Studni Szywały i wspinanie meanderkiem do Partii Głodnych, możliwy jest także eksponowany trawers do położonego na tym samym poziomie korytarzyka za studnią. Po kilku metrach urywa się on kolejną potężną studnią, w środkowej części na dużym odcinku połączoną oknem ze Studnią Szywały, a doprowadzającą wprost nad Setkę w ciągu gł&oacute;wnym, do początku Obejścia Gliwickiego.<br /> Właściwa droga gł&oacute;wnym ciągiem prowadzi przez 63 m Studnię Szywały. Jest ona bardzo obszerna i zawsze mokra (intensywny deszcz). Na środku pokrytego głazami i rumoszem dna znajduje się niewielkie jeziorko. Po kr&oacute;tkim odcinku korytarza dochodzimy do najpotężniejszej studni całego systemu&nbsp;&ndash; Setki. Mamy do wyboru dwie drogi: zjazd liczącą 102 m studnią lub Obejście Gliwickie. Zjazd (niedogodny ze względu na brak punkt&oacute;w pośrednich) rozpoczynamy z punkt&oacute;w asekuracyjnych wysuniętych daleko ponad czeluść studni. Dostajemy się do nich eksponowanym trawersem między ścianami poderwanego meandra. Z tego miejsca zjazd liczy 110 m. Częściej używana droga prowadzi w lewo w g&oacute;rę, przez 6 m pr&oacute;g na zawieszony nad Setką balkon, a następnie kolejny 5 m pr&oacute;g do wznoszącego się korytarza Gliwickiego Obejścia (z g&oacute;ry opada w ten rejon opisana poprzednio studnia za trawersem Studni Szywały). Po około 10 m korytarz skręca i opada 8 m progiem.<br /> Obejście Gliwickie to poprzecinana progami stroma pochylnia (poręczowanie konieczne), doprowadzająca nad 33 m pionową studnię, kt&oacute;rą zjeżdżamy (r&oacute;wnolegle do niej ciągnie się druga studnia połączona w dolnej części oknem, kt&oacute;rej ślepe dno znajduje się jednak o 10 m niżej). Zjazd doprowadza nas na balkon, z kt&oacute;rego w lewo opada pr&oacute;g do studni r&oacute;wnoległej, a na wprost krawędź urywająca się do Setki, mniej więcej w jej połowie. Zjeżdżamy 48 m i stajemy na obszernym, o wymiarach 12 na 16 m, pokrytym głazami dnie Setki. Jesteśmy w węzłowym punkcie jaskini. W ścianach studni uchodzą też okna łączące ze skomplikowanym systemem przebić prowadzących do Partii za Kolankiem (zaliczanych już do Jaskini Śnieżnej). Postawienie w tym miejscu ścisłej granicy obu jaskiń nie jest zresztą możliwe, gdyż r&oacute;żne części tego labiryntu (w tym dolne partie Setki) odkrywane były od dołu, z rejonu Wodociągu.<br /> Z dna studni odgałęzia się obszerny korytarz, doprowadzający pod prożek ze spiętrzonych want. Za nim znajduje się salka, z kt&oacute;rej 12,5 m zjazd doprowadza nas do punktu Połączenia na głębokości &ndash;433,5 m (&ndash;259 m względem otworu Jaskini Śnieżnej i w stosunku do Wielkiej Litworowej &ndash;464,5 m).<br /> Namulisko Jaskini Nad Kotlinami tworzą głazy i gruz autochtoniczny oraz materiał granitoidowy z niszczenia czapki krystalicznej kopuły szczytowej (gruz, żwir, piasek, otoczaki). Stanowi ona fragment systemu odwodnienia masywu Małołączniaka i prowadzi liczne strugi wody oraz strefy deszczu podziemnego o zmiennej wydajności. W czasie ulewnych opad&oacute;w i topnienia śnieg&oacute;w przepływ zwiększa się wielokrotnie i w studniach powstają wodospady. Mikroklimat jaskini jest dynamiczny. Światło sięga do pochylni nad Studnią Zlotową.<br /><br /> Pozostałe informacje znajdują się w opisie Jaskini Wielkiej Śnieżnej wraz z planem i przekrojem.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zaktualizował R.M. Kardaś (2009 r.).<br />Plan i przekr&oacute;j opracował M. Gala.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Rafał M. Kardaś
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

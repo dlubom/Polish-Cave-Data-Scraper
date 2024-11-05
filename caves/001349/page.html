@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1349">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1349;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "562693,59".replace(',', '.') + "," + "152789,77".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1349','Jaskinia Mylna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Mylna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinie Pawlikowskiego 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-08.04
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;51′41,55″, φ: 49&#176;14′21,85″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ENE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Okno Pawlikowskiego) - ku S i E, 1098 m n.p.m; 3 (p&#243;łnocny) - ku NE, 1084 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1098
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                22,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                23,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                46
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1630
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Otwory jaskini są zlokalizowane na lewym orograficznie zboczu Doliny Kościeliskiej, w zboczach Raptawickiej Turni. Otw&#243;r południowy (gł&#243;wny) oraz Okna Pawlikowskiego znajdują się w dolnej, położonej poniżej dużego trawiastego zachodu, części wschodniej ściany Raptawickiej Turni. Okna Pawlikowskiego są dobrze widoczne z drogi wiodącej dnem doliny i okolic Jaskini Ziobrowej, skąd widać także Otw&#243;r Południowy. Otw&#243;r p&#243;łnocny położony jest na lesistym zboczu, około 150 m na NE od otworu południowego.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Do Otworu Południowego, stanowiącego wejście do jaskini (wg obecnych przepisów TPN, w Jaskini Mylnej obowiązuje ruch jednokierunkowy), docieramy z dna doliny szlakiem rozpoczynającym się naprzeciwko otworu Jaskini Wyzior oraz południowych otworów Jaskini Wodnej pod Pisaną. Początkowo trasę wskazują znaki czarne i czerwone. Podchodzimy połogim zacięciem skalnym ubezpieczonym łańcuchami, a następnie zakosami docieramy do rozwidlenia szlaków. Stąd podążamy ku SW za znakami koloru czerwonego, mijamy otwór Jaskini Obłazkowej i dochodzimy do poszukiwanego otworu. Okna Pawlikowskiego są trudno dostępne i podcięte kilkunastometrowymi progami. Okno zwrócone ku południowi można osiągnąć od dołu wspinaczką o trudnościach III-IV. Do Otworu Północnego możemy się dostać pod prąd czerwonym, jednokierunkowym szlakiem. Osiąga on dno doliny obok Skały Pisanej.
+Jaskinia jest udostępniona dla ruchu turystycznego. Zwiedzanie głównych ciągów jaskini jest łatwe. W ciągach bocznych korytarze miejscami są ciasne, a osiągnięcie niektórych partii wymaga wspinaczek o trudnościach do V+ i użycia sprzętu taternickiego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia stanowi gł&oacute;wną część systemu powstałego z połączenia Jaskini Mylnej T.E-08.04 z Jaskinią Obłazkową T.E-08.05 i Jaskinią Raptawicką T.E-08.03.</p>
+<p>Zaraz za Otworem Południowym odgałęzia się w prawo kilkumetrowa, zagruzowana pochylnia. Łączy się ona przez niewielki prześwit z początkiem Gł&oacute;wnego Korytarza (patrz w dalszej części opisu). Na wprost za otworem ciągnie się łukowato sklepiony i myty korytarz, o dnie pokrytym suchą gliną oraz żwirem. Obniża się on stopniowo, zmuszając do schylania się i doprowadza do niewielkiej sali (po drodze, po prawej stronie, mijamy dwa niskie połączenia z dalszą częścią jaskini). Sala kontaktuje się z powierzchnią poprzez dwa Okna Pawlikowskiego. Do okna otwierającego się ku E dochodzimy kilkumetrowym korytarzykiem. Z sali na wprost (ku S) znajduje się drugie okno. Rozpościera się z niego bardzo ładny widok na g&oacute;rną część Doliny Kościeliskiej.</p>
+<p>Po prawej stronie, przed drugim oknem, znajduje się oznakowane na czerwono, obszerne przejście do dalszej części jaskini. Dochodzimy nim do korytarza r&oacute;wnoległego do ciągu, kt&oacute;rym dotarliśmy od otworu do sali między Oknami Pawlikowskiego. Wcześniej, po prawej stronie wznosi się 5 m szczelinowaty komin (trudność: III), kt&oacute;rego g&oacute;rny odcinek łączy się przebiciem z wymienionym wyżej r&oacute;wnoległym korytarzem. Korytarz posiada tr&oacute;jkątny profil oraz spękane ściany, a jego dno pokrywa gruz, żwir i małe otoczaki (większość osad&oacute;w w jaskini tworzy gruz, żwir oraz otoczaki, więc przypadki w kt&oacute;rych nie będzie inaczej, nie zostaną wyr&oacute;żnione w opisie). Lewa jego część kończy się po paru metrach niedostępnymi szczelinami, a prawa prowadzi do dalszej części jaskini. Korytarz po 10 m obniża się. Po prawej stronie mijamy dwa przebicia do poznanego wcześniej r&oacute;wnoległego korytarza. Przechodzimy obniżenie korytarza (zostało ono poszerzone podczas prac udostępniających), podchodząc lekko do g&oacute;ry i docieramy do Gł&oacute;wnego Korytarza. Po prawej stronie znajduje się zawalisko, w kt&oacute;rym przez wspomniany wcześniej prześwit widać światło dzienne. Na wprost znajduje się kr&oacute;tka, ślepa szczelina. Idziemy w lewo obszernym Gł&oacute;wnym Korytarzem. Powstał on na szczelinie o przebiegu ESE&ndash;WNW i posiada długość 30 m. Po około 5 m docieramy do pierwszego odgałęzienia w lewo.</p>
+<p>Stanowi je niski korytarz, do kt&oacute;rego wchodzimy schodząc lekko w d&oacute;ł. Po około 10 m mijamy w nim po lewej stronie niewielką wnękę. Po kolejnych 5 m odgałęzia się w lewo, skośnie do tyłu, kilkumetrowa ślepa szczelina, prowadząca w kierunku wstępnych partii jaskini. Idziemy niskim korytarzem około 10 m dalej. Po lewej stronie otwierają się tu dwa stromo wznoszące się, ciasne korytarze o skalistym dnie. Kontaktują się one po kilku metrach. Prawy z nich kończy się po kilku metrach ciasną szczeliną. Wracamy i podążamy korytarzem kolejne 10 m ku SW. W lewo odgałęzia się ciasny, 24 m korytarz. Zakręca on najpierw pod kątem prostym w lewo, a następnie w prawo. Potem na odcinku kilkunastu metr&oacute;w skręca łukowato w lewo, rozszerza się i doprowadza do III Okna Pawlikowskiego. Wracamy do gł&oacute;wnej osi ciągu. Po kilku metrach rozgałęzia się on na dwa r&oacute;wnoległe korytarze. Skręcamy w prawy, obszerniejszy z nich. Po kilku metrach odchodzi w prawo ślepa szczelina. Kolejne kilka metr&oacute;w dalej, po lewej stronie, znajduje się 5 m połączenie z r&oacute;wnoległym korytarzem (wejście do niego minęliśmy wcześniej&nbsp;&ndash; patrz w dalszej części opisu). Kilkanaście metr&oacute;w dalej za połączeniem korytarz otwiera się w końcowej części Ulicy Pawlikowskiego (patrz w dalszej części opisu). Wracamy do rozgałęzienia korytarza. Wejście do lewej części jest niskie i wymaga czołgania. Po około 10 m szerszego już chodnika odchodzi w prawo wspomniane wcześniej połączenie. Kilkanaście metr&oacute;w dalej odgałęzia się w lewo niski ciąg. Jego dno pokrywa gliniaste namulisko. Kończy się on po kilkunastu metrach poziomą, niedostępną i idącą do g&oacute;ry szczeliną. Wracamy do korytarza, kt&oacute;rym idziemy ku zachodowi i po kilku metrach docieramy do Ch&oacute;r&oacute;w (patrz w dalszej części opisu).</p>
+<p>Wracamy do Gł&oacute;wnego Korytarza. Dwa metry dalej, po prawej stronie znajduje się wejście do korytarza prowadzącego do Wielkiej Izby. Jego ściany są zwietrzałe, a dno pokrywają spore głazy. W początkowej części jego lewe ograniczenie tworzy wielka odpęknięta od stropu płyta. Szczelina powstała pomiędzy tą płytą a stropem, posiada gładkie ściany oraz umożliwia przedostanie się do r&oacute;wnoległego korytarza, r&oacute;wnież prowadzącego do Wielkiej Izby (patrz w dalszej części opisu). Podążamy dalej korytarzem i po około 10 m docieramy do Wielkiej Izby. Jest to jedna z dw&oacute;ch największych sal w jaskini. Posiada rozmiary 5 x 16 m i wysokość do 10 m. Jej pokryte dużymi wantami dno wznosi się stromo ku NE.Przy końcowej części sali wznosi się wzdłuż lewej ściany 12 m Komin Połączeniowy (trudność: IV). Nad nim kilkumetrowy, stromy korytarzyk doprowadza do want. Jest to zagruzowane połączenie z Jaskinią Raptawicką T.E-08.03. Koniec sali blokuje zawalisko i tylko z jego lewej strony, przy ścianie, można przecisnąć się parę metr&oacute;w dalej. Wyczuwalny jest tutaj silny przewiew.&nbsp;</p>
+<p>Wracamy do wstępnej części Wielkiej Izby. Przy NW ścianie znajduje się wąskie, urywające się 1 m prożkiem wejście do korytarza. Jest on wysoki, obszerny, o kształcie wysokiej szczeliny. Po 10 m, po lewej stronie, widać wielką odpęknietą płytę wspomnianą wcześniej. Kilka metr&oacute;w dalej ciąg łączy się z Gł&oacute;wnym Korytarzem (patrz opis w dalszej części opisu). W prawo natomiast odgałęzia się niski, kilkunastometrowy chodnik doprowadzający po zakręcie w lewo do salki na końcu Gł&oacute;wnego Korytarza (patrz w dalszej części opisu). W 1/3 jego długości, przed zakrętem w lewo, odchodzi w prawo ciasny korytarz. Jego zagruzowany koniec łączy się z Wielką Izbą (przejście jest obecnie niemożliwe).</p>
+<p>Wracamy do Gł&oacute;wnego Korytarza. Idziemy nim dalej 5 m, za czerwonymi znakami, przechodząc pod dużą zaklinowaną wantą i docieramy do rozgałęzienia. W prawo ciągnie się wspomniany wcześniej korytarz prowadzący do Wielkiej Izby. Na wprost widać kontynuację Gł&oacute;wnego Korytarza, a w lewo odbija Ulica Pawlikowskiego. Trasa przez nią jest oznakowana czerwonymi tr&oacute;jkątami na białym tle.&nbsp;Jest to obszerny korytarz, kt&oacute;ry po 30 m doprowadza do pierwszego rozgałęzienia. W tym miejscu, po prawej stronie, znajduje się niszowate zagłębienie (powstałe częściowo przez zawalenie ściany oddzielającej ciąg r&oacute;wnoległy względem Ulicy Pawlikowskiego). Z jego NE części odchodzi ślepa szczelina. Na lewo od niej znajduje się wylot ciasnego, niskiego korytarzyka (patrz w dalszej części opisu). Idziemy w głąb ciągu r&oacute;wnoległego do Ulicy Pawlikowskiego i po około 5 m, po prawej stronie, widzimy odgałęzienie. Docieramy nim do kolejnego r&oacute;wnoległego korytarza. Jego lewa część natychmiast kończy się ślepo, natomiast prawa jest ciasną, prostą szczeliną. Przeciskamy się nią 7 m. Z prawej strony znajduje się wejście do ciasnego i niskiego korytarzyka doprowadzającego do wcześniej poznanej części w okolicach Ulicy Pawlikowskiego, zaś na wprost szczelina kontynuuje się przez 5 m i kończy ślepo.</p>
+<p>Wracamy do korytarza r&oacute;wnoległego do Ulicy Pawlikowskiego. Po kilku metrach, po prawej stronie, znajduje się kolejne wejście do bocznych ciąg&oacute;w, a na wprost możemy dojść po około 10 m&nbsp;do Ch&oacute;r&oacute;w (patrz w dalszej części opisu). Wejście do bocznych ciąg&oacute;w stanowi około 10 m szczelina. W jej połowie odbija na lewo szpara kończąca się niedostępnym zwężeniem. Na końcu szczeliny odchodzi w lewo kilkumetrowy, ciasny (zacisk Z I), przekopany korytarzyk. Łączy się on z korytarzem za Ch&oacute;rami (patrz w dalszej części opisu). Wąski korytarz w prawo tworzy kr&oacute;tką pętlę o dnie pokrytym gliniastym namuliskiem. Przy końcu pętli znajdują się kr&oacute;tkie zamulone szczeliny, a przed nią odchodzi w lewo bardzo niski korytarz. Na jego gliniastym dnie stoją kałuże. Po kilku metach obniżenie stropu tworzy zacisk, za kt&oacute;rym znajduje się jeszcze parę metr&oacute;w korytarza.</p>
+<p>Cofamy się do Ulicy Pawlikowskiego. Idziemy nią dalej 12 m. Po lewej stronie mijamy wylot opisanego wcześniej korytarza (pierwsze odbicie na lewo od Gł&oacute;wnego Korytarza). W stropie otwiera się tu 4,5 m, ślepy kominek. Po kilku metrach dochodzimy do Ch&oacute;r&oacute;w. Jest to stosunkowo obszerna sala, kt&oacute;rej SSW ścianę tworzy pochylona płyta z nie krasowiejącej skały. W S krańcu sali, nad 1,5 m prożkiem, znajduje się wejście do 12 m, ślepego korytarzyka. Jego ściany są myte, a w końcowej części posiada on charakterystyczny p&oacute;łkolisty profil. Wracamy do Ch&oacute;r&oacute;w. Prosto przed nami (ku SSW) znajduje się pochylnia. Łączy się ona przebiciem po prawej stronie z drugą r&oacute;wnoległą pochylnią. Do g&oacute;ry wznosi się natomiast 13 m wysokości Wielki Komin. Dolną jego część stanowi pionowy, 7 m pr&oacute;g&nbsp;(trudność: IV). Nad progiem widać po prawej stronie okienko, za kt&oacute;rym odchodzą w lewo i prawo ciasne korytarzyki (mają one prawdopodobnie kontakt z opisanymi dalej ciągami). Podchodzimy dalej stromą częścią komina pod końcowy, 3 m prożek (trudność: II). Nad prożkiem odchodzi w lewo kr&oacute;tka odnoga. Podchodzimy wyżej do korytarza o kształcie pochylonej i wysokiej na kilka metr&oacute;w szczeliny. Ku NE przejście jest zagruzowane. Ku SW korytarz ciągnie się dalej. Opada 1,5 m prożkiem, a następnie zawija się z powrotem ku NE i kończy się gruzowiskiem.</p>
+<p>Wracamy pod Wielki Komin i kierujemy się ku NE. Nad 2 m prożkiem rozpoczyna się meanderek, kt&oacute;ry łączy się dalej ponownie z salą oraz prawdopodobnie z ciasnym korytarzykiem za okienkiem w środkowej części Wielkiego Komina. Z Ch&oacute;r&oacute;w ciągnie się ku NW obszerny korytarz o przekroju pochylonej szczeliny. Po około 10 m odchodzi w lewo ślepa pochylnia, a w prawo opada opisany wcześniej ciasny korytarzyk z zaciskiem Z I. Idziemy dalej kilka metr&oacute;w korytarzem do jego końca. W lewo odchodzi tu stroma pochylnia. Z jej końca odchodzi ku E ślepa odnoga, a ku NE, nad 2 m progiem rozpoczyna się 30 m, kręty meander. Posiada on myte ściany, jest wysoki, ale wąski. Podczas wiatru halnego można było wyczuć wyraźny przewiew z jego końca.</p>
+<p>Wracamy do Gł&oacute;wnego Korytarza. Podążamy dalej za czerwonymi znakami ku NW. Ściany układają się tutaj w kształt wysokiej i pochylonej w lewo szczeliny. Po kilku metrach dochodzimy do niewielkiej sali kończącej Gł&oacute;wny Korytarz. Z prawej strony znajduje się nieco przysypany w wyniku prac udostępniających wylot wcześniej opisanego korytarza. W NW krańcu sali znajduje się niskie wejście do Białej Ulicy. Posiada ona długość 108 m. Zaraz na jej początku, po lewej stronie, odchodzi niski i lekko wznoszący się korytarz prowadzący do Skośnej Komory. Ciąg ten jest udostępniony turystycznie i został oznaczony czerwonymi k&oacute;łkami na białym tle. Skośna Komora jest jedną z największych sal w jaskini. Jej dno o wymiarach 12 x 5 m pokrywają duże głazy, a zwietrzałe ściany są silnie pochylone ku SSW. Po lewej stronie wznosi się stroma, 8 m wysokości pochylnia. Nieco dalej odbija w prawo szczelina, kt&oacute;ra staje się po kilku metrach zbyt ciasna do przejścia. W NW krańcu Skośnej Komory rozpoczynają się dwa obszerne korytarze. Łączy je po kilku metrach pochyły pr&oacute;g. Za tym połączeniem, prawy z korytarzy kontynuuje się opadając ku N. Po lewej stronie znajduje się za zaciskiem wejście do kilkumetrowego, ciasnego korytarzyka o silnie zwietrzałych ścianach. Na wprost korytarz kończy się po kilku metrach. Wracamy do połączenia. Lewy z korytarzy odchodzących ze Skośnej Komory skręca w kierunku SW i zmienia sw&oacute;j profil na wysoką szczelinę. Po około 20 m pokonujemy w d&oacute;ł 1,5 m pr&oacute;g z zaklinowanych want. Niedaleko za nim korytarz kończy się dwoma niedostępnymi szczelinami, z kt&oacute;rych końca można wyczuć przewiew.</p>
+<p>Wracamy do Białej Ulicy. Kilka metr&oacute;w dalej ku NE staje się ona nieco wyższa i skręca w lewo, a następnie w prawo. Przed skrętem w lewo wznosi się do g&oacute;ry szczelinowaty, 7 m kominek. Kilka metr&oacute;w za zakrętami dochodzimy do rozgałęzienia. Prawa odnoga doprowadza do niewielkiej, wysokiej salki. Ku NE kończy ją ciasna szczelina. Na lewo od niej opada stromo ciasny korytarzyk doprowadzający do dalszej części Białej Ulicy (patrz w dalszej części opisu). Wracamy do rozgałęzienia. W lewo, w d&oacute;ł ciągnie się oznaczony czerwonym kolorem szlak, wiodący gł&oacute;wną osią Białej Ulicy. Miejsce to zostało przekopane w 1934 r. przez S. Zwolińskiego, J. Zahorskiego i F. Zyhala, co pozwoliło odkryć dalszą część jaskini. Za przekopem znajduje się niski korytarz o tr&oacute;jkątnym przekroju. Jego dno pokrywają liczne kałuże. Wkr&oacute;tce napotykamy po lewej stronie nieco zasypaną, 4 m odnogę. Zaraz potem z prawej dochodzi wcześniej opisany korytarzyk. Idziemy Białą Ulicą 45 m dalej. Na całym tym odcinku są tylko dwa kr&oacute;tkie i ślepe odgałęzienia po prawej stronie. Korytarz jest mniej więcej jednakowo wysoki i posiada tr&oacute;jkątny przekr&oacute;j poprzeczny. Miejscami pod ścianami znaleźć można urobek pochodzący z pogłębiania korytarza podczas prac udostępniających.</p>
+<p>Po prawej stronie znajduje się nieco przysypane gliną wejście do skomplikowanego systemu niskich korytarzy i sal. Kilka metr&oacute;w za wejściem odchodzą w lewo dwie ciasne szczeliny łączące się z Białą Ulicą. Po prawej stronie znajduje się niedostępna szczelina kontaktująca się z Białą Ulicą, a nieco dalej wejście do bocznego korytarzyka tworzącego pętlę. Parę metr&oacute;w dalej dochodzimy do rozgałęzienia ciąg&oacute;w. Idziemy w lewo około 5 m niskim korytarzem. Po prawej stronie dochodzi boczny korytarzyk zapętlający się z wcześniej poznaną częścią jaskini. Dochodzimy do kolejnego rozgałęzienia. Po lewej stronie znajduje się gliniasta pochylnia, łącząca się z Białą Ulicą. Idziemy dalej w prawo, przeciskając się do g&oacute;ry pomiędzy dużymi, odpękniętymi od stropu blokami skalnymi. W najwyższym miejscu ciągnie się na wprost ślepa i ciasna szczelina. My schodzimy w lewo, w d&oacute;ł, do r&oacute;wnoległego względem Białej Ulicy, rurowatego i ciasnego&nbsp;korytarzyka. Kontaktuje się on po W stronie z dalszą częścią Białej Ulicy. Ciągnie się on także około 10 m ku N. Posiada dno pokryte gliną, a jego końcowa część łączy się dwoma przebiciami z Białą Ulicą (patrz w dalszej części opisu).</p>
+<p>Wracamy do rozgałęzienia ciąg&oacute;w. Dalej (ku SE) możemy przejść dwoma, rozdzielonymi filarem korytarzami. Stąd ku N odchodzi poznany wcześniej korytarz, a ku E boczny ciąg. Wejście do niego r&oacute;wnież stanowią dwa korytarzyki rozdzielone filarem. Dalej ciągnie się mało obszerny korytarz o soczewkowatym przekroju. Po około 5 m dochodzimy do rozgałęzienia. Na wprost ciągnie się ślepa, kilkumetrowa odnoga. Kończy się ona niedostępnymi szczelinami. W lewo natomiast idzie dalsza część ciągu. Soczewkowaty korytarz doprowadza po 10 m do niewielkiego rozszerzenia, gdzie dalszą drogę przegradzają dwa filary. Korytarzowi temu towarzyszy położone z lewej strony, bardzo ciasne, 7 m obejście. Za filarami ciąg skręca w lewo i kończy się wkr&oacute;tce niedostępnymi szczelinami.</p>
+<p>Wracamy do wejścia do opisanego wyżej ciągu. Ku S idzie stąd szeroki ale bardzo niski korytarz. Po kilku metrach, przed r&oacute;wnie szeroką i ślepą odnogą, odbija w lewo ciasny, myty korytarzyk prowadzący do Jędrusiowego Przełazu łączącego Jaskinię Mylną z Jaskinią Obłazkową. Kontynuacja szerokiego korytarza r&oacute;wnież jest niska, dalej zwęża się i po kilku metrach kończy się ślepo gruzowiskiem. Po przeciwnej stronie od korytarzyka prowadzącego do Jędrusiowego Przełazu, znajduje się wejście do dalszej części ciągu. Ciasny korytarz wkr&oacute;tce skręca w lewo i idzie prosto przez 10 m. Następnie skręca lekko w prawo i po kilku metrach doprowadza do niewielkiej spękanej salki. Ku NE odchodzą od niej ciasne szczeliny. Ku SW możemy natomiast przejść dwoma mocno zwietrzałymi, r&oacute;wnoległymi korytarzami do dalszej części. Korytarze te łączą się wkr&oacute;tce w jeden wpadający do kolejnego niewielkiego rozszerzenia. Ku NW idzie stąd ciasna szczelina zakręcająca w połowie pod kątem prostym w prawo, natomiast ku NE znajdują się dwa ciasnej wejścia do ciasnej, kilkunastometrowej, szczelinowatej pętli.</p>
+<p>Wracamy do Białej Ulicy i podążamy nią dalej, 20 m ku NNE, mijając po prawej stronie połączenia z wcześniej opisanym ciągiem. Znajduje się tu z lewej strony wejście do bocznego ciągu składającego się z sieci ciasnych, mytych korytarzyk&oacute;w. Zaraz za tym wejściem, odgałęzia się w prawo r&oacute;wnoległa do Białej Ulicy rura, łącząca się z nią dalej przebiciami w trzech miejscach. Koniec tej rury wypada dwoma oknami, około 1,5 m nad dnem Wielkiego Chodnika (patrz w dalszej części opisu). Cofamy się do początku rury i wchodzimy dalej w głąb ciągu. Część ta posiada &bdquo;gąbczasty&rdquo; charakter. Za nią odchodzi w lewo 17 m korytarz. Jego końcowa część jest podzielona skalną brzytwą na dwie r&oacute;wnoległe odnogi, a dalszą drogę blokuje gliniaste namulisko sięgające niemal do stropu. W prawo natomiast coraz obszerniejszy korytarz doprowadza nad 3 m pr&oacute;g (trudność: IV), opadający do Wielkiego Chodnika (patrz w dalszej części opisu).</p>
+<p>Cofamy się do Białej Ulicy. Idziemy dalej za czerwonymi znakami i po 13 m dochodzimy do jej końca. Po prawej stronie mijamy dwa wejścia do bocznego ciągu (patrz w dalszej części opisu). Kilka metr&oacute;w dalej docieramy do środkowej części Wielkiego Chodnika. Jest to najbardziej obszerny z korytarzy w jaskini, a jego ściany posiadają wyraźne ślady przepływu wody. Skręcamy w lewą (SW) odnogę Wielkiego Chodnika. Po lewej stronie widać wyloty ciasnej rury odchodzącej od Białej Ulicy. Nieco dalej widać nad 3 m przewieszonym progiem wylot opisanego wcześniej korytarza. Pod nim, w lejkowatym zagłębieniu przy ścianie, na kt&oacute;rego dno schodzimy 1,5 m progiem, znajdują się wejścia do ciasnych szczelin. Lewa z nich schodzi stromo w d&oacute;ł i kończy się ślepo po paru metrach. Prawa prowadzi w kierunku dna jaskini. Między wantami na spągu w jej początkowej części znajduje się wejście do zawaliskowego korytarzyka opisanego dalej. Przeciskamy się dalej szczeliną, kt&oacute;ra staje się coraz węższa. Następnie zsuwamy się niewielkim progiem. Możemy dostać się pod nim ciasną rurą do wspomnianego wcześniej zawaliskowego korytarzyka. Schodzimy zapieraczką drugi, r&oacute;wnież niewielki pr&oacute;g. Pod nim znajduje się wejście do bardzo ciasnej 2,5 m studzienki. Podążamy ku SW ciasną pionową szczeliną. Po kilku metrach opada ona 6 m, lekko rozszerzającym się w dole progiem i doprowadza do najniższego miejsca w jaskini (&ndash;22,35 m).</p>
+<p>Wracamy do Wielkiego Chodnika. Idziemy ku SW obszernym korytarzem o przekroju wysokiej na kilka metr&oacute;w soczewki. Jego dno pokrywa sucha glina. Korytarz lekko opada i wznosi się, a następnie przechodzi w stromą pochylnię, pod kt&oacute;rą zakręca pod kątem prostym w prawo. Na zakręcie, nad 5,5 m bardzo trudnym progiem (trudność: V+) znajduje się wejście do Korytarza nad Progiem. Posiada on kształt ciasnej soczewki. Spąg tworzy gliniaste namulisko, a ściany pokrywa mleko wapienne. Korytarz ciągnie się ku SW i po kilkunastu metrach skręca pod kątem prostym w lewo. Po dalszych kilku metrach kończy się on zamulonymi szczelinami. W połowie odcinka za zakrętem odchodzi ku SW ciasna (zacisk Z I), 6 m szczelina. Wracamy do Wielkiego Chodnika i schodzimy do jego najniższego punktu, będącego jednocześnie jego końcem. Po lewej stronie można zejść szczeliną jeszcze trochę głębiej: &ndash;13,26 m (w miejscu tym wyczuwalny jest przewiew spomiędzy want). Z końca Wielkiego Chodnika przechodzimy do prostopadle przebiegającej Wysokiej Szczeliny. Jest ona szeroka średnio na 2 m, a jej strop znajduje się miejscami kilkanaście metr&oacute;w nad spągiem zbudowanym z zaklinowanych want. NE część szczeliny ma 14 m długości i kończy się nad kilkumetrowym progiem (trudność: III). Przeciwległa część jest dłuższa. Wznosi się początkowo 1,5 m progiem, a następnie stromym piargiem do miejsca, gdzie strop zbliża się na wysokość około 1 m nad spąg. Dalszą drogę zagradza niedostępna szczelina z wyczuwalnym przepływem powietrza. Nieco wcześniej w NW ścianie znajduje się niewielka rurka, z kt&oacute;rej r&oacute;wnież czuć przewiew.</p>
+<p>Idziemy z powrotem do środkowej części Wielkiego Chodnika. Ku NE ciągnie się jego kontynuacja, kt&oacute;rą wiedzie dalsza część czerwonego szlaku. Posuwamy się p&oacute;łką wymytą w lewej ścianie, nad 3 m szczeliną. Przejście to na odcinku 20 m jest ubezpieczone łańcuchami. W środkowej części znajduje się p&oacute;łka z zaklinowanych głaz&oacute;w. Można z niej zejść na dno r&oacute;wnoległego korytarza (patrz w dalszej części opisu). Wielki Chodnik kończy się na wprost niedostępną szczeliną. Dalsza droga wiedzie przez most z zaklinowanych want i korytarz odbijający na prawo. Podążamy nim za czerwonymi znakami mijając po prawej stronie owalny korytarzyk prowadzący do r&oacute;wnoległego ciągu (patrz w dalszej części opisu). Idziemy dalej i przechodzimy przez obniżenie stropu (kiedyś miejsce to było zamulone). Po kilkunastu metrach dochodzimy do rozwidlenia.</p>
+<p>Na prawo, nieco wstecz ciągnie się korytarz, kt&oacute;ry po paru metrach rozdwaja się. Kierujemy się do prawego z odgałęzień. Posiada ono tr&oacute;jkątny profil. Dno miejscami pokrywa glina a po prawej stronie mijamy ciasną szczelinę. Kilka metr&oacute;w dalej, po prawej stronie, nad 1 m prożkiem rozpoczyna się owalny korytarzyk, kt&oacute;ry wpada po 8 m do opisanego wcześniej ciągu. Korytarz zmienia wkr&oacute;tce sw&oacute;j kształt. W dnie otwiera się głęboka na 3 m szczelina. Posuwamy się dalej trawersując zapieraczką nad szczeliną. Po kilku metrach w jej dnie znajduje się opisane wcześniej połączenie z Wielkim Chodnikiem, wypadające w środkowej części trawersu ubezpieczonego łańcuchami. Posuwamy się dalej zapieraczką, mijając po lewej stronie wylot rury, kt&oacute;ra tak samo jak nasz korytarz wpada po kilku metrach do końcowej części Białej Ulicy.</p>
+<p>Wracamy do rozgałęzienia nieopodal szlaku. Tym razem skręcamy w lewy z korytarzy. Prowadzi on do bocznego ciągu, na kt&oacute;ry składa się sieć ciasnych, krzyżujących się korytarzyk&oacute;w. Korytarz posiada tr&oacute;jkątny przekr&oacute;j, i staje się stopniowo coraz ciaśniejszy. Po lewej stronie mijamy kilkumetrowe przebicie tworzące pętlę, a nieco dalej ciasne okienko do r&oacute;wnoległego korytarza. Po paru metrach dochodzimy do rozwidlenia. Na wprost możemy przecisnąć się miedzy wantami do ciasnego korytarzyka, kt&oacute;rego dno pokrywa glina. Przechodzi on dalej w zwietrzałą, zagruzowaną salkę, a nieco wcześniej, po lewej stronie można się wczołgać do niskiego chodniczka. Po kilku metrach jest on zamulony prawie po strop. Jego początkowa część łączy się poprzez zacisk (Z III) z resztą ciągu. Cofamy się do rozwidlenia i przechodzimy w lewo do r&oacute;wnoległego korytarzyka. Ku S odbija odnoga zamulona na końcu prawie po strop. Ku NE ciągnie się korytarz na kt&oacute;rego końcu znajduje się salka, a za nią kilkumetrowa szczelina nie do przejścia. Salka posiada r&oacute;wnież połączenie z opisaną wcześniej zamuloną odnogą.</p>
+<p>Wracamy do rozwidlenia na szlaku. Do położonej dalej Komory Końcowej możemy przejść dwoma korytarzami. Lewy z nich jest niższy i mniej wygodny, natomiast prawy jest obszerniejszy i nim prowadzi szlak. W połowie korytarza, kt&oacute;rym wiedzie szlak, znajduje się po prawej stronie przejście do niskiej sali. W jej SW krańcu rozpoczyna się niski korytarz, kt&oacute;ry po około 10 m kończy się ślepo. Za niezbyt obszerną i niską Komorą Końcową znajduje się przekopany Otw&oacute;r P&oacute;łnocny wyprowadzający nas na powierzchnię.</p>
+<p style="font-weight: bold;">Informacje o jaskini</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp; Jaskinia rozwinęła się w obrębie wapieni malmu autochtonicznej serii wierchowej. Większość korytarzy jaskini ma zachowane pierwotne, szczelinowe uwarunkowania, jednak na ścianach i stropach powszechnie występują zagłębienia wirowe, świadczące o długotrwałym przepływie w&oacute;d pod ciśnieniem. Jaskinia jest częścią rozległego systemu krasowego, w skład kt&oacute;rego wchodzi Jaskinia Obłazkowa i Raptawicka (dawniej także Jaskinia Mysia, Dziura pod Mylną, Dziura pod Raptawicką) i kt&oacute;ry stanowi wg W&oacute;jcika (1966a) IV piętro jaskiń tatrzańskich. Rajwa (1971) wiąże z systemem Jaskini Mylnej także Jaskinię Raptawicką, kt&oacute;ra według niego stanowi g&oacute;rny otw&oacute;r systemu. Jaskinia Mylna jest uważana za podziemny przepływ dawnego Potoku Kościeliskiego, prawdopodobnie w okresie pierwszego zlodowacenia (g&uuml;nz, W&oacute;jcik 1966a), bądź też z okresu g&oacute;rnego trzeciorzędu&nbsp;&ndash; drugiego zlodowacenia (Rudnicki 1967). W&oacute;jcik (1966a) genezę jaskini wiąże z okresem zahamowania erozji Doliny Kościeliskiej, natomiast Rudnicki (1967) jako czynnik sprawczy powstania jaskini widzi wędr&oacute;wkę progu erozyjnego w g&oacute;rę doliny, a tym samym ożywienie erozji. Poza poziomymi korytarzami, utworzonymi przez dawny przepływ Potoku Kościeliskiego, można zauważyć także szereg ciąg&oacute;w o pionowym przebiegu.&nbsp;Wśr&oacute;d partii wznoszących się ponad gł&oacute;wny poziom jaskini należy wymienić przede wszystkim korytarze i kominy znajdujące się nad Salą Ch&oacute;ry oraz Komin Połączeniowy prowadzący do Jaskini Raptawickiej. Sięgają one do wysokości ponad 20 m nad gł&oacute;wny poziom. Także ciąg wąskich, rozmytych szczelin, sprowadzających do dna jaskini (o deniwelacji około 20 m) posiada pionowe rozwinięcie. Opadająca o 9 m SW część Wielkiego Chodnika przypomina kształtem syfon, kt&oacute;rego przegięcie znajduje się przypuszczalnie pod Wysoką Szczeliną. O kontynuacji korytarza po drugiej stronie może świadczyć wyraźny przewiew w miejscu połączenia Wielkiego Chodnika z Wysoką Szczeliną. Partie te powstały prawdopodobnie przy udziale w&oacute;d dopływających z masywu Kominiarskiego Wierchu.</p>
+<p>Osady klastyczne występujące w korytarzach jaskini są wyraźnie r&oacute;żnowiekowe. Starsze są allochtoniczne, osadzone przez wody przepływające przez jaskinię. Są to osady żwirowo-piaszczyste. Grubsze frakcje (powyżej 10 mm) zawierają 37% otoczak&oacute;w skał krystalicznych i 14% otoczak&oacute;w piaskowc&oacute;w seisu, drobne frakcje składają się gł&oacute;wnie z ziaren kwarcu (W&oacute;jcik 1960a, 1966a). Według tego autora, materiał tworzący te osady pochodził z rozmywania moren lodowcowych zlodowacenia g&uuml;nz. W wielu miejscach na opisanych osadach allochtonicznych spoczywają młodsze rumowiska autochtoniczne, powstałe wskutek oberwisk i zawalisk powodowanych młodymi przesunięciami tektonicznymi wzdłuż szczelin r&oacute;wnoległych do doliny (W&oacute;jcik, Zwoliński 1959). Miejscami znaleźć można osady organogeniczne: odchody nietoperzy oraz kości. Szata naciekowa w jest uboga. Kiedyś w jaskini można było obserwować spore ilości mleka wapiennego, o czym świadczą niekt&oacute;re nazwy (Biała Ulica). Jednak na skutek intensywnej penetracji przez człowieka oraz odkopania Otworu P&oacute;łnocnego (co wpłynęło na zmianę mikroklimatu), w większości partii jaskini uległo ono zniszczeniu. Można je jeszcze znaleźć w bocznych ciągach np. w Korytarzu nad Progiem.</p>
+<p>Woda płynąca występuje jedynie w postaci małej strużki w Sali Ch&oacute;ry. Okresowo woda utrzymuje się w postaci kałuż na początku Białej Ulicy i w bocznym korytarzu w okolicach Ch&oacute;r&oacute;w. Deszcz podziemny o dużym nasileniu występuje w licznych miejscach w czasie opad&oacute;w na powierzchni terenu,&nbsp;natomiast zanika w okresach długotrwałej suszy. Ze względu na głębokie wymarzanie wnętrza jaskini w okresie zimowym, tworzą się liczne nacieki lodowe: kolumny, lodospady, polewy, stalaktyty i stalagmity lodowe. Utrzymują się one nieraz do p&oacute;źnej wiosny.</p>
+<p>Światło sięga okolic Okien Pawlikowskiego oraz Komory Końcowej. Niewielka ilość światła przenika także do Gł&oacute;wnego Korytarza przez zawalisko przy Otworze Południowym. &nbsp;&nbsp;</p>
+<p>W gł&oacute;wnych korytarzach jaskini obserwuje się wyraźny przepływ powietrza, zależny od pory roku. Rajwa (1971) zalicza Jaskinię Mylną do grupy jaskiń dynamicznych wielootworowych o wyraźnej cykliczności mikroklimatu jaskini. Cykl zimowy, trwający od listopada do kwietnia charakteryzuje się przepływem powietrza od otwor&oacute;w w głąb jaskini. Mierzone w gł&oacute;wnym otworze prędkości przepływu osiągały wartość 1,1 m/s, najniższa temperatura zmierzona w najcieplejszej partii jaskini&nbsp;&ndash; Białej Ulicy&nbsp;&ndash; wynosiła w dniu 17.02.1965 r. 0,3&deg;C przy temperaturze &ndash;9,9&deg;C mierzonej na powierzchni. W zimie w znacznej części jaskini panują temperatury ujemne. Jest to skutek przekopania sztucznego otworu i ustaleniu się intensywnego przepływu powietrza. Jedynie środkowe partie jaskini nie wymarzają w zimie (Biała Ulica). Niekt&oacute;re boczne odnogi wykazują nawet cechy mikroklimatu statycznego. W okresie letnim, od maja do października, powietrze wypływa otworami jaskini na zewnątrz z szybkością dochodzącą do 2 m/s. Najwyższą temperaturę w głębi jaskini zanotowano w obrębie Białej Ulicy. Wynosiła ona w dniu 23.07.1964 r. 3,3&deg;C przy temperaturze 14,5&deg;C mierzonej na zewnątrz jaskini (Rajwa 1971). Taka cyrkulacja powietrza związana jest z partiami wnoszącymi się do 24 m ponad otwory (komin w Wielkiej Izbie oraz kominy i korytarze nad Ch&oacute;rami). Kończące je zawaliska lub ciasne szczeliny kontaktują się z powierzchnią i pełnią funkcję g&oacute;rnego otworu.</p>
+<p>Roślinność zielona spotykana przy naturalnych otworach jaskini była wg Kowalskiego (1953a) bardzo uboga. W początkach naszego wieku była oznaczona przez Żmudę (1915, 1916), a rewizję tych oznaczeń przeprowadzili Gy&ouml;rffy (1924) i Wiśniewski (1935). W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ 20.08.1978 r. T. Bielska zebrała następujące gatunki (oznaczenia mszak&oacute;w wykonała J. Mickiewicz):</p>
+<p>rośliny kwiatowe: <strong><em>Heliosperma quadridentatum</em></strong> Sch. et Thell., <strong><em>Arabis alpina</em></strong> L., <strong><em>Arabis halleri</em></strong> L., <strong><em>Taraxacum officinale</em></strong> Web., <strong><em>Poa alpina</em></strong> L., <strong><em>Campanula polymorpha</em></strong> Witase, <strong><em>Geranium robertinum</em></strong> L., <strong><em>Ranunculus alpestris</em></strong> L., <strong><em>Pedicularis palustris</em></strong> L., <strong><em>Saxifraga perdurans</em></strong> Kit., Galium anisophyllum Vill., <strong><em>Bartsia alpina</em></strong> L., <strong><em>Thymus pulcherrimus</em></strong> Schur., <strong><em>Carex firma</em></strong> Host., <strong><em>Myosotis alpestris</em></strong> Schm.</p>
+<p>paprocie: <strong><em>Cystopteris fragilis</em></strong> Bernh., <strong><em>Cystopteris montana</em></strong> Desv., <strong><em>Asplenium ruta-muraria</em></strong> L.</p>
+<p>mszaki: <strong><em>Marchantia polymorpha</em></strong> L., <strong><em>Bryum capillare</em></strong> L. var. <strong><em>flaccidum</em></strong> Br. Eur., <strong><em>Camptothecium lutescens</em></strong> (Hedw) Br. Eur., <strong><em>Encalypta extinctoria</em></strong> Sw., <strong><em>Grimmia apocarpa </em></strong>Hedw.</p>
+<p>Faunę w jaskini badali K. Kowalski (1953a, 1955a), B. W. Wołoszyn (1970), A. Skalski (1971) oraz w ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ E. Sobiepanek-Krzyżanowska. Wymienieni autorzy podają następującą faunę:</p>
+<p>Nietoperze wsp&oacute;łcześnie znajdowane w jaskini: <strong><em>Plecotus auritius</em></strong> L., <strong><em>Myotis mystacinus</em></strong> Leister, <strong><em>Myotis myotis</em></strong> Borkhausen (Kowalski 1955a).</p>
+<p>Kopalne szczątki nietoperzy: <strong><em>Plecotus auritus</em></strong> L., <strong><em>Myotis mystacinus</em></strong> Leister, <strong><em>Myotis nattereri</em></strong> (Wołoszyn 1970) oraz <strong><em>Barbastella barbastellus</em></strong> (Piksa i Nowak 2001).</p>
+<p>Kopalne szczątki drobnych ssak&oacute;w (Wołoszyn 1970):</p>
+<p><em>Insectivora</em><span>: <strong><em>Sorex alpinus</em></strong> </span></p>
+<p><em>Rodentia</em><span>: <strong><em>Microtus agrestis</em></strong>.</span></p>
+<p><em>Amphipoda</em>: <strong><em>Niphargus tatrensis</em></strong> Wrześniowski (Kowalski 1953a, 1955a).</p>
+<p>Owady:</p>
+<p><em>Collembola</em>: <strong><em>Mesachorutes ojcoviensis</em></strong> STACH, <strong><em>Onychiurus armatus </em></strong>Tullberg s.l. STACH (Skalski 1971,) <strong><em>Onychiurus tuberculosus</em></strong> (E. Sobiepanek-Krzyżanowska).</p>
+<p><em>Lepidoptera</em>: <strong><em>Hypena obesalis</em></strong> H&Uuml;BNER (Skalski 1971),</p>
+<p><em>Diptera</em>: <strong><em>Trichocera maculipennis</em></strong> (Sobiepanek-Krzyżanowska).</p>
+<p>Ponadto Stach (1937) wymienia owada bezskrzydłego <strong><em>Pseudisotoma monochaeta</em></strong> Kos. znalezionego przy otworze, a Kowalski (1953a) stwierdza, że przy otworze można spotkać zwykły zesp&oacute;ł owad&oacute;w trogloksenicznych, a w głębi, na kale nietoperzy i resztkach organicznych owady bezskrzydłe.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania roślinności prowadzili Żmuda (1915, 19160 oraz T. Bielska (w trakcie inwentaryzacji jaskiń OW PTPNoZ). Faunę badali K. Kowalski (1953a, 1955a), B. W. Wołoszyn (1970), A. Skalski (1971) oraz w ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ E. Sobiepanek-Krzyżanowska. Badania osad&oacute;w jaskini przeprowadził Z. W&oacute;jcik (1960a,b, 1966a). Subfosylne szczątki kostne nietoperzy i drobnych ssak&oacute;w badał B. W. Wołoszyn (1970). Mikroklimat jaskini określił w latach 1964-65 A. Rajwa (1971),</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r Południowy, I i II Okno Pawlikowskiego oraz łączące je korytarze były znane od dawna g&oacute;ralom, g&oacute;rnikom, poszukiwaczom skarb&oacute;w oraz turystom, co wynika z dobrej widoczności jednego z Okien Pawlikowskiego (skierowanego ku S) z dna doliny. Stęczyński wspomina w swoim poemacie z 1860 r. o jaskini w skałach naprzeciw Skały Pisanej, z kt&oacute;rą jakoby związana jest legenda o Janosiku. Tekst ten być może odnosi się do Jaskini Mylnej. Ossowski w 1882 r. wysłał g&oacute;rala do jaskiń w turni naprzeciw&nbsp;Skały Pisanej. Znalazł on tam 4 groty i przyni&oacute;sł z jednej z nich kości należące do kozicy i niedźwiedzia jaskiniowego.</p>
+<p>W 1885 r. Jan Gwalbert Pawlikowski, jako pierwsza osoba, zwiedza głębsze partie jaskini. Przeszedł on Gł&oacute;wnym Korytarzem do Białej Ulicy oraz dotarł do Wielkiej Izby i Ch&oacute;r&oacute;w (przez Ulicę Pawlikowskiego). W tekście &bdquo;Podziemne Kościeliska&rdquo; zamieścił opis i schematyczny plan jaskini. Nadał jaskini nazwę Mylna z powodu korytarzy tworzących zawiły labirynt i nazwał odkryte przez siebie partie: Biała Ulica, Wielka Izba i Ch&oacute;ry. W 1886 r., z inicjatywy Pawlikowskiego, Towarzystwo Tatrzańskie zajęło się udostępnieniem jaskini. Wykonano ścieżkę z dna doliny prowadzącą do Otworu Południowego oraz poszerzono niekt&oacute;re ciaśniejsze miejsca.</p>
+<p>Na początku października 1934 r. S. Zwoliński, J. Zahorski i F. Zychal (?), przy okazji pomiar&oacute;w jaskini, przekopują się w Białej Ulicy do jej dalszej części. Docierają nią do Wielkiego Chodnika i zwiedzają jego obydwie odnogi: NE (do znajdującego się za nim zamulonego miejsca) oraz&nbsp;SW łącznie z Wysoką Szczeliną. Kilka dni p&oacute;źniej S i T. Zwolińscy oraz J. Zahorski odkrywają korytarz r&oacute;wnoległy do NE części Wielkiego Chodnika. Omijają w ten spos&oacute;b zamulone miejsce za jego końcem i docierają do Komory Końcowej. Odkrywają także ciasny korytarz odgałęziający się od Komory Końcowej oraz korytarze rozwinięte pomiędzy SW odnogą Wielkiego Chodnika i końcem Białej Ulicy. W listopadzie 1934 r. S. Zwoliński oraz J. Zahorski odkrywają korytarze r&oacute;wnoległe do Białej Ulicy, odchodzące po SE stronie, mniej więcej w 2/3 jej długości. Pr&oacute;bują bez rezultatu przekopać się na końcu Komory Końcowej. Eksplorują także system ciasnych korytarzyk&oacute;w odgałęziających się przed Komorą Końcową ku SW oraz szczeliny prowadzące w kierunku dna jaskini.</p>
+<p>W 1945 r., w partie odkryte pod kierownictwem S. Zwolińskiego, zapuścił się ks. J. Szykowski. Prawdopodobnie w efekcie zagaśnięcia światła zabłądził i umarł z wyczerpania. Jego zwłoki znalazł dopiero K. Kowalski w 1947 r.</p>
+<p>Na przełomie 1948/49 r., w ramach dalszych prac nad udostępnianiem jaskini, przebito nowy otw&oacute;r (Otw&oacute;r P&oacute;łnocny) oraz poszerzono wąskie przejścia na trasie między Otworem Południowym i P&oacute;łnocnym. Działania te prowadzone były przez Polskie Towarzystwo Tatrzańskie z zasiłku Ministerstwa Komunikacji przeznaczonego na jaskinie. Trasę między otworami oznaczono czerwonymi znakami na białym tle, dojście przez Ulicę Pawlikowskiego do Ch&oacute;r&oacute;w czerwonymi tr&oacute;jkątami, a przejście do Skośnej Komory czerwonymi k&oacute;łkami. Trawers w Wielkim Chodniku został ubezpieczony poręczą. Wybudowano także szlak sprowadzający z Otworu P&oacute;łnocnego.</p>
+<p>Ponieważ jaskinia jest od 1886 r. udostępniona turystycznie, przez co była intensywnie penetrowana, nie jest możliwe dojść kiedy dokonano odkryć w bocznych ciągach i kto był ich autorem. Na dnie jaskini można znaleźć wyrytą datę &bdquo;1975&rdquo;, a nad kominem w Wielkiej Izbie (najwyżej położony punkt w jaskini) &bdquo;1998&rdquo;. Jest jednak wątpliwe, aby ich autorami byli odkrywcy tych partii. W maju 2004 r. M. Daszkiewicz, D. Guzik, M. Maj i A. Wojtoń, podczas poszukiwań korytarzy nie ujętych na planie Kowalskiego, odkryli około 10 m korytarzy. Prawdopodobnie chodzi o kr&oacute;tkie połączenie znajdujące się na NW od Ch&oacute;r&oacute;w. Dnia 09.04.2009 r. F. Filar i M. Parczewski odkryli 21 m korytarzy w ciągu odgałęziającym się przed Komorą Końcową ku SW. Wspinają się także 6 m progiem do okna na końcu SW części Wielkiego Chodnika i eksplorują 20 m Korytarza nad Progiem. Podczas kolejnego wyjścia (07.06.2009 r.) ci sami odkrywają 6 m za zaciskiem na końcu Korytarza nad Progiem.</p>
+<p>W dniu 15 czerwca 2014 r. Jaskinia Mylna została połączona z Jaskinią Obłazkową w jeden system o długości 1835 m. W łączeniu jaskiń wzięli udział: F. Filar, M. Parczewski, A. Porębski i K. Zaczyński. 7 Lutego 2015 r F. Filar z M. Parczewskim odkrywaja połączenie Jaskini Mylnej z Raptawicką ponad Kominem Połączeniowym.</p>
+<p>Jaskinia wymieniana była w dziełach literackich. Urbanowska (1903, 1928) w powieści dla młodzieży "R&oacute;ża bez kolc&oacute;w" poświęca rozdział zabłądzeniu w Grocie Mylnej. Roguska-Cybulska w powieści "Tajemnica Tatr" (1933) oraz Rudnicka w &bdquo;Za Si&oacute;dmym Progiem&rdquo; r&oacute;wnież opisują podobny wypadek. Roguska-Cybulska zamieszcza nawet plan jaskini wg Pawlikowskiego (nieco uzupełniony). Jaskinia stała się także miejscem akcji w filmach, m.in. w 2003 r. w jaskini zostały nakręcone ujęcia do filmu fabularnego &bdquo;Pręgi&rdquo; (reż. Magdalena Piekorz).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis jaskini datowany na 23.07.1952 r. sporządził K. Kowalski (1953a). Obejmował on 1120 m korytarzy. Licznie zwiedzający jaskinię grotołazi sygnalizowali istnienie bardzo ciasnych korytarzyk&oacute;w nie umieszczonych na planie K. Kowalskiego. Być może członkowie Naukowego Koła Geodet&oacute;w AGH, kt&oacute;rzy w końcu lat sześćdziesiątych przeprowadzali pomiary w Jaskini Mylnej (Kobyłecki 1967) kartowali te korytarzyki. Sprawozdanie z tych prac nie zostało jednak opublikowane. Można szacować, że korytarzyki te (prawdopodobnie znane braciom Zwolińskim) miały łączną długość około 150&ndash;180 m. Stąd też wcześniej podawana długość jaskini została przyjęta na 1300 m w dokumentacji opracowanej w przez J. Grodzickiego (Jaskinie TPN 1993). Nowe pomiary jaskini przeprowadzili w 2009 r. F. Filar i M. Parczewski wspierani przez K. Zaczyńskiego oraz M. Rajczaka. W ich efekcie długość jaskini została ustalona na 1630 m. Tak duże rozbieżności podawanej długości wynikają przede wszystkim z większej szczeg&oacute;łowości nowych pomiar&oacute;w. Zostały w nich także ujęte wszystkie korytarzyki pominięte na planie Kowalskiego oraz około 50 m nowoodkrytych partii.<br />Do pomiar&oacute;w użyto topofila Marbacha i przyrządu Leica dDstox. Dane zaktualizował F. Filar (2014 r.).<br />Plan oraz przekr&oacute;j ciąg&oacute;w gł&oacute;wnych zrzutowany na płaszczyznę 240&deg;-60&deg; opracowali F. Filar i M. Parczewski pod nazwą "System Jaskinia Mylna-Jaskinia Obłazkowa"&nbsp; - stanowią one część planu i przekroju,&nbsp; zamieszczonego przy opisie całego systemu T- Jaskinie Pawlikowskiego.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Stęczyński, B.Z. 1860 (wzmianka o jaskini naprzeciw Pisanej); Ossowski, G. 1863 (wzmianka o 4 jaskiniach naprzeciw Pisanej i o znalezieniu w nich kości kozicy i niedźwiedzia); Pawlikowski, J.G. 1887 (opis i schematyczny plan); Chmielowski, J. 1907 (droga, opis wg Pawlikowskiego); Żmuda, A. 1916 (opis części przyotworowej i roślinności zielonej); Gy&#246;rffy, J. 1924 (rewizja niekt&#243;rych oznaczeń mch&#243;w Żmudy); Zwolińscy, T. i S. 1927 (droga i opis); Wrzosek, A. 1933 (informacja o znalezieniu w lecie 1932 lodu w jaskini); Zwoliński, S. 1934 (opis nowoodkrytych partii groty); Wiśniewski, P. 1935 (rewizja oznaczeń mch&#243;w ze zbioru Żmudy); Małachowski, 1949 (informacja o wykopaniu nowego otworu i udostępnieniu jaskini dla turystyki); Zwoliński, S. 1951 (informacja o pracach udostępniających, fotografie naciek&#243;w lodowych); Zwoliński, T. 1951 (droga i opis uwzględniający nowe odkrycia); Kowalski, K. 1951 (o skutkach udostępnienia); Jarzębowski, 1952 (fotografia Okna Pawlikowskiego);Kowalski, K. 1953a (plan i opis); Zwoliński, S. 1954 (przekr&#243;j, 4 fotografie); Kowalski, K. 1955a (fauna); W&#243;jcik, Z. 1957b (o występowaniu allochtonicznych żwir&#243;w); Rudnicki, J. 1958b, (wzmianka w nawiązaniu do rozwoju doliny); W&#243;jcik, Z. 1959b (obserwacje geomorfologiczne); Gradziński, R., Unrug, R. 1960 (o występowaniu naciek&#243;w grzybkowych); W&#243;jcik, Z. 1960a,b (badania osad&#243;w); Zwoliński, S. 1961 (historia eksploracji, geneza, osady);W&#243;jcik, Z. 1966a (osady,geneza); Kobyłecki, A. 1967 (wzmianka o pomiarach); Rudnicki, J. 1967 (uwagi o genezie); W&#243;jcik, Z. 1967 (geneza, osady); Kobyłecki, A. 1968 (wzmianka o analizach wody i powietrza); Wołoszyn, B. W. 1970 (badania sfosylizowanych kości nietoperzy, uwagi o dawnym klimacie); Rajwa, A. 1971 (wyniki badań mikroklimatycznych); Skalski, A. 1971 (informacje o faunie); W&#243;jcik, Z. 1976a (charakterystyka geomorfologiczna, grupy jaskiń); Gradziński, R. i in. 1985a (dane morfometryczne, schematyczna lokalizacja); Gradziński, R. i in. 1985b (plan); Jaskinie TPN 1993a (opis i plan inwentarzowy); Zwoliński, S. 1993 (opis eksploracji i rob&#243;t); Piksa K. 1998 (występowanie nietoperzy); Bielska, T., Mickiewicz, J. 2000 (flora); Piksa k., Nowak J. 2001 (szczątki kostne Barbastella baebastellus); Wojtoń, A. 2004 (pr&#243;ba ustalenia prawidłowej długości jaskini); Kozak K. i in. 2010 (pomiar radioaktywności); Filar F. 2015d (informacja o połączeniu J. Mylnej z J. Raptawicką, plan, przekr&#243;j, dane morfometryczne systemu); Filar F. 2016g (Informacja o połączeniu J. Mylnej z J. Raptawicką, przekr&#243;j, dane morfometryczne systemu).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    [Siarzewski, W., Zwolińska, Z.,] 1986 (spis plan&#243;w w archiwum Zwolińskich; wersja robocza plan&#243;w); Sobiepanek-Krzyżanowska, E. 1979 (fauna); Grodzicki, J. i in. 1999 (zmiany antropogeniczne). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Filip Filar
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(849)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(5003)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

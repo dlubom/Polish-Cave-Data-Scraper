@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2462">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2462;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "540728,6570".replace(',', '.') + "," + "282390,3159".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2462','Jaskinia Ciesenć'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Ciesenć
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.IV-02.18
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;34′24,00″, φ: 50&#176;24′26,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Klucze (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                olkuski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                470
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                65
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                21,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0,90
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                22,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    245
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Pasmo Smoleńsko-Niegowonickie, Hucisko Rycz&#243;wczańskie, wzg&#243;rze bez nazwy, 477,7 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od centrum Huciska Ryczówczańskiego kierujemy się na zachód na wzgórze bez nazwy o wysokości 477,7 m n.p.m. Na wschodnim zboczu tego wzgórza, pod samym szczytem znajduje się mur skalny, w którym leży otwór jaskini.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wąski, szczelinowaty otwór, przez który trzeba się czołgać prowadzi do ciasnej komórki, rodzaju przedsionka. Stąd skręcamy w&nbsp;prawo do ciasnego okienka skalnego, za którym jest ciasna studzienka o&nbsp;głębokości około 3&nbsp;m. Studzienka w&nbsp;dole kończy się około półtorametrowym progiem, z&nbsp;którego schodzi się do górnej salki - Sali Dwóch Łebków. Po lewej stronie na dnie sali znajduje niski próg skalny, za którym jest wyjątkowo ciasna studzienka, łącząca się prawdopodobnie z&nbsp;dolną częścią jaskini. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W ścianie na wprost, za progiem znajduje się zamulony korytarzyk, w&nbsp;tej chwili niedostępny. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W ścianie salki po przeciwnej stronie studzienki zejściowej jest skalna pochylnia (w górę) prowadząca do niedrożnej szczeliny, z&nbsp;której zacisk Z3 prowadzi do obejścia studni do dolnego piętra. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W prawo od studzienki wlotowej do Sali Dwóch Łebków rozpoczyna się gliniasta, bardzo śliska pochylnia kończąca się po kilku metrach studnią o&nbsp;głębokości około 6,5&nbsp;m. Wlot do studni leży w&nbsp;stropie dolnej komory. Partie pod studnią to wielka sala zawaliskowa o&nbsp;długości 20&nbsp;m i&nbsp;szerokości 14&nbsp;m. Jej strop jest mocno spękany, a&nbsp;na dnie leżą głazy i&nbsp;polewy naciekowe, które odpadły ze stropu i&nbsp;ścian. Sala Zawaliskowa posiada ogromną ilość odgałęzień, kominów i&nbsp;korytarzyków. Większość z&nbsp;nich jest albo zbyt ciasna, albo zasypana namuliskiem i&nbsp;nie można się do nich dostać. Najdłuższe dostępne odgałęzienie Sali Zawaliskowej to Korytarz Krystyny, ciągnący się ku SW. Jest to silnie meandrujący tunel o&nbsp;zmiennej wysokości z&nbsp;licznymi, ślepymi odnogami i&nbsp;ogromną ilością form naciekowych. Miejscami trzeba się czołgać, a&nbsp;miejscami można się poruszać w&nbsp;pozycji wyprostowanej. W&nbsp;stropie znajduje się kilka ślepych kominów. Korytarz w&nbsp;samym końcu zachowuje swoją szerokość jest jednak zasypany po strop osadami. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Swój najniższy punkt jaskinia osiąga w&nbsp;Malinowych Partiach. Jest to krótki korytarzyk zakończony płytką studzienką, do którego wejście znajduje się pod wielkim głazem w&nbsp;południowo-wschodniej części Sali Zawaliskowej. We wschodniej części Sali znajduje się krótki kominek i&nbsp;wejście do „rury” biegnącej na zachód sali i&nbsp;kończącej się oknem w&nbsp;jej stropie. W&nbsp;północnej części sali, w&nbsp;jej zachodniej ścianie znajduje się ślepa odnoga a&nbsp;obok niej wejście do komina i&nbsp;pochylni zakończonej zaciskiem, którą można obejść studnię. </span></p>  <p><span>Pod głazami w&nbsp;Sali Zawaliskowej widać puste przestrzenie, do których w&nbsp;chwili obecnej nie można się dostać. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Cała jaskinia powstała w&nbsp;górnojurajskim wapieniu skalistym, głównym. Skała ścian i&nbsp;stropu jest wyjątkowo silnie skorodowana. Jest to typowa gąbczastość krasowa. Nie ulega żadnej wątpliwości, że najpierw doszło do silnego skrasowienia masywu a&nbsp;dopiero później nastąpił zawał, w&nbsp;wyniku którego główna część jaskini uzyskała dzisiejszy wygląd. W&nbsp;reliefie wnętrza jaskini zaznaczyły się chyba wszystkie możliwe procesy prowadzące do powstania próżni podziemnych. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Szata naciekowa jaskini jest bardzo bogata. Można tu spotkać większość form naciekowych jakie występują w&nbsp;jaskiniach. W&nbsp;Sali Dwóch Łebków znajduje się duża ilość polew kalcytowych. Część występuje w&nbsp;formie kaskady „wylewającej się” z&nbsp;ukośnej szczeliny tektonicznej. Na stropie sali znajdują się białe stalaktyty z&nbsp;mleka wapiennego. Na ścianach można znaleźć nacieki grzybkowe. Przy wejściu do obejścia studni znajduje się stalagnat o&nbsp;wysokości około 1&nbsp;m. Nad wlotem do studni znajdują się niewielkie stalagmity w&nbsp;kształcie lichtarzy. Natomiast na pochyłej ścianie przy dnie studni stoi stalagmit o&nbsp;wysokości około 0,5&nbsp;m i&nbsp;średnicy zbliżonej do 20 cm. W&nbsp;Sali Zawaliskowej największe wrażenie robi ogromna ilość nacieków grzybkowych pokrywających wielkie powierzchnie ścian (szczególnie w&nbsp;północnym końcu sali). Nacieki te przyjmują różnorodne kształty (formy grzybków, igiełek, szczotek), a&nbsp;ich wielkość dochodzi do kilku centymetrów. Większość z&nbsp;nich jest kalcytowa ale są również grzybki z&nbsp;mleka wapiennego. Duże powierzchnie ścian w&nbsp;sali są pokryte polewami kalcytowymi. W&nbsp;północnym końcu komory znajduje się polewa spływająca kaskadowo tworząc formę pagody. Niestety wszędzie tam gdzie nastąpiło oberwanie stropu, zostały zniszczone nacieki. Na dnie sali leży mnóstwo potłuczonych polew a&nbsp;w&nbsp;niektórych miejscach na stropie i&nbsp;ścianach są ślady miejsc, z&nbsp;których te polewy odpadły. W&nbsp;tych miejscach gdzie ze stropu odpadły bloki skalne na nowo zaczęły powstawać nacieki. Są to na razie malutkie stalaktyciki, które osiągają najwyżej długość kilku centymetrów. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W południowo-zachodnim krańcu sali za wielkim blokiem skalnym znajduje się zaułek z&nbsp;wyjątkowo dużym nagromadzeniem form naciekowych. Oprócz dużego nagromadzenia stalaktytów i&nbsp;stalagmitów występują tu również niewielkie misy martwicowe. W&nbsp;niektórych ciasnych szczelinach można znaleźć pojedyncze nacieki agrawitacyjne. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W wielu miejscach w&nbsp;całej jaskini spotyka się formy zbudowane z&nbsp;mleka wapiennego. Są to polewy pokrywające niekiedy cały przekrój korytarzyka. Często spotyka się białe stalaktyty z&nbsp;mleka wapiennego. W&nbsp;kilku miejscach w&nbsp;Korytarzu Krystyny spotyka się formy, które można by opisać jako spływy mleka wapiennego z&nbsp;bocznych szczelin do głównego korytarza. Powierzchnia tych spływów jest w&nbsp;charakterystyczny sposób pofałdowana tworząc nacieki wełniste. Mleko wapienne ma różną konsystencję. W&nbsp;niektórych miejscach jest śnieżno-białe i&nbsp;miękkie a&nbsp;w&nbsp;innych zszarzałe i&nbsp;twarde. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Korytarz Krystyny jest częścią jaskini, w&nbsp;której nie zaznaczyły się skutki obrywu stropu i&nbsp;występuje tu najwięcej form naciekowych. W&nbsp;samym końcu korytarza, w&nbsp;bocznej odnodze, znajdują się misy martwicowe z&nbsp;cienkiego i&nbsp;kruchego kalcytu a&nbsp;obok nich jest skalna kieszeń z&nbsp;pizolitami, które w&nbsp;jaskiniach Jury są dużą rzadkością. Co prawda do tej pory nie przeprowadzono badań tych form ale ich wygląd sugeruje, że nie są to typowe perły jaskiniowe. Są to prawdopodobnie otoczaki wapienne dokładnie obtoczone i wypolerowane przez wodę. Pizolity (pseudopizolity) znajdują się również w&nbsp;miniaturowej kieszeni skalnej, we wschodniej ścianie Korytarza Krystyny. Jest ich co prawda niewiele ale w&nbsp;przeciwieństwie do poprzednich, z&nbsp;wyglądu przypominają „prawdziwe” perły jaskiniowe. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W całej jaskini spotyka się fragmenty połamanych polew kalcytowych w&nbsp;namulisku i&nbsp;na jego powierzchni. Polewy te osiągają niekiedy grubość do kilkunastu centymetrów a&nbsp;spotyka się je na kilku różnych poziomach. Najwyższy poziom w&nbsp;Sali Zawaliskowej znaleziono około 4&nbsp;m nad współczesnym poziomem namuliska. Świadczy to o&nbsp;znacznych wahaniach poziomu wód krasowych i&nbsp;depozycji osadów w&nbsp;kilku fazach. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Namulisko w&nbsp;całej jaskini jest gliniaste (tylko przy otworze jest humusowe), przy czym w&nbsp;warunkach dużej wilgotności glina jest wyjątkowo lepka i&nbsp;czasami wsysa buty. Osady jaskiniowe zawierają duże ilości drobnych kości. Są to prawdopodobnie, głównie kości nietoperzy. W&nbsp;wielu miejscach na powierzchni znajdują się ciemne plamy guana nietoperzy zawierającego duże ilości chitynowych okryw skrzydeł owadzich. W&nbsp;Sali Dwóch Łebków znaleziono kompletną czaszkę lisa lub niedużego psa. W&nbsp;jednym z&nbsp;odgałęzień Sali Zawaliskowej leżała żuchwa młodego dzika, natomiast w&nbsp;Korytarzu Krystyny znaleziono skorupki ptasich jaj i&nbsp;pojedyncze zęby zajęcy. Przeprowadzone obserwacje wskazują, że osady w&nbsp;jaskini mogą mieć bardzo dużą miąższość i&nbsp;ukrywają wiele skalnych pustek. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W jaskini nie przeprowadzano do tej pory dokładnych badań klimatycznych. Tym nie mniej pierwsze, ogólne obserwacje świadczą o&nbsp;tym, że jaskinia posiada mikroklimat typu statycznego. Wpływ zewnętrznych warunków atmosferycznych zaznacza się wyraźnie tylko w&nbsp;„przedsionku” jaskini. W&nbsp;trakcie prowadzenia prac kartograficznych, niejako przy okazji, mierzono temperaturę w&nbsp;głównej komorze. Wynosiła ona zawsze 7,6 -7,8<sup>0</sup>C. W&nbsp;dolnej części jaskini ledwo wyczuwalny ruch powietrza obserwuje się tylko w&nbsp;Korytarzu Krystyny. Natomiast w&nbsp;czasie długiego przebywania kilku osób w&nbsp;Sali Zawaliskowej zaczyna się tworzyć mgła. Wymiana powietrza, co prawda bardzo wolna, ale jednak zachodzi. Czasami daje się odczuć słaby wypływ powietrza z&nbsp;jaskini przez studzienkę przy otworze. Szybsza lub wolniejsza wymiana powietrza zapewne jest uzależniona od temperatury i&nbsp;ciśnienia powietrza na zewnątrz. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Przy okazji prowadzenia prac kartograficznych pobrano z&nbsp;trzech miejsc w&nbsp;jaskini próbki wody w&nbsp;celu wykonania analizy chemicznej. Wstępne wyniki wykazały, że odczyn waha się w&nbsp;granicach 7,58-8,05. Przewodność w&nbsp;granicach 445-496 ms/cm. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;We wrześniu 1999&nbsp;r. pracownicy Muzeum Geologicznego AGH pobrali próbki nacieków do oznaczenia ich wieku metodą <sup>14</sup>C.</span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;We wnętrzu jaskini nie zaobserwowano przedstawicieli flory. W&nbsp;związku z&nbsp;brakiem szczątków organicznych nie rozwijają się nawet pleśnie (przynajmniej na razie). </span></p>  <span>W części wstępnej jaskini (w przedsionku) sezonowo obserwowano stada muchówek oraz pająki <strong><em>Meta menardi</em></strong><em>.</em> W&nbsp;głębszych częściach jaskini zaobserwowano tylko pojedyncze egzemplarze (latających) nietoperzy. Z&nbsp;opisanych wcześniej śladów można wyciągnąć wniosek, że jaskinia jest lub była odwiedzana przez zwierzęta drapieżne. Odwiedzają ją również jakieś gryzonie o&nbsp;czym świadczą pogryzione drobnymi ząbkami świece pozostawione w&nbsp;Sali Dwóch Łebków.</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Przy okazji prowadzenia prac kartograficznych pobrano z trzech miejsc w jaskini próbki wody w celu wykonania analizy chemicznej. Wstępne wyniki wykazały, że odczyn waha się w granicach 7,58-8,05. Przewodność w granicach 445-496 ms/cm. <br />We wrześniu 1999 r. pracownicy Muzeum Geologicznego AGH pobrali próbki nacieków do oznaczenia ich wieku metodą <span><sup>14</sup></span>C. <span>W 2000 roku ukazują się dane dotyczące wieku nacieków pochodzących z Jaskini Ciesenć. Autorami tekstu są: R. Molenda, A. Górny i A. Polonius. </span><br /><span>W 2003 roku A. Polonius zajmuje się morfologią i genezą jaskini.</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span />Jaskinia została odkryta na początku 1997 r. Otwór wskazał Jerzy Sławiński sądząc, że jest to tylko niewielkie schronisko. Pierwsze wejście do jaskini nastąpiło 13 kwietnia 1997&nbsp;r. Pierwsza informacja na temat jaskini ukazała się w materiałach sympozjalnych 31 Sympozjum Speleologicznego&nbsp;w październiku 1997 r., a&nbsp;zaraz potem w numerze 18 Biuletynu Jaskinie Wyżyny. W obydwu przypadkach autorami byli A. Polonius i J. Sławiński. W tym samym roku (1997) W. Kuczok podaje swoją wersję odkrycia i eksploracji jaskini. <br /></p><span></span><span> Latem 1997&nbsp;r. otwór jaskini został zamknięty metalowymi drzwiami. <br /></span><span>&nbsp;W&nbsp;1998 roku W. Kuczok najpierw odnosi się do prawidłowości pisowni nazwy jaskini a później do następujących po sobie kilku włamań do obiektu. </span><span>Ponownie w 1998 roku M. Bąk usiłuje określić problemy eksploracyjne. W tym samym roku (1998) A. Polonius podaje dalsze szczegóły poznania jaskini. Ponownie w&nbsp;tym samym roku M. Szelerewicz opisuje prace kartograficzne i podaje dane kartometryczne. <br /></span><span>&nbsp;</span><span>W roku 1999, w wyniku jednej z wielu prób włamania, został uszkodzony zamek w drzwiach wejściowych. Uszkodzenie całkowicie uniemożliwiło wejście do wnętrza. Jaskinia przez kilka lat była zamknięta również dla osób posiadających klucze. </span><span>Na początku roku 2003 do jaskini weszli członkowie Speleoklubu „Aven” z&nbsp;Sosnowca. Po wycięciu uszkodzonego zamka, dokonali naprawy drzwi i wymienili zamki, umożliwiając normalne korzystanie z wejścia, oczywiście przy użyciu klucza. </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <span></span><span>W&nbsp;uzupełnieniu do dokumentacji dla Zarządu Zespołu Jurajskich Parków Krajobrazowych woj. katowickiego jaskinię można znaleźć pod numerem IV.B.115. Opis i plan jaskini znajduje się również w dokumentacji dla Ministerstwa Środowiska z&nbsp;roku </span>2000<span>. Pomiary w&nbsp;jaskini wykonał w&nbsp;październiku 1998&nbsp;r. M. Szelerewicz, A. Górny, P. Malina i&nbsp;J. Sławiński. Dane zaktualizował A. Polonius (2009).</span><br />Plan opracował Mariusz Szelerewicz.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Polonius A., Sławiński J. 1997a; Polonius A., Sławiński J. 1997b; Kuczok W. 1997; Kuczok W. 1998a; Kuczok W. 1998b; Bąk M. 1998b; Polonius A. 1998; Szelerewicz M. 1998; Molenda R, G&#243;rny A, Polonius A, 2000; Jaskinie Wyżyny Częstochowskiej 2011c (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Polonius A. i in. 1997; Polonius A. i in. 2000 (dokumentacja); Polonius A. 2003.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1978)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

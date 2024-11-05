@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1227">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1227;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "571188,33".replace(',', '.') + "," + "154512,83".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1227','Jaskinia Kasprowa Niżnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Kasprowa Niżnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                W Kasprowej II, Kasprowa Dolna, Dziura za Polaną, Kasprowa Grota
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-16.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;58′42,84″, φ: 49&#176;15′14,31″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                WNW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1228
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                22
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                25
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                47
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    3020
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                780
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Przy dnie Doliny Kasprowej, w p&#243;łnocnym skraju zbocza Zawraciku Kasprowego, na południe od Kasprowej Polany. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Dojście prowadzi z Kuźnic zielono znakowaną drogą wiodącą na Myślenickie Turnie do miejsca, gdzie opuszcza ona dno Kasprowego Potoku. Szlak tu zakręca, my idziemy prosto wyraźną, nieznakowaną ścieżką, która prowadzi tuż przy suchym zwykle korycie potoku. Po około 170 m docieramy do poszukiwanego otworu, położonego pod małą skałką. Wiosną wody roztopowe wypływają z jaskini i wypełniają potok. Dojście bez trudności, zwiedzanie wymaga użycia specjalistycznego sprzętu jaskiniowego i nurkowego. Bez nurkowania dostępna jest główna część jaskini (poza ciągami syfonów) jedynie przy niskich stanach wody, zwykle zimą lub podczas suszy latem. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Obszerny otw&oacute;r o szerokości około 3 m&nbsp;i 1,2 m&nbsp;wysokości wiedzie do Komory Wstępnej (około 8 m&nbsp;długości, 5 m&nbsp;szerokości i 4 m&nbsp;wysokości) o dnie zasłanym rumoszem i&nbsp;piaskiem. Komora opada do niskiego przełazu, za kt&oacute;rym biegnie niski korytarz z filarami skalnymi. Po około 12 m&nbsp;strop zaczyna się podnosić, a w gliniastym namulisku jest coraz więcej piasku i żwiru granitowego. W najniższym miejscu, (około 12 m w stosunku do otworu), tworzy się często okresowe jeziorko, kt&oacute;re można minąć bocznym, niskim korytarzykiem odchodzącym nieco wcześniej, po lewej stronie. Korytarzyk ten ma skalne dno, niewielkie nacieki, uchodzi do ciągu gł&oacute;wnego dwoma otworami nad małymi prożkami (1,2 m&nbsp;i 2 m). Z obniżenia ciągu gł&oacute;wnego (w okresowe jeziorko) odgałęzia się na prawo korytarz zasłany piaskiem. Za niskim przełazem w tym korytarzu, biegnie w&nbsp;kierunku powierzchni terenu wygodny ciąg o długości około 60 m. Ma on przeszkodę, jaką tworzy jeziorko lub okresowo &ndash; syfon. Na dnie zalega osad piaszczysto-gliniasty z&nbsp;rumoszem, a za jeziorkiem widać nagromadzenie żwiru granitowego, jest też nieco stalagmit&oacute;w, a także pokruszone polewy naciekowe. Od tego ciągu odgałęzia się na prawo kilkunastometrowa pochylnia (nie uwzględniona na planie) oraz kilkumetrowy kominek. Korytarz kończy idąca w g&oacute;rę, wąska szczelina między skałą a osypującym się rumoszem.&nbsp;<span>W zwężeniu tkwi belka, przyniesiona podczas eksploracji lub przywleczona wraz z rumoszem przez wodę od strony powierzchni. </span></span></p>
+<p><span>Kolejnym odgałęzieniem od okresowego jeziorka w ciągu gł&oacute;wnym (punkt &ndash;12 m) jest wiodące r&oacute;wnież na prawo, niskie obejście tego ciągu, wymagające czołgania. Zaczyna się ono 1,4-metrowym prożkiem, dalej wiedzie do niewielkiej salki ze słupem naciekowym przy ścianie. W piaszczystym namulisku widać pokruszone polewy. Z salki, nad dwoma prożkami (1,6 m&nbsp;i 2 m ), biegną dwa r&oacute;wnoległe korytarzyki. Łączą się one zaraz i uchodzą do Komory za Progiem w gł&oacute;wnym ciągu.</span></p>
+<p><span>Gł&oacute;wny korytarz za okresowym jeziorkiem w ciągu gł&oacute;wnym (punkt &ndash;12 m) wznosi się i jest coraz wyższy. Za 2-metrowym, skalnym prożkiem opada zaraz 4,5 m&nbsp;pr&oacute;g (przydatna lina) do niewielkiej Komory za Progiem. Pod progiem na prawo widać ujście opisanego wyżej obejścia, na lewo zaś wiedzie ku SE obszerny korytarz o piaszczystym dnie. W korytarzu jest most skalny. Docieramy do wysokiej Komory pod Wielkim Progiem. Gł&oacute;wny ciąg wiedzie na prawo w g&oacute;rę, przez Wielki Pr&oacute;g, natomiast na wprost w d&oacute;ł, odchodzą Partie Gąbczaste z wieloma jeziorkami i syfonikami.</span></p>
+<p><strong><span>Partie Gąbczaste.</span></strong></p>
+<p><span>Schodzimy do tych partii przez pochyły pr&oacute;g o wysokości 3 m. Spod niego opada obszerny korytarz o piaszczystym dnie. Mijamy duży stalagmit, dalej przechodzimy przez dwa jeziorka, wysychające czasami. Pierwsze z nich zajmuje całą szerokość korytarza, lecz można je pokonać trawersując prawą ścianą. Za drugim jeziorkiem następuje gł&oacute;wne rozgałęzienie Partii Gąbczastych na trzy ciągi. </span></p>
+<p><span>1. Prawy ciąg zaczyna się małym otworem w prawej ścianie. Ciasny korytarzyk o&nbsp;owalnym przekroju prowadzi nas do g&oacute;ry, przez kałużę w zagłębieniu dna, do bariery skalnej. Za nią jest okresowy, wiszący syfonik. Ma on małą pojemność i można go szybko zlewarować. Za następną barierą, jaką tworzy mały prożek (1,2 m), opada pochylnia wiodąca do płytkiego jeziorka w wąskiej i niskiej rurze. Jeziorko (po przejściu przez nie) można r&oacute;wnież szybko zlewarować na drugą stronę. Rura dalej wiedzie nad 3,7-metrową studzienkę. Tuż przed nią, w lewej ścianie, jest rurowaty korytarzyk, kt&oacute;ry za 5-metrowym kominkiem staje się bardzo ciasny i błotnisty. Uchodzi on małym okienkiem w stropie Wielkiego Korytarza (opisanego niżej). </span></p>
+<p><span>Wracamy do wyżej wspomnianej, 3,7-metrowej studzienki. Schodzimy nią niecałe 2 m, do otworu niskiej pochylni, kt&oacute;ra prowadzi w g&oacute;rę i uchodzi następnie przy dnie Wielkiego Korytarza. Na dnie studzienki widać małe jeziorko. Można tuż nad nim przetrawersować do środkowego ciągu Partii Gąbczastych &ndash; do Korytarza Piętrowego.</span></p>
+<p><span>2. Korytarz Piętrowy jest kontynuacją wstępnego korytarza Partii Gąbczastych. Na jego dnie gromadzi się woda w postaci dw&oacute;ch jeziorek. Pierwsze z nich obchodzimy nad mostem skalnym będącym g&oacute;rnym piętrem korytarza, rozmytym na tej samej szczelinie. Drugie jeziorko jest głębokie; okresowo bywa syfonem. Przy bardzo niskich stanach wody można przejść nad nim zapieraczką, przy wyższych stanach &ndash; trzeba je zlewarować (trwa to długo ze względu na dużą pojemność). Za jeziorkiem docieramy do wysokiej, poprzecznej szczeliny, z kt&oacute;rej wiodą dwie drogi: pierwsza &ndash; na prawo, przez pochyły prożek do g&oacute;ry i dalej korytarzykiem, prowadzi do 3,7-metrowej studzienki, opisywanej w&nbsp;prawym Ciągu; druga &ndash; zapieraczką pod strop szczeliny (około 5 m), do wylotu korytarza, kt&oacute;ry po kilkunastu metrach opada 3-metrowym progiem do Wielkiego Korytarza. </span></p>
+<p><span>3. Lewy Ciąg wiedzie od gł&oacute;wnego rozgałęzienia Partii Gąbczastych na lewo, mytym, obszernym korytarzem ze studzienkami wypełnionymi wodą i z okresowym ciekiem. Niekt&oacute;re z tych studzienek są wylotami syfonik&oacute;w tworzących dolne piętro korytarza. Po kilkudziesięciu metrach, za zakrętem na prawo, docieramy do rur i pochylni rozmytych na poprzecznej szczelinie, będących obejściem części korytarza. Nieco dalej spotykamy jeziorko, kt&oacute;re przy wyższych stanach wody pokonujemy trudną zapieraczką, a zaraz za nim &ndash; stały syfon&nbsp;o długości 7 m. Syfon można częściowo zlewarować po przeciwnej stronie, ku SE. Potrzeba co najmniej 14 m lewara, wg Koisara (1971) przelewana woda znika po paru metrach w strefie ponorowej utworzonej na pęknięciu widocznym w prawej ścianie korytarza. Ostatnio (w 2001 r.) R. Szaniawski z SW przebywał syfon stosując technikę nurkowania swobodnego. Z syfonu wyprowadza gładki prożek do lekko opadającego korytarza, w kt&oacute;rym pokonujemy 2,5 m&nbsp;pr&oacute;g w d&oacute;ł. Korytarz wiedzie do zygzakowatego zakrętu z małym, okresowym jeziorkiem w obniżeniu ciągu. Dalej wznosi się on, zakręca lekko na lewo i przechodzi w wysoki korytarz o dnie zasłanym piaskiem (często powstaje tu jeziorko). Tuż przed zakończeniem tego korytarza, w prawej ścianie widać okno nad 1,6-metrowym&nbsp;prożkiem. Prowadzi ono nad 7,5-metrowy, śliski, trudny pr&oacute;g skalny, w g&oacute;rnej części pochyły, niżej pionowy (w zejściu przydatna lina). Pod progiem ciąg zakręca na lewo, a&nbsp;w&nbsp;zasłanym piaskiem obniżeniu okresowo zbiera się woda. 1,4-metrowy prożek za obniżeniem wyprowadza do wznoszącego się korytarza, w kt&oacute;rym niebawem spotykamy rozwidlenie. Stąd odchodzi boczny, ciasny ciąg na prawo wstecz, do g&oacute;ry. Wiedzie on niewielkim korytarzykiem, przez 1,4-metrowy&nbsp;prożek, do ciasnego, wiszącego syfoniku, łączącego się zapewne z ciasną, zalewaną odnogą Wielkiego Korytarza. Natomiast idąc od ostatniego rozwidlenia nieco na lewo wysoką, soczewkową szczeliną z rozcięciem erozyjnym w dnie, spotykamy 2,4-metrowy, ukośny prożek do g&oacute;ry. Nad nim idziemy kilkadziesiąt metr&oacute;w szczelinowym korytarzem (o przebiegu prawie r&oacute;wnoległym do opisanego niżej Wielkiego Korytarza), aż do miejsca, gdzie za odejściem kr&oacute;tkiej, ciasnej odnogi, widocznym po lewej (N) stronie, na prawo, w stropie szczeliny (2&nbsp;m nad dnem) odnajdujemy przejście do ciasnego ciągu (zapieraczka). Prowadzi on do Sali Rycerskiej (opisanej niżej, położonej w gł&oacute;wnym ciągu jaskini).</span></p>
+<p><span>Wracamy do gł&oacute;wnego ciągu jaskini, pod Wielki Pr&oacute;g. Wspinamy się nim (dość trudno). Dolną jego część stanowi 4,3-metrowy pr&oacute;g skalny, nad kt&oacute;rym wznosi się stroma, gliniasta pochylnia. Docieramy nią pod 6-metrowy, przewieszony komin. Można go obejść idąc z&nbsp;końca pochylni na prawo, zapieraczkowym, ciasnym kominkiem zwanym Ślimakiem. Wychodzimy ze Ślimaka tuż nad gł&oacute;wną częścią Wielkiego Progu (nad wylotem wspomnianego, przewieszonego komina), w Komorze Stalaktytowej. Ściany i strop tej rozwiniętej na szczelinie komory ozdabia bogata szata naciekowa. Pod stropem Komory Stalaktytowej można dostać się do kolejnego obejścia ciągu gł&oacute;wnego (są w nim ładne nacieki). Trawersujemy po stalagmitach nad ujściem Wielkiego Progu i dalej, nad zwykle dość głębokim jeziorkiem (okresowo jednak zupełnie wysychającym). Za nim, z małego rozszerzenia wznosi się 2-metrowy pr&oacute;g skalny, nad kt&oacute;rym biegnie obszerny korytarz z&nbsp;niewielkimi stalaktytami. Doprowadza on nas nad 6-metrowy pr&oacute;g skalny. Uchodzi tu kilka bocznych ciąg&oacute;w: po lewej stronie, nad 3-metrowym progiem, widać ujście korytarza wiodącego spod stropu Komory Stalaktytowej; na prawo, wstecz można dostać się przez pochyłą ścianę do około 10-metrowego korytarzyka, a tuż obok, na prawo od niego, rozpoczyna się większy, rozwinięty w pionie i rozgałęziony system ciasnych, mokrych i&nbsp;bardzo błotnistych korytarzyk&oacute;w. System ten doprowadza m. in. do małego syfoniku (na wprost), kilku ślepych odn&oacute;g oraz do gł&oacute;wnego ciągu (uchodzi pod uprzednio wymienionym, 6-metrowy progiem). </span></p>
+<p><span>Spod 6-metrowego progu w ciągu gł&oacute;wnym opada piaszczysty korytarz, kt&oacute;rym docieramy nad 1,6-metrowy prożek, sprowadzający do małej komory nazwanej przez M.&nbsp;Zaruskiego Gniazdem Złotej Kaczki. Przy dnie komory, pokrytym grubą warstwą piasku, na prawo wiedzie ciasny przełaz &ndash; syfon, okresowo zalewany przez wodę i&nbsp;zasypywany niesionym przez nią piaskiem. Pod lewą ścianą komory znajduje się wchłon, jednak systematycznie zasypuje go piasek. Kiedy Gniazdo Złotej Kaczki jest zalane, w głąb jaskini można dotrzeć przez Partie Gąbczaste, konieczne jest tam jednak lewarowanie syfon&oacute;w. Według opartej na wieloletnich obserwacjach relacji E. Winiarskiego, syfon w&nbsp;Gnieździe Złotej Kaczki ma połączenie z jeziorkiem w korytarzu wstępnym, a więc obecność wody w korytarzu wstępnym wskazuje na jej wysoki poziom w syfonie. Za przełazem wyprowadzającym z Gniazda Złotej Kaczki znajduje się owalna salka ograniczona pochyłym progiem (4,5 m), wiodącym w g&oacute;rę. Nad nim biegnie ku W dość obszerny Wielki Korytarz (dawniej nazywany Wielkim Chodnikiem), o długości około 100&nbsp;m, kt&oacute;ry na początku opada, następnie wznosi się łagodnie. Jego dno pokryte jest osadem gliniasto-piaszczystym oraz dużymi głazami. Mijamy okno w stropie i dalej dwa ujścia korytarzyk&oacute;w widoczne pod lewą ścianą, a zaraz za nimi trzeci wylot, położony nad 3-metrowym prożkiem. Wszystkie te otwory wyprowadzają z Partii Gąbczastych. Nieco dalej, po tej samej stronie korytarza, odchodzi kilkunastometrowe, boczne odgałęzienie, następnie kr&oacute;tki korytarzyk tworzący ucho skalne, i kilkumetrowa, zwężająca się znacznie odnoga, okresowo zalewana wodą (odnoga ta prawdopodobnie łączy się syfonem z wyżej opisanym szczelinowym korytarzem, biegnącym na lewo od Sali Rycerskiej). W obniżeniach Wielkiego Korytarza r&oacute;wnież okresowo zbiera się woda. Powstają dwa duże jeziorka, z&nbsp;kt&oacute;rych pierwsze można pokonać wpław lub na pontonie, a drugie przejść po ustawionych tu głazach. Docieramy w końcu do Sali Rycerskiej. Jest to największa sala w jaskini (około 16 m długości, 12 m szerokości i 8 m wysokości). Ma ona charakter zawaliskowy, na dnie zalegają duże wanty i gruz wapienny. Tu gł&oacute;wny ciąg rozgałęzia się.</span></p>
+<div><strong><span>Ciąg P&oacute;łnocny (z Sali Rycerskiej w kierunku syfon&oacute;w).</span></strong></div>
+<p><span>Z Sali Rycerskiej na lewo opada stromo wąski korytarzyk, kt&oacute;ry uchodzi w ścianie przebiegającego prostopadle, szczelinowego korytarza, 2 m&nbsp;nad jego dnem. Korytarz ten na lewo biegnie w kierunku syfonu w Lewym Ciągu Partii Gąbczastych (ciąg opisany wyżej), na prawo zaś &ndash; w stronę Syfonu Danka rozpoczynającego ciąg partii stale zalanych wodą (Syfony Końcowe). Idąc na prawo spotykamy zaraz rozszerzenie z uchem skalnym i małymi prożkami. Dalej wiedzie rozmyty na szczelinie korytarz, kt&oacute;rym po kilkudziesięciu metrach docieramy do niewielkiej, tr&oacute;jkątnej salki. Odchodzi stąd na lewo boczny ciąg (nie dokumentowany) stanowiący obejście korytarza gł&oacute;wnego na odcinku około 30 m. Wg planu i opisu Koisara (1971) łączna długość korytarzy stanowiących obejście wynosi około 40 m, przy czym trzeba pokonać trzy syfony i jedno jeziorko. </span></p>
+<p><span>Z tr&oacute;jkątnej salki idziemy gł&oacute;wnym korytarzem o charakterze szczeliny (w jej stropie znajdują się otwory ciasnych komink&oacute;w), do niewielkiego rozszerzenia ciągu. W g&oacute;rę wiedzie stąd 10-metrowy, ciasny komin, rozszerzający się ku dołowi (pokonujemy go zapieraczką, przydatna lina). Prowadzi on do wyższego piętra korytarzy. Nad kominem przechodzimy przez ciasny przełaz z okresową kałużą, kt&oacute;rą można wyczerpać. Dalej jest mniej ciasno, na lewo opada 2-metrowy prożek prowadzący do ww. bocznego ciągu, natomiast na prawo, za uchem skalnym, wchodzimy przez dwa małe (1,4 m) prożki do obszerniejszego korytarza gł&oacute;wnego, od kt&oacute;rego odgałęzia się kilka obejść. Partie te tworzą ładnie myte, szczelinowe korytarze lub owalne w przekroju rury. Zaraz za wspomnianymi dwoma małymi prożkami, po prawej stronie, są dwa kr&oacute;tkie obejścia ciągu gł&oacute;wnego, a kilkanaście metr&oacute;w dalej, po lewej stronie zaczyna się najdłuższe obejście. Jest ono ciasne, ma kilkadziesiąt metr&oacute;w długości i posiada trzy dalsze połączenia z ciągiem gł&oacute;wnym. Korytarz ciągu gł&oacute;wnego ma na tym odcinku kilka zakręt&oacute;w, jest generalnie prawie poziomy, pokonujemy w nim jednak prożki i przegrody skalne sterczące z piaszczystego dna. Dalej dno jest skalne, prawie pozbawione osad&oacute;w. Po lewej stronie, nad 2 m&nbsp;prożkiem, widać otw&oacute;r kolejnego, tym razem kr&oacute;tkiego, obejścia. Następnie trawersujemy po prawej stronie (do g&oacute;ry) nad jeziorkami &ndash; wylotami kr&oacute;tkiego syfonu. Przy drugim z kolei jeziorku, po obu stronach korytarza są obejścia filar&oacute;w skalnych. Za nimi gł&oacute;wny korytarz o skalnym dnie biegnie prawie prosto i nie ma odgałęzień. Zmienia na niewielkim odcinku charakter przechodząc w ukośną szczelinę, a po około 40 metrach na lewo odchodzi od niego kolejne ciasne obejście. Schodzimy przez mały prożek (1,7 m), pod kt&oacute;rym pojawia się nieco rumoszu i piasku. Tuż za miejscem, gdzie ostatnie obejście powraca do ciągu gł&oacute;wnego, opada pr&oacute;g (zmiennej wysokości zależnej od stanu wody, zwykle około 4 m) wprost do jeziorka zaczynającego Syfon Danka. Wygodniej zejść do tego jeziorka za filarem skalnym, po prawej (S) stronie. Przy zwiedzaniu dalszych partii w&nbsp;tym ciągu, zawsze zalanych wodą (z&nbsp;kr&oacute;tkimi odcinkami suchymi), potrzebny jest sprzęt i umiejętności niezbędne do nurkowania jaskiniowego. </span></p>
+<p><span>Ciąg Syfon&oacute;w Końcowych poznany na odcinku 650 m, przedzielony jest tylko niewielkimi odcinkami suchymi. Ciąg ten zaczyna Syfon Danka (I syfon) o długości 6 m i głębokości około 3 m. Za nim przebywamy kilkumetrowej długości Salę Błotnego Robola (okresowo jej dno zajmuje jeziorko), od kt&oacute;rej na prawo, stromo do g&oacute;ry odchodzi ciasna, błotnista rura (Korytarz Błotnych Feston&oacute;w). Dalej nurkujemy w Syfonie Krakowskim o&nbsp;długości 15 m i głębokości około 4 m (II syfon). Wychodzimy z wody przez niewielki prożek do obszernej Sali Kaskad, długości około 10 metr&oacute;w, wysokiej na około 6 m. Płynie przez nią potok, szumiąc na małych kaskadkach. W SE zakończeniu sali, pod przegrodami skalnymi zanurzonymi w wodzie, jest kr&oacute;tki (punktowy) i płytki, lecz ciasny Syfonik Mumink&oacute;w (III syfon). Wielu płetwonurk&oacute;w musi zdejmować tu sprzęt, aby go przebyć. Za tym syfonikiem znajduje się obszerny Syfon Mamuci (IV syfon) o długości 42&nbsp;m i głębokości 14 m. Wyprowadza on pod Komin Kaskader&oacute;w (około 4 m wysokości), kt&oacute;rym spływa woda z&nbsp;wyżej położonego, następnego syfonu. Wygodniej wspiąć się tam kominem odchodzącym z&nbsp;Syfonu Mamuciego kilka metr&oacute;w wcześniej; jest nieco wyższy lecz łatwiejszy (zaczyna go 2-metrowy pionowy pr&oacute;g, oddzielony p&oacute;łką od następnego stopnia skalnego). Pokonanie każdego z wariant&oacute;w wymaga zdjęcia w wodzie sprzętu nurkowego i wyciągnięcia go p&oacute;źniej za pomocą liny. Nad kominem obejściowym na lewo widać inne połączenie z Syfonem Mamucim, a w prawo docieramy zaraz do wylotu Komina Kaskader&oacute;w (jest nad nim niezbadany kominek w stropie) i nieco dalej, do jeziorka rozpoczynającego Syfon Warszawiak&oacute;w (V syfon).&nbsp;</span></p>
+<p><span>Jest to największy z&nbsp;dotychczas poznanych syfon&oacute;w w Polsce, ma 333 m długości i 22 m głębokości. Blisko początku rozgałęzia się on na obszerny korytarz g&oacute;rny i ciaśniejszy &ndash; dolny &ndash; oba o&nbsp;przekroju rur. Nie ma tu &bdquo;sera&rdquo;, czy &bdquo;labiryntu&rdquo;, o jakim pisał odkrywca, a tylko kilka grodzi skalnych i ciasnych prześwit&oacute;w. W g&oacute;rnej gałęzi syfonu na początku spotykamy trzy kolejne bąble powietrzne (pierwszy z nich bywa połączony ze wstępnym jeziorkiem) określane przez odkrywc&oacute;w kolejno jako syfon VI, VII, VIII. Ponieważ jest to jednak jeden syfon (można płynąć bez konieczności wynurzania się w bąblach), zaproponowano więc dla nich nazwy: Komora z Grodzią, Duża Komora i&nbsp;Mała Komora). Korytarze g&oacute;rny i&nbsp;dolny łączą się po kilkunastu metrach w mytą rurę o średnicy około 2 m, miejscami węższą. Przechodzi ona dalej w szczelinę wysoką na 8 m, zwężającą się ku dołowi. Stwierdzono w niej kilka bąbli powietrznych (w zwężeniach) oraz szczelin i komink&oacute;w odchodzących do g&oacute;ry, a także do dołu (sprawdzono dotychczas tylko jeden z komink&oacute;w). Za szczeliną biegnie zn&oacute;w pięknie myty korytarz o owalnym kształcie, przechodzący w&nbsp;końcową pochylnię. Dno syfonu tworzy zmiennie naga skała i ciężki piasek nie mącący wody podczas nurkowania. Syfon ma wiele zakręt&oacute;w, zmierza og&oacute;lnie ku SE, a następnie ku E. Miejscami opada on do około 20 m głębokości, miejscami zbliża się do poziomu zerowego (wymusza niebezpieczny profil nurkowania typu jojo). </span></p>
+<p><span>Z syfonu wynurzamy się w Sali Urodzinowej o długości kilkunastu metr&oacute;w, szerokości około 7 m i wysokości około 8 m. Za nią opada stromo Syfon Kondoniarzy (VI syfon). Ma on 167 m długości i 24 m głębokości, zakręca kilkakrotnie pod ostrym kątem, a po pierwszym zakręcie zmienia og&oacute;lny kierunek ze wschodniego na SSW. Jest myty, jeszcze bardziej obszerny niż poprzedni syfon i ma dwa zwężenia. Za Syfonem Kondoniarzy wiedzie ku SE suchy ciąg wymyty na szczelinie, miejscami przechodzący w rurę. Jest on na początku poziomy, dalej wznosi się i w końcu opada 10-metrowym&nbsp;progiem. Przy pierwszym zakręcie tego ciągu odgałęzia się na lewo nie zaznaczony na planie korytarz o przekroju rury, zakręcający kilkakrotnie pod ostrym kątem. Wiedzie on stromo do g&oacute;ry, buć może w kierunku wyższych, jeszcze nie znanych, suchych partii (zbadano około 20 m tego korytarza. Skała w suchym ciągu ma ostre krawędzie. Na dnie widać liczne kałuże. Dalej korytarz jest węższy i opada śliskim, stromym prożkiem (potrzebna lina) do Syfonu FFS (nazwany tak dla uhonorowania Francuskiej Federacji Speleologicznej, kt&oacute;ra szkoliła odkrywcę). Syfon ma 70 m długości i do 12 m głębokości, jest o przekroju mytej rury średnicy około 2 m, bez osad&oacute;w. W jego wstępnych partiach zmierzających ku wschodowi spotykamy dwa bąble powietrzne. Po około 20 m syfon zakręca na prawo wstecz i opada pochyłą studnią, 20 m dalej zakręca na lewo i biegnie generalnie na południe, a przy końcu wznosi się stromo i przed ujściem rozgałęzia na wiele odn&oacute;g, z kt&oacute;rych zbadano dwie największe. Gł&oacute;wna gałąź syfonu (skierowana ku E) uchodzi zaraz pod 13-metrowym Kominem Wyjściowym. Komin jest trudny, pokonany do wysokości 9 m (spit). Widać, że nad nim kontynuuje się obszerny korytarz. Inna gałąź syfonu (skierowana ku S) uchodzi do prawie poziomego ciągu, kt&oacute;ry zaraz rozwidla się: na prawo wstecz wiedzie kr&oacute;tka, ciasna odnoga zakończona jeziorkiem, a na wprost &ndash; poprzecznie przebiegający, obszerny korytarz gł&oacute;wny. Ku SE, po około 10 m, za nagromadzeniem piasku, następuje w nim rozwidlenie na dwie odnogi, kt&oacute;re wznoszą się, następnie stromo opadają i łączą przy Syfonie Błotnym. Ten nie zbadany jeszcze syfon opada pionową studnią, a jego ściany (i ściany sąsiadujących suchych partii) pokrywa warstwa mułu (błota) &ndash; stąd nazwa. </span></p>
+<p><span>Wracamy do korytarza gł&oacute;wnego. Idąc w przeciwnym kierunku, za odejściem do Syfonu FFS, korytarz ten został nazwany przez odkrywcę Korytarzem Zlotowym.Zakręca on na lewo i biegnie kilkadziesiąt metr&oacute;w na zach&oacute;d, zakręcając łagodnie kilka razy. Pokonujemy w nim jeziorko. Na końcu korytarz opada stromą pochylnią do zalanej wodą studni niezbadanego Syfonu Kociego, wiodącego wprost w d&oacute;ł. Długość suchych ciąg&oacute;w za Syfonem FFS wynosi około 90 m. </span></p>
+<div><span>Wracam y do Sali Rycerskiej.</span></div>
+<p><strong><span>Ciąg Południowy (z Sali Rycerskiej w kierunku Partii Sylwestrowych).</span></strong></p>
+<p><span>Z końca Sali Rycerskiej wspinamy się na prawo 3,5-metrowym, łatwym progiem. Stanowi on barierę głębokiego, wiszącego jeziorka, położonego w zagłębieniu skalnym, tuż nad progiem. Omijamy jeziorko trawersując z prawej strony. Za wąską groblą skalną spotykamy kolejne jeziorko. Ponad groblą odchodzi do g&oacute;ry ślepy komin (8-10 m wysokości, sądząc z przekroju Kowalskiego, 1953a). Jeziorko jest rozległe (ma około 8&nbsp;m długości), zajmuje całą szerokość korytarza, kt&oacute;ry w połowie zwęża się, następuje też obniżenie jego stropu, tak, że okresowo powstaje tu syfon. Za obniżeniem strop gwałtownie podnosi się. Jeziorko po częściowym zlewarowaniu pokonujemy wpław lub na pontonie. Piaszczysta plaża w korytarzu za jeziorkiem przechodzi w pokryte dużymi głazami dno zawaliskowej Sali Złomisk o wymiarach około 12x10 x6 m. Na prawo odchodzi z&nbsp;niej kr&oacute;tki, ślepy korytarzyk, kt&oacute;ry wg Koisara (1971) jest miejscem o dużym nagromadzeniu unikatowych konkrecji błotno-piaskowych. Sala przechodzi w piaszczysty korytarz z&nbsp;dużym jeziorkiem, kt&oacute;re pokonujemy po głazach po prawej stronie. Jeziorko zamyka grobla skalna opadająca 1,5 m&nbsp;prożkiem do piaszczystego korytarza zwanego Piaszczystym Syfonem (pod obniżeniem jego stropu często zbiera się woda tworząc okresowy syfon). Dalej korytarz wznosi się, a przy prawej ścianie omijamy dużą kolumnę naciekową. Za małym prożkiem do g&oacute;ry ciąg opada pod pionowy pr&oacute;g skalny (4 do 6 m). Wcześniej na prawo odchodzi kr&oacute;tkie odgałęzienie. Nad progiem po lewej stronie odgałęzia się tzw. Obejście Zapałek (z kilkoma jeziorkami), a nieco na prawo ciągnie się rozwinięty na pionowej szczelinie korytarz, do połowy wysokości zalany wodą (Jeziorko z Zapałkami o długości 14 m). Pokonujemy go po zaklinowanych nad wodą żerdkach, zwanych zapałkami. Docieramy nad 4-metrową studnię z głębokim jeziorkiem na dnie. Najlepiej pokonać ją trawersując do ciasnego okna i zjeżdżając z mostu na druga stronę, już za jeziorko. Zaczynają się tu błotne, bardzo śliskie pochylnie zwane Golgotą. Na lewo od nich odchodzą Partie Zakopiańskie (najlepiej trafić tam zjeżdżając studnią wprost, bez trawersu do mostu), a na prawo &ndash; Partie Krakowskie (wygodniej dostać się do nich zjazdem z mostu z uprzednio wspomnianej studni).</span></p>
+<p><span>1. Do Partii Zakopiańskich wiedzie błotnisty korytarz (pochylnia), kt&oacute;ry biegnie od wspomnianego już jeziorka w Golgocie stromo do g&oacute;ry i przechodzi w prawie pionową, śliską ściankę. W lewej, g&oacute;rnej części ścianki odchodzi szczelina, kt&oacute;ra wznosi się, a następnie opada studzienką. Na prawo od szczeliny jest jej obejście. Oba warianty łączą się zaraz w kilkudziesięciometrowy, mulisty, ciasny korytarzyk, lekko opadający. Na początku tego ciągu dochodzi do niego Obejście Zapałek, a kończy go 7-metrowa studnia z błotnym jeziorkiem czy raczej syfonem na dnie.</span></p>
+<p><span>2. Do Partii Krakowskich prowadzi okno w prawej ścianie błotnistego korytarza biegnącego od jeziorka w Golgocie. Ciąg Partii Krakowskich jest błotnisty, z wieloma małymi prożkami i jeziorkami. Za oknem opada 3-metrowy prożek do małej salki o grząskim, błotnistym dnie. Idziemy stąd w g&oacute;rę, do okna pod stropem salki. Wznosząca się rynna skalna prowadzi nad brzeg wiszącego jeziorka, kt&oacute;re można pokonać w br&oacute;d. Mulisty korytarz za nim zamyka następne jeziorko, kt&oacute;re omijamy obejściem z lewej strony. Za kolejnym jeziorkiem wiedzie ku E korytarz z licznymi małymi prożkami (1-2,7 m) , od kt&oacute;rego odchodzą na prawo niewielkie odgałęzienia ślepo zakończone. Są w nim też kr&oacute;tkie obejścia oraz ładne nacieki. Docieramy do studni (3,6 m) zajmującej całą szerokość korytarza, gdzie ciąg rozdziela się na dwa kilkudziesięciometrowe korytarze, prowadzące do Komory Gwiaździstej: korytarz biegnący za studnią opada stromą pochylnią z naciekami zakończoną progiem (6,6 m) do błotnistego ciągu, natomiast korytarz, kt&oacute;ry zaczyna się na dnie studni, wiedzie do małej studzienki, skąd wznosi się, a następnie opada systemem małych prożk&oacute;w i jest na całym odcinku bardzo błotnisty.</span></p>
+<p><span>Komora Gwiaździsta o kierunku N-S ma ponad 10 m długości i około 3 m szerokości. Na namulisku rozmywanym przez wodę tworzą się ciekawe formy błotne. Z komory odchodzą gwiaździście liczne odgałęzienia. Na wprost od wejścia do komory, wspinamy się około 30 m, a dalej, na lewo, biegnie 40-metrowy, ślepo zakończony korytarz, w kt&oacute;rym opada 20-metrowa studnia z wodą na dnie (korytarz ten nie był inwentaryzowany). Nieco na lewo od tego ciągu opada z komory dwoma progami (7 m&nbsp;i 3 m) ślepa studnia (konieczna lina). W jej rejonie widać wypreparowaną żyłę żelazistego piaskowca. Na prawo od studni, przez małe prożki w g&oacute;rę i w d&oacute;ł (lub kr&oacute;tkie obejście) i okresowe jeziorko, docieramy pod pr&oacute;g skalny (2 m) , kt&oacute;ry prowadzi do ciasnego korytarza. Po około 20 m drogę przegradza jeziorko możliwe do przebycia tylko przy niskich stanach wody (woda do niego dopływa systemem szczelin z lewej strony). Dochodzimy do poprzecznie biegnącego ciągu nazwanego Szczeliną. Do Szczeliny można też dotrzeć inną drogą: tuż na prawo od wejścia do Komory Gwiaździstej, nad 1,5-metrowym prożkiem biegnie korytarz, kt&oacute;ry przy odejściu w&nbsp;prawo kr&oacute;tkiej odnogi wznosi się na lewo. Dalej, za wiszącym jeziorkiem, wznosi się komin rozwinięty na poprzecznej szczelinie, od kt&oacute;rego 5 m nad dnem opada stromo ciasny ciąg łączący się z wyżej opisanym ciasnym korytarzem już za jeziorkiem, przy wejściu do Szczeliny. </span></p>
+<p><span>Szczelina rozwinięta na uskoku tektonicznym ma przekr&oacute;j soczewki, jest długa i wysoka na kilkanaście metr&oacute;w. Na niej następuje przesunięcie korytarza ciągu gł&oacute;wnego. Szczelina ku S wznosi się i&nbsp;przechodzi w zwężający się, bardzo ciasny komin. Ku N, za małą przegrodą, na lewo wstecz można wejść do wyższej jej partii, zakończonej r&oacute;wnież ciasnym, nieprzebytym do końca kominem. Na wprost, gł&oacute;wna część Szczeliny, z kilkoma mostami, wznosi się stromo progami (za drugim od dołu progiem na prawo wiedzie gł&oacute;wny ciąg), strop ucieka do g&oacute;ry i przechodzi w wąskie kominy. W dolnej części prog&oacute;w, z rozszerzonego lokalnie pękniecia, wypływa wodospad czynny nawet przy wyjątkowo niskich stanach wody, kt&oacute;ry zasila strumień płynący do wyżej opisanego jeziorka. Wg Koisara (1971) w Szczelinie <em>&bdquo;z rozszerzonego lokalnie pęknięcia wypływa woda dając początek strumieniowi płynącemu do jeziora. Przy średnich stanach ciśnienie wody w&nbsp;układzie jest tak wielkie, że woda tryska ze szczeliny tworząc fontannę o wysokości 1 m&rdquo;</em>. (Takiego stanu podczas inwentaryzacji nie obserwowano). Za przegięciem Szczelina opada do niezbadanego syfonu, z kt&oacute;rego prawdopodobnie zasilany jest wodospad.</span></p>
+<p><span>Gł&oacute;wny ciąg za Szczeliną biegnie dalej generalnie ku E. Odgałęziają się od niego na prawo ciasne odnogi (pierwsza w d&oacute;ł, dwie następne do g&oacute;ry). Kilka metr&oacute;w za małym obejściem z jeziorkiem opada 10-metrowa studnia, prowadząca do Okresowego Syfonu z&nbsp;gruboziarnistym piaskiem na dnie, dostępnego przy niskich stanach wody. Prowadzi on do Partii Sylwestrowych.</span></p>
+<p><span>3. Partie Sylwestrowe. W mytej, szczelinowej salce za syfonem następuje rozgałęzienie. Na wprost, pod stropem salki, odchodzi ponad 20-metrowy korytarz z czterema jeziorkami, zamknięty namuliskiem. Do g&oacute;ry, na lewo, wznoszą się w nim ciasne kominy. Ostatni, czwarty z&nbsp;komin&oacute;w (nad małym prożkiem), ma 10 m&nbsp;i przechodzi dalej w ciasny korytarzyk, kt&oacute;ry zakręca na prawo (zbadano go do zacisku). Stąd do syfonu spływa woda. Z salki za syfonem na lewo do g&oacute;ry wiedzie 4,5-metrowy pr&oacute;g do gł&oacute;wnego ciągu Partii Sylwestrowych. Za następnym progiem (1,5 m) następuje połączenie z obejściem, kt&oacute;re zaczyna się w salce, na prawo od poprzednio opisanego ciągu. Dalej pokonujemy pochyły, ciasny komin o&nbsp;wysokości 29 m (z kr&oacute;tką odnogą po lewej stronie). Prowadzi on do prawie okrągłej Wiszącej Salki (o średnicy około 3 m, wysokiej do 6 m) . Stąd biegnie poziomy korytarz z małymi prożkami, kt&oacute;ry za niewielkim jeziorkiem wznosi się progami o wysokości 3&nbsp;i&nbsp;5&nbsp;m, dalej prowadzi w d&oacute;ł do kr&oacute;tkiego obejścia, następnie w g&oacute;rę 3-metrowym progiem, w&nbsp;końcu opada stromo do Głębokiego Syfonu (korytarz ten ma około 85 m długości). Syfon zaraz na początku jest zamulony. Nad wejściem do niego, po prawej stronie widać okno, za kt&oacute;rym wiedzie do g&oacute;ry ciasny korytarzyk (nie zbadany do końca). </span></p>
+<p><span>Jaskinia rozwinęła się w gruboławicowych i nieuławiconych wapieniach malmo-neokomu w obrębie gł&oacute;wnej jednostki Zawratu Kasprowego fałdu Giewontu (seria wierchowa), na poziomie dna doliny i do około 30 m poniżej tego poziomu. Ma charakter wywierzyskowy. Dominuje kierunek ciąg&oacute;w WNW-ESE, choć wiele korytarzy powstało na szczelinach W-E, WSW-ENE. Korytarze są myte, występują partie gąbczaste, rury freatyczne, ale także korytarze i sale szczelinowe (na pęknięciach tektonicznych) oraz sale zawaliskowe. Na ścianach i stropie widać zagłębienia i kociołki wirowe.</span></p>
+<div><span>Związek jaskini z systemem podziemnego odwodnienia rejonu Hali Gąsienicowej oraz wywierzyskiem Goryczkowym przewidywano już od dawna (Zejszner, 1849, Wrzosek, 1933), potwierdzali go też S. Zwoliński (1955a), Z.W&oacute;jcik (1966a,1979), Dąbrowski, J. Głazek (1968), J. Rudnicki (1967). W&oacute;jcik (1966a) wyr&oacute;żnia w grocie piętra odpowiadające kolejnym etapom erozji na poziomie zr&oacute;wnań syfonalnych. Powstanie dw&oacute;ch najniższych pięter (wg własnego podziału piętrowego jaskiń tatrzańskich) datuje na w&uuml;rm, wyr&oacute;żnia też ewentualnie starsze, jeszcze niższe piętro (riss). Wiąże on zatopienie niekt&oacute;rych korytarzy z ruchami obniżającymi fragmentu masywu, mogące być następstwem odkształceń spowodowanych przez naciski mas lodowych w plejstocenie (W&oacute;jcik 1975b). Rudnicki (1967) przypuszcza, że system Kasprowej Niżniej jest wiekowo r&oacute;wnoczesny z&nbsp;systemem Lodowego Źr&oacute;dła, m&oacute;gł powstać w starszym plejstocenie. J. Grodzicki (1991) zwraca uwagę na rozw&oacute;j jaskini zgodnie z przebiegiem otwartych szczelin tektonicznych, poprzecznie do istniejących dolin. Nowsze badania udowodniły, że historia rozwoju jaskini jest skomplikowana i długa, wbrew poglądom przypisującym bardzo młody wiek grotom położonym na poziomie den dolin. H. Hercman (1983, 1986) na podstawie składu frakcji minerał&oacute;w ciężkich twierdzi, że jaskinia odprowadzała wody raczej ze skał p&oacute;łnocnej wyspy krystalicznej należy więc przyjąć kierunek cyrkulacji nie z E i SE, a z S i SW, choć autorka nie wyklucza też całkowicie kierunku z rejonu Hali Gąsienicowej, a&nbsp;oba kierunki potwierdzają podobne badania D. Kicińskiej&nbsp;(1996). [<em>Pamiętać należy, że w g&oacute;rnej partii Doliny Gąsienicowej występują skały p&oacute;łnocnej wyspy krystalicznej &ndash; stąd też stwierdzenie o&nbsp;odprowadzaniu w&oacute;d z p&oacute;łnocnej wyspy krystalicznej nie oznacza cyrkulacji w&oacute;d z kierunku S i SW &ndash; a także o fizycznym potwierdzeniu odprowadzania w&oacute;d z Doliny Staw&oacute;w Gąsienicowych do Wywierzyska Goryczkowego (Dąbrowski i&nbsp;Głazek 1967), stanowiącego wsp&oacute;łcześnie funkcjonujący fragment systemu Jaskini Kasprowej Niżniej </em>&ndash; przyp. red. nauk.]. Jaskinia została niedawno opuszczona przez wodę, stanowi &bdquo;zaw&oacute;r bezpieczeństwa&rdquo; w&nbsp;systemie cyrkulacji między Doliną Gąsienicową a&nbsp;Wywierzyskiem Goryczkowym i jest nieznacznie starszym odpowiednikiem tego wywierzyska. Badania wieku naciek&oacute;w wykazały, że utworzyła się ona już przed interglacjałem eemskim lub przed wcześniejszym okresem interglacjalnym.&nbsp;Była już osuszona około 200 tys. lat temu (w interstadiale lubelskim), przechodziła cykliczne zmiany klimatyczne &ndash; ocieplenia (zarazem okresy sedymentacji naciek&oacute;w) rozdzielane okresami wzmożonego dopływu wody (niszczenie i&nbsp;przerwy w ich sedymentacji), a ostatnia spośr&oacute;d siedmiu stwierdzonych tu faz krystalizacji pochodzi z&nbsp;holocenu (Hercman i in. 1987, Hercman 1991). Wielkość form korozyjnych (scallops) odpowiada przepływom rzędu 2&nbsp;m<sup>3</sup>/s w&oacute;d kształtujących jaskinię w ostatnim okresie, w&nbsp;kt&oacute;rym stanowiła ona przez dłuższy czas czynny wypływ (Hercman 1985).</span></div>
+<div>&nbsp;</div>
+<p><span>W jaskini występują osady klastyczne oraz chemiczne. Wśr&oacute;d osad&oacute;w klastycznych dominują drobnoziarniste piaski allochtoniczne (mediana 0,85 wg Z.W&oacute;jcika 1966 a), zmieszane miejscami z drobnym żwirem, a rzadziej głaziki. W wielu korytarzach występują ponadto iły rezydualne zmieszane z mułem i&nbsp;piaskiem, a&nbsp;w&nbsp;komorach zawaliskowych autochtoniczne głazowiska wapienne pokrywane okresowo drobnym piaskiem i mułem. Osady miejscami są silnie scementowane, występują kopalne zlepieńce allochtoniczne (we wstępnych partiach), a w g&oacute;rnych korytarzach muliste konkrecje cementacyjne nazywane kukiełkami jaskiniowymi zbadane przez Z. W&oacute;jcika (1961a) oraz Z. W&oacute;jcika i R. Gradzińskiego (1961). Namuliska allochtoniczne nie tworzą jednolitej pokrywy. W czasie wyższych stan&oacute;w wody ulega ona przemieszczaniu, a mulisty osad pokrywa ściany i w wielu miejscach strop (widać to już w Komorze Wstępnej). Długie odcinki korytarzy, szczeg&oacute;lnie w ciągu przed Syfonami Końcowymi i w samych syfonach, są pozbawione namuliska. Badania granulometryczne Z. W&oacute;jcika (1966a) wskazują, że wstępne partie jaskini mają charakter okresowego ponoru, a słabe wysortowanie materiału i duża w tych partiach mediana (35 mm) &ndash; na podobieństwo z jaskiniami przepływowymi. Badania stopnia obtoczenia ziaren kwarcu (Kicińska 1996) potwierdzają charakter wywierzyskowy groty. Analizę minerał&oacute;w ciężkich z pr&oacute;b pobranych we wstępnych partiach jaskini przeprowadziła H. Hercman (1986) &ndash; ich skład świadczy o pochodzeniu materiału gł&oacute;wnie ze skał metamorficznych p&oacute;łnocnej wyspy krystalicznej, oraz D.&nbsp;Kicińska (1996) &ndash; stwierdziła przewagę materiału pochodzącego z granitoid&oacute;w okolic Hali Gąsienicowej. Pr&oacute;by osad&oacute;w pobrane przez Z. W&oacute;jcika przechowywane są w Muzeum Ziemi PAN.</span></p>
+<p><span>Osady węglanowe występują w jaskini dość powszechnie. Są to nacieki twarde: polewy kalcytowe, stalaktyty i stalagmity (niekt&oacute;re dużych rozmiar&oacute;w), kolumny, draperie. Ich największe skupienia znajdują się w partiach wstępnych, Komorze Stalaktytowej i jej okolicy oraz w Partiach Krakowskich. Nacieki poddano badaniom wieku krystalizacji (Hercman 1983, 1988 a, b, 1991, 1993, Głazek,. Hercman 1985, Hercman i in. 1987 a). Wykorzystano metodę <sup>14</sup>C, ESR,TL, U/Th. Już po około 20 m od otworu widać dwie generacje polew rozdzielone warstwą gruzu. Dalej w głąb jaskini ilość generacji polew rośnie, przed Komorą Złotej Kaczki H. Hercman wyr&oacute;żnia ich siedem. Na podstawie wynik&oacute;w datowania naciek&oacute;w autorka ta określiła zmiany klimatyczne w czasie ostatnich ponad 200 tys. lat. Występowanie zagłębień wirowych na polewach kalcytowych dowodzi, że po osuszeniu jaskinia była ponownie wypełniona wodą płynącą z dużą prędkością.</span></p>
+<p><span>Jaskinia jest wilgotna, często zalewana przez wodę, a otw&oacute;r podczas ulewnych deszczy i roztop&oacute;w wiosennych funkcjonuje jako wypływ (bywa, że pod dużym ciśnieniem). W&nbsp;grocie występują liczne zbiorniki wody (kałuże, jeziorka, syfony) o charakterze okresowym i stałym&nbsp;Największe skupiska jeziorek i małych syfon&oacute;w znajdują się w&nbsp;Partiach Gąbczastych, w G&oacute;rnym Ciągu za Salą Rycerską, Partiach Krakowskich i&nbsp;okolicach Okresowego Syfonu w końcowych partiach. Najdłuższe jest Jeziorko z&nbsp;Zapałkami. Opr&oacute;cz małych, przeważnie okresowych syfon&oacute;w w suchych partiach groty, istnieje w niej najdłuższy w Polsce ciąg głębokich, stałych syfon&oacute;w (680 m), nie poznany do końca. Są też w jaskini okresowe cieki (np. w Szczelinie, okolicy Okresowego Syfonu, między syfonami końcowymi). </span></p>
+<p><span>Termikę i chemizm zbiornik&oacute;w wody badali W i A. Chodorowscy (1959) &ndash; zakres temperatur wyni&oacute;sł 3,9<sup>o</sup>C&ndash;4,95<sup>o</sup>C. W okresie letnim stwierdzili oni znaczne r&oacute;żnice w termice zbiornik&oacute;w partii g&oacute;rnej (4,7<sup>o</sup>) i dolnej (3,9<sup>o</sup>). Zdolności buforowe wody badali W i A. Chodorowscy (1959) i Paschalski (1960). Zimą Komora Wstępna ulega wymarzaniu, a otw&oacute;r często zasypywany jest całkowicie śniegiem. Tworzą się w niej (szczeg&oacute;lnie wczesną wiosną) nacieki lodowe.</span></p>
+<p><span>Światło sięga do ciasnego przełazu za Komorą Wstępną. Temperatura pod Wielkim Kominem wynosiła w dniu 28.11.1948 r. 4,8<sup>o</sup> C, a w dniu 9.III 1952 r. 4,5<sup> o</sup> C (Kowalski 1953a). W niekt&oacute;rych ciągach wyczuwa się przewiew, partie przed syfonami są go zupełnie pozbawione.</span></p>
+<p><span>Roślinność zielona rozwija się przy otworze, ściany w jego pobliżu pokrywają mchy i glony.</span></p>
+<div><span>Faunę reprezentują gł&oacute;wnie owady, bywają też nietoperze. Kowalski (1953a, 1955a) wymienia jedynie <strong><em>Myotis myotis</em></strong>. Piksa (1998) wymienia ponadto </span><strong><em>Myotis mystacinus</em></strong> /Leisler/. <span>Faunę (gł&oacute;wnie drobną faunę wodną) badali m. in. W.&nbsp;i&nbsp;A. Chodorowscy (1958,1960), A. Chodorowski (1959), wymoczki &ndash; Doroszewski (1960), stygobiontyczne bezkręgowce &ndash; E. Dumnicka (1977,1981), Fischer E. (1963), Galas J. i in. (1996).</span></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Genezą, wiekiem i ewolucją jaskini zajmowali się R. Gradziński (1951), S. Zwoliński (1955b), Z. W&oacute;jcik (1966a, 1974a,b, 1975b, 1978a,b, 1979), J. Głazek, Z. W&oacute;jcik (1963), J. Rudnicki (1967), Dąbrowski, J. Głazek (1968), J. Grodzicki (1991), H. Hercman (1983, 1985, 1986, 1988b, 1991, 1993), Hercman, H. i in.1987a, J. Głazek, J. Grodzicki (1996). Uwagi o genezie przedstawili też w p&oacute;źniejszym okresie: Kicińska (2004), G. Barczyk (2004); T. Bytomski (2009); M. Gradziński i in. (2009). O minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin pisali Szczygieł, J. i in. (2020).<br />Osady klastyczne i chemiczne badane przez Z. W&oacute;jcika (1960 a, b, 1961 b, 1966 a, 1968, 1979), Z .W&oacute;jcika, R. Gradzińskiego (1961), Wicika i W&oacute;jcika (1982), H. Hercman (1983, 1986, 1988 a, b, 1991, 1993), D. Kicińską (1996). &nbsp;W grocie prowadzono też pomiary radioaktywności (Czyżewski,1955), pomiary tła promieniowania gamma (Hercman i in. 1987b). <br />Uwagi o hydrografii zamieścili S. Zwoliński 1955b, Z. W&oacute;jcik 1966a , J. Głazek (1962). Wsp&oacute;łczesne przepływy badali T. Dąbrowski, J. Głazek (1968), a paleoprzepływy Hercman(1985,1988b).<br /> Badania hydrogeologiczne w p&oacute;źniejszym okresie prowadzili: G. Barczyk (2000b, 2001, 2002, 2003, 2004, 2007, 2008) oraz A. Dyszy (2004), a badania paleoprzepływ&oacute;w &ndash; Hercman (1985, 1988b), Kicińska (2004). <br />Faunę (gł&oacute;wnie drobną faunę wodną) badali m. in. W. i A. Chodorowscy (1958,1960), A. Chodorowski (1959), wymoczki &ndash; Doroszewski (1960), stygobiontyczne bezkręgowce &ndash; E. Dumnicka (1977,1981), Fischer E. (1963), Galas J. i in. (1996).</p>
+<p>Badania hydrologiczne w latach 2000-2008 prowadził Barczyk G. (2000b, 2001, 2002, 2003, 2004, 2008) oraz Dyszy A. (2004).<br />Wiek jaskiń i ich związek z rozwojem dolin badali Szczygieł J. i in. (2020a).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wstępna część jaskini była znana g&oacute;ralom od dawna, a p&oacute;źniej r&oacute;wnież prowadzanym przez nich turystom. Przekazywano legendę o wielkim jeziorze w grocie Kasprowej, po kt&oacute;rym pływa złota kaczka znosząca raz w roku złote jajo. Zejszner (1849) przytacza podanie m&oacute;wiące o tym, że suka, kt&oacute;ra utonęła w jednym ze staw&oacute;w Gąsienicowych (nazywanym w&oacute;wczas Suczym Stawem) została znaleziona w dziurze za Halą Kasprową, kt&oacute;ra okresowo jest źr&oacute;dłem, a czasami bywa dostępna. W 1882 r. Ossowski odnotowuje, że wody w jaskini niekiedy wzbierają i wylewają się z otworu, podaje też legendę o złotej kaczce. Jan Gwalbert Pawlikowski (1887) zapuścił się do wnętrza, gdzie znalazł stare ostrewki, opisał też piękne formy błotne na ścianach. Prawdopodobnie dotarł on do podn&oacute;ża Wielkiego Komina. Chmielowski (1907) zamieścił obszerniejszy opis wstępnych partii. W 1913 r. Mariusz Zaruski z Tadeuszem Korniłowiczem i J&oacute;zefem Oppenheimem osiągnął miejsce, kt&oacute;re nazwał Gniazdem Złotej Kaczki, uważając je za koniec jaskini. Przez często zasypywany piaskiem przełaz przedostał się w 1921 r. Mieczysław Świerz z towarzyszami, docierając do Sali Rycerskiej. W tym czasie, jak wspomina S. Zwoliński, &bdquo;korytarze dolnego ciągu&rdquo; badał Dering. W latach 1924&ndash;25 Tadeusz i Stefan Zwolińscy wraz z T. Malickim, K. Steckim (sen.) i Olbrychtowiczem przeszli za Salę Złomisk oraz do Komina w ciągu prowadzącym do Syfonu Danka, a także wykonali pierwszy plan i opis jaskini zamieszczony w &bdquo;Wierchach&rdquo; (Zwoliński, S. 1929). W grudniu 1930 r. Wł. Busse dotarł samotnie nad studnię prowadzącą do Golgoty (za Zapałkami), a dwa lata p&oacute;źniej opuścili go na dno towarzysze (J. Boretti i J. Grochowski), lecz była zalana wodą. Ślepy komin ponad groblą za wiszącym jeziorkiem nad Salą Rycerską został zbadany przez S. Zwolińskiego i J. Zahorskiego we wrześniu 1932 r. <br /> Jesienią 1951 r., przy niskim stanie wody, turyści zakopiańscy, nie wiedząc o wcześniejszych odkryciach Busse, przebyli korytarz wodny (Zapałki) i studnię, &bdquo;z kt&oacute;rej dna ciągnął się wielki gliniasty korytarz, długi na 100 m, zakończony ślepo&rdquo; (Golgota, Partie Zakopiańskie). W grudniu 1952 r. i lutym 1953 r. grotołazi z Krakowa (K. Grotowski, K. Kowalski, M. Kuczyński i A. Radomski) odkryli &bdquo;około 350 m&rdquo; nowych ciąg&oacute;w (Partie Krakowskie), do kt&oacute;rych kluczem był ciasny korytarzyk zalany wodą. Kowalski (1953a) zamieścił opis i plan oparty na dokumentacji Zwolińskiego (1929), wprowadzając korektę niekt&oacute;rych błędnych interpretacji (na planie brak znanej już wtedy Golgoty). Jesienią 1954 r. i zimą 1954/55 Krakowska STJ zorganizowała trzy wyprawy, podczas kt&oacute;rych odkryto &bdquo;około 100 m korytarzy&rdquo; i stwierdzono połączenie Partii Gąbczastych z Wielkim Korytarzem (przez Korytarz Piętrowy), dostępne po zlewarowaniu jeziorka. W lutym 1956 r. zesp&oacute;ł grotołaz&oacute;w z Krakowa, Torunia, Stalinogrodu (Katowic) oraz trzy osoby z Czechosłowacji, przeszukał otoczenie Sali Złomisk i Komory Gwiaździstej, odkrył kilkadziesiąt metr&oacute;w zamulonego na końcu korytarza po pokonaniu komina (progu?) w ciągu za Komorą Gwiaździstą. Po zlewarowaniu jeziorka i częściowo syfonu w Partiach Gąbczastych, zesp&oacute;ł ten odkrył za syfonem wysoką szczelinę i dotarł do następnego jeziorka. Osiągnięto ponad &bdquo;200 m&rdquo;, używając lewar&oacute;w, maszt&oacute;w aluminiowych, dinghy, pływak&oacute;w i spodni gumowych. Sporządzono w&oacute;wczas szkicowy plan części znanych wtedy partii oceniając długość jaskini na 1800 m, co stawiało ją na drugiej pozycji w Polsce pod względem długości. Plan opublikował K. Kowalski w czasopiśmie &bdquo;Ziemia&rdquo; w 1957 r. <br /> W lutym 1959 r. W. Maczek i K. Grotowski, podczas wyprawy KTJ KW, pokonali syfon Danka, odkryli za nim salę z błotnistym korytarzykiem i następny syfon. Rok p&oacute;źniej przepłynęli Syfon Krakowski i odkryli Salę Kaskad stwierdzając brak dalszych możliwości eksploracji. <br /> Na przełomie roku 1969/70, podczas wyprawy SW PTTK (pod kierownictwem J. Giżejewskiego), J. Bzowski i L. Suchy pokonali ciasny Syfonik Mumink&oacute;w i Syfon Mamuci, docierając pod Komin Kaskader&oacute;w (używano łączności telefonicznej, za I Syfon dotarli S. Sowiak i J. Grodzicki, za II Syfon &ndash; ubezpieczający akcję A. Płachciński). <br />Koisar (1971) opublikował opis i plan inwentarzowy zestawiony w oparciu o plan Zwolińskiego (1929), Kowalskiego (1953) oraz niepublikowane materiały Kowalskiego. Materiały te zostały zweryfikowane w jaskini, poprawione i uzupełnione. <br /> W marcu 1971 r. wyprawa KKTJ pokonała 30-metrowy komin z Komory Gwiaździstej i partie za nim. <br /> W lutym 1972 r., podczas wyprawy SW PTTK kierowanej przez A. Płachcińskiego, S. Sowiak, M. Rutkowski, A. Sroczyński i M. Sygowski wyeksplorowali Korytarz Błotnych Feston&oacute;w i ubezpieczali z za I syfonu A. Płachcińskiego i W. Przybyszewskiego. Ci ostatni pokonali Komin Kaskader&oacute;w, znaleźli za nim kilkanaście metr&oacute;w korytarza i nowy syfon. W lutym 1973 r., podczas następnej wyprawy SW PTTK, A. Płachciński (kierownik), J. Bzowski i W. Przybyszewski ubezpieczani przez J. Chrobaka i M. Rutkowskiego z Sali Kaskad, dotarli nad syfon nazwany p&oacute;źniej Syfonem Warszawiak&oacute;w. Ponieważ zawi&oacute;dł prototypowy automat oddechowy &bdquo;marlin&rdquo; użyty przez kierownika, Przybyszewski przekazał mu sw&oacute;j sprzęt i pozostał przed syfonem wydając linę asekuracyjną, a Płachciński przepłynął w zstępującej gałęzi syfonu ponad 70 m i osiągnął głębokość 20 m (nazwał ją Labiryntem), docierając do poprzecznego Korytarza Beaty (Bzowski został w pierwszym bąblu powietrznym syfonu). P&oacute;źniejsi eksploratorzy nie znaleźli uzasadnienia dla nazwy Labirynt, nie zidentyfikowali też wspomnianego uprzednio, poprzecznego korytarza, być może jest to jedna z licznych kr&oacute;tkich odn&oacute;g.<br /> Podczas obozu zimowego w 1975 r. grotołazi z KKTJ KW (5 os&oacute;b pod kierownictwem J. Śmiałowskiego) przeszli Okresowy Syfon (w ciągu za Szczeliną, za studnią P10), kt&oacute;ry tym razem był suchy, i odkryli Partie Sylwestrowe. W następnym roku ich plan i przekr&oacute;j wykonali A. G&oacute;rny i A. Kokoszka.<br /> W lutym 1978 r., podczas wyprawy dokumentacyjnej OW PTPNoZ pod kierownictwem J. Grodzickiego, przeprowadzono pomiary znacznej części jaskini, w tym pierwszych czterech syfon&oacute;w, i dokumentację fotograficzną (fotografie W. Burkackiego przechowywane są w archiwum PTPNoZ). Pomierzono w&oacute;wczas syfony Danka, Krakowski, Mumink&oacute;wi oraz Mamuci i partie pomiędzy nimi (J.Giżejewski, J.Grodzicki, W. Przybyszewski). R&oacute;wnocześnie działająca wyprawa SW PTTK eksplorowała boczne ciągi w rejonie Zapałek, Komory Gwiaździstej, Szczeliny i końca groty. Dokonano drobnych odkryć, z kt&oacute;rych największym jest Obejście Zapałek. W grudniu 1978 r., podczas wyprawy SW PTTK kierowanej przez A. Płachcińskiego, pływano pod stropem Syfonu Warszawiak&oacute;w: S. Sowiak osiągnął drugi bąbel powietrzny, a A. Makacewicz inną drogą &ndash; trzeci. Ponadto 4 osoby (w tym B. Ptasiewicz-Bąk &ndash; druga kobieta nurkująca w polskiej jaskini) oglądały &bdquo;komin&rdquo; w stropie Sali Kaskad z p&oacute;łki nad Syfonem Mumink&oacute;w, nie podejmując jednak wspinaczki. <br /> W p&oacute;źniejszym okresie podjęto pr&oacute;bę nurkowania w Głębokim Syfonie, lecz syfon był już na początku zamulony (około 1980 r.? płetwonurek z Sopotu ?).<br /> W lutym 1981 r., podczas wyprawy OW PTPNoZ kierowanej przez R. M. Kardasia, uzupełniono prace pomiarowe w grocie, jednocześnie eksplorując w suchych partiach jaskini. W trakcie eksploracji zamknięto obejście ciągu gł&oacute;wnego między Komorą Gwiaździstą z Szczeliną (znane wcześniej tylko w części), prawdopodobnie po raz pierwszy pokonano okresowy, wiszący syfonik w prawym Ciągu Partii Gąbczastych, zakończono eksplorację a w wielu bocznych, ciasnych odgałęzieniach, gdzie udało się dojść dalej niż poprzednikom (m. in. w rejonie przed Gniazdem Złotej Kaczki i rejonie Partii Gąbczastych). Plan i przekr&oacute;j w skali 1:400 oraz skorowidz wykorzystanych plan&oacute;w cząstkowych zestawił R. M. Kardaś (niepublikowany dotąd).<br /> Pr&oacute;by dalszej eksploracji syfon&oacute;w podejmowano p&oacute;źniej kilkakrotnie, jednak nieskutecznie. Dopiero zastosowanie nowoczesnej techniki nurkowań jaskiniowych przyniosło przełom W marcu 1996 r. W. Bolek z Wrocławia pokonał w Syfonie Warszawiak&oacute;w około 50&ndash;60 m długości ciągu (licząc od pierwszego bąbla powietrznego połączonego wtedy ze wstępnym jeziorkiem). Płynął on w początkowych partiach syfonu jego g&oacute;rną gałęzią (dotarł około 30 m za koniec liny poprzednik&oacute;w, do platformy za przegięciem w g&oacute;rnej gałęzi). <br /> W listopadzie 1996 K. Starnawski (Speleoklub Warszawski) w 15 akcjach (w tym 5 nurkowych), z pomocą transportową w suchych ciągach jednej osoby (S. Stefańskiego), dokonał znacznych odkryć: 16 listopada przepłynął cały Syfon Warszawiak&oacute;w i dotarł do Sali Urodzinowej; 20 listopada osiągnął w Syfonie Warszawiak&oacute;w odległość 140 m (płynął dolną gałęzią); 25 listopada transportując sprzęt wspiął się obejściem Komina Kaskader&oacute;w, kt&oacute;rego wyloty znane były poprzednikom (uwzględniane na szkicach) lecz nikt tamtędy nie chodził, sprawdził też &bdquo;komin&rdquo; w sali Kaskader&oacute;w; 28 listopada pokonał r&oacute;wnież syfon Kondoniarzy oraz dotarł suchym ciągiem za nim do Syfonu FFS, w powrotnej drodze wykonał pomiary i szkice. Ta ostatnia akcja od zanurzenia trwała 4 godz. 20 min., w tym 2 godz. pod wodą na głębokości do 24 m. Było to najdłuższe dotychczas nurkowanie jaskiniowe w Polsce. Podczas eksploracji po raz pierwszy w jaskini polskiej użyto nitroxu.<br /> Na przełomie roku 2001/2002 W. Szymanowski i A. Szerszeń wykonali fotografie w Syfonie Warszawiak&oacute;w.<br /> W okresie 7&ndash;15 stycznia 2002 r. K. Starnawski odkrył w ciągu syfon&oacute;w końcowych łącznie 180 m nowych partii (w tym około 110 m korytarzy suchych) w czterech zaledwie akcjach nurkowych, z czego pierwsza i trzecia akcja były wyłącznie transportowe. Transportował on w syfonach sprzęt samotnie, we wstępnych suchych ciągach wspomagał go TOPR oraz grotołazi zakopiańscy. Podczas drugiej z kolei akcji K. Starnawski rozpoznał Syfon FFS na długości 20 m, a wracając zbadał około 20 metr&oacute;w przeoczonego wcześniej korytarza, odchodzącego do g&oacute;ry z suchego ciągu w rejonie pierwszego zakrętu za Syfonem Kondoniarzy. W czwartej akcji przenurkował Syfon FFS, wspiął się Kominem Wyjściowym do wysokości 9 m, gdzie wbił spita, z kt&oacute;rego zjechał zn&oacute;w do syfonu. Następnie, za południowym wylotem Syfonu FFS, pokonał około 90 m suchych ciąg&oacute;w, docierając do Syfonu Błotnego oraz Syfonu Kociego, a w powrotnej drodze wykonał pomiary i szkice.<br /><br /> Jaskinia jest często zwiedzana, w gł&oacute;wnych ciągach osadzono batinoxy, jest też najbardziej atrakcyjnym celem wycieczek i szkoleń nurkowych, zar&oacute;wno w partiach stałych syfon&oacute;w, jak i we wstępnych partiach zalewanych podczas wezbrań wiosennych.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy plan i opis inwentarzowy opublikował Kowalski (1953a).<br />Plan i przekr&oacute;j suchych partii oraz pierwszych czterech syfon&oacute;w sporządzono podczas wypraw inwentaryzacyjnych OW PTPNoZ w 1978 i 1981 r. Pomiary przeprowadzono busolami geologicznymi Meridian i taśmami parcianymi, wykonano też obserwacje oraz szkice terenowe. R. M. Kardaś (1981) zestawił plan i przekr&oacute;j z wykorzystaniem materiał&oacute;w cząstkowych następujących autor&oacute;w (wg skorowidzu &ndash; mat. arch. OW PTPNoZ): <br />1. R. M. Kardaś 1978, 1981 &ndash; znaczna część ciąg&oacute;w gł&oacute;wnych, boczne korytarze we wstępnych partiach, Partie Gąbczaste do syfonu w Lewym Ciągu (w oparciu o pomiary i topografię własną, topografię wg zweryfikowanego i uzupełnionego planu B. Koisara oraz szkice bez pomiaru); <br />2. I. Luty 1981 &ndash; partie boczne nad Komorą Stalaktytową i przed Gniazdem Złotej Kaczki, Partie Gąbczaste od syfonu w Lewym Ciągu do Sali Rycerskiej, dolny ciąg i niekt&oacute;re boki Partii Krakowskich, okolice Komory Gwiaździstej, Szczeliny, boczne ciągi i obejścia w ciągu wiodącym do syfon&oacute;w końcowych (pomiary własne); <br />3. J. Giżejewski, J. Grodzicki, W. Przybyszewski 1978 (opracowanie J. Grodzicki) - pierwsze 4 syfony; <br />4. M. Kardaś 1978 &ndash; Partie Zakopiańskie (pomiary własne); inne materiały: a &ndash; B. Koisar &ndash; archiwalny plan 1:400 (zestawienie w oparciu prace z lat 1964-65); b &ndash; A. G&oacute;rny (1977) &ndash; plan i przekr&oacute;j Partii Sylwestrowych, z uzupełnieniami R. M. Kardasia; c &ndash; W. Przybyszewski (1979) &ndash; ciągi za Kominem Kaskader&oacute;w &ndash; szkic;<br />5. P. Kulbicki (1978) &ndash; szkice bez pomiar&oacute;w kilku bocznych odgałęzień; <br />6. T. Zwoliński &ndash; plan i przekr&oacute;j 1: 800 (w: Kowalski 1953a) jako materiał pomocniczy przy zestawieniu przekroju; <br />7. A. G&oacute;rny (1971) &ndash; opis partii w rejonie Komory Gwiaździstej. <br />W 1996 r. K. Starnawski wykonał szkic planu i przekroju dla ciągu Syfon&oacute;w Końcowych (skala 1:1000) w oparciu o własne szkice i pomiary (używał kompasu, głębokościomierza i cienkiej linki poręczowej wyskalowanej co 5 m). Dane zaktualizowała I. Luty (2009). <br />Lokalizacja została skorygowana w oparciu o mapę topograficzną Tatr (http://maps.geoportal.gov.pl) w 2013 r przez J. Grodzickiego.</p>
+<p>Plan i przekr&oacute;j na podstawie wymienionych powyżej materiał&oacute;w (zmieniony w rejonie syfonu w Lewym Ciągu Partii Gąbczastych) opracowała I. Luty w skali 1: 400. Na jego podstawie J. Grodzicki opracował plan wektorowy w skali 1:1000.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Zejszner L. 1849 (przytacza podanie o połączeniu dziury Kasprowej ze Stawami Gąsienicowymi); Ossowski G. 1882a,b (legenda o złotej kaczce, wiadomość o okresowym wypływaniu wody z otworu); Ossowski G. 1982c (wzmianka); Pawlikowski J.G. 1887 (opis wstępnych partii); Chmielowski J. 1907 (opis dolnej części groty); Kuźniar W. 1911,1912 (wzmianka o badaniach geologicznych, kt&#243;rych wyniki nie były niestety nigdzie opublikowane); Świerz M. 1912 (wzmianka); Świerz M. 1919 (droga, opis); Kowalski L. 1920 ( o zmianach stanu wody i naciekach ulęgających rozmyciu); Świerz M. 1921 (droga, opis); Zwoliński T. i S. 1922 (wzmianka); Świerz M. 1923 (droga, opis); Zaruski M. 1923 (opis zwiedzania jaskini do Gniazda Złotej Kaczki); Zwoliński T. i S. 1925, 1927 (droga i opis); Świerz M. 1927 (droga, opis); Zwoliński T. i S. 1929 (historia badań, plan i opis, fot.); Zwoliński T. i S. 1930 (droga i opis); Wrzosek A. 1933 (wzmianki geologiczne); Danysz-Fleszarowa R. 1933 (wymienia); Szokalski J. 1934 (opis drogi oraz jaskini wg Zwolińskich); Czartoryski R. 1936 (opis wycieczki); Zwoliński T. 1937 (droga i opis); WIG 1938 (lokalizacja na mapie 1: 20000); Kowalski K. 1946 (wzmianka); Zwoliński T. 1946,1948 (droga i opis); Szadkowska S. 1948 (wzmianka); Tajemnica podziemi Tatrzańskich, 1948 (wzmianka); Kowalski K. 1948,1949 (wzmianki); Kowalski K. 1951a,f,g (wzmianki); Gradziński R. 1951 (wzmianka dot. genezy); Siemianowski T. 1951 (opis odkrycia nowych korytarzy); Paryski W.H. 1951 (o możliwości odpływu w&#243;d z g&#243;rnej części Doliny Suchej Wody przez jaskinię); Zwoliński T. 1951 (droga i opis); Zwoliński S. 1982c (o odkryciu nowych korytarzy w 1951 r.); Hoesick F. bez daty (cytuje wzmiankę Zejsznera); Kowalski K. 1951 (wzmianki, fotografie); Kowalski K. 1953a (opis inwentarzowy, plan); Kowalski K. 1953f (wzmianki, historia odkryć); Kowalski K. 1955a (występowanie fauny, podaje wysokość położenia otworu); [Burchard P.] PB 1955c (nowe odkrycia); Zwoliński S.1955b (geneza); Czyżewski O. 1955 (o pomiarach radioaktywności w jaskini); [Gradziński R.] R.G. 1955 (o odkryciach w Partiach Gąbczastych); Burchard P. 1956c (nowe odkrycia); Kuczyński M. 1956a (o eksploracji i nowych odkryciach); Normy klasyfikacyjne i wykaz punktacji dr&#243;g jaskiniowych, 1956 (ocena trudności); Kuczyński M., Gradziński R. 1956 (wzmianka o organizacji biwak&#243;w); Kuczyński M., Starzecki W. 1956 (wzmianka o możliwości stosowania kombinezonu nurkowego); Kowalski K. 1957a (nowy plan, odkrycia); Zwoliński, S. 1958 (opis); Gradziński R. 1958 (wzmianka o wyprawach 1956-57); Chodorowska W., Chodorowski A. 1958 (fauna wodna); Gradziński R., Kowalski K. 1959 (historia odkryć – etapy eksploracji na planie); Guzik K. Sokołowski S. 1959 (lokalizacja na mapie geologicznej 1:10000); Rabowski F. 1959 (wzmianka); W&#243;jcik Z., Zwoliński S. 1959 (lokalizacja na mapce – przesunięcia tektoniczne); W&#243;jcik Z. 1959b (podaje długość); Chodorowska W., Chodorowski A. 1959 (termika i chemizm wody); Chodorowski A. 1959 (fauna); W&#243;jcik Z. 1959d (o odkryciach Zaruskiego); Burchard P., Kowalski K. 1959 (wzmianka); Kowalski K. 1959 (wzmianka, podaje długość); Chodorowska W., Chodorowski A. 1960 (fauna wodna); Maczek W. 1960 (o eksploracji i sforsowaniu syfonu końcowego); Burchard P. 1966a (eksploracja podwodna); Paschalski J. 1960 (zdolności buforowe w&#243;d); W&#243;jcik Z. 1966 a, 1960 b (badania osad&#243;w); W&#243;jcik Z. 1960c (wzmianka); W&#243;jcik Z. 1960d (o odkryciach w 1959 r.); W&#243;jcik Z. 1960 k (o odkryciach); Chodorowska W., Chodorowski A. 1960 (fauna wodna); Doroszewski M.  1960 (fauna – wymoczki); Onyszkiewicz J. 1961 (o eksploracji nurkowej w 1962 r.); Zwoliński S. 1961 (plan, opis, historia badań); W&#243;jcik Z. 1961c (wzmianka o genezie, podaje długość); W&#243;jcik Z. 1961 b (o kukiełkach cementacyjnych); W&#243;jcik Z., Gradziński R. 1961 (o konkrecjach cementacyjnych); Kowalski K. 1962 a (wzmianki); Głazek J. 1962 (hydrografia); Fischer E. 1963 (fauna); Głazek J., W&#243;jcik Z. 1963 (uwagi o genezie); Kuczyński M., Koisar B. 1965 (o eksploracji); Kowalski K. 1965 (wzmianki); W&#243;jcik Z. 1966a (uwagi o osadach, genezie, niekt&#243;re dane morfometryczne, lokalizacja na mapkach, w tym geologicznej); Burchard P. 1966 (o historii eksploracji); Zwoliński T. 1966 (lokalizacja, wzmianka historyczna w nawiązaniu do legendy); Rudnicki J. 1967 (wzmianka o genezie); Dąbrowski T., Głazek J. 1968 (o przepływach); W&#243;jcik Z. 1968 (wzmianka dotycząca geomorfologii); Kwapiszewski S. 1969 (notatka o historii eksploracji); Wyprawa do Jaskini Kasprowej Niżniej 26.XII.1969-4.I.1970, 1970 (eksploracja nurkowa); Kopeć A. 1970a (eksploracja nurkowa); Koisar B. 1971 (opis inwentarzowy, plan); Pielka J. 1971 (o nowych odkryciach w rejonie Komory Gwiaździstej); G&#243;rny A. 1971 (opis nowych partii); Giżejewski J. 1971 (eksploracja syfon&#243;w końcowych, szkicowy przekr&#243;j syfon&#243;w); Grotowski K. 1972 (o działalności O. Czyżewskiego); Kozik A. 1972a (podaje długość); Rutkowski M. 1972d (eksploracja syfon&#243;w); Bzowski J. 1973 (eksploracja syfon&#243;w, przekr&#243;j); Radwańska-Paryska Z., Paryski W.H. 1973 (notatka encyklopedyczna); W&#243;jcik Z. 1974a,b (wzmianki o genezie); Koisar B., Solicki T. 1975 (wzmianka); W&#243;jcik Z. 1975b (geneza, wiąże zatopienie niekt&#243;rych korytarzy z ruchami obniżającymi fragmentu masywu); Płachciński A., Przybyszewski W. 1975 (eksploracja syfon&#243;w); TATRZAŃSKI PARK NARODOWY 1976 (lokalizacja na mapie 1:30 000); W&#243;jcik Z. 1976a (charakterystyka morfologiczna); W&#243;jcik Z. 1976c (wzmianka, podaje długość); Tatry Polskie  1976 (lokalizacja na mapie 1:10000); Dumnicka E. 1977 (fauna stygobiontycznych bezkręgowc&#243;w); Kleszyński K. 1977 (o odkryciu Partii Sylwestrowych, plan, przekr&#243;j); Wiśniewski W.W. 1977 a (o odkryciu Partii Sylwestrowych); Przybyszewski W. 1978 a, (eksploracja syfon&#243;w, przekr&#243;j syfon&#243;w); Przybyszewski W. 1978 b (o eksploracji i skartowaniu syfon&#243;w, perspektywy eksploracji, wykaz os&#243;b nurkujących w J. Kasprowej); Borowiec W. i in. 1977, 1978 (dane morfometryczne); Kleszyński K. 1978 a (o odkryciu Partii Sylwestrowych); Makowski K. 1978 (wzmianki o eksploracji); Kardaś R.M. 1978 a (o pracach dokumentacyjnych, fotografia); Kulbicki P. 1978 a (wyniki eksploracji, szkice odkryć, ciąg szkieletowy jaskini); Kulbicki P. 1978 b (impresje z akcji eksploracyjno-pomiarowych); W&#243;jcik Z. 1978 a (wzmiankuje w nawiązaniu do głębokich przepływ&#243;w krasowych); W&#243;jcik Z. 1978 b (wzmianka o genezie); Parma Ch., Rajwa A. 1978 (wzmianki dotyczące historii); Głazek J. 1979b (wzmianka); Przybyszewski W. 1979 (historia eksploracji syfon&#243;w); W&#243;jcik Z. 1979 (o wieku, genezie i osadach); Zembrzuski J. 1979 (o limicie osobowejść); Schiele T. 1979 (o odkryciu partii za Golgotą); Nyka J. 1979 (udział K. Steckiego sen. w wyprawach Zwolińskich do jaskini w 1929 r.); Kardaś R.M.  1980 b (wzmianka, podaje długość); Kardaś R.M.  1980 d,e (o pobraniu pr&#243;b naciek&#243;w do datowań); Parma Ch. 1980 (wzmianka o nowych odkryciach i okresowych przepływach); Dumnicka E. 1981 (fauna stygobiontycznych bezkręgowc&#243;w); Kronika 1951a (o pracach dokumentacyjnych); Kardaś R.M.  1982 a (wzmianka, podaje długość); Wicik, B., W&#243;jcik, Z. 1982 (osady); Kardaś R.M. 1983 e (podaje długość); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10000); Burkacki M. i in.1984 (o odkryciach); Kardaś R. M. 1984 e (o eksploracji nurkowej); Gradziński R. i in. 1985 a (dane morfometryczne, orientacyjna lokalizacja na mapie); Gradziński R. i in. 1985b (przekr&#243;j syfon&#243;w); Głazek J., Hercman H. 1985 (datowanie osad&#243;w); Hercman H. 1985 (prędkość i przepływ wody na podstawie badań scallops&#243;w); Hercman H. 1986 (geneza, wiek, osady); Kardaś R.M. 1986 i (podaje długość); Chowański A. 1987 (o uczestnictwie w eksploracji T. Malickiego w 1923 r.); Hercman H. i in. 1987 (geneza, rekonstrukcja klimatu na podstawie datowania naciek&#243;w); Hercman H. i in. 1987b (pomiary promieniowania gamma); Zwoliński S. 1987 (plan, opis, historia badań); Hercman H. 1988a (wyniki datowań naciek&#243;w); Hercman H. 1988b (osady i ich geneza, kierunki przepływ&#243;w, datowanie naciek&#243;w); Kardaś R.M.  1988b (informacja o kręceniu w jaskini zdjęć do filmu TV); Głazek J. Kardaś R.M.  1989 (wzmianka); Grodzicki J. 1991 (geneza); Hercman H. 1991 (datowanie naciek&#243;w i kości kopalnych, ewolucja systemu, zmiany środowiska naturalnego); Wiśniewski W.W. 1991 p (niekt&#243;re dane morfometryczne); Hercman H. 1993 (osady, datowanie naciek&#243;w, geneza); Zwoliński S. 1993 (opis akcji eksploracyjnych z 1932 r., szkice, uwagi o genezie); Paryski W.H., Radwańska-Paryska Z. 1995 (informacja encyklopedyczna); Galas J. i in. 1996 (fauna); Głazek J. Grodzicki J. 1996 (geneza i wiek); Kardaś R.M. 1996 e (odkrycia w syfonach); Gradziński M. 1997 (położenie, długość, ostatnie odkrycia); Bolek W. 1996d,e (eksploracja syfonu Warszawiak&#243;w, przekr&#243;j syfon&#243;w); Głazek J., Grodzicki J. 1996 (wiek, geneza); Starnawski K. 1997 a (informacja o odkryciach w syfonach); Gradziński M. Kicińska D. 1996 (osady, kierunki paleotransportu); Starnawski K. 1997 b (plan i przekr&#243;j syfon&#243;w); Gajewska A. 1997 (najdłuższe nurkowanie w jaskiniach polskich); Luty I. 1998 a (eksploracja i odkrycia w ciągu syfon&#243;w końcowych, plan i przekr&#243;j  nowych partii); Piksa K.,1998 (nietoperze); Dumnicka E., Skalski A. 1999 (wzmianki o faunie wodnej); Kotarba S. 1999 (szkic techniczny, informacja o osadzeniu batinox&#243;w i akcji fotograficznej); Hercman H. 2000 (paleoklimat); Jankowska K., Kurowski A. 2000 (wzmianka o odkryciach); Barczyk G. 2000b (badania hydrogeologiczne); TATRZAŃSKI PARK NARODOWY 2000/2001 (lokalizacja na mapie 1:25 000); Bolek W. 2001 (parametry syfon&#243;w, błędne, w zestawieniu największych syfon&#243;w Polski); Szerszeń A. 2001 (opis nurkowania i syfon&#243;w); Barczyk G. 2001 (badanie wielkości wypływu); Jaskinie TPN,  2002 (plan, przekr&#243;j i opis inwentarzowy). Barczyk G. 2002, 2003, 2004 (badania hydrogeologiczne); Luty I. 2004 (eksploracja syfon&#243;w po Syfon Koci i Błotny); Dyszy A. 2004 (badania hydrogeologiczne); Kicińska D. 2004 (uwagi o genezie); Barczyk G. 2007 (uwagi dotyczące przepływ&#243;w); Barczyk G. 2008 (badania hydrogeologiczne systemu wywierzyskowego, charakterystyka okresowego wywierzyska, schematyczny plan); Bytomski T. 2009 (uwagi o genezie); Gradziński M. i in. 2009 (uwagi o genezie); Szczygieł J. i in. 2020a (o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Koisar B. 1971 – plan w skali 1;400; Kardaś R.M. 1981 –plan i przekr&#243;j w skali 1:400, skorowidz wykorzystanych plan&#243;w cząstkowych r&#243;żnych autor&#243;w na planie 1:2000; Hercman H. 1983 (charakterystyka jaskini, geologia, osady, wiek, ewolucja); [Siarzewski W., Zwolińska Z.] 1986 – szkice terenowo-pomiarowe T. i S. Zwolińskich, plan i przekr&#243;j 1:200 opracowany przez T. Zwolińskiego, plany i przekroje 1:800 T. Zwolińskiego do publikacji w 1929 r. oraz w 1961 r. Starnawski K. 1996 – plan i przekr&#243;j syfon&#243;w końcowych w skali 1:1000 (stan na 13 .12.1996); Grodzicki J. i in. 2000 (zmiany antropogeniczne). 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3581)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(712)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(713)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

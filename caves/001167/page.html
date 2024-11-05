@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1167">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1167;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563209,87".replace(',', '.') + "," + "153650,55".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1167','Zamczysko Wyżnie'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Zamczysko Wyżnie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                G&#243;rna Grota w Zamczysku, Zameczki Wyżnie, Zamki Wyżnie, Zameczko Wyżnie, Jaskinia Zamczysko Wyżnie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-08.59
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;52′07,58″, φ: 49&#176;14′49,54″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SW, 1218 m n.p.m.; 3 - ku SW, 1228.4 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1218
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                228
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                10,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                10,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    38
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na prawym orograficznie zboczach Doliny Kościeliskiej, w Organach, w skałach nad niewyraźną percią trawersującą Organy powyżej Jaskini Zimnej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Idziemy dnem Doliny Kościeliskiej, następnie do góry szlakiem wyprowadzającym z południowego otworu Jaskini Mroźnej T.D-08.07. Od tego otworu nieznakowaną percią idziemy na prawo do góry, pod skałami, omijamy otwór Jaskini Zimnej, a następnie wznosimy się stromym żlebem. Mijamy odejście drogi do Jaskini Naciekowej i Szczeliny nad Zimną i tuż za żebrem skalnym skręcamy nieco na lewo do stromego żlebu. W miejscu, gdzie zaczyna się podejście do Jaskini Trójotworowej T.D-08.17, trawersujemy zbocze na prawo percią wiodącą do Jaskini Białej. Niebawem napotykamy pod skałką szeroką, płytką Dziurawa Kolebę. Dalej kilkaset metrów trawersujemy zbocze percią ku południowi, poniżej największej ściany Organów, aż do wybitnej przełączki. Stąd w dół pod skałami, następnie nieco na prawo do góry. W miejscu, gdzie skały się kończą, a perć trawersuje stromy, zalesiony stok, skręcamy z niej w lewo do góry, do otworu Okna w Zamczysku T.D-08.60. Wspinamy się łatwym progiem do jego górnego otworu. Poszukiwane otwory widać tuż za Oknem w Zamczysku, w ścianie, około 6 m nad upłazem, około 20 m na południe od Zamczyska Niżniego. Dojście w ostatniej części wymaga wspinaczki (V) do otworu (okresowo stoi przy nim ostrewka). Zwiedzanie trudne.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Za gł&oacute;wnym, obszernym, mytym otworem znajduje się kom&oacute;rka o skalnym dnie, z kt&oacute;rej na lewo uchodzi w ścianie mały, II otw&oacute;r. Z kom&oacute;rki wiedzie ku N wysoki korytarz, rozwinięty na pochyłej szczelinie. Jego dno wznosi się stromo. W odległości około 13 m od otworu dochodzimy nad 3-metrowy pr&oacute;g z zaklinowanych głaz&oacute;w, kt&oacute;ry sprowadza do wysokiej salki końcowej, będącej kontynuacją szczeliny, liczącej około 6 m długości i około 1 m szerokości. Pod progiem wstecz biegnie w zawalisku ciasny, kr&oacute;tki&nbsp;korytarzyk. </span></p>
+<p><span>Wracamy nad pr&oacute;g i wspinamy się na zaklinowany pod sklepieniem ogromny blok skalny. Ponad nim, nad małym prożkiem (0,9 m), widać wylot bocznego wznoszącego się korytarza, kt&oacute;ry po kilku metrach zakręca na poprzecznej szczelinie na lewo i nad prożkiem (0,8 m) wiedzie niezwykle wąską szczeliną do ciasnego otworu III, uchodzącego wysoko w ścianie turni.</span></p>
+<p><span>Ściany są myte, widać na nich duże zagłębienia wirowe, szczeg&oacute;lnie we wstępnej części. W głębi i g&oacute;rnej części groty ściany pokrywa mleko wapienne, dobrze rozwinięte nacieki grzybkowe, a także małe stalaktyty. Środkowa część ma częściowo charakter zawaliska rozwiniętego na szczelinie. Dno jest skaliste, miejscami pokrywa je namulisko gliniaste z rumoszem autochtonicznym. Allochtoniczne domieszki w osadach stanowią drobne frakcje o przewadze kwarcu (W&oacute;jcik 1960b). Grota rozwinęła się w obrębie wapieni (malmu &ndash; wg W&oacute;jcika, 1966a lub triasu środkowego &ndash; wg Bac i Grochockiej, 1965) jednostki Organ&oacute;w (seria wierchowa, płaszczowina Czerwonych Wierch&oacute;w). Według W&oacute;jcika (1966a) grota powstała w pliocenie, jako podziemny przepływ Potoku Kościeliskiego (podobne poglądy na genezę groty można znaleźć w pracach Zwolińskiego 1961 i Rudnickiego 1967); zalicza ją do VIII piętra jaskiń tatrzańskich, wg własnego podziału piętrowego. Części groty przypisuje zawaliskowy charakter.</span></p>
+<p><span>Cała grota jest widna, woda kapie ze szczelin w stropie. Przewiew wyczuwa się we wszystkich korytarzach, jego kierunek zależy od warunk&oacute;w atmosferycznych panujących na powierzchni.</span></p>
+<p><span>Roślinnosć kwiatowa skąpa, reprezentowana jedynie w otworach.&nbsp;Za otworem II rośnie drzewo liściaste. Glony i porosty i mchy sięgają do kilkunastu metr&oacute;w w głąb korytarza.</span></p>
+<p><span>W grocie obserwowano zesp&oacute;ł owad&oacute;w trogloksenicznych oraz&nbsp;nietoperze. Kowalski (1955a) wymienia:<em> <strong>Vanessa io</strong> </em>(L.) </span><span>(<span style="font-style: italic;">błędna nazwa, winno być </span><span style="font-weight: bold; font-style: italic;">Inachis io</span></span><span style="font-style: italic;"><span style="font-weight: bold;"> - </span>przyp.red</span>)<span>, <strong><em>Vanessa urticae </em></strong>(L.), <strong><em>Scoliopteryx libatrix </em></strong>(L.), <strong><em>Triphosa dubitata </em></strong>(L.) oraz <strong><em>Helicigona (Chilostoma) cingulella</em></strong> Rossm. Znaleziono także <strong><em>Chondrina clienta </em></strong>(West) &ndash; gatunek, kt&oacute;ry przypadkowo dostał się do groty. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Kowalski (1955a) przeprowadził badania fauny. Osady badał W&oacute;jcik (1960b, 1966a), kt&oacute;ry w tych pracach wypowiadał się także na temat genezy i wieku groty. O genezie pisali Zwoliński (1961) i Rudnicki (1967), ten ostatni określa także jej wiek. Bac i Grochocka (1965) badały budowę geologiczną terenu na kt&oacute;rym występuje grota.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r znany był Pawlikowskiemu (1887), jednak nie zwiedził on groty. Latem 1934 S. Zwoliński wraz z J. Zahorskim dostali się do otworu po przystawionej ostrewce, zwiedzili grotę oraz sporządzili jej plan i przekr&oacute;j (brudnopis przechowywany w archiwum Zwolińskich opublikowany został w 1993 r.). Cały ten zesp&oacute;ł krasowy, obejmujący dwie jaskinie i okno skalne nazwali Zamczyskiem. W odniesieniu do niżej położonego obiektu stosowali też nazwy &bdquo;Dolna Grota w Zamczysku&rdquo; i &bdquo;Zamczysko Niżnie&rdquo;. Opis groty i jej położenia podał Zwoliński (1934).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Kowalski (1953a) sporządził plan i opis inwentarzowy datowany na 30 sierpnia 1951 r. Jesienią 2008 r. I. Luty wykonała nową dokumentację groty przy wsp&oacute;łpracy P. Burkackiego i M. Machulaka. Pomiary wykonano busolą Suunto i taśmą parcianą. Dane zaktualizowała I. Luty (2009).<br />Plan opracowała I. Luty.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pawlikowski, J.G. 1887 (wzmianka o otworze); Zwoliński, S. 1934 (Opis położenia i groty); Kowalski, K. 1953a (plan i opis inwentarzowy); Kowalski, K. 1955a (fauna); W&#243;jcik, Z. 1960b (osady); Zwoliński, S. 1961 (uwaga o genezie); Bac, M., Grochocka, K. 1965 (lokalizacja na mapie geologicznej); W&#243;jcik, Z. 1966a (geneza, wiek, osady); Rudnicki, J., (geneza, lokalizacja na mapie Organ&#243;w); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10 000); Gradziński, R., i in. 1985a (dane morfometryczne, lokalizacja na mapie); Zwoliński, S. 1993 (opis położenia i groty oraz plan); Jaskinie TPN, 1993b (plan i opis inwentarzowy pod nazwą Jaskinia Zamczysko Wyżnie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    [Siarzewski, S., Zwolińska, Z.] 1986 (brudnopis planu i przekroju, szkic terenowo-pomiarowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(651)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

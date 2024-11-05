@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1018">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1018;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "568551,88".replace(',', '.') + "," + "156472,36".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1018','Dziura'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Dziura
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                w Dolinie ku Dziurze, Jaskinia Strążyska, Zb&#243;jnicka Jama, Jaskinia Dziura
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.B-14.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;56′33,60″, φ: 49&#176;16′18,86″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku W, 1036 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                15,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                24,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                40,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    175
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Na prawym orograficznie zboczu Doliny ku Dziurze, w skałce wapiennej tkwiącej wśr&#243;d dolomit&#243;w. Ściana, w kt&#243;rej znajduje się wejście do jaskini, zwana Ścianą nad Dziurą (Cywiński 1994), jest jednym z popularnych ogr&#243;dk&#243;w wspinaczkowych w rejonie Zakopanego. Drogi wspinaczkowe znajdują się po obu stronach otworu, a nawet w samej jaskini. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Dojście wiedzie czarnym szlakiem turystycznym prowadzącym od Drogi pod Reglami Doliną ku Dziurze. Szlak ten kończy się u podnóża skałki, przy dolnym (głównym) otworze jaskini. Dojście od wylotu doliny ok. 20 min. Górny otwór, położony ok. 16 m wyżej, osiągnąć można nieznakowaną, lecz wyraźną ścieżką, obchodzącą skałkę od lewej. Dojście do otworów i zwiedzanie od głównego otworu – bez trudności. Wejście przez górny otwór wymaga użycia liny, a osiągnięcie najwyższego punktu jaskini – wspinaczki.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r, szeroki na 3 m, a wysoki na 2 m, prowadzi w d&oacute;ł do Przedsionka, o dnie pokrytym rumoszem i gliniastym namuliskiem. Dalej znajduje się obszerna gł&oacute;wna komora jaskini, o dnie wyścielonym w znacznej części liśćmi, sypiącymi się przez g&oacute;rny otw&oacute;r, będący oknem w stropie, około 20 m nad jej dnem. Dojście od dołu do g&oacute;rnego otworu wymaga wspinaczki o trudnościach V+ (Cywiński 1994). Dno komory opada na głębokość ok. -16 m (a w wąskim odgałęzieniu -17 m). Na jej końcu, w lewej ścianie znajduje się niewielka nisza. Przy prawej ścianie, na głębokości ok. -10 m wcisnąć się można do wąskiego i niskiego, ślepego korytarzyka, a na ok. -13 m do wykopu wśr&oacute;d gruzu i blok&oacute;w skalnych, w kt&oacute;rym znajduje się najniższy punkt jaskini (-18,6 m).</span></p>
+<p><span>Z dna gł&oacute;wnej komory, kominem prowadzącym w kierunku g&oacute;rnego otworu, można się wspiąć także na p&oacute;łkę na jego prawej ścianie. Prowadzą tam dwie drogi: lewa &ndash; o trudnościach III i prawa &ndash; do okapu III, a dalej przez okap VII (Cywiński1994). Z p&oacute;łki tej odchodzi kr&oacute;tkie boczne odgałęzienie (do wysokości +14,3 m) oraz komin, pod kt&oacute;rego stropem osiągnięto najwyższy punkt jaskini (+24,8 m, trudności IV, 2e).</span></p>
+<p><span>Bac-Moszaszwili i Rudnicki (1978) zamieszczają szereg szczeg&oacute;łowych obserwacji geologicznych i morfologicznych z jaskini. Powstała ona w dolnoanizyjskich wapieniach reglowej jednostki Jastrzębiej Turni. Założona jest na szczelinie tektonicznej r&oacute;wnoległej do dyslokacji obcinającej od południa skałkę wapienną z jaskiniami: Dziura, Dziura Wyżnia i Lisia. Szczelina ta ma kierunek E-W i jest niemal pionowa. Wg cytowanej pracy: &bdquo;<em>Osobliwością jaskini, niespotykaną w takim nagromadzeniu w innych jaskiniach tatrzańskich, są r&oacute;żnorodne korozyjne formy stropowe i ścienne. Są to r&oacute;żnej wielkości kopuły stropowe, kominki stropowe i kieszenie korozyjne modelujące strop i ściany wstępnej kom&oacute;rki i znaczną cześć Komory Gł&oacute;wnej. W stropie tej komory osiągają one szczeg&oacute;lnie wielkie rozmiary [. . .] Wzdłuż sklepienia komory znajduje się zesp&oacute;ł czterech, leżących jedna za drugą wzdłuż osi sali, wielkich miskowatych zagłębień. Maja one zarys kolisty lub lekko eliptyczny, średnicę 4 m - 5 m i są wydrążone w stropie na głębokość l m - 3 m. Ostatnia, najdalej w głębi sali występująca forma jest podw&oacute;jna, składa się z głębokiej p&oacute;łkolistej kopuły, do kt&oacute;rej przylega kilkumetrowej wysokości komin o kolistym przekroju, nie mający przedłużenia ku g&oacute;rze i kończący się obłym sklepieniem.</em>&rdquo;Opis ten ilustruje plan z naniesionymi zarysami form stropowych. </span></p>
+<p><span>Kowalski (1965) wyraża przypuszczenie, że jaskinia jest dawnym wywierzyskiem. Na podstawie interpretacji obserwacji geologicznych Bac-Moszaszwili i Rudnicki (1978) przedstawili hipotezę, że powstała ona w wyniku działania ascenzyjnych przepływ&oacute;w ciepłych w&oacute;d termalnych w sytuacji hydrogeologicznej przypominającej wsp&oacute;łczesną sytuację w Jaszczur&oacute;wce. Koncepcja ta przyjmowana jest obecnie powszechnie (Głazek i in. 1979b, Głazek 2000, Bac-Moszaszwili i Rudnicki 1991, Gradziński 2004, Baryła, Gradziński, Duliński, Hercman 2004). Na podstawie badań kryształ&oacute;w kalcytu z Dziury Wyżniej Gradziński i in. (2006) sugerują udział roztwor&oacute;w zawierających metan w genezie jaskini.</span></p>
+<p><span>Namulisko gruzowe, lokalnie pokryte iłem zmieszanym z mułem i piaskiem (W&oacute;jcik 1966a), przy gł&oacute;wnym otworze oraz poniżej g&oacute;rnego &ndash; z dużą ilością pr&oacute;chnicy. W wykopie &ndash; gruz, bloki i glina. </span></p>
+<p><span>Światło pośrednie sięga do końca gł&oacute;wnej komory jaskini (Kowalski 1953a). W pracy z 1955 r. autor ten odnotowuje obserwacje wąskiego promienia światła bezpośredniego przez padające kilkanaście minut na tylną ścianę leżącą około 50 m od otworu. Boczne odgałęzienia są ciemne. </span></p>
+<p><span>Kowalski (1953a) daje następujący opis mikroklimatu: &bdquo;Wskutek zapadania w głąb od otworu jaskinia ma układ powietrza statyczny i gromadzi się w niej zimne powietrze. Średnia z kilku pomiar&oacute;w temperatury w r&oacute;żnych porach roku wynosi 2,7</span><span>&deg;</span><span>C , przy wahaniach od &ndash;1,0</span><span>&deg;</span>C do 4,0<span>&deg;</span><span>C. W czasie silnych mroz&oacute;w całe dno jaskini wymarza, ale pod stropem utrzymuje się temperatura powyżej 0</span><span>&deg;</span><span>C. Przeciekanie po deszczach silne, wilgotność stale znaczna.&rdquo; Zestawienie wynik&oacute;w pomiar&oacute;w temperatur z lat 1951&ndash;52 podaje Kowalski (1955a). Odnotowuje też wynik pomiaru wilgotności względnej na końcu komory dn. 9. 12. 1951 r.: 84%. Nieco inaczej mikroklimat charakteryzują Parma i Rajwa (1978, 1989): &bdquo;<em>Dziura jest jaskinią o mikroklimacie dynamicznym chłodnym. Decyduje o tym jej profil morfologiczny. W partii wstępnej między 2 otworami przepływ powietrza odbywa się prawie zawsze w jedna lub drugą stronę. W dolnej części jaskini jest on słabo wyczuwalny. W porze zimowej przy znacznej r&oacute;żnicy temperatur powietrza jaskini i na zewnątrz, napływa do niej powietrze zimne z prędkością maksymalną do 3 m/s. Gromadzi się ono w dolnej partii, powodując jej wymrożenie. Amplituda temperatur na końcu jaskini (miedzy zimą a latem) wynosi około 10</em></span><em><span>&deg;</span></em><em>C (od &ndash;6</em><em><span>&deg;</span></em><em>C do 4</em><em><span>&deg;</span></em><em><span>C). Powietrze zimne utrzymuje się w jaskini do początku lata, a najwyższe temperatury występują, dopiero w październiku. W jaskini okresowo woda kapie ze stropu lub spływa po ścianach. W porze zimowej zamarza, tworząc na ścianach komina polewy szkliste, a na dnie miejscami stalagmity lodowe i l&oacute;d podłogowy, kt&oacute;ry utrzymuje się nieraz do końca wiosny.&rdquo;</span></em><span> Zestawienie wynik&oacute;w cyklu pomiar&oacute;w temperatur od 17. 03. 1964 r. do 7. 04. 1965 r. oraz charakterystykę cyrkulacji powietrza zawiera praca Rajwy (1971). </span></p>
+<p><span>Wg Kowalskiego (1953a) &bdquo;<em>Roślinność zielona uboga, widać tylko trochę roślin kwiatowych na dnie za otworem. Fauna obfita dzięki obecności dużych ilości detritusu roślinnego. Znamy stąd szereg owad&oacute;w bezskrzydłych, zebranych przez Stacha. Występował tu licznie chrząszcz <strong>Trechus (Anophthalams) pilosellus stobieckii (Trechnus Bielzii),</strong> znajdowany zresztą i poza jaskiniami, w glebie.&rdquo; </em>W latach 1951&ndash;52 przeprowadził Kowalski w jaskini roczną serię obserwacji zoologicznych, kt&oacute;rych wyniki przedstawił w pracy z 1955 r. (a) Wymienia w niej 33 gatunki troglobiont&oacute;w, troglofili i trogloksen&oacute;w: </span></p>
+<p>Pseudoscorpiones<span>: <strong><em>Neobisium Neobisium sylvaticum</em></strong> (C. L. Koch); </span></p>
+<div>Araneae: <strong><em>Lepthyphantes </em></strong>sp.;</div>
+<p>Collembola<span>: <strong><em>Ceratophysella armata</em></strong> (Nicolet), <strong><em>Ceratophysella granulata</em></strong> Stach, <strong><em>Onychiurus sibiricus</em> </strong>(Tullberg)*[<strong><em>Hymenaphorura sibirica</em></strong> (Tullberg)]&nbsp;&ndash; za Stachem (1954),<strong><em> Onychiurus armatus</em></strong> (Tullberg)*[<strong><em>Protaphorura armata</em></strong>(Tullberg)]&nbsp;&ndash; gatunek ten podaje też Stach (1954), <strong><em>Onychiurus denisi</em></strong> Stach*[<strong><em>Deharvengiurus denisi</em></strong> Stach]&nbsp;&ndash; za Stachem (1954), <strong><em>Folsomia quadrioculata</em></strong> (Tullberg)&nbsp;&ndash; za Stachem (1947), <strong><em>Isostoma notabilis </em></strong>Sh&auml;ffer*[<strong><em>Parisotoma notabilis</em></strong> (Sh&auml;ffer)]&nbsp;&ndash; za Stachem (1947), <strong><em>Isostoma fennica</em></strong> (Reuter)*[<strong><em>Desoria fennica </em></strong>(Reuter)]&nbsp;&ndash; gatunek ten podaje też Stach (1947), <strong><em>Isostoma olivacea</em></strong> Tullberg*[<strong><em>Desoria olivacea</em></strong> (Tullberg)], <strong><em>Isotoma olivacea </em></strong>var.<em> </em><strong><em>neglecta</em></strong> (Sh&auml;ffer), <strong><em>Isostoma violacea</em></strong> Tullberg*[<strong><em>Desoria violacea</em></strong> (Tullberg)]&nbsp;&ndash; podaje go też Stach (1947), <strong><em>Pogonognathellus flavesceus</em></strong> (Tullberg) (<strong><em>= Tamocerus flavescens</em></strong>),<strong><em> Arrhopalites pygmaeus</em></strong> (Wankel); </span></p>
+<p>Coleoptera<span>: <strong><em>Trechus latus</em></strong> Putzeys, <strong><em>Duvaliopsis pilosellus stobieckii</em></strong> Csiki)*[<strong><em>Pseudanophthalmus pilosellus stobiecki </em></strong>(Csiki), <strong><em>Choleva bicolor</em></strong> Jeannel, <strong><em>Catops subfuscus</em></strong> Kellner, <strong><em>Catops tristis</em></strong> (Panzer), <strong><em>Catops fuliginosus</em></strong> Erichson, <strong><em>Quedius mesomelinus</em></strong> (Marshall), <strong><em>Quedius ochropterus</em></strong> Erischson, <strong><em>Quidium humeralis</em></strong> Stephens, <strong><em>Tachinus subterraneus</em></strong> (Linnaeus), <strong><em>Lesteva monticola</em></strong> Kiesenwetter, <strong><em>Omalium rivulare</em></strong> (Paykull), <strong><em>Aleochara </em></strong>sp., <strong><em>Otiorhynchus scaber</em></strong> (Linnaeus); </span></p>
+<p>Lepidopera<span>: <strong><em>Scoliopteryx libatrix</em></strong> (Linnaeus ), <strong><em>Triphosa dubitata</em></strong> (Linnaeus); </span></p>
+<p>Diptera<span>: <strong><em>Eccoptomera emarginata</em></strong> Loew., <strong><em>Heleomyza serrata</em></strong> (Linnaeus). </span></p>
+<p><span>W pracy z 2001 r Piksa i in podają występowanie w jaskini nietoperza <strong><em>Eptesicus serotinus</em></strong> (jedno z dw&oacute;ch wystąpień w Tatrach).</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania nad geologią i genezą jaskini prowadzili Bac-Moszaszwili i Rudnicki (1974). Mikroklimat badali Kowalski (1953a, 1955a) oraz Parma i Rajwa (1978, 1989). Faunę opisali Stach (1947) i (gł&oacute;wnie) Kowalski (1953a).&nbsp; W zbiorach Muzeum Tatrzańskiego znajdują się kryształy kalcytu zebrane w latach międzywojennych, kt&oacute;rych miejscem pochodzenia miała być Dziura. Baryła, Gradziński, Duliński i Hercman (2004) wyrażają jednak przekonanie, iż pochodzić one muszą z Dziury Wyżniej. Temperatura ich krystalizacji określona została na powyżej 150<span>&ordm;</span>C (op.cit.).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia znana od dawna, zwiedzana była już w pierwszej połowie XIX w. Zdaniem Siarzewskiego (2004) dotyczyć jej mogą kr&oacute;tkie wzmianki w publikacjach S.Goszczyńskiego w 1835 r (&bdquo;Podr&oacute;ż do Tatr&oacute;w. G&oacute;rale tatrzańscy&rdquo;) i w 1853 r. (&bdquo;Dziennik podr&oacute;ży do Tatr&oacute;w&rdquo;). Jest to jednak pogląd dyskusyjny, gdyż Goszczyński prezentuje tylko fantastyczne wierzenia g&oacute;rali, a szczeg&oacute;ły nie wskazują na powiązanie z Dziurą (poza bardzo og&oacute;lną lokalizacją &bdquo;pod g&oacute;rą Gewontem&rdquo; i ewentualnym występowaniem w sezonie zimowym stalagmitu lodowego). W 1860 r. opisuje ją Z. B. Stęczyński jako Jaskinię Strążyską i podaje jej rysunek. Wg Wiśniewskiego (1998d, 2000) litografia ta powstała na podstawie rysunku z natury wykonanego zapewne w 1851 r., kiedy to Stęczyński zwiedzał jaskinię (Wiśniewski 1998d, Siarzewski 2004). Dziura była w&oacute;wczas zwiedzana przez turyst&oacute;w prowadzonych przez przewodnik&oacute;w, jako najbliższa Zakopanego ze wszystkich jaskiń tatrzańskich. Jest ona też p&oacute;źniej wymieniana we wszystkich przewodnikach po Tatrach. W 1894 r. opisuje ją Czech K. Dr&oacute;ż pod nazwą Zb&oacute;jnicka Jama (Nyka 1972). Nazwa ta związana jest z jednym z ostatnich zb&oacute;jnik&oacute;w tatrzańskich - Wojciechem Mateją, kt&oacute;ry mieszkając u wylotu doliny podobno ukrywał się w Dziurze (na podstawie Nyki 1972, 1981 i Kowalskiego 1953a).<br />Sądząc z zapisk&oacute;w w pamiętniku S.Zwolińskiego (1987-92) wspiął się on jako pierwszy na p&oacute;łkę na prawej ścianie poniżej g&oacute;rnego otworu (&bdquo;tak zwaną kazalnicę&rdquo;) w sierpniu 1917 r. Wykop eksploracyjny rozpoczęty po wojnie przez grotołaz&oacute;w zakopiańskich, kontynuowany był przez nich w ramach prac finansowanych przez PTTK w r. 1953 (Kowalski 1954, Schiele 1979). Prowadzili je L. Ćwiertniak, T. Schiele i in. Wg Siarzewskiego (2004) prace te kontynuowane były jeszcze w latach 60-tych pod patronatem TPN, nie przynosząc jednak oczekiwanych rezultat&oacute;w. Komin w kt&oacute;rym znajduje się najwyższy punkt jaskini, wyeksplorowany został wspinaczkowo przez zesp&oacute;ł T.Zwijacz-Kozica i Z.Mierczak w dniu 23 VI 1995 r.<br />Jaskinia, jako udostępniona dla ruchu turystycznego, jest licznie zwiedzana (dojście wyznakowane).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwsze pomiary i nie opublikowany plan Dziury wykonali 14 VI 1940 r. S.Zwoliński i E.Winiarski, długość jej określając na 50 m (Zwoliński 1993). Plan i opis jaskini (datowany 29. 08. 1952 r.) opublikował Kowalski (1953a). W ramach prac inwentaryzacyjnych OW PTPNoZ pomiary lokalizacyjne busolą geologiczną i taśmą parcianą oraz szkic położenia wykonał P. Kulbicki przy wsp&oacute;łpracy K. Krystyniaka w dn. 17.07.1975 r., a opis inwentarzowy opublikował Kardaś (Jaskinie TPN, 1991). Dane morfometryczne zamieszczono na podstawie pomiar&oacute;w zespołu Speleoklubu Tatrzańskiego (Zwijacz-Kozica, T. 1995, Nasze trzy grosze, 1995). Pomiary (stan na 1995 r.) wykonali: G.Albrzykowski, Z.Mierczak, A., B. i T.Zwijacz-Kozica. Dane zaktualizował R.M. Kardaś (2009 r.). Na zlecenie TPN jaskinię pomierzyli 6 stycznia 2014 r. F. Filar i M. Parczewski. Na tej podstawie sporządzono nowy plan i&nbsp;przekr&oacute;j jaskini i skorygowano dane morfometryczne. Dyrektor Tatrzańskiego Parku Narodowego wyraził zgodę na zamieszczenie tego planu i&nbsp;przekroju w niniejszej dokumentacji.</p>
+<p>Plan&nbsp;i przekr&oacute;j opracowali F. Filar i M. Parczewski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Stęczyński B. Z. 1860a (opis wierszem, rysunek), 1860b (rysunek, wzmianka); Eljasz W. 1870 (opis, dojście); Kuźniar W. 1912 (wzmianka o badaniach geologicznych nad budową jaskini); Świerz M. 1912 (droga, opis); Wrzosek A. 1933 (opis, budowa geologiczna, zwraca uwagę na wymycia); Stach J. 1934 (wzmianka o występowaniu owad&#243;w bezskrzydłych), 1947 (wzmiankuje o występowaniu owad&#243;w bezskrzydłych), 1949 (wzmiankuje o występowaniu owad&#243;w bezskrzydłych),Kowalski K. 1953a (opis inwentarzowy, plan), 1954 (informacja o pracach PTTK); Stach J. 1954 (występowanie fauny); Kowalski K. 1955a (wyniki badań fauny i pomiar&#243;w mikroklimatycznych); W&#243;jcik Z. 1959b (wzmianka o występowaniu form freatycznych i wadycznych, bez nazwy); Zwoliński S. 1961 (wzmianka historyczna, reprodukcja ryciny, B. Z. Stęczyńskiego z 1860 r. ); Kotański Z. 1963 (sytuacja geologiczna); Kowalski K. 1965 (opis, charakterystyka mikroklimatu); W&#243;jcik Z. 1966a (długość,opis osad&#243;w); Rajwa A. 1971 (wyniki rocznego cyklu pomiar&#243;w temperatury); Skalski A. W. 1971 (wzmiankuje o występowaniu Pseudanophthalmus (Duvallopsis) pilosellus (Miller); Nyka J. 1972 (opis turystyczny, historia); Radwańska-Paryska Z., Paryski W.H. 1973 (kr&#243;tki opis); Bac-Moszaszwili M., Rudnicki J. 1978 (szczeg&#243;łowa sytuacja geologiczna, geneza, lokalizacja na mapie geologicznej i przekroju); Parma Ch., Rajwa A. 1978 (opis turystyczny, schematyczny plan i przekr&#243;j, mikroklimat, historia,reprodukcja rys. Stęczyńskiego z 1860 r. ); Nyka J. 1978 (opis turystyczny, historia); Głazek J. i in. 1979b (o hydrotermalnym charakterze jaskini); Schiele, T. 1979 (wspomnienia z prac w Dziurze, 3 fot. naciek&#243;w lodowych); Parma Ch. 1980 (opis turystyczny, notatka W. Eljasza); Nyka J. 1981 (opis turystyczny, historia); TATRY POLSKIE 1984 (lokalizacja na mapie); Gradziński, R. i in. 1985a (dane morfometryczne); Parma Ch., Rajwa A. 1989 (opis turystyczny, historia); Bac-Moszaszwili M., Gąsienica-Szostak M. 1990 (opis, sytuacja geologiczna, geneza, plan); Bac-Moszaszwil, M., Rudnicki J. 1991 (geneza); Jaskinie TPN 1991 (opis inwentarzowy z planem Kowalskiego); Zwoliński S. 1987-92 (wzmianka o wspinaczce na „kazalnicę” w jaskini); Zwoliński S. 1993 (dane o eksploracji w rejonie w 1935 r. i pomiarach Dziury w 1940 r.); Cywiński W. 1994 (opis dojścia); Zwijacz-Kozica T. 1995 (plan i przekr&#243;j); Nasze trzy grosze 1995 (aktualne rozmiary i dane o eksploracji, krytyczne opinie o opublikowanej w 1991 r. dokumentacji); Paryski W.H., Paryska Z. 1995 (kr&#243;tki opis); Wiśniewski W.W. 1998d (o zwiedzaniu przez Stęczyńskiego, jego opisie i rycinie); Głazek J. 2000 (wzmiankuje jako przykład jaskini powstałej z udziałem ciepłych w&#243;d ascenzyjnych); Siarzewski W. 2000 (wzmiankuje); Wiśniewski W.W. 2000 (o litografii Stęczyńskiego i innych XIX w. i in. ilustracjach); Piksa K. i in. 2001 (o występowaniu Eptesicus serotinus); Wiśniewski, W.W. 2002 (wymienia wśr&#243;d znanych w 1904 r.); Bac-Moszaszwili, M. 2004 (sytuacja geologiczna, lokalizacja na przekroju); Baryła J. 2004a (opis położenia); Baryła J. 2004b (historia badań); Baryła J., Gradziński M., Duliński M., Hercman H. 2004 (geneza, pochodzenie kryształ&#243;w kalcytu); Gradziński M. 2004 (geneza, przekr&#243;j wg Zwijacza-Kozicy); Siarzewski W. 2004 (historia poznania i eksploracji); Gradziński M. i in. 2006 (udział roztwor&#243;w zawierających metan w genezie jaskini); Filar F. 2014c (informacja o pomiarach, nowe dane morfometryczne); Filar F. 2015c (informacja o nowych pomiarach, nowy plan i dane morfometryczne). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Grodzicki J. i in. 1999 (zmiany antropogeniczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Rafał M. Kardaś
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12407)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        Otw&#243;r dolny
+                    </a>
+                    <a onclick="showImageInfo(12408)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r g&#243;rny
+                    </a>
+                    <a onclick="showImageInfo(490)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(491)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3886">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3886;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "344172,25".replace(',', '.') + "," + "271177,63".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3886','Jaskinia na Ścianie (S-1.1)'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia na Ścianie (S-1.1)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                S.I-03.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Sudety
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 16&#176;48′42,70″, φ: 50&#176;17′13,80″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Stronie Śląskie (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kłodzki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                dolnośląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                670
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                12
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                9
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                21
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    270
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sudety Wschodnie, Rog&#243;żka, masyw Śnieżnika, Krowiarki, kamieniołom wapieni zmetamorfizowanych.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się w Rogóżce, w kamieniołomie marmurów i wapieni krystalicznych, położonym powyżej wsi Konradów, u ujścia niewielkiej dolinki prawego dopływu  Konradki. Z głównej drogi Kłodzko- Lądek Zdrój za wsią Trzebieszowice skręcamy w prawo drogą do Konradowa. Mijamy wieś i widoczny z lewej strony wapiennik. Za nim, z lewej strony, znajduje się kamieniołom. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r znajduje się na wysokości 41 m od dna kamieniołomu, po lewej stronie czołowej ściany wyrobiska. Podejście od spągu kamieniołomu niebezpieczne, lepiej dotrzeć do otworu z g&oacute;rnej krawędzi kamieniołomu, trawersem około 25 m, w prawo w d&oacute;ł do otworu o wysokości około 0,6 m. Za nim korytarzyk o takiej samej wysokości doprowadza po 3 m do otworu, kt&oacute;rym w prawo przedostajemy się do Sali Złomisk osiągającej 25 m długości i około 10 m szerokości. Spąg tej sali zasłany potężnymi blokami opada ostro ku NW na głębokość około 8 m. Na dole znajduje się labirynt przejść w blokowisku. Idziemy pod stropem sali i przewężeniem dochodzimy do Sali Wyrostk&oacute;w o rozmiarach: 34 m długości, 10 m szerokości i 12 m wysokości, a następnie schodzimy między blokami po namulisku na dno sali. W g&oacute;rze sali otwiera się ciasny 4 m wysokości kominek. Między Salą Złomisk i Salą Wyrostk&oacute;w występuje labirynt ciasnych korytarzyk&oacute;w stanowiących dolny poziom jaskini.<br />Dno jaskini pokryte jest piaszczystymi osadami, przy ścianach występują misy martwicowe, a na ścianach i stropie nacieki kalcytowe. W końcowej części sali znajduje się niski otw&oacute;r, a za nim rozciąga się Korytarz Nadziei o szerokości około 1 m. Ściany korytarza są lite, dobrze wymyte. Posuwamy się nim 20 m w d&oacute;ł, przekopem wykonanym w namulisku. Na końcu przekop urywa się pionowo. Dalszy przebieg korytarza zamyka namulisko, w kt&oacute;rym prowadzono wykopy poszukiwawcze.<br />Wracamy tą samą drogą lub dolnym systemem korytarzyk&oacute;w i szczelin do Sali Złomisk, stąd w g&oacute;rę do gł&oacute;wnego ciągu i na powierzchnię.<br />Jaskinia utworzyła się w zmetamorfizowanych wapieniach pochodzących z proterozoiku, występujących w metamorfiku Śnieżnika. Zawiera obfite osady występujące zar&oacute;wno w jej wnętrzu jak i na zewnątrz, w strefie przyotworowej. Kompleks osadowy badany był w lipcu 1985 r. przez J. Bierońskiego i T. Wiszniowską (1986, 1992, 1994). Składa się on z piaskowca wapnistego, luźnych osad&oacute;w grawitacyjnych typu glin jaskiniowych oraz luźnych osad&oacute;w klastycznych sedymentacji wodnej. Miąższość osad&oacute;w przekracza 4 m. Zdaniem wymienionych badaczy, udział w tworzeniu osad&oacute;w miały wody infiltracyjne oraz wody rzeczne. Efektem ich działalności są żwiry i otoczaki osiągające kilka cm średnicy. Uwzględniając morfologię terenu i wysokość zalegania osad&oacute;w nad dnem doliny, wspomniani autorzy wstępnie oceniają, że za dolną granicę wieku najstarszych osad&oacute;w należy przyjąć pliocen, g&oacute;rna część osad&oacute;w jest holoceńska. W osadach syfonalnych stwierdzono obecność szczątk&oacute;w nietoperzy: nocka wąsatego <span style="font-style: italic;">Myotis mystacinus</span> (Kuhl 1819), nocka Natterera <span style="font-style: italic;">Myotis nattereri</span> ( Kuhl 1818) i nocek niezidentyfikowany <span style="font-style: italic;">Myotis</span> sp.<br />W ścianie kamieniołomu odkryto, należące do rzadkości, formy zlityfikowanego piaskowca. Jaskinia posiada starszą i młodszą formację naciekową. Młode nacieki pokrywają bloki oderwane od stropu i zalegające na dnie a także fragmenty stropu, w miejscu obryw&oacute;w. W Sali Wyrostk&oacute;w na dnie pokrytym osadami piaszczystymi występują misy martwicowe w inicjalnej fazie tworzenia. W okolicy otworu prowadzącego do Korytarza Nadziei występują formy naciek&oacute;w grzybkowych o rzadko spotykanych rozmiarach i kształtach. Ten typ naciek&oacute;w tworzy się w strefie mikroklimatu dynamicznego, kt&oacute;ry charakteryzuje się większymi amplitudami temperatury i wilgotności, co oznacza, że Korytarz Nadziei intensywnie wymieniał powietrze z nieznaną częścią jaskini. Starsza formacja naciekowa jest bardzo bogata, szczeg&oacute;lnie polewy naciekowe dużej grubości zalegające dno jaskini. Jaskinia jest sucha, jedynie w czasie roztop&oacute;w i opad&oacute;w w salach występuje intensywny deszcz jaskiniowy.<br />Mikroklimat jaskini nie był badany. Światło sięga do 3 m od otworu.<br />W strefie przyotworowej nie występują rośliny zielone.<br />Wstępne badania fauny wykazały, że jaskinia jest stanowiskiem rzadkich w Polsce i na świecie skoczogonk&oacute;w (<span style="font-style: italic;">Collembola</span>). Znaleziono tu kilka egzemplarzy <span style="font-style: italic;">Onychiurus schoetti</span> (Lie Petersen) opisanego z p&oacute;łnocnej Norwegii i znalezionego przed wojną przez Stacha w Jaskini Radochowskiej. Gatunek tan uważany był przez Stacha za relikt okresu lodowcowego. Stanowisko to jest trzecim na świecie i drugim w Polsce dla tego bezkręgowca. W 1987 r. R.J. Pomorski dokonał redeskrypcji tego gatunku. Z innych bezkręgowc&oacute;w znaleziono w jaskini <span style="font-style: italic;">Arrhopalites bifidus</span>, znanego tylko z jaskiń w Niemczech, Polsce i na Ukrainie. W 1990 r. zliczono w jaskini nietoperze i stwierdzono występowanie: nocka dużego (<span style="font-style: italic;">Myotis myotis</span>) 15 egz,. gacka wielkoucha (<span style="font-style: italic;">Plecotus auritus</span>) 5 egz,. nocka rudego (<span style="font-style: italic;">Myotis daubentonii</span>) 2 egz,. nocka Bechsteina (<span style="font-style: italic;">Myotis bechsteinii</span>) 1 egz,. nocka Brandta (<span style="font-style: italic;">Myotis brandtii</span>) 1 egz.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>W 1983 r. zesp&oacute;ł J. Bieroński, J. Burdukiewicz, W. Kucia dokonał oględzin kamieniołomu. Stwierdzono występowanie dużego kompleksu osad&oacute;w w czołowej ścianie kamieniołomu i zaplanowano badania na lipiec 1995 r. Na przełomie czerwca i lipca 1985&nbsp;r. dwaj grotołazi ze Stronia Śląskiego (Data, Wyleciał) trafili na otw&oacute;r jaskini. Od tego czasu trwa eksploracja, w kt&oacute;rej udział wzięli: Data, Dumański, Kucia, Kliś, Łuczycki, Trumpus, Wyleciał. W lipcu 1985 r. J. Bieroński i T. Wiszniowska organizują ob&oacute;z badawczy, wykonując wstępną, naukową ocenę jaskini (1986). Na przełomie lat osiemdziesiątych i dziewięćdziesiątych dalszą eksplorację podejmują T. Natanek i P.&nbsp;Potok. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W 1985 r. R. Jagiella, M. Siarkowski i W. Szymanowski sporządzili plan jaskini. Dane zaktualizowali w 2013 r. H. Dobrakowska i A. Szynkiewicz. <br />Plan opracowali R. Jagiella, M. Siarkowski i W. Szymanowski. Wsp&oacute;łrzędne geograficzne skorygowano w 2020 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pomorski R.J. 1987 (redeskrypcja opisu Onychiurus schoetti); Bieroński J., Trumpus J., Wiszniowska T. 1991 (wspominana); Bieroński J., Wiszniowska T. 1992 (opis, osady); Rogala W. 1992 (wymieniana);  Rogala W. 1994a, b (wymieniana); Bieroński J., Wiszniowska T. 1994 (wyniki badań); Jaskinie Sudet&#243;w 1996 (plan i opis inwentarzowy pod nr. S-1.1); Rogala W. 1998a,b,c (wymieniana); Rogala W., Placek W., Wojtoń A. 1998 (wyniki pomiar&#243;w i obserwacje terenowe); Rogala W., Wojtoń A. 2003 (wymieniana); Bieroński J. i in. 2007a (stan badań); Bieroński J. i in. 2007b (geneza, osady, fauna kopalna); Bieroński J. i in. 2007c,d,f,g wymieniana), Bieroński J. 2009 (wzmiankowana); Bieroński i in. 2009c (osady, wiek naciek&#243;w, geneza jaskini); Migoń P. 2009 (wzmiankowana, rozw&#243;j geomorfologiczny, dane morfometryczne jaskiń); Stefaniak K., Bieroński J. 2009 (opis, badania naukowe, dane morfometryczne); Wojtoń A. 2013 (wymienia, podaje długość).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Kuhl 1818; Kuhl 1819; Bieroński, J., Wiszniowska T. 1986 (opis jaskini i badań).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tadeusz Natanek, Halina Dobrakowska, Jan Trumpus
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3884)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

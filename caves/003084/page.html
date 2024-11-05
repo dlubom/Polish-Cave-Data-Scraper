@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3084">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3084;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "668334,51".replace(',', '.') + "," + "193603,11".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3084','Jaskinia Mroczna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Mroczna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bn-05.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 21&#176;19′47,00″, φ: 49&#176;35′11,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Sękowa (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                gorlicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody Kornuty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                770
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                15,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                15,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    198
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Niski, Bartne, południowo-zachodnie zbocze Kornut (830 m n.p.m.), na terenie grupy skałek zwanych Kornutami.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Najkrótsza droga prowadzi z Bartnego. Idziemy żółtym szlakiem do skrzyżowania szlaków (ok. 2 km), gdzie skręcamy na NW, na zielony szlak prowadzący do Wapiennego. Po około 1 km od szlaku odgałęzia na się na SW ścieżka prowadząca w głąb grupy skałek (drogowskaz). Po kilkudziesięciu metrach spotykamy po lewej kilkumetrowej wysokości skałkę, skąd w tym samym kierunku, lecz na przełaj, idziemy jeszcze kilkadziesiąt metrów. Dochodzimy do krawędzi osuwiska, gdzie widać ściany i ambony skalne. Niewielki otwór jaskini znajduje się kilkanaście metrów na SE od okazałej 7 m wysokości ściany skalnej. Dojście bez trudności, zwiedzanie uciążliwe (liczne zaciski). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>&nbsp;Otw&oacute;r wejściowy ma charakter studzienki (2,0 m głębokości) o wymiarach 0,5 x 1,0 m. Od otworu w kierunku N dostajemy się do ciasnego korytarzyka (około 3 m długości) zasłanego liśćmi, natomiast w kierunku NE wchodzimy do nieregularnej Salki Wejściowej. Ma ona pochyły spąg pokryty gruzem skalnym. Jej wysokość dochodzi do 1,5 m. W&nbsp;najniższym miejscu znajduje się ciasna studzienka, przez kt&oacute;rą przedostajemy się do okazałej Sali Świetlistej. Ma ona około 7 m długości, 3,0 - 5,0 m szerokości i wysokość do 3,0 m. Spąg jest nier&oacute;wny, pokryty szczątkami roślinnymi i gruzem skalnym. Sala Świetlista jest ważnym topograficznie miejscem w jaskini - rozgałęzia się tu gł&oacute;wny ciąg jaskini oraz odgałęziają się tu inne liczne korytarzyki. Na wysokości 2,7 m znajduje się charakterystyczna galeria, gdzie znajduje się wejście do 5 m długości szczeliny. W środkowej części sali studzienka (1,0 m głębokości) sprowadza do ciasnego 2 m długości korytarza. We wschodniej części komory dwie studnie (4 m głębokości) doprowadzają do Sali Grażyny (trudności V, przydatna lina). Komora ta ma regularny kształt, długość około 2 m i wysokość do 3,0 m.</p>
+<p>&nbsp;Sala Świetlista, jak wspomniano, rozgałęzia się na 2 ciągi: w kierunku południowo-wschodnim oraz ku p&oacute;łnocy.</p>
+<p>Na SE przechodzi w kolejną komorę zwaną Salą Cieni. W środkowej części rozdzielona jest ona 3,0 m wysokości progiem (trudności III). Część SW sali jest stroma i niska, o spągu pokrytym osuwającym się gruzem skalnym. Z tej części prowadzi też drugie, ciasne przejście do Sali Świetlistej. NE część Sali Cieni (poniżej progu) jest okazała: ma długość około 4 m, szerokość do 3,0 m i wysokość do 4,0 m. Spąg pokryty jest gruzem skalnym i większymi blokami skalnymi. Komora ta ma połączenie z Salą Grażyny, zbyt wąskie jednak do przejścia.</p>
+<p>Na SE z dolnej części komory prowadzi opadający w d&oacute;ł korytarzyk (ok. 4 m długości), kt&oacute;ry doprowadza do nieprzyjemnego zacisku (Z 1) zwanego Zębem.</p>
+<p>Z partii ponad progiem natomiast, przez około 1,5 m długości, niski przełaz, dochodzimy do rozgałęzienia. Stąd na NE odchodzi około 3 m długości korytarz, a w kierunku SE odchodzi kilka razy załamująca się szczelina 18 m długości zwana Korytarzem Nietoperzowym (końcowe partie ciasne). Na NW od rozgałęzienia, na przedłużeniu Korytarza Nietoperzowego biegnie ciasna szczelina, kt&oacute;ra przez podłużną studnię (3,0 m głębokości, trudności IV) sprowadza do korytarza w rejonie wspomnianego zacisku Ząb.</p>
+<p>&nbsp;Przez zacisk dostajemy się ciasnej szczeliny, skąd pochylnią na N prowadzi około 3 m długości korytarzyk doprowadzający do komory zwanej Izbą Wytrzeźwień. Sala ta ma długość około 5 m, szerokość do 2,0 m i wysokość do 3,0 m. Spąg tworzy glina. W E części sali znajduje się studzienka (1,5 m głębokości), na kt&oacute;rej dnie znajduje się najgłębsze miejsce w jaskini (-15,5 m). Z Izby Wytrzeźwień odchodzą korytarzyki: na E około 3 m długości, na S około 3 m długości oraz na NW, gdzie przez około 2 m długości przełaz dochodzimy do kolejnej komory zwanej Salą Naciekową. R&oacute;wnolegle prowadzą też dwa inne przejścia: poniżej oraz na NE.</p>
+<p>&nbsp;Sala Naciekowa jest to właściwie szeroka do 2,0 m szczelina o wysokości dochodzącej do 4,0 m, o spągu pokrytym gruzem skalnym. W zachodniej jej części znajdują się niewielkie nacieki (polewy i makarony). W kierunku W z sali prowadzą dwa korytarze rozdzielone 2,0&nbsp;m wysokości progiem. Dolny kończy się niedostępną szczeliną, natomiast g&oacute;rny poprzez zacisk (Z - 1) doprowadza na skraj progu 5,0 m wysokości. Stąd prowadzi r&oacute;wnież zaciskowy kominek (Z - 2) prowadzący do wyżej położonej Sali zwanej Piwiarnią.</p>
+<p>&nbsp;Wspomniany 5 m wysokości pr&oacute;g sprowadza do okazałej Sali Owadziej. Ma ona długość około 8 m, szerokość do 1,0 m i do 8,0 m wysokości. W SW części, pod 3 m wysokości progiem, znajduje się jeszcze ciasny korytarz. Z Sali Owadziej sprowadza do tego miejsca r&oacute;wnież 2,5 m głębokości studzienka. Od wlotu studzienki przez 1,5 m wysokości prożek w kierunku NW prowadzi korytarz (ok. 2 m długości) zakończony niedostępną szczeliną. W SE części Sali Owadziej znajduje się komin wysokości 8,0 m. Prowadzi on do położonej wyżej, wspomnianej już Piwiarni. Pokonanie komina wymaga wspinaczki (trudności IV) i użycia liny.</p>
+<p>&nbsp;Piwiarnia jest niską (wysokość do 1,5 m) komorą zasłaną gruzem skalnym. Stanowi ulubione miejsce zimowania nietoperzy w jaskini. Znajduje się tu też książka wejść do jaskini. Z Piwiarni w kierunku NW prowadzi korytarz (ok. 8 m długości, do 1,3 m szerokości), początkowo niski, p&oacute;źniej wysoki do 3,0 m. Natomiast na E, poprzez 2 ciasne studzienki (2,0 i 1,2 m głębokości) dojść można do niskiej, niewielkiej salki. Na E od Piwiarni znajduje się Zacisk Kaczki (Z - 1), doprowadzający do wspomnianego wcześniej rozgałęzienia w Sali Świetlistej.</p>
+<p>&nbsp;Jaskinia osuwiskowa, powstała w piaskowcach magurskich. Rozwinięta jest na jednej szczelinie o przebiegu NW - SE. Dno jaskini przeważnie tworzy gruz skalny, jedynie w&nbsp;partiach do Sali Świetlistej występują gleba i liście, a Izbie Wytrzeźwień glina.</p>
+<p>&nbsp;Jaskinia posiada mikroklimat dynamiczny. Woda w formie stałych lub okresowych zbiornik&oacute;w nie występuje, jest jednak na og&oacute;ł dość mokro (błoto). Światło bezpośrednie dociera do Salki Wejściowej, rozproszone natomiast do Sali Świetlistej. W czasie badań wykonanych w latach 1991 - 2001 stwierdzono występowanie przynajmniej 7 gatunk&oacute;w nietoperzy: podkowca małego (<strong><em>Rhinolophus hipposideros</em></strong>), nocka dużego (<strong><em>Myotis myotis</em></strong>), nocka Bechsteina (<strong><em>Myotis bechsteinii</em></strong>), nocka wąsatka/Brandta(<span style="font-style: italic;"><span style="font-weight: bold;">M</span></span><strong><em>yotis </em></strong><strong><em>mystacinus</em></strong><strong><em>/</em></strong><strong><em>brandtii</em></strong>), nocka rudego (<strong><em>Myotis daubentonii</em></strong>), gacka brunatnego (<strong><em>Plecotus auritus</em></strong>) oraz gacka szarego (<strong><em>Plecotus austriacus</em></strong>). Stwierdzono obecność licznych gatunk&oacute;w motyli, pająk&oacute;w i owad&oacute;w bezskrzydłych. Flora nie była obserwowana.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Prawdopodobnie pierwsza publikowana wzmianka dotycząca jaskini pochodzi z 1962 r. (Chrost.[owski m.]). Jaskinia musiała być znana już wcześniej, skoro istnieje legenda o zb&oacute;ju Sypce z Męciny, kt&oacute;ry jakoby ukrywał w niej skarby (Boczoń 1990). Pierwsze znane wejście do jaskini zanotowano jednak dopiero w 1977 r. (Szura 1996b). Obecnie jaskinię zwiedza kilkanaście grup rocznie. Według wpis&oacute;w w książce wejść, w 1995 r. do Piwiarni dotarło 16 zespoł&oacute;w.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Została zinwentaryzowana 6 sierpnia 1988 r. przez T. Mleczka, B. Szatkowskiego i T. Kałużę (Speleoklub Dębica). Pomiary wykonano 6 sierpnia i 15 sierpnia 1988 r oraz 7 stycznia 1991 r. (w rejonie Sali Naciekowej i Izby Wytrzeźwień) używając busoli geologicznej Freiberg i taśmy parcianej.&nbsp; W 2004 r. W.J. Gubała (Stowarzyszenie Speleoklub Beskidzki) oraz Cz. Szura (Speleoklub Bielsko-Biała) splanowali nowe partie długości 23 m, dokonali r&oacute;wnież korekty głębokości (Klassek, Mleczek 2004; Gubała 2005a) 24 września 2008 r. T. Mleczek (Stowarzyszenie Speleoklub Beskidzki) dokonał aktualizacji planu i opisu.<br />Plan opracował T. Mleczek.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Chrost.[owski m.] 1962 (wzmianka?); Klassek G. 1989 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza); Boczoń W. 1990 (podania); Klassek G. 1990b (plan i opis inwentarzowy autorstwa T. Mleczka); Klassek G. 1991 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza); Klassek G. 1992 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza); Wiśniewski W.W. 1992 (historia poznania); Wiśniewski W.W. 1993a (ujęta w wykazie najdłuższych jaskiń polskich Beskid&#243;w i Pog&#243;rza); Wiśniewski W.W. 1993b (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G. 1994 (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych); Mleczek T., Szatkowski B., Węgiel W. 1994 (nietoperze); Klassek G. 1995 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza); Beskid Niski i Pog&#243;rze 1996 (wzmianka, lokalizacja na mapie); Kubit R. 1996c (wzmianka); Mleczek T. 1996h (nietoperze); Mleczek T. 1996b (plan i opis inwentarzowy); Mleczek T. 1996c (wzmianka); Mleczek T. 1996e (wzmianka); Mleczek T. 1996g (nietoperze); Wiśniewski W.W. 1996a (ujęta w wykazie najdłuższych jaskiń polskich Karpat Fliszowych);Wiśniewski W.W. 1996d (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Wiśniewski W.W. 1996e (ujęta w wykazie jaskiń Beskidu Niskiego autorstwa T. Mleczka, lokalizacja na mapie autorstwa T. Mleczka); Szura Cz. 1996a (opis jaskini); Szura Cz. 1996b (wzmianka); Magurski Park Narodowy 1997 (lokalizacja na mapie); Wiśniewski W.W. 1997 (kr&#243;tki opis, plan jaskini autorstwa T. Mleczka), Urban J. 1997 (ujęta w wykazie najdłuższych i najgłębszych jaskiń pseudokrasowych Polski); Jaskinie Polskich Karpat fliszowych 1998 (plan i opis inwentarzowy); Klassek G., Mleczek T. 1998 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Beskid Niski. Przewodnik dla prawdziwego turysty 1999 (wzmianka); Klassek G., Mleczek T. 1999 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T. 1999f (nietoperze); Mleczek T., Baczyński P. 1999b (nietoperze); Alexandrowicz Z., Poprawa P. (red.) 2000 (wzmianka); Klassek G., Mleczek T. 2000 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Subik P. 2000 (wzmianka); Klassek G., Mleczek T. 2001 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T. 2001a (nietoperze); Suski R. 2001a (ujęta w wykazie najdłuższych i najgłębszych jaskiń Beskidu Niskiego); Grzywiński, W. 2001 (nietoperze); Suski R. 2001e (gelifrakcja); Beskid Niski. Przewodnik dla prawdziwego turysty 2002 (wzmianka); Klassek G., Mleczek T. 2002 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T. 2002b (plan, kr&#243;tki opis, fotografie otworu i Sali Owadziej); Klassek G., Mleczek T. 2003 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G. 2004 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2004 (nowe partie, korekta głębokości, ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T. 2004c (nietoperze); Węgiel A., Szkudlarek R., Gottfried T. 2004 (nietoperze); Beskid Niski 2005 (lokalizacja na mapie bez podanej nazwy, wzmianka); Gubała, W. J. 2005a (plan nowych partii, korekta głębokości), Gubała, W. J. 2005c (kr&#243;tki opis, historia poznania, lokalizacja na mapie); Gubała, W.J. 2006c. (nietoperze); Gubała, W.J. 2006d (nowe partie); Klassek G., Mleczek T. 2005 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T. 2006 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Mleczek T. 2006 (szkic techniczny); Beskid Niski. Przewodnik dla prawdziwego turysty (2007 wzmianka); Klassek G., Mleczek T. 2007. (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Urban J., Margielewski W., Schejbal-Chwastek M., Szura Cz. 2007. (nacieki); Klassek G., Mleczek T. 2008b (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat Fliszowych); Klassek G., Mleczek T., 2009 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2010 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2011 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2012 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T., 2014 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Zatorski M. 2014 (strukturalne uwarunkowania rozwoju jaskini); Zatorski M., Franczak P., Mleczek T. 2015 (waloryzacja).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tomasz Mleczek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2990)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

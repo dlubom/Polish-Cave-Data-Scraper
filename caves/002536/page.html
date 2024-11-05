@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2536">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2536;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "543012,6253".replace(',', '.') + "," + "283026,0070".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2536','Jaskinia w Straszykowej G&#243;rze'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia w Straszykowej G&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.IV-03.13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;36′20,00″, φ: 50&#176;24′46,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Ogrodzieniec (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                zawierciański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 i 3 - ku W; 4 - ku g&#243;rze.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                435
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                2,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                18,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                21,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    150
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Pasmo Smoleńsko-Niegowonickie, Rycz&#243;w, wąw&#243;z na południowym zboczu Straszykowej G&#243;ry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z centrum Ryczowa idziemy na południowy wschód w kierunku widocznego z oddali wzgórza z betonowym słupem na szczycie Straszykowej Góry. Stąd kierujemy się na południe do mocno wciętego wąwozu opadającego w kierunku drogi Klucze - Pilica i źródeł w Stokach Kwaśniowskich. Wielki otwór główny leży w skałce na zboczu po lewej (orograficznie) stronie wąwozu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                      <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Jaskinia rozwinięta w wapieniach górnej jury. Obiekt składa się z&nbsp;dwóch zupełnie odmiennych części – „starej” i&nbsp;„nowej”. „Stara”, wymodelowana w&nbsp;wapieniu skalistym, to bardzo obszerny, wznoszący się tunel, którego strop się obniża. Po lewej, zachodniej stronie tunelu znajdują się krótkie wnęki, odgałęzienia, z&nbsp;których jedno wyprowadza na półkę w&nbsp;ścianie skalnej. W&nbsp;samym końcu tej części jaskini znajduje się kominek do otworu na powierzchni, a&nbsp;w&nbsp;prawo, ku wschodowi, skręca niski, ślepo zakończony korytarzyk. Ta część jaskini była znana od dawna. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Wejście do nowej części odsłonięto w&nbsp;1984 r. Jest to niski i&nbsp;ciasny przełaz wykopany w&nbsp;silnie uławiconych, miejscami odspajających się wapieniach. Wprowadza on do meandrującego korytarza (ponownie w&nbsp;wapieniu skalistym) o&nbsp;wysokości około 2&nbsp;m i&nbsp;długości 64&nbsp;m. Kształt korytarza jest wynikiem przepływu wody w&nbsp;warunkach wadycznych. W&nbsp;niektórych odcinkach korytarza zaznaczone są efektowne rynny boczne, osiągające miejscami głębokość 1&nbsp;m przy wysokości do 20 cm. Korytarz na samym końcu rozwidla się, przy czym lewa odnoga przechodzi w&nbsp;osiemnastometrowy komin z&nbsp;pięknymi naciekami, a&nbsp;prawa odnoga kończy się ślepo. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W starej części jaskini nacieki nie występują. W&nbsp;nowej części można spotkać większość form naciekowych znanych z&nbsp;jaskiń Wyżyny Krakowsko-Wieluńskiej. W&nbsp;chwili odkrycia dno korytarza na odcinku około 10&nbsp;m pokrywała cienka polewa, na której utworzyły się delikatne pola ryżowe opadające ku ścianom. W&nbsp;suchych misach znajdowały się w&nbsp;dużych ilościach niewielkie pizolity. W&nbsp;chwili obecnej z&nbsp;polewy zachowały się tylko szczątkowe fragmenty, a&nbsp;pizolity w&nbsp;większości zostały wyniesione. Na końcu korytarza można zobaczyć narosłe na polewach masywne stalagmity (do 30 cm), a&nbsp;na stropie stalaktyty i&nbsp;draperie. W&nbsp;kominie na końcu korytarza zachowało się rzadko spotykane nagromadzenie różnych nacieków. Najwyższą jego część nacieki pokrywają całkowicie. W&nbsp;górnej części występują pizolity o&nbsp;średnicy do 20 mm. Wejście do komina jest ciasne i&nbsp;mało widoczne, dlatego jest on rzadko odwiedzany i&nbsp;w związku z&nbsp;tym zachowało się tu najwięcej nacieków. W&nbsp;pozostałej części nowych partii wszystkie formy naciekowe (oprócz polew) zostały połamane i&nbsp;wyniesione. W&nbsp;niektórych częściach można zauważyć skapującą ze stropu i&nbsp;spływającą po ścianach wodę. W&nbsp;jednym z&nbsp;odgałęzień głównego korytarza utrzymuje się woda w&nbsp;postaci niewielkiej sadzawki. Dzięki temu jest nadzieja, że proces narastania nacieków nie został przerwany i&nbsp;jaskinia wciąż „jest żywa”. W&nbsp;czerwcu 1991&nbsp;r. Andrzej Górny pobrał w&nbsp;jaskini dwie próbki nacieków w&nbsp;celu ich datowania metodą <sup>14</sup>C. Wyniki tych datowań określiły wiek polewy z&nbsp;końca jaskini na 45000 do 42500 BP, a&nbsp;wiek stalagmitu z&nbsp;meandrującego korytarza na 9020 do 4120 BP. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Namulisko w&nbsp;jaskini jest bardzo obfite lecz silnie zdewastowane, szczególnie w&nbsp;starej części. Podobno w&nbsp;czasie II wojny światowej ukrywali się tu żydzi i&nbsp;był to dostateczny powód aby poszukiwacze skarbów intensywnie przekopywali osady. Kowalski pisze, że w&nbsp;miejscu wykopów pojawiały się liczne skorupy i&nbsp;kości zwierzęce. Osady w&nbsp;starej części są próchnicowo-kamieniste z&nbsp;domieszką materiału ilastego. W&nbsp;nowej części namulisko jest gliniasto-piaszczyste i&nbsp;gliniaste. Trzy lata po odkryciu nowych partii, w&nbsp;namulisku, pod cienką warstwą polewy, Marian Czepiel znalazł stary kilof, którego wiek określił w&nbsp;przybliżeniu na 80 lat. Znalezisko to może świadczyć o&nbsp;tym, że partie te były już kiedyś poznane. Jednocześnie zaobserwował on ciekawe formy stalaktytów powstających pod polewą w&nbsp;warstwie namuliska lessowego. Do tej pory w&nbsp;jaskini nie prowadzono systematycznych prac archeologicznych. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;W związku z&nbsp;istnieniem kilku otworów stare partie jaskini są intensywnie przewietrzane, wilgotność jest niewielka a&nbsp;wpływ zewnętrznych czynników atmosferycznych bardzo duży. W&nbsp;nowych partiach, dzięki niewielkiemu otworowi temperatura bardzo szybko się stabilizuje za zaciskiem wejściowym a&nbsp;wilgotność jest bardzo duża. Nie było tu prowadzonych badań mikroklimatycznych lecz można przyjąć z&nbsp;dużym prawdopodobieństwem, że ta część ma klimat statyczny. </span></p>  <p><span>&nbsp;&nbsp;&nbsp;&nbsp;Stara część jaskini jest w&nbsp;zasięgu światła rozproszonego, padającego z&nbsp;trzech otworów, nowe partie są całkowicie ciemne. W&nbsp;zasięgu światła rozproszonego na ścianach jaskini rozwijają się glony. W&nbsp;ciemnych miejscach na szczątkach organicznych intensywnie rozwijają się pleśnie. </span></p>  <span>&nbsp;&nbsp;&nbsp;&nbsp;W trakcie pobytu w&nbsp;jaskini nie zaobserwowano nietoperzy, choć w&nbsp;„nowych partiach” znalazłyby niezłe warunki bytowania. W&nbsp;meandrującym korytarzu obserwowano natomiast duże ilości muchówek, pająków <strong><em>Meta menardi</em></strong> (część wstępna), ciem i&nbsp;motyli oraz ślimaków bezskorupowych.</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    W czerwcu 1991 r. Andrzej Górny pobrał w jaskini dwie próbki nacieków w celu ich datowania metodą 14C. Wyniki tych datowań określiły wiek polewy z końca jaskini na 45000 do 42500 BP, a wiek stalagmitu z meandrującego korytarza na 9020 do 4120 BP. <br />Do tej pory w jaskini nie prowadzono systematycznych prac archeologicznych.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Dzięki dużym rozmiarom jaskinia z pewnością znana od bardzo dawna. <span><span>Podobno w&nbsp;czasie II wojny światowej ukrywali się tu żydzi i&nbsp;był to dostateczny powód aby poszukiwacze skarbów intensywnie przekopywali osady.</span>Nowe partie odsłonił w&nbsp;1984&nbsp;r. Paweł Bednarz. </span>Trzy lata po odkryciu nowych partii, w namulisku, pod cienką warstwą polewy, Marian Czepiel znalazł stary kilof, którego wiek określił w przybliżeniu na 80 lat. Znalezisko to może świadczyć o tym, że partie te były już kiedyś poznane.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    W literaturze pierwszy raz odnotowana przez Kowalskiego1(951), który nadał jej numer inwentarzowy 375. Szelerewicz i Górny (1986) podają informacje o niej pod numerem IV. B. 16. Pomiary w jaskini wykonali we wrześniu 1986 r. J. Szelerewicz, A. Górny i M. Szelerewicz. Opis i plan jaskini znalazł się w dokumentacji dla Zarządu Jurajskich Parków Krajobrazowych woj. katowickiego w 1997 roku.<br />Opis i plan schroniska znajduje się również w dokumentacji dla Ministerstwa Środowiska z roku 2000. Dane zaktualizował A. Polonius (2009).<br />Plan opracował Mariusz Szelerewicz.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kowalski K. 1951 (plan i opis); Zinkow J. 1977 (wymienia); Szelerewicz M., G&#243;rny A. 1986 (lokalizacja, opis i plan); Szelerewicz M. 1986 (wzmianka); Szelerewicz M. 1988 (wzmiankuje); Pazdur A. i in.1994 (datowanie naciek&#243;w); Szelerewicz M. 1994 (wzmianka); Tyc A. 1994; Szelerewicz M. 1995 (wzmianka); Kurek A. 1995 (wymienia, podaje wymiary); Gradziński M., G&#243;rny A., Pazdur A., Pazdur M., F. 1997 (wzmianka); Tyc A. 2009a (wzmiankuje w aspekcie genezy); Jaskinie Wyżyny Częstochowskiej 2011c  (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Polonius A. i in. 1997; Polonius A. i in. 2000 (dokumentacja); Polonius A. 2003 (omawia morfologię i genezę jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2052)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

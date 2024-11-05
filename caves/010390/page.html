@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10390">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10390;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "543698,02".replace(',', '.') + "," + "272900,21".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10390','Dziura w Dąbrowie'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Dziura w Dąbrowie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.II-01.29
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;36′50,50″, φ: 50&#176;19′17,90″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Olkusz (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                olkuski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Park krajobrazowy Orlich Gniazd
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                402
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                24
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                24
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    165
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Podlesie, Las Dąbrowa (wzg&#243;rze 414,8 m n.p.m).
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Do jaskini najszybciej można dotrzeć ze skrzyżowania drogi 783 z lokalna drogą do Podlesia - znajduje się tu niewielka zatoczka na poboczu drogi gdzie można zaparkować samochód. Do otworu można dojść idąc szlakiem turystycznym. Przy czym należy zwrócić uwagę, że w ostatnim roku zostało zmienione oznakowanie tego szlaku – kolor czerwony zamieniono na zielony. Szlakiem tym należy przejść około 700 metrów, po czym skręcić w prawo (na wschód) i podejść pod górę aż do wypłaszczenia zbocza. Tu trzeba skręcić w lewo (na zachód), aby po kolejnych kilkudziesięciu metrach trafić na lej z otworem jaskini.
+Ponieważ w pobliżu otworu nie ma żadnego charakterystycznego punktu orientacyjnego, podczas podejścia najlepiej jest posiłkować się przyrządem GPS. Zwiedzając jaskinię należy zachować dużą ostrożność ze względu na niestabilne bloki skalne w korytarzach jaskiniowych. Wzmożoną ostrożność należy zachować już w trakcie wchodzenia do otworu, który może zostać zasypany piaskiem i zwietrzeliną wapieni.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Wg A. Adamczewskiej, J. Nowaka i M. Pawełczyka (2013): <em>&bdquo;Do jaskini prowadzi ciasny, pionowy (powszechnie używane w opisach jaskiń, całkowicie błędne określenie: "pionowy" oznacza usytuowany w płaszczyźnie pionowej! tu chodzi o otw&oacute;r usytuowany w płaszczyźnie poziomej(!)- przyp. red.) otw&oacute;r, zlokalizowany w dnie leja krasowego. Jego ściany są niestabilne, przy pr&oacute;bie wejścia osypują się piasek i kamienie. Otw&oacute;r wejściowy przechodzi w kilkumetrowej długości pochylnię &ndash; Zjeżdżalnię. W 1/3 długości pochylni w kierunku p&oacute;łnocnym odchodzi kr&oacute;tki korytarzyk z piaskowym zamkiem. Zjeżdżalnia sprowadza do Korytarza z Lustrami &ndash; najobszerniejszej szczeliny w jaskini, rozwiniętej na pęknięciu w kierunku p&oacute;łnoc-południe. Dno szczeliny pokrywa zawalisko.</em><br /><em>Jaskinia rozwija się dalej w kierunku południowym. Z Korytarza z Lustrami poprzez niewysokie okna przechodzimy do Rozdroża &ndash; niewielkiej salki, z kt&oacute;rej korytarze jaskini rozchodzą się w kilku kierunkach.</em><br /><em>W kierunku południowym ciągnie się kilkumetrowej wysokości Korytarz Beskidzki. Swoim charakterem przypomina zawaliskowe jaskinie znane z rejonu Beskid&oacute;w. Miejscami korytarz jest wysoki, czasem ciasny; niekiedy trzeba przeciskać się między słabo zaklinowanymi blokami skalnymi. Korytarz kończy się zawaliskiem. Jest to najdalej na południe wysunięty fragment Dziury w Dąbrowie.</em><br /><em>Z Rozdroża połogim, kruchym kominem (Zsyp) dostajemy się do Sal Muszelkowych. Wchodząc na g&oacute;rę zapieraczką, możemy p&oacute;jść dalej w dwie strony. W kierunku p&oacute;łnoc-zach&oacute;d znajduje się niewielka salka, kt&oacute;ra nie ma kontynuacji. Na jej ścianach znajdują się nieliczne grzybki naciekowe. Znaleziono tu czaszkę lisa. Od komina kierujemy się natomiast w drugą stronę, na zach&oacute;d. Pod nogami znajduje się ciasna studzienka, urywająca się nad Korytarzem z Lustrami. Natomiast na południe, na wysokości około metra od spągu zlokalizowany jest przełaz prowadzący do kilku salek nazwanych Salami Muszelkowymi. Ich charakter jest odmienny od pozostałej części jaskini. Są to szerokie, lecz bardzo niskie pustki. Strop w nich jest płaski i spękany. Te partie jaskini znajdują się blisko powierzchni ziemi. Świadczą o tym korzenie drzew, przewiew oraz wyniki kartowania. W środkowej Sali znajduje się &bdquo;wydma" &ndash; piach, kt&oacute;ry zjechał z g&oacute;ry w wyniku zawalenia się stropu. W stropie możemy oglądać sporą ilość amonit&oacute;w i ramienionog&oacute;w.</em><br /><em>Wracając do Rozdroża, w jego południowo-zachodniej części, po zejściu z ukośnej płyty dostajemy się do ciasnego przełazu między blokami skalnymi. Następnie w kierunku zachodnim przechodzimy do ciasnej, pofalowanej szczeliny prowadzącej nas w d&oacute;ł; pokonujemy ją zapieraczką. Jest to trzecie piętro jaskini. Po pokonaniu 6-metrowej studni stajemy na p&oacute;łce. Możemy wybrać stąd jedną z trzech dr&oacute;g. Kontynuując schodzenie w d&oacute;ł szczeliną, możemy dostać się na dno jaskini. W kierunku p&oacute;łnocnym prowadzi kr&oacute;tki korytarz oparty na tym samym pęknięciu, kt&oacute;ry r&oacute;wnież możemy pokonać zapieraczką do dna. Natomiast z p&oacute;łki w kierunku południowym odchodzi kilkunastometrowy korytarz rozwinięty na ukośnym pęknięciu. Strop i spąg zbudowany jest z luźnych kamieni. Dno jaskini to kr&oacute;tka szczelina, zakonczona w obu kierunkach niedostępnymi dla człowieka szczelinami i zawaliskiem. Spąg jest tutaj kamienno-piaszczysty."</em><br />Jaskinia rozwinęła się w ławicowych wapieniach gąbkowo-tuberolitowych, miejscami kredowatych, przewarstwionych wapieniami skalistymi. Skały te powstały w g&oacute;rnej jurze (w oksfordzie). Rodzaj skał i zaangażowanie tektoniczne masywu warunkuje morfologię jaskini. Duża ilość spękań ciosowych poszerzonych w trakcie grawitacyjnego rozpadu masywu w połączeniu z poszerzonymi fugami międzyławicowymi daje wsp&oacute;łczesny obraz jaskini.<br />Wg A. Adamczewskiej, J. Nowaka i M. Pawełczyka (2013):<em> "Namulisko tworzy tylko gruz i piasek, a przy otworze liście. Nacieki tworzą resztki polew, kilka draperii i grzybki. Natomiast bardzo liczne są skamieniałości: amonity, belemnity, gąbki, ramienionogi oraz igły jeżowc&oacute;w.</em><br /><em>Światło sięga do połowy Zjeżdżalni. Podczas ujemnej temperatury otoczenia z otworu wydobywa się ciepłe, wilgotne powietrze.</em><br /><em>W otworze wegetują tylko much&oacute;wki (w tym komary), motyle </em>Scoliopterix libatrix<em>, </em>Triphosa dubitata<em> i</em> Inachis io<em>, chrząszcze (biegacze i inne), wije, kosarze, pająki (w tym </em>Meta menardi<em>), ślimaki bezskorupowe. O częstej obecności nietoperzy świadczą coraz liczniejsze odchody, jednak we wnętrzu jaskini, mimo licznych wizyt, zaobserwowano tylko raz hibernującego nietoperza (podkowiec mały).</em>"</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini został odkryty 31.12.2011 roku przez M. Pawełczyka, kt&oacute;ry 1 i 2 stycznia 2012 roku powiększa otw&oacute;r otwierając dostęp do wnętrza jaskini. 13 stycznia 2012 roku zesp&oacute;ł w składzie: M. Pawełczyk, W. Kuczok i J. Surmacz eksploruje całość jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pomiary wykonali J. Nowak, A. Adamczewska i M. Pawełczyk 26.10.2013 roku.<br />Po raz pierwszy i do tej pory jedyny, opisana została w 2013 roku przez A. Adamczewską, J. Nowaka i M. Pawełczyka.<br />Dane zaktualizował A. Polonius (2014), kt&oacute;ry opracował dokumentację na podstawie danych wspomnianych autor&oacute;w i obserwacji własnych..<br />Plan i przekr&oacute;j opracował J. Nowak.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Adamczewska A. i in. 2013 (opis, plan i przekr&#243;j, kolorowe zdjęcia wnętrza jaskini); Jaskinie Wyżyny Olkuskiej 2016 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Adam Polonius
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(10774)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(10772)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(10773)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

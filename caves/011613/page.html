@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F11613">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 11613;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "558414,86".replace(',', '.') + "," + "259708,10".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('11613','Jaskinia Łokietka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Łokietka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                i&#225;skinia Krolewska, grota Czajowiecka, grota podziemna Czaiowiecka, jaskinia Krolewska, iaskinia Kr&#243;lewska, pieczara kr&#243;lewska, Jaskinia Kr&#243;lewska, kr&#243;lewska iaskinia, Grota Kr&#243;lewska, pieczara Łokietka, Jaskinia Czajowska, Jaskinia Łokietkowska, grota Ło
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-02b.125
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;49′07,56″, φ: 50&#176;12′06,10″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Skała (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Ojcowski Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                452
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                125
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                4
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                6
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                7
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    320
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Ojc&#243;w, G&#243;ra Chełmowa, Obszar Natura 2000 - Dolina Prądnika, Wyżyna Olkuska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od parkingu w Czajowicach idziemy wyraźną, utwardzoną drogą w kierunku północno-wschodnim (szlak niebieski) ok. 200 m, aż do rozgałęzienia, skąd dalej drogą prowadzącą ku północy, początkowo po poziomicy, a następnie po przejściu niewielkiej grani lekko w dół (szlak czarny do otworu jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Do właściwego otworu jaskini prowadzi wąska, pozbawiona stropu szczelina skalna &ndash; pozostałość po dawnym korytarzu jaskiniowym. Za otworem o szerokości 3 m biegnie ku południowemu wschodowi ciasny, obniżający się kr&oacute;tki korytarz, natomiast gł&oacute;wny ciąg jaskini skręca ku południowemu zachodowi. Wejście do niego jest przegrodzone metalową kratą. Gł&oacute;wny ciąg jaskini składa się z czterech sal, z kt&oacute;rych największymi są Sypialnia, położona w końcowych częściach jaskini i Sala Rycerska. Pozostałe, zdecydowanie mniejsze, to Kuchnia oraz niewielka sala położona zaraz za wejściem do jaskini, na początku Gł&oacute;wnego Korytarza. Sale te są połączone przestronnymi korytarzami. Największym z nich jest Gł&oacute;wny Korytarz łączący otw&oacute;r z Salą Rycerską. Od sal odchodzą liczne odgałęzienia; przeważnie są to ciągi kr&oacute;tkie i ciasne. Wyjątek stanowi korytarz biegnący na południe z Sali Rycerskiej. Należy dodać, że poza naturalnym korytarzem (przez Kuchnię) Sala Rycerska jest połączona z Sypialnią także sztucznym tunelem. Można sądzić, że jaskinia posiada, poza obecnie funkcjonującym, jeszcze dwa zasypane otwory. Jeden na końcu korytarza prowadzącego ku południowi z Sali Rycerskiej, a drugi w jednej z bocznych odn&oacute;g Sypialni.</p>
+<p>Jaskinia jest utworzona w wapieniu jury g&oacute;rnej. W rejonie otworu wapień nosi cechy wapienia skalistego; widoczne są tam niewypełnione cementem struktury stromatactis. Większość korytarzy jaskini powstała wzdłuż pionowych szczelin ciosowych (R. Gradziński 1961, 1962). W wielu miejscach na stropie są dobrze rozwinięte kotły wirowe, z kt&oacute;rych największe mają średnicę do 3 m Część korytarzy (np. w rejonie Kuchni, boczne korytarze z Sali Rycerskiej i Sypialni) ma formę meandr&oacute;w, a na ścianach Korytarza Gł&oacute;wnego i Sypialni widoczne są nisze zakolowe o głębokości wcięcia do 0,5 m. Jaskinia jest fragmentem większego systemu krasowego. Jej powstanie związane jest z przepływem krasowym, kt&oacute;rego kierunek jest trudny do ustalenia. Charakter korytarzy wskazuje na rozw&oacute;j jaskini początkowo w warunkach freatycznych, a następnie w wadycznych (R. Gradziński 1961, 1962). Jaskinia Łokietka jest jedną z najwyżej położonych jaskiń w Dolinie Sąspowskiej. Na podstawie położenia hipsometrycznego T. Madeyska (1977a) przypisuje jej wiek p&oacute;źnoplioceński lub wczesnoczwartorzędowy. Przypuszczenia te zostały potwierdzone znalezieniem w osadach Schroniska Bocznego przy Jaskini Łokietka szczątk&oacute;w plioceńskich gryzoni (G. Lipecki i in. 2000, 2001).</p>
+<p>Namulisko w partiach przyotworowych humusowe, głębiej namulisko gliniaste z gruzem wapiennym; lokalnie spąg skalny. W Korytarzu Gł&oacute;wnym miąższość osad&oacute;w klastycznych osiąga 5 m (K. Sobczyk i V. Sitlivy 2001b). Zar&oacute;wno w rejonie otworu jak i w początku Korytarza Gł&oacute;wnego nie był zachowany pierwotny układ stratygraficzny osad&oacute;w (K. Sobczyk i V. Sitlivy 2001a; J. Rodzińska-Nowak i in. 2000&ndash;2001). W Sypialni miejscami namulisko jest pokryte polewą naciekową, a w jej południowej części spąg budują bloki wapienne o rozmiarach do kilku metr&oacute;w.</p>
+<p>W jaskini, zar&oacute;wno w osadach jak i na ich powierzchni, stwierdzano r&oacute;żnorakie kości zwierzęce i zabytki archeologiczne. W Sypialni znajdowały się liczne kości niedźwiedzia jaskiniowego (<em>Ursus spelaeus</em> s.l.) częściowo spojone naciekami (S. Staszic 1815; M. Olszyński 1871; J. Zawisza 1871, 1873, 1874; S.J. Czarnowski 1911d, 1914a; M. Gradziński M. i in. 2008). W wierzchnich warstwach namuliska znaleziono także ceramikę, kości ludzkie i kości niedźwiedzia <em>Ursus arctos</em> (wg obecnej nomenklatury; Jaskinia, 1862; M. Olszyński 1871; K. Stołyhwo 1912). Znaczna część kości niedźwiedzi jaskiniowych została wyniesiona z jaskini jeszcze w XIX w. W osadach wstępnej części jaskini (w sali na początku Korytarza Gł&oacute;wnego) odkryto ślady ogniska o średnicy 1 m, kości zwierzęce, narzędzia krzemienne, fragmenty ceramiki (S.J. Czarnowski 1914a), a nieopodal także kości ludzkie, w tym czaszkę (J. Roszkiewicz &ndash; inf. ustna 1996 r.). Kości te zostały przekazane do Instytutu Systematyki i Ewolucji Zwierząt PAN w Krakowie (M. Wojenka &ndash; inf. pisemna, 2020 r.). Natomiast w osadach na końcu korytarza odchodzącego ku południowi z Sali Rycerskiej znaleziono połamane nacieki, nożyk krzemienny oraz kości zwierzęce, niekt&oacute;re połamane (Czarnowski, 1914a).</p>
+<p>W jaskini występują niewielkie stalaktyty oraz polewy naciekowe, zazwyczaj małej miąższości. Jedynie polewa naciekowa znajdująca się miejscami na spągu Sypialni osiąga miąższość ponad 20 cm. W Sypialni występują też stalagmity, z kt&oacute;rych największe mają średnicę do 50 cm. Badany był radiowęglowy wiek naciek&oacute;w z Sypialni (M. Gradziński M. i in. 1998, 2003). Stwierdzone zostały dwie generacje polew naciekowych: starsza o wieku ok. 20 500 lat BP i młodsza holoceńska. W młodszej generacji występują laminy ciemno zabarwione przez sadze z ognisk i pochodni palonych wewnątrz jaskini. Ponadto w jaskini występuje naciek grzybkowy i nacieki z kożuchowego mleka wapiennego.</p>
+<p>Światło sięga kilkanaście metr&oacute;w w głąb. Jaskinia jest w głębi wilgotna. Wilgotność przekracza 90% i sięga 96%. Ruch powietrza jest zauważalny jedynie latem i zimą (J. Wieczorek 1992; A. Podstawczyńska-Bienias i T. Charciarek 2001a,b). J. Wieczorek (1992) określa mikroklimat wnętrza jaskini jako statyczny z amplitudą temperatur nieprzekraczającą 2,9&deg;C, podczas gdy amplituda temperatura w części przyotworowej sięga 28,5&deg;C. Natomiast A. Podstawczyńska-Bienias i T. Charciarek (2001a,b) na podstawie obserwacji sezonowych prowadzonych w latach 1995&ndash;1996 wskazują na sezonowe zmiany temperatury r&oacute;wnież w głębszej części jaskini i charakteryzują jej mikroklimat jako dynamiczny, względnie stabilny stwierdzając brak w jaskini statycznej strefy termicznej. Średnia temperatura dla całej jaskini wynosi 6,6&deg;C (J. Wieczorek 1992).W rejonie przyotworowym w sezonie zimowym tworzą się r&oacute;żnorodne stalagmity lodowe.</p>
+<p>W wielu punktach, zwłaszcza w Sypialni, ze stropu kapie deszcz podziemny. Miejscami na spągu tworzą się niewielkie kałuże. W średnim składzie w&oacute;d perkolacyjnych dominują: HCO3, SO4, Ca, a ponadto ze składnik&oacute;w gł&oacute;wnych występują (w kolejności malejącego udziału) Cl, SiO2, NO3, Na, Mg i K (A. G&oacute;rny i in. 2001; J. Motyka i in. 2002). Wody te noszą cechy zmian antropogenicznych, o czym świadczy między innymi podwyższona zawartość siarczan&oacute;w i azotan&oacute;w (P. Goc i in. 2000; B. Hibszer 2004).</p>
+<p>W rejonie otworu na ścianach rozwijał się bogaty zesp&oacute;ł mch&oacute;w (A. Żmuda, 1915, 1916). Obecnie występują tam jedynie pojedyncze skupiska mch&oacute;w, a ponadto liczne glony i porosty (J. Czerwik-Marcinkowska i T. Mrozińska 2010, 2011; J. Czerwik-Marcinkowska 2013; J. Czerwik-Marcinkowska i in. 2015a). A. von Humboldt (1793) opisał dwa gatunki porost&oacute;w, odnotowując jako lokalizację Sowią Jamę, położoną w pobliżu Jaskini Łokietka. Nie można wykluczyć, że w rzeczywistości okazy były pobrane w znacznie bardziej popularnej Jaskini Łokietka, a lokalizacja została podana omyłkowo. Wewnątrz jaskini na butwiejących poręczach schod&oacute;w okresowo tworzyły się w latach dziewięćdziesiątych XX w. bardzo obfite skupiska pleśni. W korytarzu w rejonie Kuchni, a także w bocznych korytarzach za Sypialnią ze stropu wyrastają korzenie drzew.</p>
+<p>Obecność nietoperzy w jaskini była wielokrotnie odnotowywana (M. Labocha i B. W. Wołoszyn 1994; J. Węgiel i A. Węgiel 1996; J. Nowak i K. Kozakiewicz 2000, 2001; K. Polowy i M. Wieczorek 2001; A. Węgiel i in. 2001; J. Nowak i in. 2002; W. Grzywiński i in. 2004, 2006, 2015; J. Nowak i W. Grzywiński 2007, 2012, 2017; K. Kozakiewicz i B.W. Wołoszyn 2008). Og&oacute;łem stwierdzono występowanie przedstawicieli 11 gatunk&oacute;w nietoperzy, a maksymalna liczba osobnik&oacute;w sięgała 62 (J. Nowak i W. Grzywiński 2017). Do najliczniej reprezentowanych należą <em>Rhinolophus hipposideros</em> (podkowiec mały) i <em>Myotis myotis</em> (nocek duży; J. Nowak i W. Grzywiński 2017). Zaznacza się tendencja do wzrostu liczebności nietoperzy w ciągu ostatnich trzydziestu lat. Dotyczy to zwłaszcza <em>R. hipposideros</em> (J. Nowak i in. 2002; J. Nowak i W. Grzywiński 2007, 2012). Warto odnotować stwierdzanie od 2002 r. przedstawiciela rzadkiego gatunku<em> Rhinolophus ferrumequinum</em> (podkowiec duży; J. Nowak i in. 2001; J. Nowak i W. Grzywiński 2017).</p>
+<p>W jaskini występują r&oacute;żnorakie bezkręgowce. W trakcie inwentaryzacji odnotowano motyle (ćmy &ndash; <em>Scoliopteryx libatrix</em>, <em>Triphosa dubitata</em>), pająki, much&oacute;wki. K. Demel (1918) podaje z jaskini siedem takson&oacute;w bezkręgowc&oacute;w, J. Stach (1919a,b) jeden gatunek skoczogonka, E. Sanocka-Wołoszynowa (1981) pięć gatunk&oacute;w pająk&oacute;w. W p&oacute;źniejszej pracy autorka ta podaje dwa inne, wcześniej niewymieniane, gatunki pająk&oacute;w (E. Sanocka, 1990). Wśr&oacute;d pająk&oacute;w odnotowany był troglobiontyczny<em> Porrhomma egeria</em> (opisywany także pod nazwą <em>Porrhomma moravicum</em>). Wykazano drastyczny spadek liczebności tego gatunku od 10 osobnik&oacute;w na 1 m2 w latach siedemdziesiątych XX w. do 0&ndash;2 osobnik&oacute;w na 1 m2 w 2007 r. (J. Błoszyk i R. Rozwałka, 2007). W lecie 1998 r. M. Czaja (1999) stwierdziła w kałuży wewnątrz jaskini widłonoga <em>Macrocyclops albidus</em>.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W Jaskini Łokietka prowadzono r&oacute;żnorodne badania naukowe. Już od końca XVIII w. była odwiedzana przez liczne wycieczki &bdquo;naturalist&oacute;w&rdquo; (S. Staszic 1815, 1931; K. Świeżyński 1848; Wacław D. 1849; Jastrzębowski W. 1854; Stronczyński K. 1855; Berdau F. 1859). Prawdopodobnie w grudniu 1792 r. zwiedzał ją A. von Humboldt (K. Zielnica 1989, 2004). Jaskinia była obiektem sesji terenowych na r&oacute;żnorakich konferencjach naukowych, między innymi 5. Sympozjum Speleologicznego w 1967 r., 31 Sympozjum Speleologicznego w 1997 r.) oraz konferencji Climate Change, The Karst Record II w 2000 r.<br />Jaskinia od dawna przyciągała uwagę archeolog&oacute;w i badaczy kopalnej fauny. W latach siedemdziesiątych XIX w. (prawdopodobnie 1870 r. i 1871 r.) badania wykopaliskowe prowadził tam J. Zawisza (1871, 1873, 1874), a w sierpniu 1871 r wsp&oacute;łpracujący z nim A. Śl&oacute;sarski (M. Olszyński 1871). Badano w&oacute;wczas gł&oacute;wnie Sypialnię, gdzie znaleziono przede wszystkim liczne kości niedźwiedzi jaskiniowych, w tym kompletny szkielet w jednym z bocznych odgałęzień tej sali. W latach 1896 i 1899 wykopaliska w jaskini prowadził S.J. Czarnowski. Zbadał on w&oacute;wczas fragment Sypialni w pobliżu wejścia do sali, koniec korytarza prowadzącego na południe z Sali Rycerskiej oraz salę położoną na początku Korytarza Gł&oacute;wnego. Ceramikę neolityczną pochodząca z tych wykopalisk opracowała E. Rook (1980). Hałdy przed jaskinią przeglądał w czasie I wojny światowej S. Pongr&aacute;cz (1925), a materiały przez niego znalezione opracowała E. Sachse-Kozłowska (1972). Sondażowe prace przeprowadził jesienią 1919 r. S. Krukowski, lecz wynik&oacute;w nie opublikował; nie upublicznił także faktu prowadzenia badań (D. Piotrowska 2006a; S.K. Kozłowski 2007; M. Kot i in. 2019).<br />W latach 1998 i 1999 badania archeologiczne prowadził zesp&oacute;ł z Instytutu Archeologii UJ kierowany przez K. Sobczyka i V. Sitlivego (2001a,b) we wsp&oacute;łpracy z paleontologami &ndash; G. Lipeckim, B. Miękiną i P. Wojtalem. Zabytki neolityczne i młodsze znalezione podczas tych badań opracowali J. Rudzińska-Nowak, M. Nowak i J. Poleski (2000&ndash;2001). Badania wykopaliskowe przeprowadzone w Korytarzu Gł&oacute;wnym i w rejonie otworu wykazały obecność w osadach licznych kości r&oacute;żnorakich plejstoceńskich ssak&oacute;w (G. Lipecki i in. 2000, 2001; P. Wojtal 2007; K. Stefaniak i in. 2012, 2014; A. Nadachowski, 2015; K. Stefaniak 2015). Ponadto stwierdzono tam krzemienne znaleziska paleolityczne (m.in. reprezentujące kulturę lewaluasko-mustierską, mikocko-prądnicką, jerzmanowicką i być może inne kultury g&oacute;rnopaleolityczne; część narzędzi posiadała tzw. retusz dupicki), ceramikę neolityczną i p&oacute;źniejszą a także poch&oacute;wki uznane za pochodzące z okresu p&oacute;źnorzymskiego (K. Sobczyk i V. Sitlivy 2001a,b). Analiza inwentarzy zabytkowych wykazała obecność licznych fragment&oacute;w ceramiki cyklu lendzielsko-polgarskiego, kultur badeńskiej, mierzanowickiej i zapewne trzcinieckiej, a także neolitycznych narzędzi krzemiennych, fragment&oacute;w ceramiki z okresu rzymskiego lub wędr&oacute;wek lud&oacute;w, ze średniowiecza oraz z czas&oacute;w nowożytnych (J. Rodzińska-Nowak i in. 2000&ndash;2001; Michał Wojenka! inf. ustna 2020 r.). Trzeba jednak brać pod uwagę, że część ze znalezisk archeologicznych i paleontologicznych notowana w literaturze jako pochodzące z Jaskini Łokietka mogła w rzeczywistości być znaleziona w Schronisku Bocznym przy Jaskini Łokietka, ponieważ większość publikacji traktuje oba obiekty łącznie jako jedno stanowisko archeologiczne.<br />Namulisko w końcowej części korytarza biegnącego na południowy wsch&oacute;d od otworu jaskini było brekcją złożoną z kości zwierzęcych, ludzkich oraz fragment&oacute;w ceramiki. Znaleziono tam min. fragmenty dw&oacute;ch czaszek ludzkich, kt&oacute;re przekazano do Zakładu Zoologii Systematycznej i Doświadczalnej PAN w Krakowie (A. G&oacute;rny &ndash; inf. ustna, 1996 r.). W trakcie inwentaryzacji na hałdzie w tym korytarzu zebrano: drapacz z retuszowanymi bokami z krzemienia jurajskiego (prawdopodobnie neolityczny), dwa fragmenty naczyń (prawdopodobnie kultura trzciniecka &ndash; wczesna epoka brązu), dwa fragmenty naczyń (kultura łużycka), fragment wylewowy naczynia toczonego na kole (p&oacute;źny okres rzymski), a także kości zwierzęce: kręgi ssak&oacute;w (w tym jeden krąg Sus scrofa domesticus &ndash; świni domowej) i fragment szczęki cielaka (Bos taurus).<br />W lipcu 2015 r. jeden z wkop&oacute;w badawczych, kt&oacute;ry pozostał odsłonięty jako element edukacyjny dla turyst&oacute;w, został poszerzony przez J. Wilczyńskiego i M. Wojenkę. Materiały w&oacute;wczas zebrane są na etapie opracowania (M. Kot i in. 2019b).<br />Badania geomorfologiczne prowadził w jaskini Z. Ciętak (1935), a geologiczne R. Gradziński (1961, 1962; geneza jaskini) oraz M. Gradziński M. i in. (1998, 2003; wiek i geneza szaty naciekowej). Analizy w&oacute;d perkolacyjnych prowadził w latach 1996&ndash;1998 J. Motyka wraz z zespołem (B. Klojzy-Karczmarczyk i in. 1999; P. Goc i in. 2000; A. G&oacute;rny i in. 2001; J. Motyka i in. 2002) oraz w latach 2001&ndash;2002 B. Hibszer (2004). Obserwacje mikroklimatyczne wykonywali w okresie międzywojennym K. Demel (1918) i Z. Ciętak (1935), a następnie J. Wieczorek (1992) oraz w latach 1995&ndash;1996 A. Podstawczyńska-Bienias i T. Charciarek (2001a,b).<br />Przyotworową florę mch&oacute;w badał K. Filipowicz (1881) oraz A. J. Żmuda (1916a, 1916b). Nie jest wykluczone, że porosty w strefie przyotworowej zebrał i oznaczył A. von Humboldt (1793). Zesp&oacute;ł naskalnych glon&oacute;w w otworze jaskini był ostatnio przedmiotem badań J. Czerwik-Marcinkowskiej i T. Mrozińskiej (J. Czerwik-Marcinkowska i T. Mrozińska 2010, 2011; J. Czerwik-Marcinkowska 2013; J. Czerwik-Marcinkowska i in. 2015a). Wsp&oacute;łczesną faunę jaskini badali K. Demel (1918; bezkręgowce), J. Stach (1919a,b; skoczogonki), E. Sanocka-Wołoszynowa (1981; pajęczaki) i R. Rozwałka (2005, 2008; pajęczaki) oraz M. Czaja (1999; widłonogi). W latach pięćdziesiątych XX w. obserwacje nietoperzy prowadzili K. Kowalski i A. Krzanowski (K. Kowalski 1951b, 1953), a następnie były prowadzone okazjonalnie (M. Jurczyszyn i A. Nowosad 2006). Od lat dziewięćdziesiątych XX w. w lutym każdego roku prowadzony jest systematyczny, monitoring nietoperzy przez liczne zespoły w ramach og&oacute;lnopolskiej akcji Dekada Spisu Nietoperzy (M. Labocha i B. W. Wołoszyn 1994; J. Węgiel i A. Węgiel 1996; K. Polowy i M. Wieczorek 2001; A. Węgiel i in. 2001; K. Kozakiewicz i B. W. Wołoszyn 2008) a w ostatnich latach gł&oacute;wnie przez W. Grzywińskiego i J. Nowaka z towarzyszami (J. Nowak i K. Kozakiewicz 2000, 2001; J. Nowak i in. 2002; W. Grzywiński i in. 2004, 2006, 2015; J. Nowak i W. Grzywiński 2007, 2012, 2017).<br />Jaskinia Łokietka była też miejscem r&oacute;żnorakich pomiar&oacute;w fizycznych i geofizycznych. S. Landau (1910) mierzył jonizację powietrza traktując ten parametr jako wskaźnik promieniotw&oacute;rczości naturalnej. W 1935 r. D. Doborzyński (1936a,b) prowadził w jaskini eksperymenty dotyczące możliwości odbioru fal radiowych. Zimą 2005 r. A. Kwartnik-Pruc i in. (2011) wykonywali pomiary anomalii termicznych nad jaskinią.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Obecnie jaskinia jest w znacznym stopniu przekształcona przez działalność człowieka. Wewnątrz znajdują się betonowe i drewniane schody oraz metalowe barierki. Pomiędzy Sypialnią a Salą Rycerską został w 1974 r. wykonany robotami g&oacute;rniczymi tunel (M. P. Krzemień i J. Partyka 1990; J. Partyka &ndash; inf. ustna 2020). Namulisko w jaskini było wielokrotnie naruszane przez poszukiwaczy kości i zabytk&oacute;w archeologicznych a także podczas zakładania instalacji elektrycznej w 1987 r. i w trakcie prac konserwacyjnych w zimie 1996 r. Dno Sali Rycerskiej jest wyr&oacute;wnane materiałem skalnym uzyskanym podczas drążenia wspomnianego tunelu. Pomimo tych prac oraz pomimo badań wykopaliskowych prowadzonych w XIX w. i na przełomie XX i XXI w. należy uznać, że znaczne części namuliska mogły pozostać nienaruszone. Nacieki oraz kości niedźwiedzia jaskiniowego były z jaskini wynoszone systematycznie prawdopodobnie począwszy od czas&oacute;w pierwszych zwiedzających. Wzmianki o tym można znaleźć już w literaturze z początku XIX w. (np. A. Grabowski 1822). W Sypialni widoczne są ślad po prawdopodobnie odpiłowanych, dużych rozmiar&oacute;w stalagmitach. Na skutek ruchu turystycznego zmieniona została też fauna jaskini (A. Szeptycki 1967), r&oacute;wnież mikroklimat ulega pewnym kr&oacute;tkotrwałym zaburzeniom (J. Wieczorek, 1992).<br />Jaskinia jest udostępniona dla ruchu turystycznego. Zwiedzanie odbywa się z przewodnikiem. Największa liczba odwiedzających przypada na maj i czerwiec (P. Dąbrowski 1977). Znaczna część turyst&oacute;w przyjeżdżających na teren OPN (ok. 60%), zwiedza także Jaskinię Łokietka (J. Partyka 1987). Roczna frekwencja w jaskini od wielu lat przekracza 90 tys. os&oacute;b, w 1998 r. przekroczyła 136 tys. os&oacute;b a w 2019 r. 119 tys. os&oacute;b (M. P. Krzemień i J. Partyka 1990; B. Wiśniowski 1992; J. Partyka 2015; dane niepublikowane w dyspozycji Dyrekcji OPN). Jest bez wątpienia jedną z najbardziej popularnych jaskiń w Polsce, do czego przyczyniają się odnotowywanie jej w olbrzymiej liczbie og&oacute;lnopolskich i regionalnych przewodnik&oacute;w, rozpowszechniana legenda o ukrywaniu się Władysława Łokietka, kt&oacute;ra jest zawarta w tych przewodnikach, literaturze historycznej (np. J. Laberschek 2015; L. Korczak 2018; W. Fałkowski 2019) a także w literaturze popularnej, r&oacute;wnież adresowanej dla dzieci i młodzieży (np. F. Wężyk 1828; W. Umiński 1897; T. Dybczyński 1924; J.J.Karpiński 1962; Z. Nowak 1991; E. Stadtm&uuml;ller i A. Chachulska 2014; J. Adamczewski 2019; J. Partyka 2020). Jaskinia od początku XX w. jest przedstawiana na licznych kartach pocztowych.<br />Jaskinia znana od dawna. Można sądzić, że od razu była zwiedzana zdecydowana większość korytarzy. Ciekawostkę stanowi opisany w prasie przypadek pr&oacute;by eksploracji podjętej w przez J. Aleksandrowicza i dr. T. Chałubińskiego w 1853 r. i kontynuowanej w roku następnym przez p. Spornego (Jaskinia, 1862). Jedynego, nieznacznego odkrycia dokonali w końcu lat sześćdziesiątych XX w. A. G&oacute;rny i A. Kobyłecki, kt&oacute;rzy przekopali zwężenie i weszli do kr&oacute;tkiego korytarza prowadzącego ku południowemu wschodowi od otworu (A. G&oacute;rny 1971).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Zapewne pierwsza wzmianka dotycząca Jaskini Łokietka jest pi&oacute;ra S. Piskorskiego (1691). W publikacji tej, jak i w wielu innych p&oacute;źniejszych publikacjach Jaskinia Łokietka jest mylona z Jaskinią Ciemną. W literaturze jaskinia występuje pod wieloma nazwami (por. wykaz nazw synonimicznych). Zaznaczyć warto, że obecnie stosowana nazwa &ndash; Jaskinia Łokietka &ndash; pojawia się stosunkowo p&oacute;źno, to jest w 1891 r. w notatce o prelekcji dziekana K. Jurkiewicza poświęconej &bdquo;kościom zwierząt przedpotopowych znalezionych w jaskiniach Ojcowskich&rdquo; i wygłoszonej na forum Komisyi teoryi ogrodnictwa i nauk przyrodniczych pomocniczych Towarzystwa Ogrodniczego w Warszawie 17 grudnia 1891 r. (Posiedzenie, 1891). W tym inwentarzu podobnie jak i w jego pierwotnej wersji zastosowano nazwę Jaskinia Łokietka uznaną z wielu przyczyn za najwłaściwszą (patrz dyskusja w M. Gradziński 2012). Kwerendę i analizę nazw jaskini wykonali S. Ciszewski (1887) i W. Śliwiński (1984, 2016). W ostatnich latach dyskusję dotyczącą nazewnictwa przeprowadzili U. Bijak, M. Gradziński i M. Rutkowski (U. Bijak 2012; U. Bijak i M. Rutkowski 2012a,b; M. Gradziński 2012).<br />Jaskinia Łokietka była atrakcją turystyczną już od końca XVIII w. o czym świadczy liczne grono zwiedzających, kt&oacute;rzy sw&oacute;j pobyt w jaskini odnotowali w pamiętnikach (np. F. Karpiński 1788; S. Staszic 1815; A. Grabowski 1822; M. Chełmiński 1843; J. Mączyński 1854; L. Sczaniecki 1863; F. Chopin &ndash; patrz F. Karasowski 1877; F.K. Prek 1959; P.A. Wiaziemski 1980) jak i informacje o niej w przewodniku J. Krasińskiego (1820, 1821). Niesłusznym jest natomiast rozprzestrzeniony w literaturze pogląd o zwiedzeniu Jaskini Łokietka przez kr&oacute;la Stanisława Augusta Poniatowskiego. W rzeczywistości kr&oacute;l ten podczas swego pobytu w Ojcowie odwiedził Jaskinię Ciemną.<br />Jaskinia Łokietka stała się na przełomie XIX i XX w. jednym z najpopularniejszych miejsc w Ojcowie. Zar&oacute;wno ryciny jak i fotografie otworu i wnętrza jaskini były wielokrotnie drukowane w publikacjach książkowych, także w albumach, i w formie kart pocztowych. Wnętrze jaskini było przedstawione na szkicu autorstwa T.B. Stachowicza wykonanym w pierwszej połowie XIX w., zapewne w 1835 r. (T. Solski i M. Zembat&oacute;wna 1953; W.W. Wiśniewski 1997i,k, 1999h). Trudno ustalić kiedy wybudowano pierwsze schody dla turyst&oacute;w wewnątrz jaskini. Istniały one jednak z pewnością w ostatnich latach XIX w. (K. Wr&oacute;blewski 1900). Natomiast wcześniej turyści korzystali z r&oacute;żnego typu mniej lub bardziej trwałych poręczy, stopni i drabin (W.W. Wiśniewski 1997f,g,h, 1998a). Jaskinia została zamknięta drewnianą kratą już w początku XX w., co dokumentują wykonane w&oacute;wczas fotografie (np. S.J. Czarnowski 1911d) i relacje pamiętnikarskie (S. Lencewicz 1911). Zastąpiono ją p&oacute;źniej ozdobną kratą metalową z motywem pajęczej sieci nawiązującym do legendy o ukrywaniu się w jaskini Władysława Łokietka. Dla pełnej ochrony jaskini, w latach osiemdziesiątych XX w. zamontowano drugą kratę przy wejściu do jej gł&oacute;wnego ciągu (J. Partyka &ndash; inf. ustna, 2020 r.). Jest udostępniana dla turyst&oacute;w od czas&oacute;w przed I wojną światową. Początkowo oprowadzaniem trudnili się lokalni przewodnicy. Udostępnianie było koordynowane przez Polskie Towarzystwo Krajoznawcze, po jego rozwiązaniu przez Nadleśnictwo Państwowe Ojc&oacute;w, następnie &ndash; do roku 1971 &ndash; przez Oddział Polskiego Towarzystwa Turystyczno-Krajoznawczego w Ojcowie &ndash; od 1972 r. w porozumieniu z Ojcowskim Parkiem Narodowym (OPN). Od 1990 r. udostępnianie jaskini leży w zakresie działań OPN (J. Partyka &ndash; inf. ustna, 2020 r.). W jaskini przeprowadzono prace adaptacyjne &ndash; celem usprawnienia ruchu turystycznego w październiku 1974 r. wykonano metodami g&oacute;rniczymi tunel o długości 8 m pomiędzy Sypialnią a Salą Rycerską. Prace prowadzili g&oacute;rnicy z Zakład&oacute;w G&oacute;rniczo-Hutniczych &bdquo;Bolesław&rdquo; w Bukownie (A. Jaźwiński i A. Kazir&oacute;d pod nadzorem mgr. inż. J. Mędreka). W 1987 r. zostało, po długotrwałych przygotowaniach, założone oświetlenie elektryczne (Rzeczycki T. 2012), kt&oacute;re zmodernizowano w 1996 i 2020 r. Na czas prowadzenia powyższych prac jaskinia była zamknięta dla turyst&oacute;w. Jaskinia została wpisana 29.04.1924 r. przez Radę Konserwator&oacute;w do Inwentarza Zabytk&oacute;w Nieruchomych pod nr. 432 (Z Ministerstwa, 1924). Obecnie figuruje w rejestrze zabytk&oacute;w nieruchomych pod numerem 1853 (D. Jaskanis 1998). Jaskinia była wykorzystywana przez okoliczną ludność, jako schronienie w czasach historycznych, a także podczas I i II wojny światowej (K. Stronczyński 1855; J. Stach 1924; M. Gradziński M. i in. 1998, 2003; M. Wojenka 2018a). Otwartą kwestią pozostaje natomiast uzasadnienie szeroko rozpowszechnionej legendy o ukrywaniu się w tej jaskini Władysława Łokietka. Niewątpliwie o wykorzystywaniu jaskiń ojcowskich, w tym Jaskini Łokietka, na przełomie XIII i XIV stulecia świadczą liczne i r&oacute;żnorodne znaleziska archeologiczne (M. Wojenka 2012, 2018b). Natomiast ewentualny, okresowy pobyt Władysława Łokietka w konkretnym obiekcie pozostaje w kręgu przypuszczeń (patrz też H. Samsonowicz 2000). Swego rodzaju kuriozum jest odnotowany w prasie codziennej fakt ukrywania się w jaskini zimą 1947 r. zbiega poszukiwanego za przestępstwa gospodarcze (Defraudant, 1948). Jaskinia była też wykorzystana w 1971 r. podczas kręcenia filmu fabularnego &bdquo;Kopernik&rdquo; reżyserowanego przez Ewę i Czesława Petelskich (Niecodzienni 1971).<br />Pierwszy plan jaskini sporządził S.J. Czarnowski zapewne w 1896 r. lub 1899 r. (S.J. Czarnowski 1911d, 1914a). Opis i plan jaskini podaje Z. Ciętak (1935). Została zinwentaryzowana 06.08.1946 r. przez K. Kowalskiego z planem Z. Ciętaka (1935). Kolejny plan wykonało Koło Naukowe Geodet&oacute;w przy oddziale Geodezji Urządzeń Rolnych Wyższej Szkoły Rolniczej w Krakowie, z inicjatywy A. Kobyłeckiego, pod kierunkiem mgr. inż. K. Kowalskiego w lecie 1962 r. A. Kobyłecki wykonał w 1968 r. uzupełnienia planu (A. Kobyłecki &ndash; inf. pisemna, 2020 r.). Plan ten został przekazany do Muzeum Ziemi PAN, a w uproszczonej wersji został zamieszczony w przewodniku M. Szelerewicza i A. G&oacute;rnego (1986). Niestety oryginał planu prawdopodobnie nie zachował się do dzisiaj (A. Kobyłecki &ndash; inf. pisemna 2020 r.). Jaskinia jest wymieniana w wykazie przez M. Szelerewicza i A. G&oacute;rnego (1986). Ponowny plan wykonał M. Szelerewicz i zamieścił go w folderze popularyzującym jaskinię (M. Szelerewicz 2005). Zinwentaryzowana 23 i 24.02.1996 r. przez K. Biska, B. Michalską i M. Wawrykę. Wzrost długości jaskini w stosunku do podawanych uprzednio wartości wynika z innej metodyki pomiar&oacute;w (stosowania zasady ciągłej linii pomiarowej przy obliczaniu długości jaskini, a także dodawania do długości jaskini długości ciąg&oacute;w pionowych, jak i długości licznych, kr&oacute;tkich bocznych korytarzy). Obserwacje uzupełniające przeprowadził M. Wawryka-Drohobycki 23.11.2019 r., dane zaktualizował M. Gradziński, 2020.<br />Plan opracował M. Wawryka (wkładka na końcu tomu).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Piskorski S. 1691 (podana lokalizacja w lasach wsi Czajowice, wzmianka o odwiedzaniu jej przez kr&#243;l&#243;w polskich, wzmianka o naciekach, tekst w języku łacińskim i polskim); Rzączyński G. 1721 (wzmianka o jaskini ze stalaktytami na gruncie wsi Czajowice); Karpiński F. 1788 (wzmianka); Humboldt A. von 1793 (informacje o występowaniu porost&#243;w w Sowiej Jamie, w rzeczywistości może dotyczyć Jaskini Łokietka); Humboldt A. von, Bonpland A.J.A. 1807 (wzmianka o Sowiej Jamie, w rzeczywistości może dotyczyć Jaskini Łokietka); Staszic S. 1815 (wzmianka o stalaktytach, stalagmitach i kościach niedźwiedzi); Krasiński J. 1820, 1821 (opis); Wężyk F. 1820 (literacki opis); Grabowski A. 1822 (opis, podanie o ukrywaniu się Władysława Łokietka, wzmianka o niszczeniu szaty naciekowej przez zwiedzających, przytoczony opis Staszica); Gołębiowski Ł. 1827 (wzmianka, podanie o ukrywaniu się Władysława Łokietka w tej jaskini i błędna wzmianka o zwiedzaniu jej przez Stanisława Augusta Poniatowskiego); Humboldt A. i Bonpland A.J.A. 1827 (wzmianka o Sowiej Jamie, w rzeczywistości może dotyczyć Jaskini Łokietka); Ojc&#243;w 1827 (kr&#243;tki opis); Grabowski A. 1830 (opis, podanie o ukrywaniu się Władysława Łokietka, wzmianka o znajdowanych tam kościach zwierząt i niszczeniu szaty naciekowej przez zwiedzających, przytoczony opis Staszica); Oyc&#243;w 1832 (kr&#243;tki opis, podanie o ukrywaniu się Władysława Łokietka); Hoffmanowa K. 1833 (opis zwiedzania jaskini, podanie o ukrywaniu się Władysława Łokietka, legenda o pustelnicy, w rzeczywistości dotyczy Jaskini Ciemnej); Staszic S. 1839 (wzmianka); Chełmiński M. 1843 (kr&#243;tki opis); Baliński M, Lipiński T. 1844 (wzmianka, podanie o ukrywaniu się Władysława Łokietka); Grabowski A. 1844 (opis, podanie o ukrywaniu się Władysława Łokietka, wzmianka o znajdowanych w jaskini kościach zwierząt i niszczeniu szaty naciekowej przez zwiedzających, przytoczony opis Staszica); Wacław D. 1849 (położenie, kr&#243;tki opis, wzmianka o szacie naciekowej; Wiślicki J.M. 1850 (wzmianka); Ojc&#243;w 1852 (wzmianka); Jastrzębowski W. 1854 (kr&#243;tki opis, wzmianka o szacie naciekowej); R. P. 1854 (opis zwiedzania, wzmianka o kościach ludzkich i o ukrywaniu się ludności w jaskini w czasach historycznych); Stronczyński K. 1855 (kr&#243;tki opis, informacja o licznych kościach Ursus spelaeus, podanie o ukrywaniu się Władysława Łokietka w tej jaskini); Wiślicki A. 1856 (kr&#243;tki opis, wzmianka o znajdowaniu kości Ursus spelaeus, podanie o przebywaniu w jaskini Władysława Łokietka); Wiślicki A., L&#246;wenhard S. 1856a (kr&#243;tki opis, wzmianka o kościach Ursus spelaeus na powierzchni namuliska i o niszczeniu naciek&#243;w przez zwiedzających); Zejszner L. 1856 (wzmianka o występowaniu kości niedźwiedzi, jeleni, a także kości ludzkich); Deotyma 1859 (wzmianka o zwiedzeniu, legenda o ukrywaniu się Władysława Łokietka); Korrespondencya 1859 (kr&#243;tki opis); Łuszczewska J. 1860 (położenie, opis zwiedzania); Przezdziecki A. 1860 (przedruki kilku wcześniejszych informacji o jaskini); Humboldt A. von 1861 (wzmianka o Sowiej Jamie, w rzeczywistości może dotyczyć Jaskini Łokietka); Jaskinia 1862 (wzmianka o zwiedzeniu w 1853 r. przez J. Aleksandrowicza i dr. T. Chałubińskiego i podjęciu pr&#243;by eksploracji, kt&#243;ra była kontynuowana w 1854 r. przez p. Spornego, informacja o znalezieniu kości ludzkich i pokruszonych naciek&#243;w); Anczyc W. L. 1863 (opis, drzeworyt otworu autorstwa F. Sznage); Sczaniecki L. 1863 (wzmianka, informacja o stalaktytach i licznych kościach niedźwiedzi); Grabowski A. 1866 (opis, podanie o ukrywaniu się Władysława Łokietka, wzmianka o kościach zwierząt i niszczeniu szaty naciekowej przez zwiedzających, przytoczony opis Staszica); Tatomir L. 1870 (kr&#243;tka charakterystyka, ilustracja otworu); Olszyński M. 1871 (kr&#243;tki opis, wzmianka o wykopaliskach i znalezieniu kości ludzkich oraz kości niedźwiedzi); Zawisza J. 1871 (wzmianka o pracach wykopaliskowych, lokalizacja na schematycznej mapie, ryciny znalezisk archeologicznych bez podania pochodzenia); Zawisza J. 1873 (informacja o występowaniu licznych kości Ursus spelaeus na powierzchni namuliska, rycina i wymiary znalezionej tam czaszki U. spelaeus); Kohn A. 1876 (wzmianka o znaleziskach archeologicznych); Karasowski F. 1877 (wzmianka o zwiedzeniu przez F. Chopina); Gruszecki A. 1878 (jaskinia uznana za dwa niezależne obiekty: Jaskinia Kr&#243;lewska [części wstępne], Jaskinia Łokietkowska [części głębsze], wzmianka o znalezieniu przez J. Zawiszę licznych kości niedźwiedzia jaskiniowego); Kohn A., Mehlis C. 1879 (wzmianka o badaniach Zawiszy i znalezieniu kości niedźwiedzia jaskiniowego i niedźwiedzia brunatnego); Grota 1880 (położenie, kr&#243;tki opis, ryc. otworu); Filipowicz K. 1881 (informacja o zebraniu w otworze mchu Plagiothecium muellerianum); Uvarov A.S. 1881 (wzmianka o badaniach Zawiszy, znaleziskach paleolitycznych, neolitycznych, kościach niedźwiedzia jaskiniowego, lokalizacja na schematycznej mapie); Ossowski G. 1882b (wzmianka o badaniach Zawiszy, wykaz gatunk&#243;w kopalnych ssak&#243;w); Ossowski G. 1884b (wzmianka o badaniach Zawiszy); Gustawicz B. 1886 (położenie i opis, wzmianka o pracach wykopaliskowych Zawiszy); Ciszewski S. 1887 (dyskusja dotycząca nazewnictwa, wymienione nazwy wg źr&#243;deł pisanych i nazwy ludowe); Posiedzenie 1891 (wymieniana we wzmiance o prelekcji K. Jurkiewicza poświęconej jaskiniom ojcowskim); Wieniawski J. 1890 (kr&#243;tki opis); Umiński W. 1897 (beletrystyczny opis zwiedzania, ilustracja otworu); Czarnowski S.J. 1899 (wzmianka, lokalizacja na schematycznej mapie); Mapa po 1900 (lokalizacja na mapie); Wr&#243;blewski K. 1900 (opis); Hoernes M. 1903 (informacja o badaniach Zawiszy i o znalezieniu kości niedźwiedzia jaskiniowego); Krzywicki L. 1904 (kr&#243;tki opis, wzmianka o badaniach Zawiszy); Sczaniecki L. 1904 (wzmianka, informacja o stalaktytach i licznych kościach niedźwiedzi); Czarnowski S.J. 1907 (wymieniona, fot. otworu, lokalizacja na przeglądowych mapach); Landau S. 1910 (wyniki pomiar&#243;w jonizacji powietrza jako miary promieniotw&#243;rczości naturalnej); Czarnowski S.J. 1910c (wzmianki, lokalizacja na schematycznej mapie); Czarnowski S.J. 1911 (położenie, opis, wzmianka o badaniach prowadzonych w 1896 i 1899 roku, opis osad&#243;w, wzmianka o znalezieniu ślad&#243;w ognisk, ceramiki, narzędzi krzemiennych, kości zwierzęcych, lokalizacja na schematycznych mapach); Czarnowski S.J. 1911b (wzmianka o pracach wykopaliskowych i znalezieniu ślad&#243;w ognisk, kości niedźwiedzia jaskiniowego, fragment&#243;w ceramiki i wyrob&#243;w krzemiennych); Czarnowski S.J. 1911d (położenie, opis, szkicowy plan, informacje o prowadzeniu prac wykopaliskowych w jaskini w październiku 1896 r. i w 1899 r., informacje o znalezieniu ślad&#243;w ognisk prehistorycznych, fragment&#243;w ceramiki, narzędzi krzemiennych, licznych pokruszonych naciek&#243;w i kości niedźwiedzi, fot. otworu przed i po założeniu bramy, lokalizacja na schematycznej mapie); Stołyhwo K. 1912 (wzmianka o zwiedzeniu i znalezieniu ułamku żuchwy ludzkiej i kości zwierzęcych); Czarnowski S.J. ok. 1914 (lokalizacja na schematycznej mapie); Czarnowski S.J. 1914a (położenie, opis, plan, opis osad&#243;w, informacja o badaniach w roku 1896 i 1899 i o znalezieniu ślad&#243;w ogniska, fragment&#243;w ceramiki, narzędzi krzemiennych i kości zwierzęcych, opis znalezisk łącznie ze znaleziskami ze Schroniska Bocznego przy Jaskini Łokietka); Żmuda A. 1916a,b (wykaz mch&#243;w stwierdzonych w otworze, uwaga o niszczeniu mch&#243;w przez turyst&#243;w odwiedzających jaskinię); Demel K. 1918 (położenie, opis i charakterystyka środowiska, lokalizacja na schematycznej mapie, wyniki obserwacji zoologicznych, wykaz oznaczonych gatunk&#243;w, fot. otworu, plan); Stach J. 1919a,b (informacja o występowaniu skoczogonka Onychiurus armatus); Kozłowski L. 1921 (wymieniona jako optymalny cel badań archeologicznych); Dzwonkowski W. ok. 1922 (wzmianka, plan); Krukowski S. 1924 (uznanie za perspektywiczny cel badań); Richter S., Szafer W. 1924 (lokalizacja na schematycznej mapie); Z Ministerstwa 1924 (informacja o uznaniu za zabytek nieruchomy); Pongr&#225;cz S. 1925 (wzmianka o znalezieniu wyrob&#243;w mustierskich, oryniackich i protosolutrejskich, ryc., lokalizacja na schematycznej mapie, schematyczny plan jaskini); Kostrzewski J. 1931–1932 (schematyczny plan); Danysz-Fleszarowa R. 1933 (wymieniona); Wolf B. 1934–1938 (podaje skład wsp&#243;łczesnej fauny, za Demelem 1918); Ciętak Z. 1935 (położenie, opis i plan, wymieniona w wykazie, lokalizacja na mapie); Wiśniewski T. 1935 (wymienione taksony zebrane przez Żmudę, przeprowadzona rewizja oznaczeń); Doborzyński D. 1936a,b (wyniki eksperymentalnego odbioru fal radiowych, położenie, kr&#243;tki opis, lokalizacja na schematycznej mapie); Lencewicz S. 1938 (wymieniona, plan wg Ciętaka); Kowalski K. 1951 (inwentarzowy opis, plan, lokalizacja na mapie); Kowalski K. 1951b (informacja o znalezieniu nietoperza Eptesicus serotinus); Kowalski K. 1953 (informacje o występowaniu nietoperzy); Solski T. i Zembat&#243;wna M. 1953 (informacja o obrazie T. B. Stachowicza przedstawiającym zwiedzanie jaskini); Kunsk&#253; J. 1956 (wzmianka o oznaczeniu 14 gatunk&#243;w mch&#243;w w przyotworowej części); Kowalski K. i in. 1957 (informacje o występowaniu nietoperzy); Kubasiewicz M. 1957, 1959 (wzmianki o znalezieniu kości niedźwiedzia jaskiniowego); Kowalski K. 1959 (informacja o występowaniu szczątk&#243;w Ursus spelaeus); Gradziński R. 1961 (wzmianka o występowaniu form freatycznych i wadycznych w tych samych partiach, przekr&#243;j korytarza); Gradziński R. 1962 (wzmianki o braku zależności przebiegu niekt&#243;rych korytarzy od przebiegu spękań ciosowych o występowaniu kotł&#243;w wirowych, anastomoz&#243;w, meandr&#243;w i nisz zakolowych, rysunek nisz zakolowych); Karpiński J.J. 1962 (kr&#243;tki opis, fot. otworu); Małecki J. 1964 (postulat udostępnienia dla ruchu turystycznego od strony Czajowic); Kowalski K. 1965 (opis jaskini); Gradziński R. 1967 (wzmianka o konieczności udostępnienia); Szeptycki A. 1967 (informacja o nieprzydatności Jaskini Łokietka do badań faunistycznych z powodu nasilenia ruchu turystycznego); Szelerewicz M. 1970 (informacja o odkryciu korytarza o długości 10 m we wstępnych partiach); G&#243;rny A. 1971 (wzmianka o odkryciu nowych partii w Jaskini Łokietka); Niecodzienni 1971 (wzmianka o kręceniu filmu „Kopernik”); Sachse-Kozłowska E. 1972 (opis płoszczy znalezionych przez Pongr&#225;cza, rys., zakwalifikowanie znalezisk do kultury jerzmanowickiej); Gąssowski J. i Kempisty A. 1973 (położenie i kr&#243;tki opis, wzmianka o badaniach wykopaliskowych i znaleziskach z epoki żelaza); Partyka J. 1974a (frekwencja zwiedzających); Partyka J. 1974b (wzmianki o dostępie od strony Czajowic, frekwencja zwiedzających); Czepiel M. 1976 (wymieniona w wykazie); Partyka J. 1975 (wzmianka o montażu oświetlenia elektrycznego i wydrążenia tunelu między Sypialnią i Salą Rycerską); Partyka J. 1976 (lokalizacja na schematycznej mapie, wzmianki o pracach wykopaliskowych Zawiszy i o budowie nowej drogi ułatwiającej dostęp do jaskini); Skalski A.W. 1976 (wzmianka – p.n. Jaskinia Łokietkowa, o kotłach eworsyjnych i meandrach, informacja o udostępnieniu jaskini dla ruchu turystycznego); Dąbrowski P. 1977 (wzmianka o frekwencji zwiedzających); Gradziński R. 1977 (wzmianka o występowaniu meandr&#243;w, fot. wnętrza); Kozłowski J.K., Kozłowski S.K. 1977 (wzmianka o znalezieniu środkowopaleolitycznych ostrzy liściowatych kultury jerzmanowicko-telmańskiej, ryc., charakterystyka stanowiska); Madeyska T. 1977a (lokalizacja na mapie i diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej, wnioski o genetycznym związku jaskini z poziomem terasowym c i p&#243;źnoplejstoceńskim lub wczesnoczwartorzędowym wieku); Rzebik-Kowalska B. 1977 (wzmianki o występowaniu nietoperzy); Partyka J. 1980 (wzmianka o frekwencji w sięgającej 150–200 tys. rocznie); Rook E. 1980 (charakterystyka, wzmianka o badaniach Czarnowskiego oraz o znaleziskach ceramiki grupy pleszewskiej kultury lendzielskiej oraz wyrob&#243;w krzemiennych); Sanocka-Wołoszynowa E. 1981 (kr&#243;tki opis, lokalizacja na schematycznej mapie, wymienione gatunki pająk&#243;w); Ruprecht A.L. 1983a (informacja o występowaniu Rhinolophus hipposideros); Ruprecht A.L. 1983f (informacja o występowaniu Myotis daubentoni); Ruprecht A.L. 1983g (informacja o występowaniu Eptesicus serotinus); Ruprecht A.L. 1983i (informacja o występowaniu nietoperza Barbastella barbastellus); Śliwiński W. 1984 (uwagi dotyczące o nazewnictwa); Szelerewicz M., G&#243;rny A. 1986 (opis, historia poznania i plan, lokalizacja na mapie); Partyka J. 1987 (wzmianki o udostępnieniu dla turyst&#243;w, frekwencja); Krzemień M. P., Partyka J. 1990 (fot. otworu i wnętrza, położenie, opis jaskini, historia poznania, plan i lokalizacja na schematycznej mapie); Sanocka E. 1990 (wzmianka o występowaniu pająk&#243;w); Śliwiński W. 1990 (uwagi dotyczące nazewnictwa); Domański B. 1991a (wzmianki jako o obiekcie najczęściej odwiedzanym przez turyst&#243;w w OPN); Domański B. 1991b (wzmianka o potrzebie założenia oświetlenia elektrycznego); Parma Ch. 1992 (położenie, opis, lokalizacja na mapie, fot. otworu i wnętrza); Wieczorek J. 1992 (wyniki badań mikroklimatycznych); Gradziński R., Gradziński M. 1994 (wzmianka o związku przebiegu większości korytarzy z przebiegiem spękań ciosowych, występowaniu form wadycznych i szacie naciekowej); Labocha M., Wołoszyn B.W. 1994 (informacje o występowaniu nietoperzy w latach 1988–1992); Gradziński M. i in. 1996a (opis i plan inwentarzowy, lokalizacja na mapie); Parma Ch. 1996 (kr&#243;tki opis, fot. wnętrza jaskini, schematyczny plan); Węgiel J., Węgiel A. 1996 (informacje o występowaniu nietoperzy); Gradziński M. i in. 1997b (położenie, opis, plan, lokalizacja na schematycznej mapie, historia poznania); Wiśniewski W.W. 1997f (wzmianki o pisemnych informacjach od 1691 r., reprodukcja rysunku T.B. Stachowicza przedstawiającego zwiedzanie jaskini); Wiśniewski W.W. 1997g (wzmianki o pisemnych informacjach od 1691 r.); Wiśniewski W.W. 1997h (informacje o uwzględnieniu w rękopiśmiennych opisach parafii sporządzonych 1783 r.); Wiśniewski W.W. 1997i (informacja o obrazie T.B. Stachowicza datowanym na ok. 1835 r.); Gradziński M. i in. 1998b (antropogeniczne zabarwienie ciemnych lamin w polewie naciekowej); Jaskanis D. 1998 (wymieniona jako zabytek archeologiczny); Kaczanowski P., Kozłowski J.K. 1998 (wzmianka o szeleckich ostrzach liściowatych); Klojzy-Karczmarczyk B. i in. 1999 (wyniki analiz chlork&#243;w, siarczan&#243;w i azotan&#243;w w pr&#243;bkach w&#243;d); Pazdur A. i in. 1999 (kr&#243;tka charakterystyka, wzmianka o datowaniu naciek&#243;w metodą 14C); Goc P. i in. 2000 (wyniki analiz stężenia azotan&#243;w w wodach); Lipecki G. i in. 2000 (położenie, opis osad&#243;w, informacje o kopalnej faunie); Madeyska T. 2000a (wzmianki o genezie, lokalizacja na diagramie wysokościowego rozmieszczenia jaskiń Doliny Sąspowskiej); Nowak J., Kozakiewicz K. 2000 (podsumowanie występowania nietoperzy w latach 1993–1999); Partyka J. 2000c (frekwencja w latach 1967–1997, struktura i sezonowość ruchu turystycznego); Rodzińska-Nowak J. i in. 2000–2001 (analiza ceramiki neolitycznej kultury lendzielsko-polgarskiej, badeńskiej i mierzanowickiej, neolitycznych narzędzi krzemiennych oraz ceramiki datowanej na czasy rzymskie i okres wędr&#243;wki lud&#243;w, średniowiecze i czasy nowożytne, rys.); Samsonowicz H. 2000 (krytyczna analiza możliwości wykorzystywania jaskiń ojcowskich przez Władysława Łokietka i jego stronnik&#243;w); G&#243;rny A. i in. 2001 (wyniki analiz w&#243;d); Gradziński M. 2001a (wzmianki o zmianie długości w efekcie przeprowadzenia nowych pomiar&#243;w; Gradziński M. 2001b (wzmianki o przystosowaniu dla ruchu turystycznego o niszczeniu szaty naciekowej w XIX w.); Lech J. 2001 (wzmianki o wykorzystywaniu w czasach paleolitu i o badaniach archeologicznych Zawiszy); Lipecki G. i in. 2001 (analiza szczątk&#243;w fauny kopalnej wydobytych podczas badań wykopaliskowych w latach 1998–1999, wykaz gatunk&#243;w); Nowak J., Kozakiewicz K. 2001 (podsumowanie występowania nietoperzy); Nowak J. i in. 2001 (informacja o stwierdzeniu Rhinolophus ferrumequinum w Sali Sypialnia); Podstawczyńska-Bienias A., Charciarek T. 2001a,b (charakterystyka mikroklimatu jaskini); Polowy K., Wieczorek M. 2001 (zbiorcze zestawienie wynik&#243;w zimowych spis&#243;w nietoperzy, wymienione gatunki); Węgiel A. i in. 2001 (informacje o występowaniu nietoperzy); Sobczyk K., Sitlivy V. 2001a, (historia badań, wyniki badań wykopaliskowych z lat 1998–2000 na stanowisku Jaskinia Łokietka obejmującym właściwą Jaskinię Łokietka, Schronisko Boczne przy Jaskini Łokietka i okolice tych jaskiń, profil osad&#243;w w początku Korytarza Gł&#243;wnego, om&#243;wienie wynik&#243;w [wsp&#243;lne dla obu jaskiń], informacja o krzemiennych znaleziskach paleolitycznych [m.in. kultury mikocko-prądnicka, lewaluasko-mustierska, jerzmanowicka i być może inne kultury g&#243;rnopaleolityczne, w tym r&#243;wnież narzędzia posiadające tzw. retusz dupicki], ceramice średniowiecznej i kultur przeworskiej, łużyckiej, trzcinieckiej, ceramiki promienistej i ceramiki wstęgowej rytej, holoceńskich i plejstoceńskich zwierzęcych szczątkach kostnych, poch&#243;wkach); Sobczyk K., Sitlivy V. 2001b (historia badań, wyniki badań wykopaliskowych z lat 1998–2000 om&#243;wienie wynik&#243;w, informacja o krzemiennych znaleziskach paleolitycznych – m.in. kompleksy mikocki, lewaluasko-mustierski, kultura jerzmanowicka i ?grawecka, w tym r&#243;wnież narzędzia posiadające tzw. retusz dupicki, ceramice neolitycznej, szczątkach kostnych); Wojkowski J. 2001 (dane mikroklimatyczne zestawione na podstawie literatury); Madeyska T., Cyrek K. 2002 (wzmianki o genetycznym związku z powstaniem poziomu terasowego c oraz o znaleziskach paleozoologicznych i archeologicznych); Motyka J. i in. 2002 (wzmianka o prowadzeniu badań hydrochemicznych, podano średnie, maksymalne i minimalne wyniki analiz dla wszystkich badanych jaskiń); Nowak J. i in. 2002 (podstawowe parametry morfometryczne, informacja o występowaniu nietoperzy); Partyka J. 2002 (zestawienie frekwencji w latach 1992–2001, charakterystyka zwiedzających); Gradziński M. i in. 2003 (antropogeniczne zabarwienie ciemnych lamin w polewie naciekowej, wyniki datowań radiowęglowych, wniosek o wieloetapowym zasiedlaniu jaskini w holocenie); Postawa T. 2004a (informacja o stwierdzeniu Rhinolophus ferrumequinum); Doborzyńska-Głazkowa W. i Głazek J. 2004 (informacje o badaniach odbioru fal radiowych prowadzonych przez Doborzyńskiego w 1935 r.); Grzywiński W. i in. 2004 (podsumowanie występowania nietoperzy); Hercman H. i in. 2004 (profil osad&#243;w, wzmianki o osadach interglacjału eemskiego); Hibszer B. 2004 (wyniki analiz chemicznych w&#243;d); Partyka J. 2005 (wzmian ki o zwiedzaniu w XIX w. i o udostępnieniu dla ruchu turystycznego, frekwencja zwiedzających, struktura i sezonowość ruchu turystycznego); Rozwałka R. 2005 (informacja o występowaniu pająk&#243;w Meta menardi); Szelerewicz M., 2005 (opis, plan, historia poznania, przytoczona legenda o ukrywaniu się Władysława Łokietka, lokalizacja na schematycznej mapie); Wołoszyn B.W. i in. 2005 (graficzne przedstawienie zmiany liczebności całej populacji nietoperzy i czterech wybranych gatunk&#243;w); Chochorowska E. 2006 (wymieniona w wykazie stanowisk archeologicznych, lokalizacja na schematycznej mapie, podane numery inwentarzowe zabytk&#243;w); Cyrek K. 2006 (położenie, kr&#243;tki opis osad&#243;w, charakterystyka znalezisk paleolitycznych, stratygrafia kulturowa Jury Ojcowskiej z zaznaczoną pozycją znalezisk z jaskini); Dobrzańska H. 2006 (wzmianka o znaleziskach kultury przeworskiej, lokalizacja na schematycznej mapie, wymieniona w wykazie stanowisk z okresu rzymskiego i wczesnej fazy wędr&#243;wek lud&#243;w); Grzywiński W. i in. 2006 (informacja o występowaniu nietoperzy); Jurczyszyn M., Nowosad A. 2006 (informacja o stwierdzeniu nietoperzy w 1984 r.); Kadrow S. 2006 (wzmianka o znaleziskach kultury trzcinieckiej, lokalizacja na schematycznej mapie); Madeyska T. 2006a (wzmianka o znalezieniu fauny plioceńskiej); Sobczyk K. i in. 2006 (wyniki badań wykopaliskowych z lat 1998–2000, informacja o krzemiennych znaleziskach środkowo- i g&#243;rnopaleolitycznych, kościach ludzkich i ceramice neolitycznej); Cyrek K. 2007 (wzmianka o badaniach Sobczyka i Sitlivego, lokalizacja na mapie rozmieszczenia archeologicznych stanowisk jaskiniowych); Guzik Cz., Partyka J. 2007 (frekwencja w latach 1967–2006); Kozłowski S.K. 2007 (wzmianka o sondażowych badaniach Krukowskiego); Nowak J., Grzywiński W. 2007 (informacja o występowaniu nietoperzy); Wojtal P. 2007 (schematyczny plan z lokalizacją wkop&#243;w, opis osad&#243;w, kr&#243;tka charakterystyka znalezisk archeologicznych, rysunki znalezisk, charakterystyka szczątk&#243;w kopalnych dużych ssak&#243;w, wymienione gatunki); Zinko J. i in. 2007 (analiza ruchu turystycznego, zestawienie frekwencji w latach 1993–2006); Błoszyk J., Rozwałka R. 2008 (wzmianka o spadku liczebności Porrhomma egeria); Gradziński M. i in. 2008 (wzmianki dotyczące rozmiar&#243;w, nisz zakolowych, genezy, osad&#243;w klastycznych i naciek&#243;w, datowania naciek&#243;w, znalezisk paleontologicznych, wieku jaskini i osad&#243;w, chemizmu w&#243;d perkolacyjnych, schematyczny plan); Kozakiewicz K., Wołoszyn B.W. 2008 (informacja o występowaniu nietoperzy, zmiany liczebności nietoperzy w latach 1951–2007); Palaczyk A. 2008 (wzmianka o stwierdzeniu much&#243;wek przez Demela); Pawłowski J. i in. 2008 (wiek osad&#243;w na tle osad&#243;w innych jaskiń okolicy Ojcowa, wzmianka o znalezieniu szczątk&#243;w kopalnych kręgowc&#243;w w tym plioceńskiego gryzonia); Rozwałka R. 2008 (informacja o liczebności Porrhomma egeria w Sali Rycerskiej); Stebel A. i in. 2008 (wzmianka o występowaniu w otworze mchu Isopterygiopsis pulchella); Czerwik-Marcinkowska J., Mrozińska T. 2010 (analiza zespołu sinic i glon&#243;w, wykaz gatunk&#243;w); Czerwik-Marcinkowska J., Mrozińska T. 2011 (analiza zespołu epilitycznych sinic i glon&#243;w, wymienione gatunki); Kwartnik-Pruc A. i in. 2011 (wyniki badań termograficznych w sąsiedztwie i wewnątrz jaskini prowadzonych p&#243;źną zimą 2005 r.); Bijak U., Rutkowski M. 2012a,b (uwagi dotyczące nazewnictwa); Nowak J. 2012d (informacja o występowaniu Rhinolophus ferrumequinum); Nowak J., Grzywiński W. 2012 (informacja o występowaniu nietoperzy); Stefaniak K. i in. 2012 (charakterystyka zęb&#243;w i kości Rangifer tarandus z czasu MIS 5a-e i MIS 1); Wojenka M. 2012 (wzmianka o badaniach Zawiszy i Sobczyka, znalezieniu fragment&#243;w wczesno- i p&#243;źnośredniowiecznej ceramiki); Czerwik-Marcinkowska J. 2013 (analiza zespołu sinic i glon&#243;w, wykaz gatunk&#243;w); Wojkowski J. 2013 (wzmianki o badaniach mikroklimatycznych); Żarski M. i in. 2013 (lokalizacja na mapie geologicznej w skali 1:25 000, opis osad&#243;w i znalezisk paleontologicznych i archeologicznych, schematyczny plan, profil osad&#243;w, informacja o plioceńskim wieku osad&#243;w); Piskorska T., Stefaniak K. 2014 (analiza morfometryczna zęb&#243;w i kości Rangifer tarandus z czasu MIS 5a-e); Stefaniak K. i in. 2014 (wzmianka o znalezieniu szczątk&#243;w ssak&#243;w, stratygrafia osad&#243;w, charakterystyka zęba Alces alces, z czasu MIS 5a-d, fot., omawiany ząb został najprawdopodobniej znaleziony nie w Jaskini Łokietka, lecz w Schronisku Bocznym przy Jaskini Łokietka); Czerwik-Marcinkowska J. i in. 2015a (wyniki ekologicznej analizy zespołu epilitycznych sinic i glon&#243;w, wymienione gatunki); Grzywiński W. i in. 2015 (informacje o występowaniu nietoperzy); Nadachowski A. i in. 2015b (wzmianki o znalezieniu plejstoceńskich szczątk&#243;w kręgowc&#243;w); Partyka J. i in. 2015 (wzmianka o prowadzeniu monitoringu nietoperzy, liczebność nietoperzy w latach 1995–2014); Stefaniak K. 2015 (kr&#243;tki opis, historia badań, charakterystyka szczątk&#243;w kopytnych); Cyrek K., Madeyska T. 2016 (informacje o znaleziskach paleolitycznych); Janicka-Krzywda U. 2016 (wzmianka o wymienianiu w legendach); Kołodziejski S. 2016 (informacje o znaleziskach datowanych na schyłek XI w. i na przełom XIII i XIV w.); Krajcarz M.T. i in. 2016 (wymieniona w wykazie jaskiń z osadami lessowymi); Nadachowski A. 2016 (wzmianka o znalezieniu szczątk&#243;w Capra ibex); Śliwiński W. 2016 (uwagi dotyczące nazewnictwa); Wiśniewski A. 2016 (lokalizacja na mapie rozmieszczenia stanowisk paleolitu środkowego z czasu MIS 3 w Polsce, informacja o znaleziskach paleolitu środkowego, informacje te częściowo dotyczą Schroniska Bocznego przy Jaskini Łokietka); Nowak J., Grzywiński W. 2017 (informacja o występowaniu nietoperzy); Partyka J. 2017 (frekwencja w latach 1995–2016); Wojenka M. 2018a (wzmianka o ukrywaniu się miejscowej ludności podczas II wojny światowej); Wojenka M. 2018b (wzmianka o znaleziskach ceramiki wczesno- i p&#243;źnośredniowiecznej, hipoteza o refugialnym charakterze wykorzystania w średniowieczu); Kot M. i in. 2019b (informacja o badaniach przeprowadzonych przez Krukowskiego w 1919 r., wzmianka o badaniach M. Wojenki i J. Wilczyńskiego w 2015 r.); Partyka J. 2020 (legendy związane z jaskinią); Gradziński M. i in. 2020 (opis i plan inwentarzowy, lokalizacja na mapie, pełna bibliografia).
+Materiały archiwalne: Wieczorek J. 1992 (wyniki badań mikroklimatycznych); Czaja M. 1999 (kr&#243;tka charakterystyka, informacja o stwierdzeniu Macrocyclops albidus w kałuży na dnie w lecie 1998 r.).
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Gradziński, Beata Michalska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                J&#243;zef Partyka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2020
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(13557)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(14847)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(14848)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

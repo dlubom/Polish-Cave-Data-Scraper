@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3899">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3899;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "346256,84".replace(',', '.') + "," + "265260,23".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3899','Jaskinia Niedźwiedzia (S-1.13)'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Niedźwiedzia (S-1.13)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                S.I-03.17
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Sudety
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 16&#176;50′36,65″, φ: 50&#176;14′04,26″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Stronie Śląskie (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kłodzki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                dolnośląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Jaskinia Niedźwiedzia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Zarz. Ochr.: 1977 MLIPD z dnia 21.07.1977r. Monitor Polski nr 19, poz. 107,  &#167;2 z dnia 08.08.1977r. O ustanowieniu rezerwatu &quot;Jaskinia Niedźwiedzia&quot; w Kletnie.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku NW, 807 m n.p.m. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                800
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                28,70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                89,60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                118
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    4081
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sudety Wschodnie, Kletno, Masyw Śnieżnika, Dolina Kleśnicy, na stoku g&#243;ry Stromej.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na prawym orograficznie zboczu doliny Kleśnicy, na stoku góry Stromej. Dojście: ze Stronia Śląskiego żółtym szlakiem, z Międzygórza czerwonym lub niebieskim szlakiem na Halę pod Śnieżnikiem, skąd żółtym szlakiem do samej jaskini. Współcześnie obydwa sztuczne otwory prowadzące do jaskini znajdują się w miejscu naturalnych wejść, które wskutek naturalnych procesów zostały zasypane i zawalone. Droga do otworu wejściowego prowadzi przez pawilon wybudowany w związku z udostępnieniem części jaskini do zwiedzania. Przez ten otwór została odkryta jaskinia. Otwór drugi stanowi sztolnię wyjściową, oddaloną ok 100 m w górę doliny. Jaskinia rozwinięta jest na trzech horyzontach połączonych kominami. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Środkowy poziom jaskini jest prawie w całości udostępniony do zwiedzania. Po przejściu przez śluzę i otw&oacute;r wejściowy stajemy na pomoście nad Wielką Szczeliną łączącą środkowe i dolne piętro jaskini. Stąd betonowym chodnikiem trasy turystycznej, skręcając w prawo docieramy do Progu Ryżowego a następnie w d&oacute;ł stromymi schodami do Sali Lwa. Jest to płaska komora, w znacznej części wypełniona materiałem gruzowo gliniastym z dużą ilością kości zwierząt plejstoceńskich. W ścianach widoczne dobrze ukształtowane formy wirowe i nacieki z wapiennego mleka. Z Sali Lwa w g&oacute;rę po schodach dochodzimy do Salki Przejściowej. Do czasu wykonania prac udostępniających ten fragment jaskini był wypełniony po strop osadami autochtonicznymi z dużą ilością szczątk&oacute;w kostnych. Pionowy profil tych osad&oacute;w jest w tym miejscu dobrze wyeksponowany. Ponad profilem widoczny otw&oacute;r fragment pierwotnej trasy wypraw w głąb jaskini. Idąc ciągle po schodach w g&oacute;rę docieramy do skrzyżowania korytarzy zwanego Biwakiem. Widoczna jest wyraźna zmiana otoczenia. Znaczna część dna pokryta jest misami martwicowymi, duże połacie ścian pokryte są wapiennym mlekiem. Przechodzimy sztuczną sztolnią łączącą Biwak z Korytarzem Stalaktytowym. U wylotu sztolni, po lewej stronie zabudowany po strop mur kamienny, odgradzający Korytarz Stalaktytowy od zawaliska. Tuż za murem, po lewej stronie znajduje się otw&oacute;r prowadzący do bocznego ciągu. Za nim ciągnie się niski korytarz długości ok. 10 m zakończony 4 m studnią zamkniętą korkiem z blok&oacute;w marmuru. Spąg korytarzyka tworzą osady ilaste, a w nich szczątki kostne. Na dnie studzienki kości nietoperzy.<br />Wracamy do Korytarza Stalaktytowego. Rozpoczyna on ciąg obszernych korytarzy i sal środkowego piętra jaskini, strzelistych lub o przekroju trapezowym z bogatą szatą naciekową i dnem pokrytym misami martwicowymi okresowo wypełnionymi wodami autochtonicznymi infiltrującymi z powierzchni marmur&oacute;w. Na rozwidleniu chodnik&oacute;w skręcamy w lewo do Zaułka Kaskad. U g&oacute;ry widzimy Galerię fragment g&oacute;rnego piętra jaskini. Z platformy widokowej widoczne jest okienko, prowadzące do g&oacute;rnego, 3 piętra jaskini. Za okienkiem po prawej stronie znajduje się 6 metrowy komin, w g&oacute;rnej części pokryty polewą kalcytową. Przed nami potężne zawalisko, kt&oacute;re w prawo prowadzi na galerię. Trzymając się lewej strony schodzimy w d&oacute;ł zawaliska. Po kilku metrach przejście się zwęża i obniża, a jego prawą stronę i strop stanowią ruchome bloki, po drodze trudny zacisk. Za nim końcowy korytarzyk wypełniony ciemnymi osadami.<br />Wracamy do rozwidlenia chodnik&oacute;w i dalej prosto do końca Sali Pałacowej, a tu mijając po prawej stronie Korytarz Mis Martwicowych wchodzimy do wąskiego i niskiego korytarza wodnego aż do miejsca, w kt&oacute;rym trasa skręca w prawo. Stąd idąc na wprost po około 20 m dochodzimy do salki końcowej zwanej Trupiarnią. Zwalisko w niej odcina prawdopodobnie Korytarz Wodny od powierzchni. Występuje tu znaczna kruszyzna ścian i stropu.<br />Wracając z Trupiarni po ok. 10 m dochodzimy do wąskiej i wysokiej szczeliny otwierającej się w lewej ścianie B.iegnącej powyżej Korytarza Wodnego i zakończonej niewielkim kominem.<br />Za skrętem w prawo trasy turystycznej, drugą sztuczną sztolnią dochodzimy do Korytarza Człowieka Pierwotnego, a następnie w lewo sztolnią wyjściową i systemem śluz wychodzimy na powierzchnię.<br />Wyprawę do dolnego horyzontu jaskini rozpoczynamy także od Wielkiej Szczeliny. Horyzont ten składa się z dw&oacute;ch części: stare dolne piętro jaskini zwane Partiami Wrocławskimi oraz nowe dolne piętro jaskini. Obie te części mają tylko jedno znane połączenie Wielką Szczelinę. Z pomostu schodzimy po drabinie do jej podstawy. Schodzimy na dno szczeliny. Gł&oacute;wny ciąg Partii Wrocławskich rozpoczyna się niewielkim otworem tuż nad dnem przy lewej ścianie szczeliny. Za otworem z lewej strony wysoki, szczelinowy Korytarz Nietoperzy.<br />Idziemy w prawo Salą Blokową około 30 m, następnie w lewo p&oacute;łtorametrowym prożkiem w g&oacute;rę wchodzimy do Długiej Szczeliny, a nią w prawo czołgamy się około 50 m. Trafiamy na zacisk po prawej stronie, a po jego przejściu do rozległej, poziomej szczeliny o spągu opadającym w lewo i wysokości około p&oacute;ł metra. Trzymając się prawej strony czołgamy się głową w d&oacute;ł, ukośnie w prawo aż trafimy na wyraźnie widoczny otw&oacute;r między blokami i tam obracamy się nogami w d&oacute;ł. Do tego miejsca ta część jaskini to wąskie, pionowe lub poziome ciasne korytarze szczelinowe w części zawalone, z dużą ilością przesuszonych namulisk i ubogą szatą naciekową.<br />Ciąg gł&oacute;wny jest niewyraźnie zaznaczony, przejście wymaga znajomości topografii i ciągłej uwagi. Wchodzimy przez pionowy zacisk do studni o głębokości 5 m, a nią do Korytarza Błotnego. Tuż obok, po tej samej stronie korytarza 6 metrową obłoconą ścianką idziemy w g&oacute;rę do bocznego ciągu czołgając się nieco pod g&oacute;rę. W lewo, po 10 m trafiamy na szczelinę początkowo ciasną, a dalej rozszerzającą się, na końcu kt&oacute;rej widać spore skupisko naciek&oacute;w o zabarwieniu charakterystycznym dla środkowego piętra jaskini.<br />Wracamy tą samą drogą do Korytarza Błotnego, a nim w prawo. Po około 40 m korytarz zamyka ściana czołowa, a w lewo i w prawo odchodzą wąskie i niskie błotne syfony.<br />Wracamy i po minięciu studni dojściowej idziemy Korytarzem Błotnym w g&oacute;rę doliny. Korytarz ma kształt strzelisty, o zmiennej wysokości i szerokości około 1 m, dno wypełniają żwirowe osady allochtoniczne, a ściany pokryte są osadami ilastymi. Po przejściu około 90 m po prawej stronie boczny korytarzyk długości 16 m.<br />Wracamy do gł&oacute;wnego ciągu, po przejściu około 30 m osiągamy końcową Salkę z Wodospadem. Okresowo, podczas topnienia śniegu lub długotrwałych opad&oacute;w deszczu, dnem korytarza płynie potok. Wracamy tą samą drogą aż do podstawy drabiny.<br />Wyprawę do nowego dolnego piętra jaskini rozpoczynamy r&oacute;wnież od podstawy drabiny. Idziemy w kierunku widocznego otworu zabezpieczonego kratą i wczołgujemy się do korytarzyka zwanego Szufladą. Pokonujemy go na brzuchu częściowo zanurzeni w wodzie. Za zaciskiem korytarzyk podwyższa się, lewa strona lita, prawa to rumosz skalny z widocznymi szczątkami kostnymi. Po kilku metrach zn&oacute;w nisko czołgamy się nogami w prz&oacute;d aż trafiamy na &bdquo;okienko&rdquo; pionowy, dosyć trudny w drodze powrotnej zacisk prowadzący do 6 metrowej studni. W niej zapieraczką na dno i dalej w d&oacute;ł około 10 m. Po prawej stronie na wysokości piersi otw&oacute;r (Koń) prowadzący do dalszej części gł&oacute;wnego ciągu. Nie wchodząc w otw&oacute;r kierujemy się zdecydowanie w d&oacute;ł do bocznego ciągu zwanego Ciągiem Błotnym. Czołgając się przechodzimy przez ciasny otw&oacute;r przy spągu chodnika i po około 15 m trafiamy na trudny zacisk zwany Muszka Szczerbinka. Za nim czołgamy się niskim korytarzykiem przebitym w ilastych osadach. Po kilku metrach docieramy do wąskiego i wysokiego, strzelistego Korytarza Błotnego Progu. Przechodzimy około 30 m do 3 m progu, nim w d&oacute;ł (wskazana poręcz&oacute;wka brak stopni i chwyt&oacute;w), dalej wysokim korytarzem o szerokości 0,8 m i dnie ze żwir&oacute;w allochtonicznych do miejsca, w kt&oacute;rym korytarz skręca ostro w prawo. Idąc z biegiem korytarza po 6 m wspinamy się prawą, pokrytą błotem ścianą na galerię, kt&oacute;rą docieramy do Sali Dziwnej, prawie w całości wypełnionej częściowo odsączonymi osadami ilastymi. Wydrążonym w osadach przejściem kierujemy się w lewo, w g&oacute;rę, z prawej strony mijamy częściowo wyeksplorowany korytarz i w lewo przez skomplikowany zacisk dochodzimy do Sali Nowej (Sala Marysia). Sala ma kilkanaście metr&oacute;w wysokości i w znacznej części jest wypełniona bardzo niestabilnym zawaliskiem. Z lewej strony, drogą między ścianą sali a potężnym blokiem wspinamy się na szczyt zawaliska. Na g&oacute;rze stożek z drobnego materiału gruzowego, a w nim fragmenty naciek&oacute;w odpadłych od stropu. Schodzimy i trzymając się prawej strony sali docieramy do niskiej i wąskiej jej odnogi. Po około 10 m trafiamy w spągu na pionowy zacisk, za kt&oacute;rym znajduje się 4 m studzienka wydrążona w namulisku (obecnie niedostępna). Na dnie suche łożysko potoku z dobrze obtoczonymi żwirami allochtonicznymi. Widoczny w głębi ciąg korytarzyka jest nie do przejścia z powodu ciasnoty.<br />Tą samą drogą wracamy do gł&oacute;wnego ciągu. Po przejściu przez otw&oacute;r (Koń) pokonujemy zapieraczką około 5 m w d&oacute;ł szczelinę prowadzącą do Korytarza Wichrowego, a nim czołgając się docieramy do Ściany Płaczu, szczeliny w kształcie niesymetrycznej klepsydry, kt&oacute;rą pokonujemy trawersując ją w g&oacute;rnej części, zapieraczką na wysokości około 4 m lub dołem. Pierwsza droga jest trudna ze względu na brak stopni i chwyt&oacute;w oraz śliskość ścian pokrytych warstwą błota. Za Ścianą Płaczu czołgamy się po namulisku i po około 20 m dochodzimy do wysokiego korytarza prowadzącego w lewo do Sali Szampańskiej. Tu opuszczamy gł&oacute;wny ciąg i w prawo korytarzykiem o wysokości około 0, 5 m, w spągu wypełnionym błotem. Czołgamy się do niewielkiego otworu i wchodzimy z niego do leżącego niżej wysokiego korytarza zwanego Meandrem. Dnem korytarza płynie potok ginący w rumoszu ściany czołowej, po prawej stronie. Idziemy w lewo, po około 50 m trafiamy na zawalisko.<br />Wracamy do ciągu gł&oacute;wnego i korytarzem o żwirowym podłożu dochodzimy do Sali Szampańskiej. Ma ona kształt nieregularnego owalu o wymiarach 20 12 m i, wraz z Kominem Maurycego wysokości około 50 m. Dno sali pokryte jest blokami kamiennymi. Wspinaczka w Kominie Maurycego wymaga użycia sprzętu wspinaczkowego. Na wysokości około 35 m występują dwa boczne korytarze o długości 20 m zamknięte namuliskiem z materiału ilasto piaszczystego oraz otoczak&oacute;w skał krystalicznych. Po powrocie idziemy wzdłuż sali do dużego, wypiętrzonego blokowiska i po pokonaniu 6 m progu wychodzimy na rozległy taras i w przeciwległej do wejścia ścianie znajdujemy pr&oacute;g, nad kt&oacute;rym jest zejście. Po dużych blokach schodzimy pionowo w d&oacute;ł kierując się wyraźnie w prawo i w zawalisku osiągamy dno Korytarza Wantowego ze żwirową pokrywą. W tym miejscu korytarz ma kształt strzelisty, a jego ściany są lite. Po przetrawersowaniu przewężenia dochodzimy do drugiej części korytarza o trapezowym przekroju, spękanych ścianach, dnie zasłanym dużymi blokami. Po 10 m schodzimy w prawo do Ronda. Ta niewielka sala w znacznej części wypełniona jest zawaliskiem, a dno stanowią osady ilasto piaszczyste. Odchodzi z niej kilka ciąg&oacute;w, w tym gł&oacute;wny prowadzący do Korytarzy Diamentowych i Kryształowych.<br />Zbaczamy z gł&oacute;wnego ciągu. Po 3 m w g&oacute;rę zawaliska i 4 m w prawo trafiamy na tr&oacute;jskrętny, pionowy zacisk, a za nim 1,5 m niżej Korytarz Wodny pod Rondem, z dnem wypełnionym wodą i mułem. 10 m dalej dochodzimy do potoku wypływającego z prawej strony z niskiego korytarzyka, po przejściu zawieszonymi nad wodą podestami wchodzimy czterometrowej wysokości, skrajnie niebezpiecznym (niestabilne zawalisko) kominkiem do niewielkiej sali utworzonej we wnętrzu zawaliska. Potok, spływający w lewo, ginie w zawalisku.<br />Wracamy do Ronda i idziemy w g&oacute;rę zawaliska, aż osiągamy obszerny Korytarz Kalcytowego Potoku z urozmaiconą i bogatą szatą naciekową oraz dnem pokrytym polewą kalcytową. Korytarz pnie się stromo i po około 40 m jest zapłynięty polewą kalcytową.<br />Wracamy do miejsca połączenia korytarza z zawaliskiem, nie wracamy do Ronda lecz idziemy prosto przez zacisk nad misą martwicową i dostajemy się na Tafle. Ten fragment jaskini to wąskie, poziome i pionowe szczeliny pokryte polewą kalcytową. Za zaciskiem czołgając się trawersujemy poziomą szczelinę z lewej strony przechodzącą w pion. Po kilku metrach strop obniża się do 0,5 m. Tu skręcamy w prawo lekko pod g&oacute;rę i docieramy do kolejnego zacisku. Za nim korytarzykiem, w prawo pod g&oacute;rę, docieramy do pochyłego ciasnego korytarzyka. Za nim salka zwana Buduarem z piękną polewą kalcytową i draperiami w kolorze od beżu do brązu. W lewej ścianie salki przy dnie kolejny przełaz, 4 m za nim korytarz kończy się w zapłyniętym kalcytem zawalisku.<br />Wracamy tą samą drogą do ciągu gł&oacute;wnego. W Rondzie na wysokości 1,5 m od dna wchodzimy w owalny otw&oacute;r i dalej do Korytarza Diamentowego/Kryształowego o strzelistych kształtach i asymetrycznie nachylonych ścianach. Ta część jaskini ma bogatą i urozmaiconą szatę naciekową, dno w znacznej części pokryte jest polewą kalcytową i misami martwicowymi, a przy ścianie przepływa potok. Po minięciu dużego stalagnatu szata naciekowa zanika, a korytarz rozwidla się tworząc dwa r&oacute;wnoległe ciągi (Lewy i Prawy Wąs).<br />Wchodzimy do Prawego Wąsa, idziemy wysoką i wąską szczeliną i po około 60 m dochodzimy do końcowego zawaliska. Wracamy do rozwidlenia i za dużym kamieniem wchodzimy do Lewego Wąsa. W jego końcowej części otwiera się w stropie wąska, pionowa szczelina (Krasowe Urwisko), kt&oacute;ra łączy &bdquo;starą&rdquo; część jaskini z odkrytymi w 2012 roku partiami. Szczelina ta ma połączenie z ciągiem (Gang Zdzicha (Dumańskiego)) o długości około 160 m, r&oacute;wnoległym do Korytarza Kryształowego. W zachodniej części jest to myty, dobrze wykształcony korytarz o wysokości pomiędzy 2 a 10 m i szerokości pomiędzy 1 a 4 m. Im dalej na wsch&oacute;d, tym bardziej jego gabaryty maleją. 30 metr&oacute;w przed Salą Mastodonta pojawiają się polewy naciekowe, kt&oacute;re w wielu miejscach zwężają światło korytarza tworząc trudne do przebycia zaciski (Robespierre, Droga na Szafot, Gilotyna). Najtrudniejszy z nich, skrajnie trudny i ciasny, Gilotyna, jest dwukrotnie załamującą się pod ostrym kątem B.ardzo wąską (22 cm) szczeliną, w kluczowym miejscu przegrodzoną dodatkowo przez formy naciekowe. W tej części jaskini występują okresowo zapełniające się wodą, płytkie jeziorka (Dzikie Plaże). Za Gilotyną ciąg znacznie się rozszerza i kilka metr&oacute;w za nią dochodzi do poprzecznego, szczelinowego korytarza (Galeria PKP) utworzonego w strefie zawaliskowej p&oacute;łnocnej części Sali Mastodonta. Galeria ta doprowadza do Sali Mastodonta, kt&oacute;ra powstała poprzez przegrodzenie zawaliskami olbrzymiego korytarza, kt&oacute;ry najprawdopodobniej łączył Biały Kamień ze Starym Wywierzyskiem. W tym miejscu całkowicie zmienia się charakter jaskini, z małych i wąskich, mytych korytarzy przechodzimy do obszernych, zawaliskowych.<br />Sala Mastodonta ma długość 115 m , szerokość do 20 m i wysokość do 20 m i jest największą (najdłuższą, najwyższą, i najszerszą) salą w Jaskini Niedźwiedziej. Jest salą typu zawaliskowego .Cała powierzchnia spągu pokryta jest zawaliskiem. Ze wstępnej analizy wynika, że jego miąższość w niekt&oacute;rych miejscach (Tyłek) przekracza 60 m. Głębsze partie zawaliska zbudowane są z olbrzymich, wielometrowej średnicy blok&oacute;w skalnych. W wielu miejscach możliwe jest zejście pomiędzy tymi blokami w zawalisku na głębokość kilku &ndash; kilkunastu metr&oacute;w.<br />- W p&oacute;łnocnej części Sali Mastodonta spąg pokrywają głazy o średnicach pomiędzy 0,3- 1 m. U wylotu Galerii PKP leży wielki blok skalny o szerokości 4 - 6 m, długości ponad 8 m i nieznanej wysokości (St&oacute;ł). Jego bok jest jednocześnie wschodnią ścianą wspomnianej Galerii PKP. Spąg w tej części sali jest nachylony, a leżące na nim kamienie pokryte są brązowymi i czarnymi, cienkimi, kilkucentymetrowej grubości polewami. W wielu miejscach wyrastają na tych polewach białe stalagmity o wysokościach do 60 cm. Wschodnia część nachylonego zawaliska w tej części sali pokryta jest białą, kilkunastocentymetrowej grubości polewą. U wylotu Galerii PKP utworzyła się p&oacute;łtorametrowej wysokości B.iała kopuła naciekowa z rozległą, sześciometrowej średnicy, zakalcytowaną strefą zawaliska utworzoną u jej podn&oacute;ża, na p&oacute;łnoc urywającą się ośmiometrowej wysokości kaskadą. Nad kopułą, pod wylotem komina wisi na stropie kilkadziesiąt kr&oacute;tkich, kilkunasto- dwudziestokilkucentymetrowej długości stalaktyt&oacute;w oraz kilka około p&oacute;łmetrowej długości stalaktyt&oacute;w i draperii. W załamaniu ścian, w południowo-zachodnim fragmencie tej części sali, pod wylotem dużego komina utworzyło się dwunastometrowej wysokości i ośmiometrowej (u podstawy) szerokości pole stromo nachylonej B.iałej polewy. Wystaje z niego kremowej barwy, pięciometrowej wysokości i trzymetrowej szerokości kopuła naciekowa. Ściany w tej części sali są w niekt&oacute;rych miejscach spękane B.rak jest widocznych wymyć. W wielu miejscach pokryte są polewami. Strop w tej części sali jest w niekt&oacute;rych miejscach spękany B.rak jest widocznych wymyć. Stalaktyty występują nielicznie, na og&oacute;ł pojedynczo i ich długość nie przekracza zazwyczaj kilkunastu centymetr&oacute;w. Jedynie nad strefą czarnych polew występuje skupisko stalaktyt&oacute;w o długościach do około 80 cm, kt&oacute;re powstały na linii przebiegającego przez strop pęknięcia.<br />- W środkowej części sali, za obniżeniem stropu, spąg pokryty jest silnie zmielonym materiałem skalnym. Leży na nim kilka około metrowej i większej wielkości blok&oacute;w skalnych. Największe ich nagromadzenie powstało przy wschodniej ścianie, część z nich pokryta jest kremowymi polewami, na jednym z nich utworzyła się około dwumetrowej wysokości kopuła naciekowa. Ściany w tej części jaskini w większości pokryte są białymi i ż&oacute;łtymi polewami kalcytowymi. Strop jest spękany, na liniach większych pęknięć utworzyły się liczne stalaktyty o długościach dochodzących do około 30 cm.<br />- W południowej części sali spąg pokrywa zawalisko zbudowane z wielkich blok&oacute;w skalnych. Ich nagromadzenie tworzy pr&oacute;g o wysokości około 10 m. Największy z blok&oacute;w, Autobus, wystaje ponad powierzchnię zawaliska niewielką częścią. Wystający fragment ma wysokość około 8 m i średnicę około 6 m. Około 3 m wyżej, w stropie, widoczne jest wyraźnie miejsce, kt&oacute;re pasuje kształtem do oderwanej powierzchni Autobusu. Pod zawaliskiem wielkich blok&oacute;w utworzyła się nieduża, w najwyższym miejscu czterometrowej wysokości i średnio siedmiometrowej średnicy salka. Salka ta ma połączenie wąską szczeliną z Biwakiem. Za Autobusem zawalisko wznosi się stromo dalej na południe, jego powierzchnia pokryta jest kremowymi i szarymi polewami. Cała wschodnia ściana tej części jaskini pokryta jest grubą warstwą dobrze wykształconych polew z długimi, dochodzącymi do 2 m długości żebrami, kt&oacute;re tworzą bardzo urozmaiconą, imponującą i wielobarwną Wielką Kaskadę. Jej wysokość, od najniższego miejsca (u podn&oacute;ża progu) do najwyższego punktu w sali wynosi ponad 30 m. Zachodnia ściana tej części sali jest spękana B.rak jest na niej widocznych wymyć, występują niewielkie skupiska polew i draperii. Strop w tej części sali jest w większej części lity, w najwyższym miejscu pokrywają go płaty cienkiej warstwy białego mleka wapiennego. W kilku miejscach występują skupiska małych stalaktyt&oacute;w i draperii. W całej Sali Mastodonta brak jest ślad&oacute;w wsp&oacute;łczesnego odpadania skał.<br />W południowej części Sali Mastodonta, na szczycie zawaliska wchodzi się do kilkunastometrowej długości korytarzyka (Drezno) zrobionego sztucznie w zawalisku. Korytarzyk ten doprowadza do szczytu niewielkiej studni (Rzeźnia numer 5), z kt&oacute;rej zjeżdża się do sali Rozdroże. Z sali tej:<br />- idąc na p&oacute;łnoc schodzi się po niebezpiecznej piaskowej pochylni (Piachy - Strachy) do sali (Lochy Zagłady) będącej pozostałością po najniższym, poznanym piętrze jaskini (kontynuacja Korytarza Perłowego);<br />- idąc na zach&oacute;d wchodzi się w bardzo niebezpieczne, strome, ruchome i kończące się po kilkudziesięciu metrach zawalisko (Kompresor);<br />- idąc na południe przechodzi się gł&oacute;wnym ciągiem jaskini do dużej sali (Sala Piętrowa).<br />W Sali Piętrowej widać podział tej części jaskini na kilka pięter. Pod jej stropem znajduje się wejście do g&oacute;rnego piętra jaskini - bogatego w szatę naciekową korytarza (Balkonik), wzdłuż wschodniej ściany zejść można Progiem Puliny do położonego 15 m niżej Korytarza Perłowego. Sala Piętrowa powstała poprzez połączenie g&oacute;rnego i środkowego piętra jaskini. Piętro g&oacute;rne kończy się wysokim, pionowym progiem, pokrytym białymi i ż&oacute;łtobrązowymi polewami. Piętro środkowe (patrząc na p&oacute;łnoc) kończy się metrowej szerokości czterometrowej wysokości, pokrytym grubą warstwą kremowych i brązowych polew Progiem Puliny. Za nim wznosi się piętnastometrowej długości pochylnia, w dolnej części pokryta grubą warstwą kremowych i brązowych polew. Na spągu pochylni, w g&oacute;rnej jej części zalega nieskalcytowane, strome zawalisko o dużej miąższości. W miejscu, w kt&oacute;rym kończy się pochylnia wznosi się kruchy, dwumetrowej wysokości prożek, za nim kontynuuje się korytarz pozbawiony szaty naciekowej ze spągiem pokrytym zawaliskiem. W pokrytej polewami części pochylni oraz Progiem Puliny spływa niewielka ilość wody (kilka cm3/s). Ściany oraz strop są lite, pozbawione szaty naciekowej. Na spągu brak świeżych ślad&oacute;w obryw&oacute;w skał. U wylotu Balkonika 20 m nad progiem Puliny widć odspojony od ściany duży (~40 000 kg) blok skalny zaklinowany w p&oacute;łce.<br />Przy wejściu do Balkonika spada do Sali Piętrowej pięciometrowej szerokości kaskada polew kalcytowych wypływająca z dużej kopuły naciekowej.<br />Balkonik jest poziomym korytarzem o długości 70 m, przeciętnej szerokości 8 m i średniej wysokości 6 m B.ędącym fragmentem najstarszego, g&oacute;rnego piętra gł&oacute;wnego ciągu jaskini. Jego spąg zaścieła zawalisko w wielu miejscach pokryte grubą warstwą kalcytu. W p&oacute;łnocnej części ciągu na spągu leżą odspojone od stropu i ścian, ponad metrowej wielkości bloki skalne. Strop jest w części lity, w części spękany, na całej długości korytarza pokryty jest polewami i stalaktytami. W południowej części zachodnia ściana pokryta jest wielobarwnymi polewami, kt&oacute;re na p&oacute;łkach będących reliktami wcześniejszego dna jaskini wytworzyły charakterystyczne &bdquo;szczęki&rdquo;. W połowie korytarza, jego zachodnia ściana pokryta jest grubymi B.iałymi i ż&oacute;łtymi polewami, kt&oacute;re przechodzą w polewy na spągu. W południowej części korytarza, na głazach kt&oacute;re odpadły od stropu, powstała kopuła naciekowa pokryta białym i kremowym kalcytem, w części zwietrzałym. W środkowej części sali leży na spągu odłamany, metrowej średnicy stalaktyt oblany silnie nowymi polewami. W p&oacute;łnocnej części sali, za załamaniem na zach&oacute;d, powstała duża, kilkumetrowej wysokości i średnicy kopuła naciekowa.<br />Korytarz Perłowy jest wysokim, szczelinowym korytarzem o przeciętnej szerokości 4 m. 12 m na południe od podstawy Progu Puliny, przy zachodniej ścianie otwiera się w spągu wąski wlot do Studni Bezdennej. Spąg korytarza pomiędzy Progiem Puliny a Studnią Bezdenną pokryty jest ż&oacute;łtobrązową polewą. W połowie długości polewy leżą, do połowy w niej zagłębione, 3 kuliste, ż&oacute;łte perły jaskiniowe o średnicy 20 mm. Jedna z nich jest przykalcytowana do podłoża. Ze wschodniej ściany zwieszają się pojedyncze stalaktyty o długości do 30 cm. Za Studnią Bezdenną, w południowej części korytarza spąg tworzą duże głazy pokryte kalcytową polewą. Strop i ściany korytarza są lite. Na spągu korytarza brak jest ślad&oacute;w zawaliska oraz widocznych ślad&oacute;w obryw&oacute;w. Korytarz Perłowy urywa się do Sali Hekate 1,5 do 4 m wysokości progiem.<br />Sala Hekate ma około 30 m długości, 10 m szerokości i przeciętnie 10 m wysokości. Jej spąg jest pokryty pochyłym zawaliskiem. Jej wschodnia ściana, nachylona pod kątem około 50&deg; pokryta jest ż&oacute;łtą do ciemnobrązowej polewą kalcytową. W ścianie tej otwiera się pionowy, 0,5 - 1 m szerokości wlot Studni Pięknie Mytej. 2 m na p&oacute;łnoc od wlotu do Studni Pięknie Mytej ściana sali pokryta jest tr&oacute;jkątem białej polewy. Ściany sali praktycznie pozbawione są szaty naciekowej. W spągu, na zawalisku, utworzyły się pojedyncze, kilkucentymetrowej wysokości stalagmity. Ściany korytarza są lite, strop w kilku miejscach spękany. Na spągu brak jest ślad&oacute;w wsp&oacute;łczesnego opadania skał.<br />Studnia Bezdenna ma 16 m głębokości, w g&oacute;rnej części wąska, u podstawy dochodzi do 2 m szerokości i opada do Metra (patrz opis dalej). Ściany studni pokrywają polewy kalcytowe.<br />Studnia Pięknie Myta rozpoczyna się stromą, pokrytą polewami pochylnią, kt&oacute;ra po 12 metrach urywa się okrągłą, dwunastometrowej głębokości i trzymetrowej szerokości studnią. Podobnie jak i Studnia Bezdenna, studnia ta łączy piętro środkowe nowej części jaskini z piętrem dolnym.<br />U podn&oacute;ża Studni Pięknie Mytej rozpoczyna się Hades, kt&oacute;ry łączy się pochylnią z oddalonym o ok. 10 m, położonym r&oacute;wnolegle korytarzem Metro. Hades reprezentuje najniższe, znane obecnie piętro nowych ciąg&oacute;w jaskini. Blisko ujścia Studni Pięknie Mytej, na końcu Hadesu utworzyło się w spągu korytarza niewielkie (2x3 m), płytkie (do 30 cm) jeziorko o dnie pokrytym śnieżnobiałym kalcytem. Hades jest poziomym korytarzem o przeciętnej szerokości 1,5 m i wysokości 2,5 m. Spąg pokryty jest piaszczysto-żwirowym namuliskiem, na jego powierzchni leżą pojedyncze kamienie i bloki skalne. Na ścianach i stropie widoczne są wyraźne ślady wymyć ukazujące zmienne wartości przepływ&oacute;w wody. Na stropie powstały pojedyncze, nieduże, kilkunastocentymetrowej długości stalaktyty i draperie. Brak jest ślad&oacute;w wsp&oacute;łczesnego odpadania skał. Przejście pomiędzy Hadesem a pochylnią częściowo przegradza nieduże zawalisko, powstałe z luźnych, niespojonych kalcytem blok&oacute;w skalnych.<br />Metro rozpoczyna się w zawaliskach leżących pod Salą Humabak&oacute;w. Do Metra, 40 m na p&oacute;łnoc od połączenia z Hadesem wpada Studnia Bezdenna. Południowa część Metra (pomiędzy zawaliskiem w południowej części a Studnią Bezdenną) jest korytarzem o przeciętnej wysokości 2 m i szerokości 4 m. Jego spąg pokryty jest drobnym zawaliskiem, w wielu miejscach pokrytym polewą kalcytową. Około 10 metr&oacute;w na południe od Studni Bezdennej powstało na polewach małe jeziorko o długości 2 m, szerokości 1 m i głębokości 15 cm. Ściany korytarza są lite, widoczne są niewielkie wymycia. Strop korytarza jest przeważnie myty, w wielu miejscach powstały nieduże, kilkunastocentymetrowej długości stalaktyty, draperie i polewy. Brak jest ślad&oacute;w wsp&oacute;łczesnego opadania skał.<br />Środkowa część Metra (pomiędzy Studnią Bezdenną i Dziurą w Metrze) jest korytarzem o przeciętnej wysokości 3 do 5 m i szerokości 3 m. Jego spąg pokryty jest zawaliskiem, w kilku miejscach pokryte niwielkimi polewami. Ściany korytarza są lite, strop częściowo spękany, w wielu miejscach powstały nieduże, kilkunastocentymetrowej długości stalaktyty i draperie. W ścianach widoczne są pojedynczej wymycia. Brak jest ślad&oacute;w wsp&oacute;łczesnego odpadania skał.<br />Pomiędzy środkową a p&oacute;łnocną częścią Metra, w dnie korytarza znajduje się kłopotliwa do ominięcia, ośmiometrowej głębokości, ślepa studzienka (Dziura w Metrze). Można ją obejść rozpoczynającym się przy niej ciągiem małych korytarzyk&oacute;w i rur (Madagaskar) pokrytych polewami. Dno dziury w Metrze jest pochyłe, zapada zgodnie z biegiem warstw na wsch&oacute;d, w najniższej części powstało na nim małe jeziorko. Wschodnia ściana studni jest silnie spękana, spękania zostały w większej części wypełnione kalcytem.<br />P&oacute;łnocna część Metra (pomiędzy Dziurą w Metrze i Biwakiem) jest korytarzem o przeciętnej wysokości 2,5 m i szerokości 2 m. Jego spąg pokryty jest twardym, gliniastym namuliskiem, w większości pokrytym warstwą kalcytu. Na ścianach i stropie widoczne liczne wymycia. W wielu miejscach powstały nieduże, kilkunastocentymetrowej długości stalaktyty i draperie. W ścianach widoczne są pojedynczej wymycia. Brak jest ślad&oacute;w wsp&oacute;łczesnego odpadania skał.<br />Metro urywa się do Biwaku progiem (Kruchy Prożek) o wysokości 5 m. Południowa część zachodniej ściany Biwaku, sąsiadująca z Kruchym Prożkiem jest silnie potrzaskana, odspojone od niej głazy leżą poniżej, na spągu sali.<br />Biwak jest salą o wysokości 7 m, szerokości 8 m i długości 48 m. Powstała ona przez połączenie Metra i oddzielonego piaskowym syfonem ciągu Hadesu. Jej spąg zaścieła zawalisko, przy zachodniej ścianie leżą częściowo pokryte polewami, kilkumetrowej wielkości bloki skalne. Ściany i strop są miejscami spękane, praktycznie brak jest szaty naciekowej. W zawalisku wznoszącym się na p&oacute;łnoc leżą relikty zniszczonej dawniej, starej szaty naciekowej - fragmenty stalagmit&oacute;w o grubości do 20 cm. Zawalisko to podchodzi pod Salę Mastodonta, wyczuwalny jest w nim przepływ powietrza.<br />Spąg wnęki Biwaku pokryty jest allochtonicznym piaskiem. Jest to jedno z niewielu miejsc w jaskini, w kt&oacute;rym znajduje się r&oacute;wne podłoże i możliwe było założenie dużego i komfortowego biwaku podziemnego.<br />W południowej części Metra, znajduje się wejście do partii zwanych Żwirownikiem. Przez ciasne przełazy w zawalisku (Maligna) przechodzimy do częściowo zawaliskowego, w wielu miejscach obszernego korytarza, kt&oacute;rego spąg w końcowych partiach pokrywa dobrze obtoczony żwir pochodzenia allochtonicznego. W końcowej części Żwirownika znajduje się bardzo niebezpieczne zejście (Mr&oacute;wkolew) do położonego niżej, zawaliskowego, szczelinowego korytarza. Jest to lej utworzony w luźnych osadach, kt&oacute;re zsypują się do korytarzyka, kt&oacute;rego strop tworzy luźny, spadający przy najmniejszym dotknięciu żwir.<br />W miejscu, w kt&oacute;rym Sala Humbak&oacute;w łączy się z Balkonikiem, znajduje się wejście do południowej części Krwawej Masakry. Tuż obok, znajduje się wejście do Białego Komina i dalej do Partii Białego Komina. Są to kilkumetrowej wysokości kominki i nieduże korytarze pokryte w wielu miejscach śnieżnobiałymi polewami. W Salce Bobsleist&oacute;w znajduje się najwyżej położone, znane obecnie miejsce w jaskini.<br />Sala Humbak&oacute;w jest poziomą, drugą co do wielkości salą w Jaskini Niedźwiedziej. Jej długość wynosi 60 m, szerokość maksymalnie 20 m i wysokość maksymalnie 20. Jest salą typu zawaliskowego, jej spąg zaścieła zawalisko o bardzo dużej miąższości, na ścianach i stropie widoczne są ślady po obrywach. W połowie długości sali, przy zachodniej ścianie widoczne jest na stropie dwumetrowej średnicy skupisko stalaktyt&oacute;w i draperii. W południowej części sali, w stropie znajduje się ujście komina, pod kt&oacute;rego wylotem powstały metrowej długości draperie. Pod kominem, na spągu, powstała strefa białych polew naciekowych z kilkoma kilkudziesięciocentymetrowej wysokości białymi stalagmitami i niewielkimi kopułami o tej samej barwie. W p&oacute;łnocnej części sali całą szerokość zawaliska pokrywa warstwa ż&oacute;łtego i brązowego kalcytu, w wielu miejscach o grubości kilkunastu - dwudziestu kilku centymetr&oacute;w. W miejscu połączenia z balkonikiem, zachodnia ściana sali pokryta jest grubą warstwą białych i kremowych polew, kt&oacute;re utworzyły się pod oknem łączącym salę z Partiami Białego Komina. W stropie sali brak jest widocznych spękań, liczne małe i pojedyncze duże stalaktyty na stropie i brak świeżych kawałk&oacute;w skał na polewach kalcytowych świadczą o braku wsp&oacute;łczesnych obryw&oacute;w.<br />Z Sali Humbak&oacute;w wchodzimy do Zaułka, kr&oacute;tkiego korytarza, w kt&oacute;rym występuje największe nagromadzenie form naciekowych w nowoodkrytej części jaskini. Jego zachodnią ścianę pokrywają polewy naciekowe o nieraz kilkumetrowej grubości, w kilku miejscach wystają z nich ponad metrowej wysokości kopuły naciekowe. Spąg i strop pokryte są lasem stalaktyt&oacute;w, stalagmit&oacute;w i stalagnat&oacute;w. Dominuje białe zabarwienie kalcytu. W południowej części Zaułka znajduje się około dwudziestocentymetrowej głębokości i trzymetrowej długości jeziorko, kt&oacute;rego dno pokryte jest warstwą śnieżnobiałych kryształ&oacute;w kalcytu. Spąg w większości zbudowany jest ze średnio i mocno oblanych kalcytem, dużych kamieni.<br />Zetownik jest fragmentem gł&oacute;wnego ciągu jaskini, kt&oacute;ry w tym miejscu załamuje się dwa razy pod kątem prostym. W środkowej części Zetownika, kamienie nie są pokryte polewami, zawalisko jest stare, ustabilizowane. Strop jest w części lity, w części spękany, powstały na nim liczne, niewielkie polewy i nacieki. Brak ślad&oacute;w obryw&oacute;w ze stropu po powstaniu zawalisk (grube pokrywy kalcytowe i stalagmity na zawaliskach). W zaułku wyczuwalny jest silny ciąg powietrza. Z Zetownika można poprzez Galerię Jerzy (Jerzego Bierońskiego) dotrzeć do końca gł&oacute;wnego ciągu jaskini (Kutaśnik). Początkową część Galerii Jerzy można obejść Szczurami, niskim, zawaliskowym korytarzem. Tuż przed Kutaśnikiem przechodzi się pochylnią pod niebezpiecznym, spękanym i grożącym zawaleniem stropem. Spąg &bdquo;Kutaśnika&rdquo; pokrywa gęsty las niedużych, kilku-kilkunastocentymetrowej wysokości i kilkucentymetrowej średnicy stalagmit&oacute;w. Strop pokryty jest kilkucentymetrowej długości makaronami. Podobnie jak w Partiach Białego Komina, w ścianach jaskini w Kutaśniku pojawiają się przewarstwienia łupk&oacute;w łyszczykowych. Koniec sali zamyka zawalisko, w kt&oacute;rym dominuje zmielony łupek przemieszany z gruzem wapiennym. W zachodniej części Kutaśnika wchodzi się przez bardzo niebezpieczne, niestabilne zawalisko (Mikser) do niedużej salki (Salka Kominkowa), w kt&oacute;rej z komink&oacute;w w stropie wypływają polewy naciekowe. Z Salki Kominkowej wchodzi się do freatycznej rury o średnicy od 0,5 do 2 m, wypełnionej w części osadami (Predator). W końcowej części ciąg skręca pod kątem prostym na południowy wsch&oacute;d, w tym miejscu spąg pokryty jest warstwą popękanej polewy kalcytowej o grubości około 1 cm. W końcowej części Predatora strop pokrywają pojedyncze, kuliste i jajowate nacieki o średnicy kilkanaście - dwadzieścia kilka cm. Część z nich odpadła od stropu i leży na spągu tworząc Gniazdo Predatora. Korytarz ten w końcowej części wypełniony jest osadami po strop, mimo tego wyczuwalny jest niewielki przepływ powietrza.</p>
+<p>Jaskinia jest rezerwatem przyrody i jej zwiedzanie, poza udostępnioną częścią wymaga zezwolenia Regionalnej Dyrekcji Ochrony Środowiska i jest możliwe tylko w celu prowadzenia badań naukowych.<br />Jaskinia rozwinęła się w obrębie wapieni metamorfiku Śnieżnika, kt&oacute;re tworzyły się około 570 milion&oacute;w lat temu na przełomie wendu i kambru, a następnie uległy procesom metamorficznym (Don 1989a). Pierwsza faza intensywnego rozwoju krasu w obszarze Śnieżnika związana jest z oligoceńsko mioceńską powierzchnią zr&oacute;wnań (około 26 mln lat temu), kiedy nacięte zostały po raz pierwszy na dużej przestrzeni wapienie krystaliczne masywu Śnieżnika. Obejmowała ona przede wszystkim g&oacute;rne partie bloku marmur&oacute;w G&oacute;ry Połom. W pliocenie doszło do utworzenia następnej powierzchni zr&oacute;wnań. Procesowi temu, w ciepłym i wilgotnym klimacie towarzyszyło głębinowe wietrzenie chemiczne skał podłoża. Stwarzało to optymalne warunki rozwoju krasu na tym obszarze (Don 1989a). Być może w tym okresie powstawało środkowe piętro jaskini. Nadal otwarta pozostaje kwestia wieku piętra dolnego oraz odkrytych w 2012 roku partii. Być może zostały one utworzone po uruchomieniu systemu wywierzysk poniżej jaskini, czyli już na przełomie trzeciorzędu i czwartorzędu (Kozłowski 1989).<br />W jaskini występują dwa rodzaje osad&oacute;w: allochtoniczne, złożone z obecnego lub kopalnego materiału rzecznego albo fluwioglacjalnego oraz autochtoniczne w postaci materiału gruzowo gliniastego i chemicznego powstałego wskutek wietrzenia mechanicznego, proces&oacute;w grawitacyjnych i depozycji węglan&oacute;w (Pulina 1989). Starsze pokrywy allochtoniczne to dobrze otoczone żwiry skał krystalicznych ze zlewni Kleśnicy tkwiące w osadach ilasto piaszczystych. Występują w spągu środkowego piętra jaskini oraz na ścianach partii wrocławskich w postaci scementowanych &bdquo;jask&oacute;łczych gniazd&rdquo;. Osady te r&oacute;żnią się od pozostałych silnym zwietrzeniem chemicznym i jaśniejszą barwą (Pulina 1989). Młodsza wsp&oacute;łczesna pokrywa żwirowa widoczna jest w łożyskach potok&oacute;w dolnego piętra jaskini. Obok wsp&oacute;łczesnych, allochtonicznych osad&oacute;w żwirowych, w jaskini zalegają także osady ilaste przetransportowane z zewnątrz w czasie wysokich stan&oacute;w w&oacute;d B.ądź przez wody przemywające osady wyżej położone. Osady pochodzenia miejscowego występują w środkowym poziomie jaskini. Niekt&oacute;re fragmenty tej części jaskini zostały nimi wypełnione po strop (Sala Lwa do Korytarza Człowieka Pierwotnego). Ich miąższość nie została do końca zbadana (Pulina 1989). Osady autochtoniczne to gł&oacute;wnie nie obtoczony gruz wapienny powstały wskutek wietrzenia. Spotyka się jednak r&oacute;wnież zagadkowe żwiry marmur&oacute;w bardzo dobrze obtoczone o średnicy do kilkunastu centymetr&oacute;w (Pulina 1989). Część osad&oacute;w gruzowo ilastych zalega na podłożu wt&oacute;rnym. Zostały one przetransportowane z miejsc pierwotnych (Korytarz Człowieka Pierwotnego, Korytarz Mis Martwicowych, Sala Pałacowa, Sala Niedźwiedzia) i osadzone poniżej (Sala Kuny, Salka Przejściowa, Sala Lwa). Osady na wt&oacute;rnym podłożu zalegają także w sąsiadujących z Wielką Szczeliną korytarzach prowadzących do nowego dolnego piętra jaskini. W jaskini występują liczne blokowiska zaliczane także do osad&oacute;w autochtonicznych. Niekt&oacute;re z nich (za Zaułkiem Kaskad, w Rondzie, w Sali Szampańskiej, Sali Mastodonta, Sali Humbak&oacute;w, Kutaśniku) skutecznie zamykają drogę do nie odkrytych części jaskini.<br />Osady Jaskini Niedźwiedziej były przedmiotem licznych badań (Pulina 1970, 1977, 1978, 1989; Wiszniowska 1970, 1976, 1978, 1980, 1989; Wysoczański Minkowicz 1969; Bosak 1980, 1989; Bieroński, Stefaniak, Hercman, Socha, Nadachowski 2009). Wprawdzie nie pozwoliły one na opracowanie pełnej stratygrafii osad&oacute;w ale umożliwiły bardzo dokładnie określenie wieku serii gruzowej zawierającej liczne kości zwierząt plejstoceńskich. Na podstawie badań paleontologicznych i użycia metody fluoro chloro apatytowo-kolagenowej określono wiek tych kości na 11500 15000 lat. Osady starsze nie mają jednoznacznego datowania. Zostały one zaliczone do okresu interglacjału eemskiego i zlodowacenia środkowopolskiego (Wiszniowska 1970). Datowanie izotopową metodą Th230/U234 stalaktytu, pochodzącego prawdopodobnie z Kalcytowego Potoku wykazało wiek 180.000+21.00/-17.000 lat dla wewnętrznej warstwy (Głazek, Harmon 1981, 1985, Głazek 1986) co wskazuje, że jaskinia istniała już w stadium wadycznym w przedostatnim interglacjale.<br />W autochtonicznych osadach środkowego poziomu jaskini, a także na dnie Wielkiej Szczeliny i sąsiadujących z nią korytarzach prowadzących do nowego dolnego piętra jaskini licznie występują szczątki kostne fauny plejstoceńskiej. Zawartość paleontologiczną namulisk zbadała i oznaczyła T. Wiszniowska. Zawierają one szczątki: ryj&oacute;wki aksamitnej (<em><strong>Sorex araneus</strong></em>), zębiełka karliczka (<em><strong>Crocidura suaveolens</strong></em>), nocka dużego (<em><strong>Myotis myotis</strong></em>), nocka Bechsteina (<em><strong>Myotis bechsteinii</strong></em>), nocka Natterera (<strong></strong><em><strong>Myotis nattereri</strong></em>), nocka wąsatka (<em><strong>Myotis mystacinus</strong></em>), nocka rudego (<em><strong>Myotis daubentonii</strong></em>), gacka wielkoucha (<em><strong>Plecotus auritus</strong></em>) bobra (<em><strong>Castor fiber</strong></em>), nornicy rudej (<em><strong>Clethrionomys glareolus</strong></em>), karczownika (<em><strong>Arvicola </strong></em>sp.), polnika (<em><strong>Microtus arvalis</strong></em>), sarny (<em><strong>Capreolus capreolus</strong></em>), dzika (<em><strong>Sus scrofa</strong></em>), kuny leśnej (<em><strong>Martes martes</strong></em>), lwa jaskiniowego (<em><strong>Panthera spelaea</strong></em>), wilka (<em><strong>Canis lupus</strong></em>), lisa (<em><strong>Vulpes vulpes</strong></em>), hieny jaskiniowej (<em><strong>Crocuta spelaea</strong></em>), niedźwiedzia jaskiniowego (<em><strong>Ursus spelaeus</strong></em>), niedźwiedzia brunatnego (<em><strong>Ursus arctos</strong></em>). W powierzchniowych warstwach osad&oacute;w znaleziono także nie dające się oznaczyć szczątki ptak&oacute;w. Prawie 90% materiału kostnego należy do niedźwiedzia jaskiniowego. Jest to zatem najbogatsza kolekcja kostna tego gatunku w Polsce (Wiszniowska 1989). W odkrytej w 2012 części jaskini, poza holoceńskimi szkieletami małych ssak&oacute;w, znaleziony został do tej pory jedynie ząb trzonowy jelenia szlachetnego (<em><strong>Cervus elaphus</strong></em>). Jego wiek określony został na około 27 000 lat (informacja ustna od dr Krzysztofa Stefaniaka). W jaskini nie stwierdzono ślad&oacute;w pobytu ani działalności człowieka z paleolitu, jednak R. Paluch (1970) opisał dwa starte kły niedźwiedzia jaskiniowego twierdząc, że zostały one przemodelowane przez człowieka.<br />W jaskini powszechnie występują nacieki kalcytowe. Największe, najbardziej r&oacute;żnorodne ich nagromadzenie obserwujemy w środkowym poziomie jaskini (Sala Pałacowa, Korytarz Mis Martwicowych, Korytarz Stalaktytowy), w nowym dolnym piętrze (Korytarze Diamentowe, Kryształowe, Rondo, Korytarz Kalcytowego Potoku, Sala Szampańska) oraz w partiach odkrytych w 2012 roku (Sala Mastodonta, Sala Humbak&oacute;w B.alkonik, Zaułek, Kutaśnik). Nacieki środkowego piętra i partii odkrytych w 2012 roku są bogato i r&oacute;żnorodnie ubarwione. Klasyfikacji morfologicznej naciek&oacute;w kalcytowych w Jaskini Niedźwiedziej dokonał S. Zięba (1978). Wprowadza on podział kalcytowych naciek&oacute;w stagnalitowych na cztery typy: pokrywy naciekowe (nacieki na ścianach, kaskady, misy martwicowe, &bdquo;szczotki&rdquo; kalcytowe, &bdquo;jeżyki&rdquo; B.ulaste wyrostki na dnie, perły jaskiniowe, długie i kruche wł&oacute;kna kalcytowe); stalaktyty (makarony rurki, normalne, zdeformowane, kuliste, heliktyty o zdeformowanej grubości, skręcone, listwowe draperie i zasłony); stalagmity (typowe, zdeformowane, zgrubiałe u g&oacute;ry, niskie i spłaszczone, rozgałęzione, kolumny); nacieki typu &bdquo;kamiennego mleka&rdquo; (pokrywy, nacieki kaskadowe, nawisy, pola ryżowe, misy martwicowe). Pokrywy naciek&oacute;w kalcytowych tworzą się wsp&oacute;łcześnie. Ponieważ pokrywają one strop namulisk datowanych na ostatnią fazę w&uuml;rmu są to więc nacieki holoceńskie deponowane r&oacute;wnież w warunkach wsp&oacute;łczesnego mikroklimatu jaskini. Geneza naciek&oacute;w kalcytowych jest związana z procesem przesycenia węglanami w&oacute;d autochtonicznych infiltrujących z powierzchni marmur&oacute;w, a także z procesem parowania (Pulina 1978).<br />Region krasowej cyrkulacji wody, w kt&oacute;rym występuje Jaskinia Niedźwiedzia usytuowany jest w g&oacute;rnej części zlewni potoku Kleśnica. Zasadnicza strefa ponorowa rozpoczyna się od wysokości 840 m n.p.m, a podstawowa strefa wywierzyskowa zlokalizowana na wysokości 750 m n.p.m. W krasowym systemie jaskini krążą dwa rodzaje w&oacute;d wody infiltracji pionowej z powierzchni stok&oacute;w wapiennych i wody infiltracji poziomej z potoku Kleśnica. Ponory, kt&oacute;rymi przedostają się do jaskini wody Kleśnicy o chłonności około 25 l/s, natomiast wydajność źr&oacute;deł krasowych stanowiących podstawę drenażu wynosi ponad 10 l/s więcej co oznacza, że wywierzyska te otrzymują r&oacute;wnież wody infiltracji pionowej. W okresie wysokich stan&oacute;w w&oacute;d uruchamiane są kolejno wywierzyska położone na kilkumetrowej tarasie prawego zbocza doliny. W okresie bardzo wysokich stan&oacute;w w&oacute;d wydajność źr&oacute;deł przekracza 200 l/s (Pulina 1989). W jaskini wody przepływają trzema systemami korytarzy. Potoki z Korytarzy Diamentowych i Kryształowych oraz Korytarza Wodnego łączą się w Rondzie i giną w strefie zawaliska niedostępnego dla człowieka. Trzeci potok w Meandrze ginie w strefie rumoszowej czołowej ściany korytarza. Kolejne dwa okresowe potoki płyną przy podwyższonym stanie w&oacute;d, Korytarzem Błotnym w dolnym Piętrze Wrocławskim i niższą częścią Korytarza Błotnego Progu, w nowym dolnym piętrze. Wody infiltracji pionowej przedostają się do wnętrza wąskimi szczelinami, w środkowym piętrze wypełniają misy martwicowe, a następnie systemem szczelin i komin&oacute;w spływają do dolnego poziomu zasilając podziemne przepływy Kleśnicy. Stwierdzone przepływy w&oacute;d Kleśnicy w jaskini nie są zapewne jedynymi wodami infiltracji poziomej krążącymi w tym systemie krasowym.<br />Badania znacznikowe w&oacute;d wykazały, opr&oacute;cz istnienia lokalnego systemu krążenia, także istnienie odpływu w&oacute;d podziemnych do innych zlewni, w tym r&oacute;wnież przepływ na południową stronę granicy państwa, pod gł&oacute;wnym grzbietem masywu stanowiącym zarazem dział wodny zlewisk m&oacute;rz Bałtyckiego i Czarnego. (Ciężkowski 1989). Wody krążące w marmurach oraz wody powierzchniowe mają zasadniczo r&oacute;żny skład fizyczno-chemiczny. Wody potok&oacute;w niekrasowych są słabo zmineralizowane, o odczynie lekko kwaśnym, sporadycznie obojętnym lub zasadowym. Powoduje to ich dużą agresywność w stosunku do skał węglanowych. Właściwości fizykochemiczne w&oacute;d podziemnych potoku Kleśnica są podobne do niekrasowych w&oacute;d powierzchniowych. Mają one i do końca zachowują silną agresywność, są więc gł&oacute;wnym czynnikiem tworzącym podziemne kanały. Wody infiltracji pionowej, w czasie przepływu z powierzchni, przez szczeliny krasowe i korytarze jaskiniowe, zdecydowanie zmieniają swe właściwości fizyczno chemiczne. Początkowo są słabo zmineralizowane i o odczynie kwaśnym, w trakcie przepływu gwałtownie zwiększają mineralizację aż do osiągnięcia i przekroczenia granic nasycenia. Dochodzi w&oacute;wczas do częściowej depozycji naciek&oacute;w kalcytowych, a wody wskutek nasycenia i braku wydajnych źr&oacute;deł dwutlenku węgla, tracą swoje właściwości korozyjne (Pulina 1989).<br />Badania mikroklimatu jaskini wyr&oacute;żniły w środkowym poziomie dwie strefy mikroklimatyczne: dynamiczną i statyczną. W strefie dynamicznej wyr&oacute;żniono podstrefy: przyotworową i przejściową (Pulina 1970). W pierwszym okresie badań (1966 67) podstrefa przyotworowa sięgała ok. 30 m w głąb jaskini (do Sali Lwa). Charakteryzowały ją ujemne temperatury w okresie zimowym, dobowe wahania temperatury i wilgotności powietrza oraz roczne amplitudy od 20&ordm;C przy otworze do 5&deg;C w Sali Lwa. Zasięg podstrefy przejściowej obejmował część jaskini od Sali Lwa do Salki Kuny. Cechował ją zanik dobowych wahań temperatury, wilgotności powietrza, zmniejszenie rocznej amplitudy temperatury od 5&deg;C do 1&deg;C oraz wyr&oacute;wnanie przebiegu wilgotności względnej. Strefa statyczna występowała w głębi jaskini i obejmowała Korytarz Mis Martwicowych, Korytarz Człowieka Pierwotnego i Salę Pałacową. Roczna amplituda temperatury była tu przeciętnie niższa od 1&deg;C, a temperatura powietrza wahała się między 5&deg;C a 6&deg;C. Wyr&oacute;wnany był r&oacute;wnież przebieg wilgotności względnej. Wykonane w latach następnych pełne zamknięcie otworu wejściowego i budowa śluz wewnętrznych między Biwakiem a Korytarzem Człowieka Pierwotnego i Biwakiem a Salą Pałacową spowodowały znaczną zmianę mikroklimatu. Uległa redukcji podstrefa przyotworowa a powiększyła się jej kosztem podstrefa przejściowa. Strefa statyczna objęła r&oacute;wnież Biwak. Ujemne temperatury występowały już tylko do 3 m od otworu. W części przyotworowej dobowe amplitudy temperatury uległy znacznemu zmniejszeniu a amplituda roczna 1976 r nie przekroczyła 11&deg;C. Najwyższe średnie temperatury powietrza w strefie statycznej wynosiły 5,4 5,6&deg;C, a wilgotność względna powietrza wynosiła 94 100%. Stwierdzone zmiany w zasięgu stref wskazywały na powr&oacute;t mikroklimatu do stanu pierwotnego (Kwiatkowski, Piasecki 1988). Badania mikroklimatu środkowego poziomu jaskini w ostatnich latach wykazały średnie roczne podwyższenie temperatury o ok 1&deg;C i obniżenie wilgotności względnej powietrza o 2%. Nastąpiła także pewna destabilizacja warunk&oacute;w termiczno wilgotnościowych w obrębie strefy statycznej. Roczna amplituda temperatury przekroczyła tu 1&deg;C i wilgotności względnej do 9%. Zdaniem J. Piaseckiego oznacza to, że pierwotnie statyczny mikroklimat tej części jaskini zmierza ku zmianie na dynamiczny. Wykazane zmiany wiążą się z udostępnieniem środkowego poziomu dla turystyki. Dynamika przepływu powietrza między doliną Kleśnicy a jaskinią jest stosunkowo niewielka. W środkowym i g&oacute;rnym poziomie występuje on w kominowej części zawaliska za Galerią i w końcowym fragmencie Korytarza Wodnego, w dolnych Partiach Wrocławskich w okolicy Salki z Wodospadem a w nowym dolnym piętrze w zawaliskach lewego i prawego Wąsa za Korytarzem Diamentowym i Kryształowym. Wewnętrzna cyrkulacja powietrza jest najbardziej intensywna w Korytarzu Wichrowym w nowym dolnym piętrze. Przekształcenie mikroklimatu nie nastąpiło w dolnym horyzoncie jaskini. Panuje tam nadal mikroklimat zbliżony do pierwotnego a jego parametry odpowiadają strefie statycznej środkowego poziomu, przed przekształceniem. Od 1991 r. działa przy jaskini stacja naukowa. Ważnym segmentem jej prac są badania mikroklimatu jaskini prowadzone przy użyciu nowoczesnej aparatury pomiarowej. Zainstalowana w jaskini sieć pomiarowa przekazuje do automatycznej rejestracji dane dotyczące element&oacute;w mikroklimatycznych.<br />Badania geobotaniczne w otoczeniu jaskini prowadzono już od pierwszych lat naszego stulecia (T. Schube 1903 O. Ludwig 1923 i in. - za J. Fabiszewskim 1989). Od początku lat 60-tych badania prowadzi J. Fabiszewski (1968, 1970, 1989) i A. i W. Matuszkiewiczowie (1973).<br />Systematyczne badania faunistyczne w masywie Śnieżnika rozpoczął w latach trzydziestych XX w. F. Pax. Po wojnie badania biospeleologiczne m.in. na tym terenie podjął K. Kowalski. W latach 1966 73 badania prowadzili: M. Czajka Z. Hajduk S. Humiński A. Ogorzałek, J.R. Pomorski A. Skalski T. Wiszniowska i B.W. Wołoszyn. Stan fauny już w okresie badań znacznie odbiegał od stanu naturalnego, obserwowanego w innych jaskiniach Sudet&oacute;w. Powodem było oddzielenie strefy jaskini od naturalnego biotopu okolic jaskini spowodowane przygotowaniem do eksploatacji złoża (zdjęcie nadkładu) oraz odizolowanie jaskini od powierzchni drzwiami, śluzami, pawilonem wejściowym. W bezpośrednim otoczeniu jaskini znaleziono liczną faunę ślimak&oacute;w: świdrzyki (<em><strong>Laciniaria plicata</strong></em>, <em><strong>Laciniaria</strong> <strong>biplicata</strong>,<strong> Cochlodina laminata</strong></em>, <em><strong>Iphigena plicatula</strong></em>), ślimakowate (<em><strong>Helicigona lapicida</strong></em>), ślimaki skorupkowe z rodziny przezrotkowatych (<em>Vitriniidae</em>) i szklarkowatych (<em>Zonitidae</em>). W okolicy jaskini występuje też rzadki gatunek kosarza (<em><strong>Ischyropsalis hellwigi hellwigi</strong></em> Sanocka Wołoszyn 1973). W starych i nowych dolnych ciągach J.R. Pomorski stwierdził występowanie<em><strong> Onychiurus sibiricus</strong></em>, <em><strong>Arhopallites pygmaeus</strong></em>, <em><strong>Neelus minimus</strong></em>, <em><strong>Schaefferia emucronata</strong></em>, a w części przyotworowej skoczogonka (<em><strong>Tetrodontophora bielanensis</strong></em>). Z owad&oacute;w uskrzydlonych w jaskini występują much&oacute;wki (<strong>Diptera</strong>) chruściki (<strong>Trichoptera</strong>) i łuskoskrzydłe (<strong>Lepidoptera</strong>) (Hajduk, Ogorzałek 1970). W jaskini występuje sześć gatunk&oacute;w pająk&oacute;w, z kt&oacute;rych dwa (<em><strong>Leptyphantes monticola</strong></em>, <em><strong>Maso sundevalii</strong></em>) w pobliżu otworu gł&oacute;wnego, pozostałe cztery wewnątrz jaskini (Czajka, Hajduk 1978). Z ssak&oacute;w najliczniej reprezentowane są nietoperze, gł&oacute;wnie nocek duży (<em><strong>Myotis myotis</strong></em>), następnie mopek (<em><strong>Barbastella barbarstellus</strong></em>), nocek rudy (<em><strong>Myotis daubentonii</strong></em>), gacek wielkouch (<em><strong>Plecotus auritus</strong></em>) (Wołoszyn 1968). W ostatnich latach pojawiają się w jaskini nieliczne okazy nocka Bechsteina (<em><strong>Myotis bechsteinii</strong></em>). W faunie subfosylnej (Wołoszyn 1968) gatunek ten był najliczniej reprezentowany. W 1968 r. w dolnej części jaskini znaleziono dwa okazy ryj&oacute;wki g&oacute;rskiej (<em><strong>Sorex alpinus</strong></em>) (Hajduk, Humiński, Ogorzałek 1969). W materiałach subfosylnych jaskini szczątki ryj&oacute;wki opisał Wołoszyn (1968). W materiałach tych spotyka się także często kości kuny (<em><strong>Martes martes</strong></em>). W nowych dolnych partiach A. Skalski stwierdził w zbiorniku wodnym występowanie studniczka tatrzańskiego (<em><strong>Niphargus tatrensis</strong></em>).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania geomorfologiczne, hydrologiczne i hydrochemiczne prowadził na tym obszarze krasowym M. Pulina pod koniec lat pięćdziesiątych i na początku lat sześćdziesiątych (Pulina 1964). Po odsłonięciu otworu jaskini, w listopadzie 1966 r., pod kierunkiem A. Jahna, zesp&oacute;ł pracownik&oacute;w naukowych Uniwersytetu Wrocławskiego prowadził badania geomorfologiczne i paleontologiczne. W 1967 r. w trakcie letniego obozu badawczego z udziałem student&oacute;w geografii i biologii Uniwersytetu Wrocławskiego prowadzono prace wykopaliskowe w namuliskach Sali Niedźwiedzia, Sali Lwa (Pulina 1970, Wiszniowska 1970). Badania w ramach letnich oboz&oacute;w naukowych kontynuowano do 1970 r., prowadząc wykopaliska między Salą Lwa a Salą Kuny i w Korytarzu Człowieka Pierwotnego (Pulina 1970, Wiszniowska 1978). W zlewni Kleśnicy prowadzono badania geomorfologiczne (Pulina 1970, 1977, 1978), hydrograficzne (Komar 1978) hydrochemiczne (Pulina 1978), klimatologiczne (Kwiatkowski i in. 1978), zoologiczne (Czajka, Hajduk 1978; Hajduk, Ogorzałek 1970, 1978) botaniczne (Fabiszewski 1970), geofizyczne (Jodłowski 1979). W latach 1969 71 badania hydrologiczne i klimatyczne pod kierunkiem A. Jahna prowadzono w oparciu o zorganizowaną sieć pomiarową. Badania geofizyczne wykonane zostały w 1969 (Jodłowski 1989), i w latach 1977 78 (Mroczkowska, Kozłowska, Jodłowski 1978), a następnie plany i pomiary wysokościowe S. Cacoń z Akademii Rolniczej we Wrocławiu z zespołem Koła Naukowego Geodet&oacute;w (Cacoń, Gęzikiewicz 1977; Cacoń, Mąkolski 1989). Wyniki badań opublikowano w dw&oacute;ch tomach "Jaskinia Niedźwiedzia w Kletnie pod redakcją A. Jahna 1970, 1978, w pracy T. Wiszniowskiej (1976) o niedźwiedziu jaskiniowym, w rozprawach o krasie Sudeckim (Pulina 1964, 1977). Wyniki badań mikroklimatu jaskini i doliny Kleśnicy uzyskane przez J. Kwiatkowskiego opublikowano w rocznikach Kras i Speleologia z 1978 i 1980 r. (Kwiatkowski i in. 1978, Kwiatkowski 1980). Inicjatorem dalszych prac badawczych był naukowy komitet opiekuńczy Jaskini Niedźwiedziej powołany przez Państwową Radę Ochrony Przyrody na początku lat siedemdziesiątych. W wyniku wsp&oacute;łpracy naukowego komitetu opiekuńczego i Českiej Speleologickiej Společnosti podjęte zostały wsp&oacute;lne badania hydrologiczne, morfologiczne i geologiczne (Ciężkowski, Pulina, Řeh&aacute;k 1986; Don 1989). W latach 1982 1985 W. Ciężkowski prowadził badania znacznikowe w&oacute;d (Ciężkowski i in. 1982, 1985, 1986, 1987). Opracowaniem sumującym efekty badań naukowych jest tom &bdquo;Jaskinia Niedźwiedzia w Kletnie badania i udostępnianie&rdquo; pod redakcją A. Jahna S. Kozłowskiego T. Wiszniowskiej wydany przez Ossolineum Wrocław w 1989 r. Od 1991 zesp&oacute;ł naukowy realizuje temat badawczy &bdquo;Monitorowanie zmian przyrodniczych masywu Śnieżnika (po polskiej i czeskiej stronie) w warunkach antropopresji ekologicznej&rdquo;. Prace te prowadzi się r&oacute;wnież w Jaskini Niedźwiedziej. W roku 2021 Sobczyk i Szczygieł przedstawili wyniki badań tektonicznych, a następnie przeprowadzono badania paleosejsmiczne, badania deformacji korytarzy i naciek&oacute;w w kontekście proces&oacute;w geodynamicznych, a także badania uwarunkowań geologicznych rozwoju jaskini (Szczygieł J. i in. 2021, 2022).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r Jaskini Niedźwiedziej został odsłonięty przy eksploatacji marmuru, w październiku 1966 r. Wstępnej penetracji dokonał zesp&oacute;ł kierowany przez M. Pulinę i M. Ciężkowskiego. Do końca 1966 r. odkryto Wielką Szczelinę i sąsiadujące z nią ciągi o długości około 200 m. 3.12.1967 r. zesp&oacute;ł: A. Piesiewicz M. Pulina T. Wiszniowska odkrywa najważniejsze ciągi środkowego poziomu Salę Pałacową, Korytarz Człowieka Pierwotnego, Korytarz Mis Martwicowych i korytarze przyległe. Odkryta długość jaskini wzrosła do około 400 m. W latach 1968 i 1969 przy udziale grotołaz&oacute;w z AKT we Wrocławiu (Ostromęcki 1967) odkryto stare Wrocławskie Piętro i przedłużenie Korytarza Wodnego odgałęzienia Sali Pałacowej. W grudniu 1971 r. długość jaskini przekroczyła 800 m. W styczniu 1972 r. grupa speleolog&oacute;w ze Stronia wykonała wykop w Wielkiej Szczelinie. W dniach 26 29.01.72 zesp&oacute;ł J. Bieroński Z. Dumański K. Łukasiewicz, J. Panek M. Pulina, J. Sądej odkrywa około 1000 m nowych dolnych partii co powiększa długość jaskini do 1800 m. W 1973 r. odkryto Buduar za Taflami (Dumański, Łukasiewicz, Sądej, Trumpus). W 1975 r. eksploracja Korytarza Błotnego Progu, odkrycie Sali Dziwnej (Łukasiewicz, Sądej, Trumpus), eksploracja Komina Maurycego (Sekcja Grotołaz&oacute;w, Wrocław). W latach 1977 91 zespoły eksploracyjne (SG AKT Wrocław, Speleoklub Dąbrowa G&oacute;rnicza, Speleoklub Warszawa, Sekcja Speleologiczna PTTK Stronie Śląskie) prowadziły prace w zawalisku w Rondzie, Sali Szampańskiej, rejonie Wielkiej Szczeliny, Zawalisku za Galerią odkrywając kolejne fragmenty jaskini. W 1992 r. T. Natanek i P. Potok pracowali w Galerii nad Salą Szampańską odkrywając drugi 30 m komin. W latach 1992 1993 zesp&oacute;ł D. Data T. Natanek P. Potok P. Skorulski D. Wyleciał podjął eksplorację trudnego problemu w meandrze. W 1991 r. odbyło się nurkowanie (Wnorowski) w Wodnym pod Rondem i przejście ponad 10 m Syfonu. W 1994 r. długość jaskini wynosiła 2230 m.<br />W 2010 roku zesp&oacute;ł speleolog&oacute;w z Sekcji Grotołaz&oacute;w Wrocław oraz Sekcji Speleologicznej Niedźwiedzie rozpoczął nowy etap prac eksploracyjnych w Jaskini Niedźwiedziej. W Korytarzu Wodnym pod Rondem, po roku prac odkryta została wewnątrz niestabilnego zawaliska nieduża salka. R&oacute;wnocześnie prowadzone były prace kartograficzne obejmujące swoim zasięgiem całą jaskinię a mające na celu zaktualizowanie planu oraz dokładne sprawdzenie jaskini pod kątem znalezienia nowych przodk&oacute;w eksploracyjnych i rozwiązania starych problem&oacute;w. 4.01.2012 r., na końcu Lewego Wąsa w Korytarzu Kryształowym, po wspięciu trudnej i niebezpiecznej szczeliny (Krasowe Urwisko) i zrzuceniu zaklinowanego w jej stropie zawaliska, odkryte zostaje przejście do nowych partii (Gang Zdzicha). 2.05.2012 r., po pokonaniu Gilotyny odkryta zostaje Sala Mastodonta. 8.09.2012 odkryty zostaje ciąg od Drezna przez Rozdroże, Salę Piętrową, Salę Hekate, Salę Humbak&oacute;w, Zaułek, Zetownik, Galerię Jerzy do Kutaśnika. 9.09.2012 r. odkryte zostaje dolne piętro nowych ciąg&oacute;w: Biwak, Metro, Hades. W ciągu tych dw&oacute;ch dni poznany zostaje ponad kilometr nowych ciąg&oacute;w Jaskini Niedźwiedziej. R&oacute;wnocześnie rozwiązywane są, najczęściej negatywnie, historyczne problemy eksploracyjne w Jaskini (m.in. Buduar).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan jaskini według plan&oacute;w i pomiar&oacute;w M. Puliny (1970, 1989) S. Caconia K. Mąkolskiego (1989), i P. Potoka (niepublikowany) zestawił i opracował T. Rojek (1996) bez uwzględnienia betonowych ścieżek, wykonanych podczas prac udostępniających jaskinię dla ruchu turystycznego. Nowy plan jaskini według pomiar&oacute;w SGW i SSN opracowali: A. Haczek i S. Kostka, kreślił S. Kostka.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Hajduk Z., Ogorzałek A. 1967 (opis, materiał kostny); Igielski W. 1967 (informacja o odkryciu); Ostromęcki A. 1967 (informacje o jaskini i jej opis); Wiszniowska T. 1967 (doniesienie o znaleziskach paleontologicznych); Igielski W.i in. 1968 (informacje i opis jaskini); Hajduk Z., Wiszniowska T. 1968 (wyniki badań fauny); Pulina M. 1968 (opis i plan); Pulina M., Hajduk Z., Ogorzałek A. 1968 (opis); Hajduk Z. i in. 1969 (o występowaniu ryj&#243;wki g&#243;rskiej Sorex alpinus schinz. (1837); Lenar J. 1969 (podaje jako najdłuższą w Sudetach); Pulina M. 1969 (informacja o nowych odkryciach); Wysoczański Minkowicz T. 1969 (oznaczanie wieku bezwzględnego kości kopalnych); Zarz. Ochr. 1969 Urz. WRN we Wrocławiu nr 25, poz. 180 (ustanowienie Jaskini Niedźwiedziej pomnikiem przyrody); Fabiszewski J. 1970 (charakterystyka geobotaniczna otoczenia jaskini); Hajduk Z., Ogorzałek A. 1970 (wyniki badań faunistycznych); Jahn A. (red.) 1970 (monografia jaskini); Paluch R. 1970 (ślady pobytu człowieka); Pulina M. 1970 (wyniki badań nad środowiskiem geograficznym); Pulinowa M., Pulina M. 1970 (analiza spękań tektonicznych); Skalski A.W. 1970 (opis kiełży); Wiszniowska T. 1970 (wyniki badań fauny kopalne); Cacoń S. 1972 (o pomiarach jaskini); Czajka M., Hajduk Z. 1972 (o znalezieniu nowych gatunk&#243;w pająk&#243;w); Zubek A. 1972 (jaskinia jako obiekt turystyczny); Matuszkiewicz W., Matuszkiewicz A. 1973 (charakterystyka flory wok&#243;ł jaskini); Pulina M. 1973 1973a (opis nowych odkryć); Pulina M. 1974 (problemy hydrochemizmu jaskini i dol. Kleśnicy); Aleksandrowicz Z., Drzał M., Kozłowski S. 1975 (wymieniają w katalogu rezerwat&#243;w przyrody); Bieroński J., Pulina M. 1975 (wymieniają w kontekście eksperymentalnych badań geomorfologicznych); Pulina M. 1975 (o potrzebie ochrony krasu i jaskiń w Sudetach); Wiszniowska T. 1976 (opis niedźwiedzia jaskiniowego); W&#243;jcik Z. 1976 (wzmiankuje); Cacoń S., Gęzikiewicz R. 1977 (badania geodezyjne); Kozłowski S. 1977 (działalność naukowego komitetu opiekuńczego jaskini); Pulina M. 1977 (plan, opis, wyniki badań); Zarz. Ochr. 1977 MLIPD z dnia 21.07.1977. Monitor Polski nr 19, poz. 107, &#167; 2 z dnia 08. 08. 1977 O ustanowieniu rezerwatu &quot;Jaskinia Niedźwiedzia&quot; w Kletnie; Ciężkowski M. 1978 (pomiary stężenia niekt&#243;rych gaz&#243;w i radioaktywności); Czajka M., Hajduk Z. 1978 (opis pajęczak&#243;w); Jahn A. (red.) 1978 (zbi&#243;r nowych wynik&#243;w badań); Jahn A. 1980 (cechy morfologii masywu i jej wiek); Kwiatkowski J., Stopka R., Szczepańska Z. 1978 (opis klimatu doliny Kleśnicy) ; Martynowski Z., Mazurski K.R. 1978 (opis jaskini); Pulina M. 1978 (badania geomorfologiczne w dolinie Kleśnicy); Wiszniowska T. 1978 (informacja o Panthera spelaea); Zięba S. 1978 (zdjęcie morfologiczne Sal Pałacowych); Chanas R., Czerwiński J. 1979 (opis jaskini); Bosak P. 1980 (stratygrafia osad&#243;w w Sali Lwa); Kwiatkowski, J. 1980 (zmiany mikroklimatu); Mikuszewski, J. 1980 (opis sepiolitu); Mroczkowska B. 1980 (badania hydrogeochemiczne masywu Śnieżnika); Kozłowski S. 1980 (problematyka ochrony jaskini); Madera E. 1979 (kras masywu Śnieżnika); Wiszniowska T. 1980 (wzmiankuje o faunie); Bac Bronowicz J., Kaczałek M. 1981 (problematyka geodezyjno-fotogrametryczna obrazowania kształtu jaskini); Ciężkowski M., Ciężkowski W. 1981(wzmiankuje w kontekście w&#243;d radonowych); Głazek J., Harmon R.S. 1981 (wyniki datowań nacieku); Kosiński W., Setkowicz B., Trojanowski J. 1981 (wzmiankują w kontekście zagospodarowania masywu). Bosak P., Horacek J. 1982 (osady); Ciężkowski W., Dumański Z. 1982 (wstępne wyniki badań przepływ&#243;w); Madera E. 1982 (zjawiska krasowe Masywu Śnieżnika); Kryza H. 1983 (hydrologia masywu); Ciężkowski W., Madera E. 1985 (znacznikowe badania przepływ&#243;w); Ciężkowski W. i in. 1985 (badania przepływ&#243;w). Ciężkowski W., Gębala S. 1985 (metoda badań i przepływy podziemne); Głazek J. 1985 (badania wieku naciek&#243;w); Głazek J., Harmon R.S. 1985 (oznaczenie wieku naciek&#243;w metodą izotopową); Cacoń S. i in. 1986 (badania deformacji masywu); Ciężkowski W. i in. 1986 (wyniki polsko-czeskich badań krasu masywu); Głazek J., Szynkiewicz A. 1987 (osady krasowe); Ciężkowski W., Kryza J. 1987 (wymieniają w kontekście naturalnych znacznik&#243;w przy badaniach przepływ&#243;w podziemnych); Bieroński J. 1988 (hydrologia zlewni Kleśnicy); Cacoń S. i in. 1989 (badania deformacji masywu jaskini); Cacoń S., Mąkolski K. 1989 (o pomiarach geodezyjnych); Ciężkowski W. 1989 (badania hydrogeologiczne); Don J. 1989 (o budowie geologicznej); Fabiszewski J. 1989 (szata roślinna otoczenia jaskini); Jodłowski S. 1989 (badania geofizyczne otoczenia jaskini); Kozłowski S. 1989 (budowa geologiczna otoczenia jaskini); Kwiatkowski J., Piasecki J. 1989 (mikroklimat jaskini); Ogorzałek A. 1989 (wsp&#243;łczesna fauna jaskini); Pulina M. 1989a (historia odkrycia i badań); Pulina M. 1989b (środowisko geograficzne jaskini); Wiszniowska T. 1989 (opis kopalnej fauny); Bosak P. 1989 (p&#243;źnoczwartorzędowe osady); Kozłowski S. 1989 (Historia udostępniania i ochrony jaskini); Bieroński J. i in. 1991 (nowo odkryte jaskinie); Cacoń S. i in. 1993 (Ocena wpływu działalności kamieniołomu marmuru w Kletnie na Jaskinię Niedźwiedzią); Ciężkowski W., Przylibski T., Sobina M., Złoch K. 1994 (222-Radon w Jaskini Niedźwiedziej); Hercman H. i in. 1995 (Datowanie uranowe naciek&#243;w); Cacoń S. i in. 1996 (Deformacje g&#243;rotworu Jaskini Niedźwiedziej); Jahn A.i in. (red.) 1997 (Masyw Śnieżnika - zmiany w środowisku przyrodniczym); Jaskinie Sudet&#243;w 1996 (Plan i opis inwentarzowy); Migoń P. 1996 (Zarys rozwoju geomorfologicznego); Piasecki J. 1996 (Przyczyny zmian klimatu Jaskini Niedźwiedziej); Przylibski T. 1996 (Zmienność koncentracji radonu w powietrzu Jaskini Niedźwiedziej); Wiszniowska T., Bieroński J., Pakiet M. 1996 (Paleoekologia Masywu Śnieżnika); Piasecki J. 1996 (Warunki termiczne w Jaskini Niedźwiedziej); Bieroński J. 1998 (Model obiegu wody w szczelinowo - krasowym wodonoścu Jaskini Niedźwiedziej); Nikiel B., Pukowski J. 1998 (Biały Kamień. Historia eksploracji); Przylibski T., Piasecki J. 1998 (Radon jako naturalny wskaźnik ruchu powietrza w Jaskini Niedźwiedziej); Przylibski T., Ciężkowski W. 1999 (Sezonowe zmiany koncentracji radonu); Mąkolski K., Kaczałek M. 2000 (Dynamika deformacji mas skalnych); Buřič Z., Furmankiewicz J., Telatyński S. 2001 (Jaskinia Niedźwiedzia jako jedno z najcenniejszych stanowisk nietoperzy na Dolnym Śląsku); Nikiel B., Pukowski J. (red.) 2001 („50” w Białym Kamieniu); Staśko S., Tarka R. 2001 (Wody podziemne); Duliński M. i in. J. 2002 (Skład izotopowy węgla w stalagmicie JN-4 z Jaskini Niedźwiedziej); Gradziński M., Szelerewicz M., Urban J. 2002 (Skład izotopowy węgla w stalagmicie JN-4 z Jaskini Niedźwiedziej); Pflitsch A., Piasecki J. 2003 (Detekcja przepływu powietrza); Piasecki J., Pflitsch A., Łękarski T. 2003 (Cyrkulacja powietrza w Jaskini Niedźwiedziej); Cacoń S. 2006 (Geodeci w Jaskini Niedźwiedziej); Ciężkowski W. (red) 2006 (40 lat eksploracji, badań, ochrony i turystyki); Data D. 2006 (Ostatnich kilkanaście lat w eksploracji Jaskini Niedźwiedziej); Furmankiewicz J. 2006 (Badania nietoperzy); Krawczyk W. 2006 (Badania hydrochemiczne); Stefaniak K., Socha P. 2006 (Badania paleontologiczne); Stefaniak K., Socha P., Kołacz M. 2006 (Badania teriologiczne); Zawierucha L. 2006 (Eksploracja ponoru Biały Kamień i Starego Wywierzyska); Bieroński J., Socha P., Stefaniak K. 2007 (Jaskinia Niedźwiedzia); Bieroński J., Socha P., Stefaniak K. 2007 (Jaskinie Masywu Śnieżnika Kłodzkiego); Piasecki J. 2007 (Obserwatorium przy Jaskini Niedźwiedziej); Piasecki J., Sawiński T. 2007 (Klimat); Furmankiewicz J., Hebda G., Furmankiewicz M., Klodek R., Jabłońska J., Jabłoński J., Mielcarek K., Duma K. 2008 (Nietoperze rezerwatu przyrody „Jaskinia Niedźwiedzia”); Mąkolski K., Cacoń S., Jamroz O., Kostak B., Kaczałek M. 2008 (Badania stabilności g&#243;rotworu); Nadachowski A., Lipecki G., Stefaniak K., Lorenc M., Wojtal P. 2008 (Ewidencja datowań radiowęglowych); Bieroński J., Stefaniak K., Hercman H., Socha P., Nadachowski A. 2009 (Analizy paleograficzne i paleoekologiczne osad&#243;w); Migoń P. 2009 (Geomorfologia krasu); Piasecki J., Sawiński T. 2009 (Jaskinia Niedźwiedzia w środowisku klimatologicznym doliny Kleśnicy); Zagożdżon P.P., Zagrodny K. 2009 (Cyfrowe modelowanie Jaskini Niedźwiedziej); Niedbała A., Sawicki A. 2011 (Jaskinia Niedźwiedzia - perła polskich Sudet&#243;w); Ciężkowski W. 2012a, (Jaskinia Niedźwiedzia w liczbach); Ciężkowski W. 2012b (Kalendarium Jaskini Niedźwiedziej); Data D. 2012 (Kolejne lata eksploracji Jaskini Niedźwiedziej przez Sekcję Speleologiczną „Niedźwiedzie”); Haczek A. i in. 2014 (Partie odkryte po roku 2012); Kostka S. 2012 (Odkrycie nowych partii); Marciszak A., Ślimakowska M. 2012 (Nowe badania i dane o niedźwiedziu jaskiniowym); Piasecki J. 2012 (Tajemnice klimatu Jaskini Niedźwiedziej); Pokorny J. 2012 (Storczykowate rezerwatu „Jaskinia Niedźwiedzia”); Przylibski T. 2012 (Badania promieniowania jonizującego w Jaskini Niedźwiedziej); Rzerzycki T. 2012 (Błędy i wypaczenia dziej&#243;w Jaskini Niedźwiedziej); Stefaniak K., Szefer-Michalak S. 2012 (Działalność w latach 2006-2011 zespołu opiniodawczo-doradczego); Szefer-Michalak S. 2012a (Rezerwat Przyrody Jaskinia Niedźwiedzia); Szefer-Michalak S. 2012b (Zasady użytkowania Jaskini Niedźwiedziej); Szynkiewicz A. 2012 (Pr&#243;bne badania georadarowe); Wulicz R. 2012 (Nowe kadry przewodnickie w Jaskini Niedźwiedziej); Zagożdżon P.P., Zagrodny K 2012 (Uproszczony cyfrowy model Jaskini Niedźwiedziej oraz jej geologicznego otoczenia); Baca M., Mackiewicz P., Stankovic A., Popović D., Stefaniak K., Czarnog&#243;rska K., Nadachowski A., Gąsiorowski M., Hercman H., Węgleński P. 2014 (DNA i datowania szczątk&#243;w niedźwiedzia jaskiniowego); Furmankiewicz J. 2014 (Zimowiska nietoperzy w jaskiniach i sztolniach polskiej części Masywu Śnieżnika); Marciszak A. 2014 (Fauna kopalna Jaskini Niedźwiedziej); Sobczyk A., Szczygieł J. 2021 (badania kinematyki uskok&#243;w przecinających jaskini); Szczygieł J. i in. 2021 (badania paleoseismologiczne, badania deformacji korytarzy i naciek&#243;w w kontekście proces&#243;w geodynamicznych); Szczygieł J. i in. 2022 (badania uwarunkowań geologicznych rozwoju jaskini).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Pulina M. 1964 (kras w dolinie Kleśnicy przed odkryciem jaskini); Iciek A. i in. 1969 (wyniki przeprowadzonych badań geoelektrycznych); Jodłowski S. i in. 1969 (wyniki badań elelektrooporowych w g&#243;rze Stromej w Kletnie); Magiera W., Dulębowski, J. 1973 (zagospodarowanie turystyczne jaskini); Plewako W. 1974 (projekt adaptacji do ruchu turystycznego); Ciężkowski W., Kryza H., Łękarski T., Piasecki J., Staśko S. 2000 (Inwentaryzacja hydrologiczna); Zagrodny K. 2008 (Przestrzenny model budowy geologicznej g&#243;rotworu w rejonie zl&#243;ż marmuru Kletno II i Kletno IV).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Szymon Kostka, Jan Trumpus
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(10164)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=3181" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

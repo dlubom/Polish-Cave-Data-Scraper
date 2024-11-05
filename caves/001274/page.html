@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1274">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1274;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "572477,72".replace(',', '.') + "," + "154103,27".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1274','Jaskinia Magurska'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Magurska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-18.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;59′46,37″, φ: 49&#176;15′00,50″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku N, 1475 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1460
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                135
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                58,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                59
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1200
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                470
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia znajduje się w p&#243;łnocnym zboczu Jaworzyńskich Turni, w żlebie opadającym z Jaworzyńskiej Przełęczy do Żlebu pod Czerwienicę. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Z Kuźnic szlakiem turystycznym Doliną Jaworzynki przez halę, do miejsca, w którym dolina dzieli się na dwa ramiona. Dalej w lewo do Żlebu pod Czerwienicę (dawniej prowadził tędy czarny szlak do jaskini). Po krótkim odcinku w lesie, ścieżką do szerokiego, otwartego wypłaszczenia (Wyżnia Polana Jaworzynka, Solnisko). Stamtąd na prawo wyraźną, starą drogą górniczą, wciętą w lewy (or.) stok Czuby Jaworzyńskiej (początkowo przez las, potem przez piargi w górę) do niewidocznego z dala otworu. Dojście i zwiedzanie łatwe.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Jaskinia posiada dwa otwory. G&oacute;rny znajduje się w stromym żlebie, około 15 m. powyżej dolnego. Dawniej był on całkowicie zamurowany, dziś jest zamknięty żelazną kratą. Tuż za wejściem niewielki korytarz biegnie ku południowi, a następnie gwałtownie skręca ku wschodowi. Jego dno pokryte jest gliniastym osadem i gruzem. We wstępnej części, w obrębie strefy nasłonecznienia, na ścianach i stropie występują formy korozyjne. Są to niewielkie wyrostki, skierowane ku otworowi (pierwsza zwr&oacute;ciła na nie uwagę H. Hercman (1983), sądząc, iż udział w ich powstaniu mają mikroorganizmy). Dalsza część korytarza po 15 m doprowadza na balkon ponad Wielką Komorą. Dalej, trawersując występy skalne, można dojść do wylotu korytarza przebiegającego ponad stropem Wielkiej Komory, kt&oacute;ry po 30 m kończy się oknem w p&oacute;łnocno-zachodniej ścianie Sali Okrągłej (około 8 poniżej stropu). </span></p>
+<p><span>Otw&oacute;r dolny (gł&oacute;wny) jest rozległy, ma owalny kształt o szerokości 21 m i wysokości od 3 do 5 m. Jest najwyższy w swej wschodniej części, ale zmniejsza go gruz zawaliska. Wejście to (tak samo jak g&oacute;rne) zamknięte jest żelazną kratą. Prowadzi ono do wstępnych partii jaskini zwanych Przedsionkiem lub Przebieralnią, gdzie znajdują się olbrzymich rozmiar&oacute;w bloki skalne oderwane od stropu (na stropie powierzchnia tektoniczna z rysami ślizgowymi). Ścieżka, pomiędzy blokami skalnymi doprowadza na właściwe dno Wielkiej Komory. Jest to rozległa sala, jedna z największych w jaskiniach tatrzańskich, ma ponad 60 m. długości i miejscami do 30 m. szerokości. Komora jest przedzielona skalnym filarem na dwie części: niższą &ndash; zachodnią i wyższą &ndash; wschodnią. Do pierwszej (zachodniej) wchodzi się poprzez zawalisko, pokonując kilka prożk&oacute;w utworzonych z blok&oacute;w skalnych. Strop Wielkiej Komory jest silnie potrzaskany, widoczne są na nim liczne spękania tektoniczne. Dno zaścielają bloki i odłamki skalne r&oacute;żnych rozmiar&oacute;w, a na ścianach widać ślady wietrzenia mrozowego.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+<p><span>Przy końcu sali znajduje się wykop utworzony przez Jurę i Sulimirskiego w 1937 r. w&nbsp;czasie eksploracji namulisk jaskini prowadzonych w celu poszukiwania kości niedźwiedzi jaskiniowych. Do dziś można tam znaleźć kręgi, fragmenty kości, zęby niedźwiedzia, hieny jaskiniowej i innych ssak&oacute;w. </span></p>
+<p><span>Tuż obok, w kierunku wschodnim otwiera się przejście do Sali Okrągłej. Jest to wysoka komora mająca prawie 20 m wysokości, ograniczona kilkoma szczelinami. Jej dno tworzą: materiał okruchowy, drobne fragmenty skalne i kilka większych blok&oacute;w. Od południowego wschodu na podłoże nakłada się dodatkowo materiał drobnoziarnisty wydobyty z syfonu. Prowadzi do niego duży, wznoszący się chodnik, po kilkunastu metrach skręcający raptownie ku wschodowi i stromo opadający.</span></p>
+<p><span>Jesienią 1949 r., podczas prac prowadzonych przez S. Zwolińskiego, odkopano przejście przez syfon. Materiałem, kt&oacute;ry go wypełniał był piasek pochodzący z wietrzenia skał krystalicznych oraz glina jaskiniowa. Zamulona część syfonu miała 32 m. długości. Za syfonem dalsza część korytarza wznosi się stromo i rozszerza w małą salkę (odcinek przez syfon do salki ma 45 m. długości). W salce tej, o&nbsp;potrzaskanych ścianach, nad 5-metrowym progiem znajduje się wylot dalszego ciągu korytarza, kt&oacute;ry kontynuuje się w kierunku wschodnim i jest możliwy do przejścia na przestrzeni około 100 m. (Stalaktytowy Korytarz). Zachował on pierwotny, owalny przekr&oacute;j, wskazujący na powstanie w stadium cyrkulacji hydrodynamicznej (freatycznej). Ściany pokryte zostały około 25 cm grubą polewą naciekową. Na skutek ruch&oacute;w tektonicznych nastąpiło przesunięcie części sklepienia i&nbsp;jednej ściany korytarza o 5-8 cm ku p&oacute;łnocy, deformując jego owal wyraźnymi listwami na ścianach. Powłoka naciekowa na linii przesunięcia pękała, spadając w postaci wielkich płyt opierających się o ściany lub zalegających dno. Wzdłuż przebiegającej pod sklepieniem listwy utworzyły się niewielkie, ale bardzo ciekawie wykształcone stalaktyty z nieregularnymi bocznymi wyrostkami. W&oacute;jcik i&nbsp;Zwoliński (1959) zamieszczają przekr&oacute;j ilustrujący powyższe obserwacje. W korytarzu tym brak jakichkolwiek szczątk&oacute;w kości. Kończy się on drugim zamulonym syfonem, kt&oacute;ry r&oacute;wnież pr&oacute;bowano przekopać, prace te jednak zostały przerwane. W okolicy syfonu brak jest bowiem miejsca do składania wykopanego materiału. Wiosną 1950 r. syfon ponownie uległ zamuleniu (osunięcie rozmokniętych ścian wykopu) i od tej pory ta część jaskini jest niedostępna.</span></p>
+<p><span>Z południowego krańca Wielkiej Komory, poprzez zwężenie i obniżenie stropu prowadzi droga do Komory Tr&oacute;jkątnej. Jest to wybitna duża sala o silnie potrzaskanym stropie. Dno pokryte jest blokami oderwanymi od stropu i materiałem wydobytym z przekop&oacute;w. Spotkać tu można doskonale obtoczone, autochtoniczne otoczaki wapienne średnicy kilkudziesięciu cm. W dalszej części jaskini, a szczeg&oacute;lnie w Syfonie, występuje olbrzymie ich nagromadzenie.</span></p>
+<p><span>Z Tr&oacute;jkątnej Komory dalsza droga doprowadza do Komory pod Progiem. Dno sali pokryte jest częściowo namuliskiem, a w większości hałdami z przekopanego syfonu. W&nbsp;p&oacute;łnocno-zachodniej części sali wznosi się wysoki na 6,5 m pr&oacute;g skalny. Zdobią go stromo nachylone listwy erozyjne, tworzące zagłębienia wypełnione wodą. Pr&oacute;g doprowadza na balkon, z kt&oacute;rego ku południowemu zachodowi prowadzi korytarz. Jest on owalny w przekroju, posiada liczne wymycia i zagłębienia w spągu wypełnione wodą. Zaruski znalazł tu kości niedźwiedzia jaskiniowego, a nawet dobrze zachowaną czaszkę. Korytarz po 30 m doprowadza do prawie pionowego kominka mającego owalny przekr&oacute;j i około 1 m średnicy. U szczytu 10-metrowego kominka znajduje się niewielka salka, a w niej naciek przypominający swym wyglądem baranią głowę. Dalej, ku południowi, ciągnie się początkowo ciasny, opadający korytarzyk. Był on silnie zwężony licznie występującymi tu naciekami lecz w latach 1939, 1943 i 1948 Zwolińskim udało się go poszerzyć na tyle, iż otworzyła się dalsza droga. W notatkach z prac w latach trzydziestych, Zwoliński zamieszcza informacje o znalezieniu tu licznych kości niedźwiedzi, zar&oacute;wno na powierzchni osadu jak i w obrębie scementowanego zawaliska. Na końcu korytarzyk przechodzi w kilka bardzo ciasnych szczelin, a w dnie znajduje się otw&oacute;r 18-metrowej studni. Jest ona utworzona na rozmytej szczelinie, początkowo dość wąskiej i ciasnej, p&oacute;źniej nieco rozszerzającej się. Kończy się w stropie Sali Złomisk. Jest to droga odkrywc&oacute;w dalszych partii jaskini. Obecnie droga do Sali Złomisk wiedzie z Komory pod Progiem przez przekopany syfon.</span></p>
+<p><span>Wracamy do Komory pod Progiem. Pomiędzy hałdami z wykop&oacute;w widać łukowaty, niewysoki strop korytarza. Wiedzie tędy droga ku dalszym partiom jaskini. Pierwsze prace wykopaliskowe prowadził tu Zwoliński w latach 1933 i 1938. Udało się wtedy przekopać osady i dojść do Małej Komory. Głęboki, 40-metrowy przekop dokończony w 1949 r. wiedzie korytarzem, pierwotnie zupełnie zamulonym. Na ścianach widoczny jest poziom namuliska utrwalony naciekami. Przekop przecina grubą warstwę żwir&oacute;w i doskonale obtoczonych głaz&oacute;w wapiennych, zmieszanych z bardzo licznymi kośćmi zwierzęcymi (niedźwiedzia jaskiniowego) oraz iłem, mułem i piaskiem. Materiał kostny jest obtoczony, przy czym obtoczenie wg W&oacute;jcika (1963a) jest znacznie słabsze w południowej części przekopu niż w części p&oacute;łnocnej. Po pierwotnym namulisku pozostał tylko niewielki fragment, można go obserwować pod lewą ścianą korytarza. Pokrywający je naciek tworzy charakterystyczne pola &ndash; misy martwicowe, prawie zawsze wypełnione wodą kapiącą ze stropu. Pozostawiony przez odkrywc&oacute;w profil, stanowił wielką atrakcję dla amator&oacute;w zbieractwa i wandali jaskiniowych. Do dziś przetrwał on w formie bardzo zdewastowanej. Duża część okaz&oacute;w została rozgrabiona. Częstym wizytom zbieraczy podlegają r&oacute;wnież hałdy w Wielkiej Komorze i Komorze pod Progiem, w kt&oacute;rych podobnie jak w przekopie można znaleźć liczne kości i zęby niedźwiedzi jaskiniowych.</span></p>
+<p><span>Kilka metr&oacute;w za omawianym profilem, po lewej stronie przekopu, znajduje się wejście do Małej Komory zawierającej bardzo ładne nacieki z mleka wapiennego. Dziś zachowały się jedynie resztki pierwotnej szaty naciekowej. Do tej kom&oacute;rki dotarli E. Winiarski i&nbsp;S.&nbsp;Zwoliński w 1938 r. (na ścianie napisy z tego okresu). Od odejścia Małej Komory, droga zakręca ostro na zach&oacute;d i opada przekopem. Przekopany dziś syfon wypełniony był aż po strop osadem gliny jaskiniowej wymieszanym z otoczakami. Najniższy punkt syfonu osiąga prawie 20 m poniżej poziomu otworu jaskini. Hercman w połowie lat osiemdziesiątych wykonała około 1 m głęboki wykop i w jego dno wbiła metalową sondę na około 2 m, nie osiągając spągu (inf. ustna). Najniższa część profilu wypełniona jest ż&oacute;łtym piaskiem kwarcowym i iłem. Pokruszony w&nbsp;charakterystyczne kostki ił sypie się z g&oacute;rnej części profilu. Profil osad&oacute;w badany był przez W&oacute;jcika (1966a), Hercman (1983, 1986, 1987, 1991) oraz Kicińską (1996). Od tego miejsca przekop wznosi się stromo i po paru metrach doprowadza do wolnego od namuliska, rozwidlającego się chodnika. </span></p>
+<p><span>W lewo wiedzie droga w g&oacute;rę pośr&oacute;d zawaliska głaz&oacute;w i po kilku metrach doprowadza do Sali Złomisk. Sala ma około 22 m długości, 8 m szerokości i około 6 m wysokości. Dno sali zasłane jest olbrzymimi blokami skalnymi, oderwanymi od silnie potrzaskanego stropu. Na ścianach jak i na zawalisku licznie występują drobne nacieki. Sala posiada dwa odgałęzienia. Pierwsze, Zawaliskowy Korytarz, wiedzie ku zachodowi wąską, dalej nieco rozszerzającą się szczeliną. Kończy się ona po kilku metrach ciasnym zaciskiem, niemożliwym do przejścia. Drugie odgałęzienie zaczyna się wąskim przejściem wśr&oacute;d głaz&oacute;w zaścielających dno sali. Kontynuuje się ono stromo w d&oacute;ł wśr&oacute;d wielkich głaz&oacute;w. Ściany jego i strop ozdobione są naciekami. Korytarz doprowadza do Dolnej Komory, salki o charakterze zawaliskowym, o dnie zasłanym głazami. Zamknięta jest ona poprzeczną szczeliną przesunięcia tektonicznego opisanego przez W&oacute;jcika i Zwolińskiego (1959). Na jej powierzchni widoczne są rysy ślizgowe. Wzdłuż tej płaszczyzny o kierunku SW-NE nastąpiło przesunięcie bloku, w kt&oacute;rym znajduje się Dolna Komora o co najmniej 10 m na N w stosunku do bloku położonego od strony zachodniej. Jednocześnie nastąpiło obniżenie o 3 m położonego w tym bloku kr&oacute;tkiego korytarzyka wybiegającego z&nbsp;zachodniej części komory. Zar&oacute;wno w Sali Złomisk, jak i w korytarzyku prowadzącym do Dolnej Komory znajdowały się na zawaliskach szczątki kostne niedźwiedzi jaskiniowych.</span></p>
+<p><span>Prawe odgałęzienie za syfonem prowadzi gł&oacute;wnym ciągiem jaskini. Biegnie on nieco do g&oacute;ry, klucząc pomiędzy zawaliskami. Korytarz jest tu dość obszerny. Początkowo dno jest skaliste,dalej pokryte blokami i osadami piaszczystymi i gliniastymi. Osady te pierwotnie zupełnie zamykały korytarz. Poruszanie się umożliwiają jedynie przekopy zrobione w&nbsp;czasie badań jaskini w latach 1949-1950. Po pierwszym przekopie dochodzimy do obszernego chodnika z ładnymi naciekami, za nim zakręt i przekop, a&nbsp;potem zn&oacute;w rozszerzenie z ładnymi naciekami. Trzeci z kolei przekop &ndash; Przekop z Belką przebija wąskim tunelem duże zawalisko głaz&oacute;w zmieszanych z piaskiem o składzie zwietrzeliny skał granitowych. Kominek przekopany przez piaszczyste osady wprowadza do salki o&nbsp;skalnym dnie, pokrytym blokami skalnymi. Dalej chodnik staje się poziomy, przegradza go zawalisko kilku olbrzymich głaz&oacute;w. Poza nim kilkunastometrowy, poziomy chodnik posiada regularny, p&oacute;łkolisty przekr&oacute;j. Na ścianach widoczne są zagłębienia wirowe (scallopsy). Ich asymetria świadczy o przepływie wody w&nbsp;dw&oacute;ch przeciwnych kierunkach: do i od otworu. Korytarz zamyka zawalisko, nad kt&oacute;rym strop potrzaskany jest szczelinami i pełen wiszących blok&oacute;w. Od czas&oacute;w eksploracji prowadzonej przez Zwolińskiego strop jest podparty drewnianymi stemplami. Za zawaliskiem korytarz przechodzi w ciasny, niski przekop, kt&oacute;rego dno zalewa często płytka kałuża. Dalej chodnik prowadzi przez niskie, choć bardzo szerokie przejście o łukowatym stropie i piaszczystym dnie. Ku końcowi staje się on wyższy i&nbsp;doprowadza do niewielkiej salki. Na jej ścianie, widać kontakt między wapieniami triasu środkowego a wapieniami bajosu (W&oacute;jcik 1957a), w kt&oacute;rych widoczne są liczne belemnity, doskonale wypreparowane przez wodę. Dalsza droga prowadzi pod warstwą z belemnitami poprzez zwężony zawaliskiem korytarz. Staje się on szerszy, ściany pokrywają liczne zagłębienia wirowe. Dno pokryte jest osadem ilastym. Po kilku metrach dalszą drogę utrudnia niskie, sztucznie rozkopane przejście, za kt&oacute;rym odsłania się 3-metrowy pr&oacute;g skalny, utworzony na poprzecznie rozwiniętej szczelinie. Poniżej progu korytarz biegnie ku p&oacute;łnocy, po czym skręca gwałtownie w lewo, by poprzez zaścielające dno bloki skalne wyprowadzić do obszernego chodnika. Stromo opadając, biegnie on w kierunku p&oacute;łnocno zachodnim. Jego dno pokryte jest licznymi blokami skalnymi, tworzącymi niewielkie prożki, strop jest silnie potrzaskany. Poprzez stromy, lekko podcięty pr&oacute;g skalny doprowadza do Sali na Rozdzielu i poprzecznego korytarza olbrzymich rozmiar&oacute;w. </span></p>
+<p><span>W prawo biegnie korytarz opadający poprzez kilkumetrowe zawalisko, początkowo ku p&oacute;łnocy, następnie zakręcający ku p&oacute;łnocnemu zachodowi. Dno jego jest urozmaicone, pokryte zawaliskami, miejscami odsłaniają się nagromadzenia osad&oacute;w. Strop jest na dużych przestrzeniach silnie potrzaskany, gdzieniegdzie zachował się jego pierwotny charakter. Na ścianach widać liczne zagłębienia wirowe, świadczące o przepływie wody pod ciśnieniem, jak i&nbsp;ślady grawitacyjnego przepływu. Korytarz kończy się zwężeniem, poprzez kt&oacute;re wchodzi się do niewielkiej salki całkowicie zablokowanej zawaliskiem. Liczne pr&oacute;by sforsowania go podejmowane przez Zwolińskiego nie powiodły się i do dnia dzisiejszego jest to zakończenie jaskini w&nbsp;tym kierunku.</span></p>
+<p><span>Druga odnoga z Sali na Rozdzielu początkowo zakręca ku zachodowi, by szybko skręcić na południe. Jest to wielkich rozmiar&oacute;w korytarz o spągu pokrytym zawaliskiem. Tuż za zakrętem ku południowi pod stropem widnieje niewielki balkon utworzony na szczelinie biegnącej poprzecznie do korytarza. Gł&oacute;wny chodnik, ozdobiony jest niewielkimi naciekami. Początkowo olbrzymi korytarz po około 40 m zamyka syfon, kt&oacute;ry początkowo był całkowicie zamulony. W wyniku prac eksploracyjnych wykopano ciasny chodniczek, ślady dawnych prac widać do dziś w postaci murk&oacute;w z blok&oacute;w skalnych, czy hałd osadu. Poprzez syfonik, zazwyczaj napełniony wodą, przekop wprowadza do niewielkiej salki o&nbsp;ścianach obficie udekorowanych naciekami. Dalsza droga wiedzie przekopanym, ciasnym korytarzem, kt&oacute;ry po kilku metrach doprowadza do zawaliska. W&nbsp;jego obrębie znajduje się kilka uciążliwych przejść, kończących się jednak ślepo w ciasnych szczelinkach.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+<p><span>Jaskinia rozwinięta jest w wapieniach i dolomitach gł&oacute;wnej jednostki Zawratu Kasprowego, w obrębie kt&oacute;rej zachowana jest strefa osiowa skrętu antyklinalnego (seria wierchowa, fałd Giewontu). </span></p>
+<p><span>W wapieniach malmo-neokomu rozwinięte są obszerne korytarze i największe sale jaskini. Korytarze przebiegające w obrębie wapieni jury środkowej są zazwyczaj zawężone, w tych miejscach występuje większość zamulonych korytarzy. W partiach jaskini przebiegających w rejonie wapieni i dolomit&oacute;w triasu środkowego spotyka się zazwyczaj zawaliska. Wstępne partie jaskini rozwinięte są w nieuławiconych wapieniach malmo-neokomu. W&nbsp;nich rozwinięte są największe komory: Wielka, Okrągła i Tr&oacute;jkątna. W przekopie pod Komorą pod Progiem korytarzyk wiedzie początkowo w wapieniach malmo-neokomu, na wysokości Małej Komory widoczna jest szczelina uskokowa, wzdłuż kt&oacute;rej kontaktują się wapienie malmo-neokomu z r&oacute;żowymi wapieniami krynoidowymi jury środkowej. Dalsza część syfonu, do rozwidlenia korytarza w kierunku Sali Złomisk, przebiega w obrębie wapieni jury środkowej. W rejonie tzw. Ślizgawki widoczny jest kontakt sedymentacyjny wapieni jury środkowej z wapieniami triasu środkowego. Warstwy w&nbsp;tym rejonie występują w pozycji odwr&oacute;conej. Rejon Sali Złomisk i jego kontynuacja rozwinięty jest w wapieniach i dolomitach triasu środkowego. Od Ślizgawki jaskinia rozwinięta jest w strefie tektonicznej, kontaktu wapieni triasu środkowego i jury środkowej. W rejonie Przekopu z&nbsp;Belką widoczny jest kontakt jury środkowej z&nbsp;wapieniami malmo-neokomu. W dalszej część jaskini, aż po Belemnity spotkać można następującą kolejność warstw: malmo-neokom kontaktujący tektonicznie z wapieniami jury środkowej, a te sedymentacyjnie z wapieniami i dolomitami triasu środkowego. Miejsce występowania tzw. warstwy belemnitowej jest kontaktem między wapieniami jury środkowej i triasu środkowego. Kontakt ten ma charakter sedymentacyjny. Pomiędzy warstwą belemnitową a Stromym Progiem jaskinia rozwinięta jest na strefie tektonicznej w obrębie wapieni triasu środkowego i jury środkowej. Szczelina uskokowa, na kt&oacute;rej rozwinięty jest 3-metrowy pr&oacute;g skalny wprowadza po raz kolejny w obręb wapieni malmo-neokomu. Stąd, aż po Zawalony Komin, w p&oacute;łnocnym odcinku rozwidlenia od Sali na Rozdzielu, i duży fragment korytarz biegnącego ku południu, jaskinia rozwinięta jest w wapieniach malmo-neokomu. Dalsze partie jaskini, w kierunku południowym, przebiegają w dolomitach i wapieniach triasu środkowego. W całej jaskini widoczne jest silne potrzaskanie skał. </span></p>
+<p><span>Osady jaskini były wielokrotnie badane. Opisał je Kowalski (1955a), Zwoliński (1955b), W&oacute;jcik (1960a,b, 1963a, 1966a), Hercman (1983), Kicińska (1996). Za otworem zalega wielki stożek głaz&oacute;w i pr&oacute;chnicy dostających się z zewnątrz i złączonych ze stosunkowo świeżymi zawaliskami w sąsiedztwie otworu. W dalszej części Wielkiej Komory i w Sali Okrągłej, a także w Komorze Tr&oacute;jkątnej występuje osad wymieszany. Składają się na niego pierwotny osad, materiał hałd z wykop&oacute;w w dalszych częściach jaskini, materiał kostny, oraz osady z wykopu w syfonie bocznego korytarza Okrągłej Komory. Ten ostatni to gł&oacute;wnie piaski pochodzące z wietrzenia granitoid&oacute;w. Utworzona jest z niego wysoka hałda, poprzez kt&oacute;rą przechodzi się w rejon zapełzniętego syfonu. Od Komory Tr&oacute;jkątnej aż po syfon poniżej Sali pod Progiem spotkać można licznie występujące otoczaki wapienne o&nbsp;średnicy dochodzącej do 20-30 cm, wymieszane z brunatnym materiałem ilasto-piaszczystym i kośćmi. W przekopie za Salą pod Progiem odsłonięty jest profil osad&oacute;w o&nbsp;miąższości około 5 m. Profil rozpoczyna warstwa najniżej zalegająca w syfonie &ndash; ż&oacute;łtego piasku kwarcowego. Przykryta jest mułem, a kt&oacute;rej spoczywa wymieszana brekcja kostno-ilasta z otoczakami wapiennymi. Całość profilu jest pokryta iłem zastoiskowym o&nbsp;oddzielności kostkowej a na tym polewa naciekowa. Osady w&nbsp;profilu mają cechy osad&oacute;w podlegających spływom grawitacyjnym i powolnemu spełzywaniu. Dobre obtoczenie fragment&oacute;w wapieni związane jest z korozją [<span style="font-style: italic;">wg licznych obserwacji otoczaki wapienne powstają w jaskini gł&oacute;wnie wskutek erozji, szczeg&oacute;lnie intensywnej we wstępujących partiach syfon&oacute;w &ndash; tam, gdzie materiał skalny jest obrabiany w&nbsp;zawieszeniu wskutek zderzeń odłamk&oacute;w między sobą oraz obijania się o dno i&nbsp;ściany. Proces stałej, r&oacute;wnomiernej korozji prowadzi do wytwarzania subtelnych płatk&oacute;w wapiennych &ndash; jak to można obserwować np. w Lodowym Źr&oacute;dle</span> &ndash; przyp. red. nauk]. Piaski kwarcowe z łyszczykami występują ponadto w rejonie Zawalonego Korytarza, Przekopu z&nbsp;Belką i warstwy belemnitowej. Wg Zwolińskiego (1955a, 1961) i&nbsp;W&oacute;jcika (1960a,b, 1963a, 1966a, 1979) są uważane za dow&oacute;d przepływu w&oacute;d od wschodu i południowego wschodu z rejonu Hali Gąsienicowej. Badania osad&oacute;w (minerał&oacute;w ciężkich) wykonane przez Hercman (1983) wskazują iż kierunki cyrkulacji w&oacute;d w jaskini były z południa lub południowego zachodu. </span></p>
+<p><span>Jaskinia posiada stosunkowo bogatą szatę naciekową, jednak j silnie zniszczoną przez wandali &ndash; kolekcjoner&oacute;w. We wstępnych partiach jaskini, w strefie mikroklimatu dynamicznego, ściany pokryte są jasno szarym nalotem węglanu wapnia. Występują tu także porowate nacieki z mikrokrystalicznego węglanu. Powstawaniu naciek&oacute;w nie sprzyja silne wietrzenie mrozowe i duży udział parowania. Zwoliński (1955a, 1961) oraz W&oacute;jcik (1959b) opisują dwie generacje naciek&oacute;w występujące w Korytarzu Stalaktytowym. Pierwszą stanowią połamane polewy, drugą narastające na nich stalaktyty o nieregularnych kształtach. Bogata szata naciekowa z mleka wapiennego występowała w Małej Komorze. Były to charakterystyczne draperie, pola ryżowe i nacieki wełniste. W wielu miejscach zachowały się nacieki krystaliczne. Liczne nacieki występują także w korytarzu pomiędzy Salą Złomisk a Dolną Komorą. W Sali Złomisk spotkać można ciekawy naciek przypominający &bdquo;makaron&rdquo; rozrzucony na blokach zawaliska. Liczne nacieki występują w&nbsp;rejonie Wielkiego Komina. W gł&oacute;wnym ciągu jaskini spotkać można sporo naciek&oacute;w, szczeg&oacute;lnie w miejscach, w kt&oacute;rych brak zawalisk. </span></p>
+<p><span>Ważnym składnikiem osad&oacute;w są kości plejstoceńskich ssak&oacute;w. Duże ich nagromadzenie występuje w osadach końcowej części Wielkiej Komory, w hałdach w Komorze pod Progiem, w profilu w przekopie, a także w korytarzu nad progiem i poza Wielkim Kominem. Kości występują też na powierzchni zawalisk w Sali Złomisk i Dolnej Komorze, gdzie są dodatkowo pokryte warstewką iłu i naciekami. Materiał kostny był opracowywany fragmentarycznie przez wielu autor&oacute;w, zestawienie oznaczonych gatunk&oacute;w przedstawia Kowalski (1959). Są to: niedźwiedź jaskiniowy (<strong><em>Ursus spelaeus</em></strong> Rosenm&uuml;ler), lew jaskiniowy (<strong><em>Felis leo vanspelaea</em></strong> Goldf.), hiena jaskiniowa (<strong><em>Crocuta spelaea</em></strong> Goldf.), wilk (<strong><em>Canis lupus </em></strong>L<em>.</em>) i niedźwiedź brunatny (<strong><em>Ursus arctos</em></strong><em> L.</em>). W opisie jaskini tego autora (1953a) wymienione są także kości rysia, kozicy, dzika i nietoperzy. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+<p><span>Spośr&oacute;d prac, poświęconych kopalnej faunie, wymienić należy przede wszystkim te poświęcone niedźwiedziom jaskiniowym: Ryziewicza (1956) oraz Wiszniowskiej (1976). Namulisko było r&oacute;wnież badane pod kątem zawartości archeologicznej. Wyniki opracował Jura (1949, 1955), przedstawił jednak bardzo schematyczne profile osad&oacute;w, skąd pochodziły jego znaleziska. Uważa on wiele ze znalezionych, połupanych kości za narzędzia człowieka paleolitycznego. Hipoteza ta była już wcześniej wysuwana przez Eljasza-Radzikowskiego (1902), a następnie odrzucona. Jura, podsumowując wyniki prac prowadzonych przez Sulimirskiego w 1937 r., własnych poszukiwań oraz badań materiału wydobytego podczas prac eksploracyjnych w 1949 r., opisuje szereg okaz&oacute;w kościanych, kt&oacute;re uznaje za łupki, gładziki, &bdquo;łyżki&rdquo;, &bdquo;oprawki&rdquo;, ostrza wł&oacute;czni itp. Wyr&oacute;żnia też pięć faz rozwoju w zależności od stopnia obrobienia kości. Opr&oacute;cz okaz&oacute;w kościanych zostały też opisane okruchy miejscowych wapieni jako narzędzia kamienne. Hipoteza Jury od chwili pojawienia się była zdecydowanie odrzucana przez innych badaczy (Halicki 1951; Kowalski 1953a; Malinowska 1957; Kozłowski 1960; Kowalski 1960; W&oacute;jcik 1959b, 1963a, 1966a). Przez tych autor&oacute;w podnoszona była problematyka obr&oacute;bki materiału kostnego jako wyniku działania czynnik&oacute;w naturalnych i w niekt&oacute;rych specyficznych przypadkach ogryzienia przez hieny, oraz problematyka sedymentologiczna. </span></p>
+<p><span>W pozostałych korytarzach jaskini kości kopalne nie występują. W odgałęzieniu zachodnim, na namulisku spotyka się miejscami niewątpliwie młodsze kości kuny <strong>(<em>Martes martes</em></strong>) i nietoperzy.</span></p>
+<p><span>Jaskinia była drogą odwodnienia rejonu Kopy Magury, a prawdopodobnie r&oacute;wnież g&oacute;rnej części Doliny Suchej Wody. Badania zawartości minerał&oacute;w ciężkich w osadach, jako wskaźnika kierunku transportu wody oraz asymetrii zagłębień wirowych (Hercman, 1983, 1986; Kicińska, 1996) wskazują na dwa przeciwne kierunki przepływu wody. Historia jaskini odczytywana w ten spos&oacute;b wydaje się bardzo skomplikowana. Pierwszy przepływ odbywał się od południa i południowego zachodu. Odpływ tych w&oacute;d znajdował się w rejonie Doliny Jaworzynki. Następnie po wytworzeniu dr&oacute;g krążenia na niższym poziomie, przebiegał wzdłuż grani Kopa Magury &ndash; Zawrat Kasprowy. Petrograficzny skład osad&oacute;w świadczy o funkcjonowaniu dw&oacute;ch dr&oacute;g przepływu przez jaskinię, a możliwe jest r&oacute;wnież funkcjonowanie dw&oacute;ch początkowo niezależnych jaskiń. Jedna stanowiłyby partie początkowe jaskini, gdzie transport osad&oacute;w następował z Doliny Staw&oacute;w Gąsienicowych do Doliny Jaworzynki. Partie środkowe i końcowe mogła tworzyć druga jaskinia, gdzie początkowo kierunek przepływu był z Doliny Kasprowej do Doliny Jaworzynki, natomiast p&oacute;źniej z Doliny Staw&oacute;w Gąsienicowych do Doliny Kasprowej.</span></p>
+<p><span>Jaskinia doczekała się w ostatnich czasach badań przy zastosowaniu szeregu nowoczesnych metod. Osady węglanowe &ndash; nacieki były przedmiotem badań wieku ich krystalizacji, za pomocą metod C<sup>14</sup>, ESR, TL, Th/U (Hercman i in. 1987, 1991). Wstępne partie jaskini, wielkie sale rozwinęły się w warunkach klimatu sprzyjającego rozwojowi zjawisk krasowych, w długim okresie panowania stabilnych warunk&oacute;w przepływu. Najprawdopodobniej jest to fragment jaskini powstałej w czasie klimatu ciepłego i&nbsp;wilgotnego panującego w pliocenie. Pierwotnie funkcjonują dwie niezależne jaskinie. Powstanie zawaliska w rejonie Sali Złomisk powoduje połączenie obu system&oacute;w. Datowanie polew naciekowych pokrywających zawalisko w Sali Złomisk świadczy o jego powstaniu przed interglacjałem eemskim (zawalisko jest starsze niż 120 tys. lat). Od tego czasu zaczyna funkcjonować otw&oacute;r jaskini, poprzez kt&oacute;ry dostają się do jej wnętrza niedźwiedzie. Datowanie na eem naciek&oacute;w z przekopu pod Salą pod Progiem, świadczy o tym, iż w tym czasie nie był jeszcze zapełniony osadami. Zapełnienie należy wiązać z&nbsp;przemieszczeniem osad&oacute;w zdeponowanych w innych partiach jaskini. Miało to najprawdopodobniej miejsce w czasie ostatniego zlodowacenia. W trakcie przemieszczania się osad&oacute;w nastąpiło ich wymieszanie. Duże znaczenie w tym procesie miały wody z&nbsp;deglacjacji lodowca. Ślady tego procesu zachowały się w stropowej części osadu w&nbsp;postaci warstwy silnie przemytego osadu. W końcowym okresie sedymentacji po całkowitym odcięciu połączenia z dalszą częścią jaskini, w stagnującym syfonie osadziła się warstewka iłu. </span></p>
+<p><span>Obecnie jaskinia znajduje się całkowicie poza zasięgiem w&oacute;d podziemnych. Woda znajdująca się w jaskini pochodzi z w&oacute;d infiltrujących do jaskini z&nbsp;powierzchni. Nieliczne jeziorka na namuliskach zasilane są wodami kapiącymi ze stropu. Deszcz jaskiniowy jest dość powszechny, a jego szybkie narastanie można obserwować kr&oacute;tko po rozpoczęciu opad&oacute;w na powierzchni. </span></p>
+<p><span>Światło sięga bardzo daleko, ponad 80 m od otworu i widoczne jest jeszcze w Komorze Okrągłej i Tr&oacute;jkątnej. Obserwacje mikroklimatyczne przedstawione są przez Kowalskiego (1953a, 1955a). Seria pomiar&oacute;w wykonana przez Kowalskiego od września do lipca 1952 r. (1955a) wykonana w odległości 350 m od otworu wykazała stałą temperaturę 3,7<sup>o </sup>C. W zimie w Wielkiej Komorze tworzą się duże masy lodu, kt&oacute;re zachowują się aż do p&oacute;źnego lata, r&oacute;wnież do jesieni zalega przed otworem płat śniegu. Zdarza się (Kowalski 1955a), że cały otw&oacute;r jaskini zostaje zasypany śniegiem. Zasypanie otworu odnotowuje w&nbsp;1936 r. Jura (1955), podobnie w maju 1982 roku otw&oacute;r był całkowicie zasypany (informacja ustna H.&nbsp;Hercman). Jak podaje Kowalski (1953a) przewiew w&nbsp;jaskini jest niewielki, wilgotność w głębszych częściach jaskini jest stała i wynosi 100%. Temperatura wody wynosiła wtedy 3,0-3,5<sup>o</sup> C. </span></p>
+<p><span>Dzięki otworowi olbrzymich rozmiar&oacute;w i dużej wilgotności w oświetlonej części jaskini, roślinność zielona rozwija się obficie i sięga do 21 m w głąb (Kowalski, 1993a). Badał ją Chałubiński (1886), po nim Żmuda (1915). </span></p>
+<p><span>Fauna, opr&oacute;cz wzmianek w dokumentacji Kowalskiego wymieniana jest w szeregu prac: Stach (1947, 1949, 1954 0&ndash; fide Kowalski 1953a, 1955a). Wg Kowalskiego (1955a) w&nbsp;Jaskini Magurskiej występują następujące gatunki: </span></p>
+<p><em>Collembola</em><em><span> &ndash; <strong>Ceratophysella armata</strong></span></em><span> (Nicolet), <strong><em>Ceratophysella granulata</em></strong> (Stach), <strong><em>Onychiurus armatus</em></strong><em>, <strong>var. multituberculatus</strong></em> (Stach), <strong><em>Onychiurus fimetarius</em></strong> (auct.) </span><span>(Stach), <strong><em>Isostoma olivacea</em></strong> Tullberg (za Stachem), <strong><em>Arrhopalites pygmaeus</em></strong> (Wankel); </span></p>
+<p><em>Coleoptera</em><span> &ndash; <strong><em>Nebria tatrica</em></strong> Miller;</span></p>
+<p><em>Lepidoptera</em><span>&ndash; <strong><em>Scoliopterix libatrix</em></strong> (L./ń) <strong><em>Triphosa dubitata</em></strong> L.; Diptera &ndash;<strong><em> Eccoptomera emarginata</em></strong> Loew. </span><span>(latem tworzy skupienia liczące dziesiątki tysięcy osobnik&oacute;w),<strong> <em>Heleomyza modesta</em></strong> (Meigen), <strong><em>Crumomyia (Stratioborbus) nitida</em></strong> Meigen; </span></p>
+<p><em>Chiroptera</em><span> &ndash; <strong><em>Myotis mystacinus</em></strong> (Leisler), <strong><em>Myotis myotis</em></strong> (Borkhausen) &ndash; najwyższe stanowisko w Polsce, <strong><em>Eptesicus nilssonii</em></strong> (Kyrserling); Carnivora &ndash;<strong> <em>Martes martes</em></strong> (L.). Kowalski (1953a) opisuje kości i&nbsp;odchody kuny znalezione w dalekich korytarzach jaskini, kt&oacute;re były całkowicie odcięte od przyotworowych partii jaskini.</span></p>
+<p><span>Piksa (1998) wymienia nietoperze <strong><em>Myotis myotis</em></strong> /Borkhausen, 1779/ i <strong><em>Eptesicus nilssonii</em></strong> /Keyserling/, a Nowak i in. (2001) notują pierwsze stwierdzenie w Tatrach&nbsp;</span><strong><em>Myotis dasycneme.</em></strong></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Historia eksploracji i badań naukowych w jaskini szerzej omawiana jest przez Kowalskiego (1953a), Zwolińskiego (1955b, 1961) i W&oacute;jcika (1963a). Pierwszą wzmianką o Jaskini Magurskiej, jak zinterpretował to Niezabitowski (1924), była informacja jaką opublikował w 1672 roku J. Peterson Hain (lekarz miejski w Preszowie, żyjący w latach 1615-1675). Opublikował on artykuł &bdquo;<em>De draconibus carpathicis&rdquo; </em>(O smokach karpackich), w kt&oacute;rym umieszcza informację przekazywaną przez pasterzy owiec, iż w&nbsp;g&oacute;rach istnieje grota z kośćmi smoka. Są jednak poważne wątpliwości czy rzeczywiście Petersonius Hain miał na myśli Jaskinię Magurską, istnieje podejrzenie, iż chodziło raczej o&nbsp;jaskinię położoną po Słowackiej stronie Tatr.</span></p>
+<p><span>Podobną notatkę spotkać można nieco p&oacute;źniej u Gabriela Rączyńskiego w dziele &bdquo;<em>Historia Naturalis Curiosa Regni Poloniae</em>&rdquo; opublikowanym w 1721 r. w&nbsp;Sandomierzu (fide W&oacute;jcik, 1963a). Jednakże autor bliżej nie precyzuje gdzie znajdują się wspomniane kości. Zdaniem S. Zwolińskiego jest to jedna z najwcześniej znanych jaskiń. Od roku 1766 rozpoczęto pierwsze prace g&oacute;rnicze w pokładach rud żelaza położonych w g&oacute;rnych partiach Doliny Jaworzynki, zwanej w&oacute;wczas Jaworzyną Łuszczykową. Pracujący w tej okolicy g&oacute;rnicy musieli znać jaskinię, kt&oacute;rej wielki i łatwo dostępny wylot widoczny jest wyraźnie z dr&oacute;g wiodących do kopalń. Poza tym była niewątpliwie znana juhasom wypasającym owce, gdyż stare percie pasterskie przebiegają opodal jej otworu. E. Janota (1860) w swoim przewodniku zamieszcza o niej wzmiankę. W. Tarnowski poświęca jaskini sonet w zbiorze &bdquo;<em>Poezje studenta</em>&rdquo; wydanym w 1865 roku. W rok p&oacute;źniej M.&nbsp;Nowicki pisze o występujących tu w wielkich ilościach kościach niedźwiedzia. W&nbsp;następnych latach jaskinię odwiedzają pracujący w Tatrach geolodzy wiedeńscy G. Stache i M. Neumayer wraz z polskim geologiem F. Kreutzem. Kreutz (1869) oraz Neumayr (1869) opublikowali na ten temat notatki z kt&oacute;rych wynika, że na dnie wstępnych czterech sal napotykali na wiele kości. Są to pierwsze naukowe wzmianki o jaskini. Zebrane w&oacute;wczas liczne okazy złożone zostały częściowo w Zakładzie Geologicznym w Wiedniu, częściowo zaś w&nbsp;muzeum Dzieduszyckich we Lwowie. W drugiej połowie XIX wieku jaskinia była zapewne często odwiedzana przez pierwszych tatrzańskich turyst&oacute;w. W 1870 roku ukazuje się przewodnik Walerego Eliasza. Znajduje się w nim opis groty oraz drzeworyt przedstawiający widok Wielkiej Komory i ludzi zwiedzających ją. Autorem drzeworytu jest Andrzej Jan Dudra (1835&ndash;1873) (fide Wiśniewski, 1999). Kolejny przewodnik opisujący jaskinię autorstwa K. Kolbenheyera ukazuje się w 1876 roku. </span></p>
+<p><span>W roku 1880 wykopaliska w jaskini prowadził J. Ochorowicz. W 1881 roku G.&nbsp;Ossowski zwiedzał jaskinię, kości kiedyś tak licznie leżących na powierzchni już nie znalazł. Wśr&oacute;d kości zebranych wcześniej z jaskini przez K. Kantaka, oznaczył kości niedźwiedzia jaskiniowego i hieny. Stwierdził r&oacute;wnież że dalsze badania wymagałyby dużych nakład&oacute;w sił i środk&oacute;w. W czasach tych we wstępnych partiach jaskini występowały stalaktyty, kt&oacute;re p&oacute;źniej, jak stwierdzają dalsze wydania przewodnik&oacute;w, zostały zniszczone przez turyst&oacute;w. W 1877 roku Towarzystwo Tatrzańskie wytyczyło na nowo ścieżkę do jaskini, kt&oacute;rą w 1882 roku zaopatrzyło w ławeczki, a poprawiało w latach 1885, 1887, 1899, 1901. W 1902 roku ścieżka została wyznakowana, a w 1904 znaki poprawiono. Na przełomie XIX i XX wieku T. Chałubiński i A. Żmuda zajmowali się badaniem mch&oacute;w oraz roślin zielonych z rejonu otworu. Poszukiwanie i wydobywanie kości trwało nieprzerwanie, część okaz&oacute;w trafiała do muze&oacute;w, większość &ndash; ginęła. Proceder ten trwa do dziś, z większą przewagą tego drugiego. W 1900 roku F. Rabowski i&nbsp;Orzechowski natrafili na nowe złoża kości w jaskini. M.&nbsp;Limanowski zorganizował kilka wycieczek w celu ich eksploracji, w kt&oacute;rych poza Rabowskim i Orzechowskim udział wzięli L. Limanowski, S. Witkiewicz, S.I. Witkiewicz, S. Eljasz-Radzikowski i&nbsp;przewodnicy. Dwie z pośr&oacute;d znalezionych kości nosiły ślady rzekomej obr&oacute;bki ręką ludzką. Kości te przechowywane były w Muzeum Tatrzańskim. Piszą o nich w 1901 Weyberg i w 1902 S. Eljasz-Radzikowski. S. Krukowski stwierdził, że rzekome ślady obr&oacute;bki są wynikiem działania czynnik&oacute;w naturalnych (Zborowski 1930). W związku z&nbsp;prezentacją tych okaz&oacute;w w Muzeum Tatrzańskim na wystawie umieszczono r&oacute;wnież rekonstrukcją <em>Pithecanthropusa</em>, kt&oacute;rą zdjęto po długiej dyskusji prasowej.</span></p>
+<p><span>W 1907 roku zwiedzał jaskinię M. Zaruski, kt&oacute;ry jako pierwszy dotarł do szczytu Wielkiego Komina. W partiach nad progiem natrafił na bogate nagromadzenia kości, natrafił miedzy innymi na czaszką niedźwiedzia jaskiniowego. Zebrane okazy trafiły do Muzeum Tatrzańskiego. Nagromadzenie to było dalej eksploatowane w tym samym roku. Latem zebrali je St. i J. Kr&oacute;likowscy z M. Limanowskim i wraz z częścią namuliska przekazali do muzeum (Kr&oacute;likowski 1970). </span></p>
+<p><span>W latach 1910&ndash;11 w jaskini prace badawcze prowadzili geolog W. Kuźniar i paleontolog E. Kiernik. Wyniki ich prac nie zostały nigdy w całości opublikowane. Kiernik (1911, 1912, 1913) wymienia znalezione gatunki i przedstawia szczeg&oacute;łowy opis znalezionego wilka. W&nbsp;1923 po raz pierwszy Babik, a w 1924 wraz z Hoyerem opisują uszkodzone zęby niedźwiedzia jaskiniowego, prawdopodobnie wskutek starości zwierzęcia. Niezabitowski (1925, 1938) opisuje szczękę wilka i kości lwa jaskiniowego. </span></p>
+<p><span>W roku 1913 A. Żmuda badał roślinność zieloną przy otworze, część zebranego materiału przekazał do oznaczenia Gy&otilde;rffyemu (1924) i Wiśniewskiemu (1935).</span></p>
+<p><span>W latach międzywojennych prowadzono w jaskini liczne prace wykopaliskowe. Często źle zaplanowane doprowadziły do zniszczenia powierzchniowej warstwy osad&oacute;w. E.M. Potęga zestawił szkielet z zebranych kości niedźwiedzia jaskiniowego i umieścił go w Muzeum Miejskim w Łodzi. Fotografia tego szkieletu ukazuje się w roku 1927 (&bdquo;Niedźwiedź jaskiniowy...&rdquo;). W czerwcu i lipcu 1936 roku A. Jura zbierał okazy rozrzucone po powierzchni namuliska i doszedł do wniosku, iż są wśr&oacute;d nich wyroby ludzkie. W lipcu 1937 roku z jego inicjatywy zorganizowano w jaskini wykopaliska. Pracami kierował T.&nbsp;Sulimirski, a obok niego, w badaniach finansowanych przez Fundusz Kultury Narodowej, udział wzięli R. Jamka, A. Nasz, Bartys, 2 słuchaczy Uniwersytetu Jagielońskiego i&nbsp;3&nbsp;robotnik&oacute;w. Wykonano dwa wykopy, pierwszy u końca Wielkiej Komory, drugi w&nbsp;Komorze pod Progiem. Rezultaty omawia szerzej Jura (1949, 1955).</span></p>
+<p><span>W latach p&oacute;źniejszych jaskinia była terenem licznych badań biologicznych i&nbsp;mikroklimatycznych K. Kowalskiego. Badania geologiczne prowadzili początkowo S.&nbsp;Zwoliński, Z. W&oacute;jcik i J. Rudnicki, w latach 1981-1982 H. Hercman, a w 1993&ndash;1995 D. Kicińska. Materiał kostny zebrany podczas prac Zwolińskiego i W&oacute;jcika opracowany był przez T. Czyżewską, Z. Ryziewicza i T. Wiszniowską.</span></p>
+<p><span>H. Hercman wykonała pierwszą szczeg&oacute;łową mapę geologiczną jaskini, wyniki szczeg&oacute;łowego kartowania przeprowadzonego w jaskini pozwoliły stwierdzić, iż jaskinia rozwinięta jest w osiowej strefie antyklinalnego skrętu, kt&oacute;ry podczas fałdowania poddany był naprężeniom rozciągającym. Badania osad&oacute;w pozwoliły stwierdzić drogi paleocyrkulacji w&oacute;d w jaskini, co przyczyniło się do postawienia hipotezy o&nbsp;funkcjonowaniu dw&oacute;ch niezależnych system&oacute;w jaskiniowych połączonych w następstwie proces&oacute;w zawaliskowych. Opierając się na wynikach datowania naciek&oacute;w przedstawiła ewolucję jaskini w kontekście rozwoju system&oacute;w jaskiniowych okolicznych dolin (Hercman, 1991). D. Kicińska, kontynuując prace w jaskini Magurskiej, szczeg&oacute;lną uwagę zwr&oacute;ciła na szereg cech sedymentologicznych osad&oacute;w, pozwalających rekonstruować drogi paleoprzepływ&oacute;w, oraz analizę scallops&oacute;w (zagłębień wirowych), będących zapisem freatycznego przepływu wody. Pawłowska-Bielawska omawia genezę jaskini jako drogi odwadniania obszaru Hali Gąsienicowej w neogenie.</span></p>
+<p><span>Zebrane materiały paleontologiczne są rozproszone po najrozmaitszych muzeach. Największa ilość okaz&oacute;w ma w swych zbiorach Muzeum Tatrzańskie w Zakopanem, Muzeum Przyrodnicze PAN w Krakowie, Muzeum Archeologiczne PAN w Krakowie, Muzeum Przyrodnicze w Łodzi, Zakład Paleontologii Uniwersytetu Wrocławskiego. Mniejsze ilości okaz&oacute;w znajdują się w muzeach przyrodniczych Poznania, Wiednia, Lwowa, Warszawy, a także w archiwum Instytutu Nauk Geologicznych PAN w Warszawie. Te ostatnie zebrano w 1964 r. w trakcie prac badawczych w jaskini, prowadzonych m.in. przez T. Madeyską, J. Rudnickiego, T. Wysoczańskiego celem pozyskania materiału kostengo dla datowania metodą fluoro-chloro-kolagenową oraz określenia warunk&oacute;w sedymentacji osad&oacute;w. Pierwszy wykop o głębokości 2,8 m założono w miejscu wcześniejszych prac T. Sulimierskiego w Wielkiej Komorze. Odsłonił on namulisko gliny jaskiniowej z gruzem wapiennym, pokryte luźnym rumoszem. Drugi wykop wykonano w&nbsp;odgałęzieniu Sali Okrągłej, profilowano także ściany przekopu pod Salą pod Progiem. Wyniki chemicznych analiz kości posłużyły do rozważań paleoklimatycznych (Hercman i in. 1987). </span></p>
+<p><span>W p&oacute;źniejszym okresie badania prowadzili: M. Gradziński (1995a) podał genezę tzw. kalcytu igłowo-wł&oacute;knistegona podstawie badań w tej jaskini, chociaż nie jest ona wymieniona w tekście; Kicińska (1995, 1996a, 2004a) &ndash; paleoprzepływy, uwagi o genezie; M. Gradziński i in. 2009 &ndash; uwagi o genezie; Nadachowski, A. i in. 2008 &ndash; określenie kiedy wymarł niedźwiedź jaskiniowy na podstawie datowania kości.</span></p>
+<p><span>Badania paleoklimatyczne prowadził Pawlak i in. (2020). Wiek jaskiń i ich związek z rozwojem dolin badali Szczygieł J. i in. (2020a).<br /></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Piewszy plan i opis jaskini został opublikowany przez Kowalskiego (1953a&nbsp;&ndash; datowany na 23 listopada 1952 roku), p&oacute;źniej bardzo dokładny plan przez Zwolińskiego (1955b, 1961). Zaletą tego planu jest zamieszczenie szeregu punkt&oacute;w wysokościowych. Szkoda tylko, że dysponując tak dokładnymi danymi nie sporządził przekroju jaskini. Wysokość została określona przez Kowalskiego (1953a) i Zwolińskiego (1955b) na 1460 m n.p.m; podawana bywa r&oacute;wnież 1465 m (Zwoliński, 1951), a nawet 1470 m (Zwoliński, 1966), jednak przyjęto tu wysokość zamieszczoną w większości poświęconych jaskini publikacji i zgodną z planem załączonym do prac Zwolińskiego (1955a i 1961). Długość podawana była r&oacute;wnież niejednolicie: 1070 m (Kowalski, 1953a), około 1000 m (Zwoliński, 1955b), 1200 m (W&oacute;jcik, 1966a). Przyjęto tę ostatnią wartość, wychodząc z założenia, że 1070 m u Kowalskiego obejmuje partie skartowane i umieszczone na załączonym planie (1953 a). Brak na nim partii zamulonego syfonu i położonego dalej Stalaktytowego Korytarza o łącznej długości około 132 m (por. Zwoliński, 1951, 1961), chociaż i tu są rozbieżności (por. Zwoliński, 1955b). Doliczenie tych partii daje około 1200 m. <br />Na końcu gł&oacute;wnego ciągu jaskini w 2008 r. J. Nowak odkrył około 50 m nowego korytarza (partie te nie zostały ujęte na planie, ani wliczone do długości jaskini).<br /><br />Przedstawiony tu opis jaskini jest tekstem sporządzonym na podstawie inwentarza Kowalskiego (1953a) oraz opracowania Kardasia (1982) wykonanego w ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ, uzupełnionym dodatkowo własnymi spostrzeżeniami, a także na podstawie prac Zwolińskiego (1953), W&oacute;jcika i Zwolińskiego (1959) oraz innych publikacji (Zwoliński 1951 i 1961; W&oacute;jcik 1957a,1963a; Kowalski 1955a). Dane zaktualizowała I. Luty (2009). <br />Lokalizacja została skorygowana w oparciu o mapę topograficzną Tatr (http://maps.geoportal.gov.pl) w 2013 r przez J. Grodzickiego. Uwaga: lokalizacja jaskiń przedstawiona na tej mapie jest nieprawidłowa!</p>
+<p>Plan (na podstawie planu S. Zwolińskiego z 1961 r.) zaktualizował i opracował T. Nowicki.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Janota E. 1860 (wzmianka o położeniu jaskini w południowym zboczu Jaworzynki, s. 38); Tarnowski W. 1865 (sonet o grocie); Nowicki M. 1866 (wzmianka o kościach niedźwiedzia jaskiniowego); Neumayer M. 1869 (wzmianka o zebraniu kości niedźwiedzia jaskiniowego); Kreutz F. 1869 (wzmianka o występowaniu kości – fide W&#243;jcik 1963a); Eljasz W. 1870 (opis drogi i groty, wzm. o kościach, rysunek komory); Faleński F. 1871 (wiersz); Kolbenheyer K. 1876 (opis – fide Zwoliński 1955b); Ochorowicz J. 1881 (informacja o znalezieniu kości); Ossowski G. 1882a,b (o zwiedzaniu, oznaczenie kości zebranych przez Kantaka); Ossowski G. 1882c (wzmianka); Wierzejewski A. 1886 (wzmianka o kościach niedźwiedzia i hieny); Chałubiński T. 1886 (wykaz mch&#243;w zebranych w jaskini); Pawlikowski J.G. 1887 (wzmianka); Świerz L. 1894 (o poprawieniu ścieżki); Rehman A. 1895 (wzmianka); Z Muzeum Tatrzańskiego 1900 (o otrzymaniu kości zebranych w grocie); Weyberg 1901 (o znalezieniu kości i oznaczeniu przez Woldvicha jako zabytki człowieka); Eljasz-Radzikowski S. 1901 (wyjaśnienie, że kości wymienione w poprzednim artykule były oznaczone przez niego); Eljasz-Radzikowski S. 1902 (opis kości z rzekomymi śladami obr&#243;bki); Zaruski M. 1907 (o znalezieniu kości, m. in. czaszki niedźwiedzia jaskiniowego na szczycie komina); Chmielowski J. 1907 (opis drogi i jaskini); Kiernik E. 1911a (demonstracja kości z groty Magury); Kiernik E. 1911b (wzmianka o badaniach paleontologicznych w jaskini); Dunajcem z Niziny Nadwiślańskiej w Tatry 1911 (wzmianka o kościach kopalnych); Kuźniar W. 1911 (wzmianka o badaniach geologicznych); Kuźniar W. 1912 (wzmianka o dalszych badaniach geologicznych w jaskini); Kiernik E. 1912 (wzmianka o dalszych badaniach paleontologicznych); Świerz M. 1912 (opis groty i drogi); Kiernik E. 1913a (opis szczątk&#243;w wilka plejstoceńskiego i ich fotografie, tab); Kiernik E. 1913b (streszczenie pracy poprzedniej); Talko-Hryncewicz J. 1913 (wzmianka, fotografia otworu, tab); Żmuda A. 1914a,b (wzmianka o badaniach roślinności zielonej); Żmuda A. 1915 (opis roślinności zielonej); Żmuda A. 1916 (opis roślinności zielonej); Orłowicz M. 1919 (wzmianki); Świerz M. 1919,1921 (droga i opis); Zwoliński T. i S.1922 (wzmiankują); Hoyer H. 1923 (wzmianka o kościach niedźwiedzia jaskiniowego); Babik J. 1923, 1923b (opis uszkodzonych zęb&#243;w niedźwiedzia jaskiniowego); Świerz M. 1923 (droga i opis); Niezabitowski E. 1924 (autor odnosi do Groty Magury wzmiankę w dziele Petersoniusa m&#243;wiącą o kościach smoka w jaskini w Karpatach); Hoyer H., Babik J. 1924 (opis uszkodzonych zęb&#243;w niedźwiedzia jaskiniowego); Gy&#245;rffy I. 1924 (korekcja oznaczeń niekt&#243;rych mch&#243;w Żmudy); Niezabitowski E. 1925 (opis kości lwa jaskiniowego, tab.); Zwoliński T. i S. 1925, 1927 (droga i opis); Świerz M. 1927 (droga i opis); Zwoliński T. i S. 1930 (droga i opis); Zborowski J. 1930 (wg orzeczenia Krukowskiego kości z groty uważane poprzednio za narzędzia wykazują jedynie zmiany naturalne); Żmuda A.1930 (stanowiska mch&#243;w z groty); Naše Tatry 1931 (wzmianka); Wrzosek A. 1933 (wzmiankuje); Danysz-Fleszarowa R. 1933 (wzmiankuje); Ryziewicz Z. 1933 (wzmianka o szczękach lwa jaskiniowego); Passendorfer E. 1934 (wzmiankuje); Szokalski J. 1934 (droga i opis); Stach, J. 1934 (o owadach); Wiśniewski, T. 1935 (nowe oznaczenia mch&#243;w zebranych przez Żmudę); Hoyer H. 1937 (wzmianka o szczękach lwa i wilka); Wolf B. 1934–1938 (wymienia Onychirus armatus wg. Stacha); Zwoliński, T. 1937 (droga i opis); Niezabitowski 1938a (opis żuchwy wilka plejstoceńskiego); Niezabitowski E. 1938b (streszczenie pracy poprzedniej); Szafer W. 1946 (wzmianka o kościach i śladach człowieka); Zwoliński T. 1946 (droga i opis); Zwoliński T. 1947 (wzmianka); Stach J. 1947 (wymienia kilka gatunk&#243;w owad&#243;w bezskrzydłych znalezionych przy otworze); Zwoliński T. 1948 (droga i opis); Kowalski K. 1948 (wzmianka); Kostrzewski J. 1949 (wzmianka o zabytkach człowieka); Jura A. 1949 (opis rzekomej kultury kościanej człowieka paleolitu wg badań w latach 1936, 1937 i 1949); Goetel W. 1949 (o badaniach PTT w jaskiniach); Stach J. 1949 (występowanie Ceratophysella granulata, vide Kowalski 1955a); Kowalski, K. 1950 (wzmianka o badaniach); Halicki B. 1951 (poddaje pod wątpliwość oznaczenie niekt&#243;rych kości jako wyrobu ludzkiego); Kowalski K. 1951a (wzmiankuje); Kowalski K. 1951d (wzmianka o badaniach zoologicznych i mikroklimatycznych); Kowalski K. 1951h (wzmianka o odkryciach); Notizie speleologische della Polonia 1951 (wzmianka); Paryski W.H. 1951 (spostrzeżenia o przepływie wody przez jaskinię z g&#243;rnej części Suchej Wody); Znaleziska w grocie w Magurze 1951 (o badaniach Jury); Zwoliński S. 1951 (opis badań i nowych odkryć w latach 1948); Zwoliński T. 1951 (droga i opis z uwzględnieniem ostatnich badań); Kowalski K.1952a,b,c (wzmiankuje); Ratujmy od zniszczenia 1952 (fotografia żuchwy niedźwiedzia jaskiniowego ze zbior&#243;w Muzeum Ziemi, tab. XVIII); Kowalski K.1953a (opis inwentarzowy, plan); Kowalski K. 1953b (występowanie nietoperzy Myotis myotis i Eptesicus nilsoni); Kowalski K.1953c (występowanie nietoperzy); Stach J. 1954 (fauna skoczogonk&#243;w – fide Kowalski 1955a); Jura A.1955 (przebieg i wyniki badań archeologicznych, opis i ilustracje licznych odłamk&#243;w kości i 6 okaz&#243;w kamiennych uznanych przez autora za artefakty); Zwoliński, S. 1955b (opis, plan, historia eksploracji i badań naukowych, fotografie wnętrza); Kowalski K.1955a (wyniki pomiar&#243;w i obserwacji mikroklimatycznych oraz badań fauny wsp&#243;łczesnej); Kowalski K. 1955b (wymienia faunę kopalną, wzmiankuje o namuliskach); Ryziewicz Z. 1955 (wstępne wyniki badań własnych i T. Czyżewskiej nad kośćmi niedźwiedzia jaskiniowego); Kuczyński, M. Gradziński R. 1956 (wzmianka o biwaku w Jaskini Magurskiej); Normy klasyfikacyjne i wykaz punktacji dr&#243;g jaskiniowych 1956 (ocena trudności); Czyżewska T. 1957 (komunikat o badaniach por&#243;wnawczych szkielet&#243;w niedźwiedzi jaskiniowych z Jaskini Magurskiej Wojcieszowa i Ojcowa); Malinowska M. 1957 (wzmianka o ewentualnym stanowisku człowieka paleolitycznego); Ryziewicz Z. 1957a (komunikat o znalezieniu szkieletu niedźwiedzia jaskiniowego z Sali Złomisk); W&#243;jcik Z. 1957a (sytuacja geologiczna); W&#243;jcik Z. 1957c (wzmianka o rabunkowej eksploatacji kości i wybijaniu ze ścian belemnit&#243;w); Zwoliński T. 1958 (znaleziska kości, ich ewentualna obr&#243;bka przez człowieka, prace odkrywcze, kr&#243;tki opis dojścia i wstępnych partii jaskini); W&#243;jcik, Z. Zwoliński, S. 1959 (ślady młodych przesunięć tektonicznych w jaskini); Burchard P. Kowalski K. 1959 (wzmianka); Chodorowska W., Chodorowski A. 1959 (pomiar temperatury powietrza i wody); Kowalski K. 1959b (wykaz gatunk&#243;w ssak&#243;w plejstoceńskich); Rabowski F. 1959 (wzmianka przy opisie sytuacji geologicznej terenu); W&#243;jcik Z. 1959b (uwagi geologiczne, geomorfologiczne, geneza osad&#243;w, naturalna obr&#243;bka kości); Kowalski K.1960 (problem pobytu człowieka w jaskini, odrzuca tę koncepcję); Kozłowski J.K. 1960a (autor odrzuca koncepcja Jury – vide W&#243;jcik 1963a); W&#243;jcik Z. 1960a (osady); W&#243;jcik Z. 1960b (badania osad&#243;w, wiek jaskini);W&#243;jcik Z. 1960c (wzmianka); Gradziński R., W&#243;jcik Z. 1961a (wzmianka o naciekach); Lefeld J. Kotański Z. 1961 (wzmianka o młodych przesunięciach tektonicznych, formach erozyjnych i kościach niedźwiedzia – opis wycieczki, wariant E 2a); Zwoliński S. 1961 (opis plan, historia badań, opis namuliska, wnioski genetyczne, 6 fotografii); Kowalski K. 1962 (wzmianka o występowaniu kości kopalnych i piasku granitowego); Głazek J., W&#243;jcik Z. 1963 (wzmianka o występowaniu kości i wieku jaskini); Stecki, K.(jr), 1963 (o odkryciach nowych partii przez S. Zwolińskiego oraz zwiedzaniu jaskini); W&#243;jcik, Z. 1963a (og&#243;lny opis, historia badań i eksploracji, charakterystyka zł&#243;ż kostnych, om&#243;wienie i odrzucenie hipotezy o występowaniu wyrob&#243;w człowieka, geneza osad&#243;w, plan rozmieszczenia nagromadzeń kości kopalnych w jaskini, 4 fotografie); Kowalski K. 1965 (opis, historia badań, fauna, mikroklimat); Zwoliński T. 1966 (kr&#243;tka wzmianka o pracach eksploracyjnych, kościach niedźwiedzi, związku systemu z Doliną Gąsienicową); Rudnicki J. 1967 (osady, wiek); Zwoliński S.1968 (wzmiankuje); Stecki K.(sen.), 1968 (wzmianka);W&#243;jcik Z. 1968 (wzmianka); Kr&#243;likowski J. 1970 (opis wycieczki w sprawie eksploatacji kości w 1907 r); Passendorfer E.1971 (wzmianka, fotografia naciek&#243;w); Kozik A. 1972 (podaje długość); Radwańska-Paryska Z., Paryski W.H. 1973 (notatka encyklopedyczna, wzmianki historyczne,); W&#243;jcik Z. 1975a (wzmianka); Passendorfer E.1975 (wzmiankuje, fotografia naciek&#243;w); Tatry Polskie  1976 (lokalizacja na mapie 1:10000); W&#243;jcik Z. 1976b (wzmianka); Wiszniowska T. 1976 (charakterystyka kości niedźwiedzi ze zbior&#243;w Muzeum Tatrzańskiego, por&#243;wnanie z innymi stanowiskami, charakterystyka populacji); W&#243;jcik Z. 1977 (wzmianka o jaskini jako o chronionym obiekcie paleontologicznym); Chabert C. (red.), 1977 (podstawowe dane morfometryczne); Passendorfer E. 1978 (informacje o kościach niedźwiedzi jaskiniowych i związku systemu z Halą Gąsienicową, fotografia naciek&#243;w); Parma Ch., Rajwa A. 1978 (wzmiankują); Głazek J. i in. 1979b (wzmianka); W&#243;jcik Z. 1979 (wzmianka o występowaniu dużych kości ssak&#243;w plejstoceńskich); Stecki K.(sen.), 1979 (wzmiankuje); Kardaś R.M. 1980b (podstawowe dane morfometryczne, geologiczne, historyczne); Parma Ch. 1980 (wzmiankuje); Kardaś R.M. 1982 (podstawowe dane morfometryczne, geologiczne, historyczne); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10.000); Hercman H. 1985 (określenie prędkości i wielkości przepływu wody przez jaskinie na podstawie badań scallops&#243;w); Hercman H. 1986 (osady allochtoniczne, problem pochodzenia i wieku); Hercman H. i in. 1987 (geneza, rekonstrukcja klimatu na podstawie datowania naciek&#243;w); Zwoliński S. 1987 (historia badań i eksploracji, opis jaskini, plan, fotografia); Hercman H. i in. 1987a (badania wieku kości kopalnych, klimat Tatr); Hercman H. i in. 1987b (pomiary tła promieniowania gamma w jaskini); Hercman H. 1989 (geologia jaskini); Hercman H. 1991 (datowanie naciek&#243;w i kości kopalnych, ewolucja systemu, zmiany środowiska naturalnego); Zwoliński, S. 1993 (zapiski z eksploracji w latach 1933, 1938, 1939, 1943, szkic planu jaskini w skali 1:400 z roku 1914); Hercman H. 1993 (osady, kierunki paleoprzepływ&#243;w, datowanie naciek&#243;w); Kicińska D. 1995, 1996a (rekonstrukcja kierunk&#243;w cyrkulacji podziemnej); Gradziński M. 1995a (geneza tzw. kalcytu igłowo-wł&#243;knistego, jaskinia nie jest wymieniona); Głazek J., Grodzicki J. 1996 (wiek, geneza); Piksa K. 1998 (nietoperze); Wiśniewski W.W. 1999 (drzeworyt wstępnej komory jaskini, reprodukcja z przewodnika W. Eljasza z 1870 r.); Jaskinie TPN 1999 (plan i opis inwentarzowy); Nowak J. i in. 2001 (nietoperze); Kicińska D. 2004a (paleoprzepływy, geneza); Nadachowski A. i in. 2008 (datowanie kości niedźwiedzia jaskiniowego); Pawłowska-Bielawska P. 2008 (geneza jaskini jako droga odpływu w&#243;d z obszaru Hali Gąsienicowej w neogenie); Gradziński M. i in. 2009 (uwagi o genezie); Pawlak J. i in. 2020 (badania paleoklimatyczne); Szczygieł J. i in. 2020a (o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin).
+ 
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Kardaś R.M. i in. 1983 (inwentarzowy opis jaskini, plan wg Zwolińskiego); Hercman H. 1983 (szczeg&#243;łowa budowa geologiczna, sedymentologia, kierunki paleoprzepływ&#243;w, wiek, ewolucja, mapa geologiczna, fotografia); [Siarzewski W., Zwolińska Z.] 1986 (materiały pomiarowe i plany w skali 1:200 i 1:400 S. Zwolińskiego); Kicińska D. 1996 (wyniki szczeg&#243;łowych badań sedymentologicznych, analiza zagłębień wirowych, kierunki paleoprzepływ&#243;w, ewolucja systemu, fotografia).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tomasz Nowicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(759)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(760)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2245">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2245;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "519128,7638".replace(',', '.') + "," + "317994,5911".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2245','Studnisko'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Studnisko
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Głęboka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.I-03.10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;16′16,00″, φ: 50&#176;43′43,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Olsztyn (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                częstochowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Rezerwat przyrody Sokole G&#243;ry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NNE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                356
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                55
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                74
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                74
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    285
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, G&#243;ry Sokole, Olsztyn, Sokola G&#243;ra.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od parkingu przy wejściu do rezerwatu przyrody „Sokole Góry” należy skierować się na południe, by po przejściu mostku nad nieczynnym kanałem skręcić w leśną drogę, oznakowaną barwami zielonego szlaku. Prowadzi ona na wschód, u podstawy północnych zboczy Sokolej Góry. Po przejściu 250 metrów, przed charakterystycznie pochylonym ostańcem - Pielgrzymem, należy skręcić w prawo (SE), na  szeroką leśną drogę. Duża, świetlista polanka, na której znajduje się otwór Jaskini pod Sokolą, widoczna jest z daleka. Stąd stromą ścieżką należy podejść około 10 m w górę, na odległość około 50 m w kierunku SE. Otwór jaskini znajduje się w niewielkiej skalnej wnęce. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Wejście do jaskini ukryte jest w niewielkiej (4x5 m) niszy skalnej. W południowej części tej niszy znajduje się eksponowany, poziomo usytuowany, owalny w przekroju otwór jaskini, o wymiarach 1x1,5 m. Jaskinia posiada rozwinięcie pionowe i jest trudno dostępna.&nbsp;Zwiedzanie wymaga użycia liny (28 m. swobodnego zjazdu), posiadania specjalistycznego sprzętu i umiejętności posługiwania się nim (ewentualnie stalowych drabinek). </span></p>  <p><span>Poziomo usytuowany otwór, poprzez 1,5-metrowy kominek, prowadzi do stropu dzwonowatej sali, zwanej Komorą Wejściową. W tym miejscu ma ona wysokość 27  m. Część sali, położona głębiej, ma strop niższy, zawieszony nad dnem na wysokości 16  m. Maksymalna długość Komory wynosi 36 m a szerokość 18 m. Dzięki takim rozmiarom należy do największych podziemnych próżni Wyżyny. Kształtem przypomina kopułę o dnie stromo pochylonym w części południowo-zachodniej. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>  <p><span>Jaskinia została szczegółowo opisana przez Z. Wójcika (1958): </span></p>  <p><em><span>„...Pochyła część dna Komory Wejściowej nachylona jest pod kątem 40°. Górna jej część pokryta jest grubymi skorupami krystalicznego nacieku. Na tych skorupach nierzadkie są stalaktyty dochodzące do 30 cm wysokości. W niektórych miejscach spod skorupy naciekowej wychodzi na powierzchnię czerwona glina jaskiniowa, tzw. terra rosa. Część centralna komory ma dno płaskie, usiane miejscami drobnym rumoszem kalcytowym i wielkimi blokami wapieni. Na północno-wschodniej ściance tej komory, na wysokości około 10m, znajduje się niewielka półeczka skalna, pokryta naciekami (stalaktyty, stalagmity, kolumny, pokrywy naciekowe). Około 6 m nad tą półeczką znajduje się sztolnia, o rozmiarach 2x2x1m. Z jej centralnej partii zwisa stalowa linka. Podobne sztolnie znajdują się w północno-wschodniej i południowo-zachodniej części tej komory. Sztolnie te zostały pokryte naciekami</span></em><span>...” </span></p>  <p><span>W&nbsp;kierunku południowym Komora Wejściowa, poprzez szerokie (6 m) przejście łączy się z Salą Pochyłą. <span>„...<em>W stropie tej salki spotykamy bardzo ciasne, klinujące się ku górze kominki, zwane tubami. Obok nich występują stropowe kotły eworsyjne oraz w ścianie niewielkie kieszenie. W jednej z nich znaleziono doskonale wypreparowaną gąbkę jurajską. Sala ta, mająca wymiary 6x12 m, jest bogato zdobiona naciekami.</em>(...)<em> Krótki korytarzyk prowadzi do Sali Zawaliskowej. Jest to druga co do wielkości sala tej jaskini, posiadająca wymiary 18x22 m oraz wysokość ok. 10m. Dno tej sali pokryte jest w zasadzie wielkimi blokami wapiennymi. Jednakże w niektórych miejscach bloki te pokryły wielkie piaszczyste stożki napływowe </em>(...)<em>. Wśród bloków tej sali znajduje się bardzo ciekawa naciekowa kapliczka. W jej wnętrzu spotkano bardzo drobne kuleczki zwane perłami jaskiniowymi. Strop Sali Zawaliskowej stanowią dwie wielkie kopuły wypełnione jedynymi w swoim rodzaju naciekami piaszczystymi. Z Salą Zawaliskową łączą się dwie niewielkie komory. Pierwsza z nich, zwana Salą Piaszczystych Nacieków, rozpoczyna się niewielkim otworem w końcowej części korytarzyka. Za tym otworem, położonym na wysokości 1,8 m, korytarz rozszerza się, osiągając rozmiary 1,5 m szerokości, 2,5 m wysokości i ok. 4 m długości. Wreszcie spada 1,5 m wysokim progiem do Sali Zawaliskowej. Sala Piaszczystych Nacieków łączy się z następną salką prawie tej samej wielkości. Jest to tzw. Sala Ciasna</em></span>.”</span></p>  <p><em><span>„We wschodniej części Sali Pochyłej, wśród bloków skalnych, znajduje się ciasne przejście prowadzące do korytarza, długości 12 m. Korytarz ten w jednym miejscu rozszerza się i ma kształt maleńkiej salki&nbsp;o wysokości 2,2 m. Przed jego końcem, ze strony południowej, znajduje się niewielki otwór (1x0,4 m) prowadzący do Sali Nacieków Kalcytowych. Rozmiary tej salki wynoszą 10x10 m, przy wysokości 0,7-1,0 m. Pochylona jest ona pod kątem około 10°. Jest w istocie wielką szczeliną, która powstała w czasie zawaliska w tej części jaskini. Cała ta salka pokryta jest licznymi naciekami. Nie brak wśród nich stalaktytów, stalagmitów, kolumn a nawet kamiennych kaskad naciekowych</span></em>.” </p>  <p><span>Najniższa, północna część Sali Nacieków Kalcytowych obrywa się 4-metrową studzienką (wykopaną w 1984 r.). Z jej dna, poprzez niskie, bardzo ciasne przewężenia, prowadzi korytarz w kierunku północnym. W wielu miejscach, na jego ścianach wykształciły się nacieki kalcytowe, w postaci polew, żeber i stalaktytów. Spąg jest zasadniczo lity, skalisty, utworzony z dużych bloków i płyt wapiennych. Leży tu sporo luźnych kamieni, którymi w trakcie eksploracji zostały wypełnione boczne kieszenie i szczeliny.&nbsp;Miejscami występuje skąpe namulisko ilasto-gliniaste. Po około 17 metrach korytarzyk rozszerza się nieco i stromym, 3-metrowym progiem opada w dół. Na wprost, po zejściu kolejnym, także 3-metrowym progiem kończy się on w małej salce, o dnie wypełnionym kamieniami. Natomiast w bok odchodzi szczelina, którą trawersuje się na prawo (E). Doprowadza ona do długiej (16 m) lecz niskiej (około1,5 m) sali. Jest ona rozwinięta na kontakcie dwóch stromo nachylonych płyt.&nbsp;W jej końcowej części znajdują się stalaktyty. Nachylony spąg jest pokryty kamieniami, w dolnej części również namuliskiem ilasto-gliniastym. W przeciwległym, północnym końcu sala obrywa się stromymi prożkami, o łącznej wysokości około 6 m. Pierwotnie ciąg ten kończył się w małej salce z charakterystyczną boczną kieszenią. Ale po usunięciu paru want w jej najniższym miejscu oraz pokonaniu bardzo ciasnego zacisku udało się wejść do dużej (12x15 m) choć niskiej sali końcowej. Obecnie miejsce to jest rozkute i nie stanowi istotnej przeszkody. Sala ma wysokość do 1,5 m i łagodnie opada w kierunku północnym. Na jej stropie masowo występują stalaktyty, średniej długości 10 cm. Dno usłane jest grubą warstwą kamieni wapiennych oraz kilku bardzo dużych want. W zachodniej części tej sali jest opadająca nieco nyża, prowadząca poprzez bardzo ciasne, błotniste przewężenie do 2,5-metrowego komina. Spąg jest tutaj gliniasty, w najniższym miejscu ze stojącą wodą. </span></p>  <p><span>Po wschodniej, przeciwległej stronie tej sali, pomiędzy jej ścianą a największymi głazami jest ukryty prożek sprowadzający do tzw. „Ciągów Spragnionych”. </span></p>  <p><span>Te najniższe partie groty, odkryte w 1991 roku, opisuje Śliwiński (1992): <em>„... W końcowej sali wchodzimy w korytarzyk powstały w zawalisku. Z niego 2-metrową studzienką, poprzez zacisk, do mytego korytarzyka. Po 6-ciu metrach obrywa się on 4-metrowym progiem, pod którym korytarz zwęża się do rozmiarów zacisku (Z-I). Doprowadza on do soczewkowatego ciągu, o wysokości 0,4 m, przechodzącego z prawej strony w dużą ale niedostępną, poziomą szczelinę. Na końcu tego korytarzyka znajduje się 3,5-metrowy komin. Dno przykrywa piaszczysto-gliniaste namulisko...</em>”<span>&nbsp;&nbsp; </span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>  <p><span>Jaskinia powstała w wapieniach jurajskich. Dno całej jaskini jest urozmaicone, pokryte piaskiem, żwirem, blokami skalnymi i starą gliną zwietrzeliskową. W linii spadku otworu odkłada się próchnica, powstała z opadłych szczątków roślinnych. Od roku 1996-go lub 97-go, z powodu utworzenia przez nietoperze letniej kolonii rozrodczej, w Sali Wejściowej tworzy się guano. </span></p>  <p><span>W trakcie pierwszego, ścisłego opisania jaskini w 1958 roku Z. Wójcik podaje wiele informacji geologicznych. Do najciekawszych należy opisanie nacieków piaszczystych: <em>„...Nacieki piaszczyste mają różną formę. Niekiedy przypominają powiększone kiście winogron. Poszczególne formy w obrębie kiści mają kształt kulisty, o średnicy 3-5 cm. Poszczególne kule zbudowane są zwykle z piasku spojonego węglanem wapnia. Zawartość węglanu dochodzi 15-20%.. Prowizoryczny skład ziarnowy dla przeciętnej kuli z nacieku jest następujący: 5% iłu, 10% mułu, 80% piasku i 5% żwirku</em>...” Ponadto opisuje kilka znalezionych skamieniałości: amonit z rodzaju <em>Perysphinctes</em>, gąbkę z grupy <em>Siphonia</em> i liczne ramienionogi <em>Rhynchonella</em>. </span></p>  <p><span>Ten sam autor 10 lat później (Skalski, Wójcik 1968) tłumaczy genezę powstania jaskini oraz owych nacieków: <span>„..<em>.Wydaje się, że w masywie Sokolej Góry, podobnie jak i w Pustelnicy, istniały początkowo dwa piętra podziemnych systemów krasowych. Podczas zlodowacenia krakowskiego piętra te zostały przemodelowane. Wody ginące wówczas w ponorach w północnym zboczu Sokolej Góry ze znaczną siłą płynęły w głąb masywu, powodując znaczne zawirowania, które przyczyniły się do powstania dzwonowatej Komory Wejściowej w Studnisku. Pod koniec tego okresu do niektórych komór został wniesiony piasek, powodując ich całkowite zasypanie. Dopiero później komory te zostały odsłonięte podczas zawału w końcowych partiach jaskini. Być może w tym czasie została przegrodzona łączność pomiędzy Studniskiem a Jaskinią Pod Sokolą. Główny etap powstawania nacieków nastąpił już po zawale. </em>(...)<em> Interesujący profil osadów wypełniających Salę Nacieków Piaszczystych widoczny jest w zachodniej ścianie. U dołu jest to gruz wapienny zmieszany ze żwirem i piaskiem. Ku górze osady te przechodzą w prawie 2-metrowej</em></span> <em>miąższości serię piasków drobnoziarnistych, miejscami przeławiconych cienkimi soczewkami drobnego żwiru. Materiał ten przy ścianach i pod stropem tej komory został fragmentarycznie spojony węglanem wapnia w zespoły kul piaszczystych. Później nastąpił w zachodniej części jaskini obryw. Fragment komory wypełnionej piaskiem odsłonił się, co spowodowało usunięcie luźnego piasku i żwiru. Przy stropie oraz na ścianach pozostały jedynie połączone kule piaszczyste, funkcjonalnie upodobniające się do stalaktytów. Z czasem niektóre zespoły zlepionych kul zaczęły pokrywać się polewami kalcytowymi, tworząc w rezultacie nacieki kalcytowe o jądrach piaszczystych..</em>.” </span></p>  <p><span>Mikroklimat jaskini był badany w latach 1965-66 (Łęski 1971). Stwierdzono, że jej termika jest mało zależna od wpływów zewnętrznych. Jedynie w pierwszej sali wahania temperatury są zauważalne, w granicach od 6° do 8,5° C. W Sali Zawaliskowej wynosi ona 5,8°-7,8°C. Wilgotność względna wynosi 100%.&nbsp;</span></p>  <p><span>W Studnisku były prowadzone obserwacje faunistyczne (Skalski 1973). Obok stosunkowo bogatej fauny trogofilnych skoczogonków, muchówek, pająków, ślimaków i innych, w jaskini występują także troglobiontyczne, endemiczne chrząszcze z rodziny <em>Catopidae</em>. Są to analogiczne gatunki, jakie występują w sąsiedniej Jaskini Pod Sokolą. Stanowią jeden z dowodów na istnienie połączeń między tymi jaskiniami.&nbsp;&nbsp; </span></p>  <p><span>Jaskinia jest miejscem zimowego schronienia hibernujących nietoperzy i stanowi jedno z najważniejszych miejsc tego typu w Polsce (Wołoszyn 1996). Od końca lat 70-tych prowadzi się tu monitoringowe obserwacje tych zwierząt (Postawa i in. 1994). Ich liczba przekracza 200 osobników, należących do 6 gatunków. Wśród nich zdecydowanie dominuje nocek duży <strong><em>Myotis myotis</em></strong>, zimujący w liczbie 100-150 osobników, a od roku 1996 lub 1997 tworzący również letnią kolonię rozrodczą. Licznie występuje także nocek Natterera <em style="font-weight: bold;">Myotis nattereri</em><span style="font-weight: bold;">,</span> tworzący w ilości od 10 do 55 osobników (27.02.1996) drugą co do wielkości kolonię. W ilości kilku sztuk lub pojedynczo zimują inne gatunki: wąsatek <strong><em>Myotis mystacinus</em></strong>, gacek brunatny <strong><em>Plecotus auritus</em></strong>, mroczek późny <strong><em>Eptesicus serotinus</em></strong> i nocek rudy <strong><em>Myotis </em></strong><strong><em>daubentonii</em></strong>. W połowie lat 80-tych wycofał się stąd podkowiec mały <em style="font-weight: bold;">Rhinolopus hipposideros</em>, wcześniej regularnie tu spotykany. W jaskini obserwowano (11 października 1980 r.) rzadko spotykanego, nadrzewnego gryzonia - popielicę <strong><em>Glis glis</em></strong> (Profus, Zygmunt 2000).&nbsp;&nbsp; </span></p>  <p><span>Światło słoneczne przenika tylko do Sali Wejściowej, jako światło odbite. Woda występuje w jaskini w postaci spadających ze stropu kropli oraz stałego, bardzo małego zbiorniczka w Sali Zawaliskowej i w błotnistym zacisku w sali końcowej „Ciągów Maryny”. W pobliżu otworu występuje skąpa roślinność naskalna, najczęściej mszaki. Natomiast na butwiejących szczątkach wrzuconych belek drewnianych rozwijają się na dnie Komory Wejściowej liczne gatunki grzybów. Do najokazalszych należy soplówka gałęzista <strong><em>Hericium clathroide</em></strong><em style="font-weight: bold;">s</em>.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Badania geologiczne prowadził Wójcik (19580, mikroklimat opisał Łęski (1971), badania faunistyczne prowadzili Skalski (1973a) oraz - nietoperze - Postawa i in. (1994) I Profus, Zygmunt (2000).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                      <p><span>Jaskinia wychodzi na powierzchnię naturalnym otworem, więc z pewnością jej położenie było znane od dawna, podobnie jak jej ludowa nazwa - Studnisko - sięgająca początków XIX wieku. Wiślicki w roku 1856 przytacza pierwszy opis groty:</span></p>  <p><span>„<em>W Olsztynie, oprócz groty zwykle przez podróżników zwidzanej </em>(J. Olsztyńskiej - J.Z.)<em>, znajduje się w stronie południowo-zachodniej druga grota, idąca pionowo w głąb skupienia, tak iż niepodobna jej zwidzić bez liny. Nieposiadając takowej, w głębi groty nie byliśmy: umieszczamy jednak opis jej, podany przez naocznego świadka, Wilkoszewskiego, strzelca rządowego w leśnictwie Olsztyn, straży Zrębice. - „ Grota do której spuszczaliśmy się z podleśnym P..... w 1845 r., w miesiącu maju, położona jest w straży Zrębice, w obrębie niskopiennym Zrębice, oddziale Sokole. Nazwisko pospolite nosi od dawnych czasów Studnisko. Wysokość jej stóp 114 (z długości liny wiadoma), szerokość około stóp 100. Kształt jest więcej podobny do okrągłego, jednakowoż okrągłość jest nieregularną, gdyż są tam różne zakątki i wystające murki. Wpuszczaliśmy się otworem podobnym do okna, którego długość może być 6 i pół, szerokość 5 stóp; lecz zaraz po dwóch stopach wpuszczenia się na dół rozprzestrzenia się grota do stóp 40, i stopniowo powiększa się ku spodowi do rozległości jak wyżej oznaczono. Zakąty są różne i w różnych kierunkach, rozpadliny znajdują się w spodzie i w ścianie od wschodu, lecz człowiek niemi przechodzić nie może. Po ziemi w niektórych miejscach się znajdującej szlakować można kuny i lisy, więc temi otworami ony tam przechodzą. Z pierwszej groty przechodzi się do drugiej, bardzo niskim przechodem ku północy. Podobnej jest ona wielkości do pierwszej, lecz wysokość jej mniejsza, bo stóp 40 do 50. Kształt jej jest kopułowy, bardzo nieregularny, tak z boków, jako też i od spodu. W tej grocie bardzo jest wiele stalaktytów, różnej wielkości i kształtów, tak od góry jako też i od dołu. Te stalaktyty wyobrażają laski, cybuchy (bo w nich są dziurki na wylot), chmury, różne figury i t.p. rzeczy do podziwienia ludzkiego.</em></span></p>  <p><em><span>Jest także w pierwszej grocie kamień, na który w znacznej ilości woda z góry spada; na tym to kamieniu uformował się stolik okrągły, gładki, na jednej niby nodze stojący, mogący mieć średnicę 1 i pół stopy. Ściany grot są koloru białego, takież są i stalaktyty; lecz te, wyniesione na świeże powietrze, sinieją. W kilku miejscach w kamieniu całkowitej ściany znajdowałem wrośnięte krzemienie i skamieniałe muszle. W drugiej grocie, pomiędzy północą a wschodem, jest rozpadlina od góry, którą się wysypała ziemi z drobnym kamieniem dość znaczna ilość. Tą rozpadliną dochodzą korzenie od drzewa (...). W pierwszej grocie znaleźliśmy kości wołu, który czy wpadł, czy też umyślnie był wrzucony, trudno odgadnąć. Znajdują się tamże kości psów, strącanych przez gospodarzy, gdy ich służba im się nie podoba...</span></em><span> ”&nbsp;</span></p>  <p><span>W pierwszych latach XX-go wieku Studnisko było obiektem eksploatacji szpatu. W Komorze Wejściowej na poziomie około 15 m zachowały się niewielkie sztolnie, zaś przed otworem stożek usypiskowy z okruchami kalcytu. W niektórych źródłach mylnie podaje się, że pierwszą osobą w jaskini był szpatowiec, niejaki Dyński z Olsztyna, w roku 1907.</span></p>  <p><span>W roku 1948 wzmianka o jaskini znalazła się w artykule „Projekt rezerwatu Sokole Góry”, na podstawie informacji K. Kowalskiego. Jednak w I-szym tomie „Jaskiń Polski” autor ten traktuje Studnisko zdawkowo, nawet nie zamieszczając jej planu, zaś dwuzdaniowy opis, dotyczący tylko pierwszej sali został wykonany na podstawie relacji W. Szymczakowskiego z dnia 23 października 1949 r. W latach 60-tych i 70-tych jaskinia stanowiła bardzo popularne miejsce do ćwiczeń grotołazów.</span></p>  <p><span>W roku 1984 na podstawie analizy topografii Sali Zawaliskowej oraz bocznych korytarzyków Sali Pochyłej - tj. Sali Nacieków Kalcytowych, przeprowadzonych przez A. Bednarczyka i J. Zygmunta, postanowiono rozpocząć eksplorację zasypanej studzienki. Przy okazji zajęć szkoleniowych Speleoklubu PTTK Częstochowa przekopano się na głębokość około 4 m. Prace te ukończyli M. Miklas, H. Dłubis, P. Krzyształowicz, J. Sondej i M. Mazur, którzy 14 kwietnia 1985 r. odkryli dolne partie jaskini, tzw. „Ciągi Maryny”, osiągając największą w jurajskich jaskiniach głębokość - 68,3 m.</span></p>  <p><span>W roku 1991 (Śliwiński 1992) częstochowscy grotołazi (T. Bojczuk, P. Hercog, B. Jaworski, W. Małolepszy, P. Bednarek i J. Śliwiński) odkopali 3-metrową studzienkę w końcowej sali „Partii Maryny”, odkrywając dzięki temu bardzo ciasne korytarzyki (Partie Spragnionych) oraz osiągając głębokość -77,5m. Partie te zostały splanowane przez J. Śliwińskiego. </span></p>  <p><span>Przewieszone ściany komory wejściowej były wielokrotnie celem wspinaczkowych prób. W latach 60-tych udało się to, z pomocą techniki hakowej, J. Kopaczowi. Pierwszych klasycznych wyjść (trudności VI.2) dokonali: z asekuracją górną - G. Kimla i M. Łysakowski w 1993 r., z asekuracją dolną - M. Łysakowski i P. Konarski 10 lutego 1995&nbsp;r. (Zygmunt 1996). </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Obszerny opis jaskini wraz ze szkicem planu i przekroju opublikował w 1958 r. Z.&nbsp;Wójcik. Szczegółowy plan autorstwa J. Zygmunta i M. Miklas, z uwzględnieniem dolnych, nowoodkrytych partii, został opublikowany przez Szelerewicza i Górnego (1986). Powstał on na podstawie pomiarów, wykonanych przy pomocy busoli geologicznej Freiberg i taśm parcianych i metalowych w roku 1983 przez: K. Najmana, P. Kołodziejskiego, M. Różyckiego, J. Janickiego, A. Cymkiewicza i J. Zygmunta. Jedynie Komora Wejściowa została pomierzona przy pomocy teodolitu 11 kwietnia 1982 r. przez I. Szymczyk, A. Bednarczyka i J. Zygmunta. „Ciągi Maryny” (zwane czasem „Przeczuciem Maryny”) zostały pomierzone w kwietniu 1985 r. przez M. Miklas, H. Dłubisa i D. Przybyłę.&nbsp;Ponownie partie te zostały zmierzone 19 stycznia 2000 r. przez M. Miedzińskiego, M. Zamorskiego i J. Zygmunta. Dane zaktualizował J. Zygmunt w 2009 r. W 2011 r. M. Polok i M. Słupińska dokonali pomiarów jaskini przy pomocy instrumentu Cave Sniper. . Na tej podstawie wprowadzono poprawki do planu i przekroju oraz ustalono skorygowane dane morfometryczne - długość jaskini 285 m a głębokość 74 m.</span></p>Plan opracował J. Zygmunt.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Wiślicki A. 1856 (opis pierwszego wejścia); Kowalski K. 1948 (wzmianka); Kowalski K. 1951 (wzmianka, opis Komory Wejściowej); W&#243;jcik Z. 1958 (opis, plan); Skalski A.W., W&#243;jcik Z. 1968 (opis, plan); Łęski Z. 1971 (mikroklimat); Skalski A.W. 1973a (opis fauny bezkręgowc&#243;w); Szelerewicz M., G&#243;rny A. 1986 (opis, plan); Śliwiński J. 1992 (plan i opis najniższych części); Wiśniewski W.W. 1992 (historia poznania); Postawa T. i in. 1994 (zimowe spisy nietoperzy w Polsce 1988-1992); Wołoszyn B.W. 1996 (ocena stanu populacji nietoperzy); Zygmunt J. 1996 (notatka o wspinaczkach); Wiśniewski W.W. 1998 (historia poznania jaskiń Polski do roku 1900); Profus P., Zygmunt J. 2000 (nowe stanowiska popielicy); Zygmunt J. 2003  (wykaz jaskiń); Stefaniak K. i in. 2009a (fauna subfosylna, pn. Jaskinia Studnisko); Stefaniak K. i in. 2009d  (dane morfometryczne, kr&#243;tka charakterystyka,zakres badań, pn. Jaskinia Studnisko);Tyc A. 2009a (wzmiankuje w aspekcie genezy, pn. Jaskinia Studnisko); Tyc A. 2009b (w aspekcie ochrony przyrody, pn. Jaskinia Studnisko) ; Dumnicka E. 2011 (wzmianka o występowaniu  chrząszcza Choleva septentrionis gracilenta); Jaskinie Wyżyny Częstochowskiej 2011a  (plan i opis inwentarzowy); Polok M., Słupińska M. 2013 (jako obiekt zobrazowania 3D zaktualizowane dane morfometryczne); Zygmunt J. 2013 (plan i przekr&#243;j, replika opisu (nieco rozszerzona)  z t.1 Jaskinie Wyżyny Częstochowskiej, fot. otworu i wnętrza, pod numerem inwentaryzacyjnym według własnego podziału autora).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Zygmunt J. i in. 2000 (dokumentacja). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Zygmunt
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1968)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(2058)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

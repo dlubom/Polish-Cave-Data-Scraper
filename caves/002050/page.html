@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2050">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2050;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "555640,2806".replace(',', '.') + "," + "258625,3804".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2050','Jaskinia na Tomasz&#243;wkach Dolnych'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia na Tomasz&#243;wkach Dolnych
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko na Tomasz&#243;wkach Dolnych III
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.I-07.59
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;46′47,00″, φ: 50&#176;11′32,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wielka Wieś (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krakowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 i 3 - ku NE; 4 - ku SW, 5 - ku W; 6 - ku g&#243;rze. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                9,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                6,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                16
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    100
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Dolina Będkowska.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od wywierzyska potoku Będkówka idziemy w górę doliny, po przejściu około 750 m po prawej stronie znajduje się duża grupa skalna - masyw Wielkiej Skały, 300 m dalej z prawej strony mijamy grupę skałek z dużym otworem Jaskini Łabajowej. Idąc dalej dnem doliny przechodzimy około 300 m mijając z prawej strony zalesione zbocze Dupnej Góry i dochodzimy do kolejnego zalesionego wzgórza z kilkoma grupami skalnymi Tomaszówek Dolnych. W trzeciej grupie skałek, w najwyższej z nich znajdują się otwory Jaskini na Tomaszówkach Dolnych. Jaskinia trudna w zwiedzaniu, w 9 metrowej studni przy zejściu pomocna jest lina, niezwykle trudne do pokonania są dwa zaciski (Z III) w dolnym ciągu jaskini.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Sześć otworów jaskini znajduje się w najwyższej skałce, najwyższy, stanowiący otwór studni, w pobliżu jej wierzchołka, 3 otwory z ekspozycją ku NE (w tym otwór główny), jeden ku SE i jeden otworów wysokiej szczelinie wyprowadza na zachodnie zbocze. Otwór główny (I) ma szerokość 2,5 i wysokość 1 m za nim znajduje się niewielka salka, z której ku SW biegnie wysoki korytarz na otwartej ku górze szczelinie, który wyprowadza na zbocze w otworze VI, a w głąb skały na SE ciągnie się korytarz rozdwajający się po 2 m. Jedna odnoga prowadzi w kierunku otworów II-V a druga, biegnąca na S, prowadzi do komory z dwoma oknami skalnymi znajdującymi się jedno nad drugim. Dalej znajduje sie następna komora z oknem skalnym w SE ścianie na wysokości 2 m od jej dna. Za oknem krótki, metrowy korytarz urywa się 9 metrową studnią. Z jej dna krótki szczelinowy korytarz odchodzi ku SW znajduje się w nim ku SSE pionowa, ciasna szczelina (Z III), pod nią stroma, skalna pochylnia sprowadza na dno niskiego korytarz ciągnącego się 3 m ku NE i meandrując ku W (Z I), za którym po 2 m wprowadza do salki z oknem w zachodniej ścianie na wysokości 0,5 m. Za tym oknem ciasna (Z III), metrowej długości szczelina wyprowadza w kolejnej salce znajdującej się w najniższym punkcie jaskini. Z salki ku NE biegnie 2,5 metrowy korytarz z poprzeczną szczeliną, zakończoną salką z kominem zablokowanym gruzem ze szczątkami kostnymi w stropie. W najniższych partiach poniżej studni występuje bogata, mocno zniszczona szata naciekowa.</span></p>  <p><span>Jaskinia powstała w wapieniach skalistych górnej jury (oksford). W jaskini występują liczne formy erozyjne powstałe w warunkach freatycznych, są to kotły wirowe w stropie i&nbsp;na ścianach, korytarze w formie rur krasowych, drobne koliste kanały i liczne wżery. </span></p>  <p><span>W jaskini występuje bogata szata naciekowa, w komorach z oknami na ścianach i stropie znajduje się duże nagromadzenie nacieków z plastycznego i skonsolidowanego mleka wapiennego. W korytarzach i salkach znajdujących się pod zaciskiem Z III na dnie studni występuje bogata szata naciekowa w postaci polew z żebrami naciekowymi, stalaktytów i&nbsp;niewielkich stalagmitów. Na dnie znajdują się misy naciekowe o barierach wysokości kilku cm, w nich znajdowały się liczne pizolity, osiągające 7 cm średnicy, które poza misami występowały również w korytarzyku biegnącym na ku NE na dnie pod pierwszym zaciskiem Z III. W niewielkim jeziorku na dnie meandrującego korytarza na stalagmitach na poziomie wody znajdują się kalcytowe kołnierze.</span></p>  <p><span>W salce końcowej i korytarzu od niej odchodzącym na powierzchni namuliska i w jego osadach znajduje się duża ilość nacieków. Część nacieków została zniszczona przez zwiedzających jaskinię. Osady namuliska w jaskini są dosyć bogate, w znacznej mierze nienaruszone, tworzy je głównie ilasty, brązowy osad z gruzem wapiennym i w głębszych partiach jaskini - odłamkami nacieków. </span></p>  <p><span>Jaskinia jest wilgotna, występują w niej niewielkie jeziorka w misach martwicowych. Pomiędzy otworami panuje silny przewiew. </span></p>  <div>Światło w częściach przyotworowych sięga kilka metrów w głąb. </div>  <div>W otworach na ścianach występują glony i mszaki. </div>  <p><span>Wewnątrz zaobserwowano pajęczaki, głównie pająki <strong><em>Meta menardi</em></strong>, muchówki, komary i motyle szczerbówkę ksieni <strong><em>Scoliopteryx libatrix</em></strong> i paśnika jaskińca <strong><em>Triphosa dubitata</em></strong>. W&nbsp;jaskini hibernują nietoperze<em> <strong>Rhinolophus hipposideros</strong></em><strong>, <em>Myotis</em> <em>mystacinus/brandtii, Plecotus auritus, Barbastella barbastellus, Rhinolophus ferrumequinum </em></strong>i <strong><em>&nbsp;Myotis myotis</em></strong>.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    Nacieki były badane przez Pazdura i in. (1999). Faunę pajęczaków badała Sanocka-Wołoszynowa (1981), a bytowanie w jaskini nietoperzy - liczni autorzy w latach 1994-2008.<br />&nbsp;Na dnie jaskini prowadzono kilkakrotnie prace eksploracyjne (KKTJ i JKJ), w grudniu 1992 roku z komina w szczelinie na dnie, wydobyto kilka czaszek niedźwiedzia jaskiniowego i kość mamuta (okaz znajduje się na stałej wystawie w Muzeum Geologicznym AGH). <br />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znana była od dawna, po raz pierwszy wymienia ją  Danysz-Fleszarowa (1933). Wiosną 1967 roku A, Górny i M. Czepiel  połączyli jaskinię ze schroniskiem nr 159 (wg Kowalskiego 1951), 12  marca 1967 roku A. Górny poznaje studnię 9 metrową i po pokonaniu  zacisku ZIII na jej dnie odkrywa dolne partie.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Udokumentował ją Kowalski (1951). Aktualną dokumentację sporządził A. Górny (12.11.2009 r.). <br />Plan zestawił M. Szelerewicz na podstawie planów D. Bartoszewskiego 1998, M. Napierały 1976 i M. Szelerewicza 1971
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Danysz-Fleszarowa R. 1933 (w spisie jaskiń krajowych, poz. 278 [kilka jaskiń w skałach Tomasz&#243;wki]); Ciętak Z. 1935 (w spisie jaskiń południowej części Wyżyny Małopolskiej poz. 22, na mapie rozmieszczenia jaskiń); Kowalski K. 1951 (opis inwentarzowy poz. 159, „Schronisko na Tomasz&#243;wkach Dolnych III” i 156, „Jaskinia na Tomasz&#243;wkach Dolnych” [14, 15.IV.1946 r.], plany); G&#243;rny A. 1970b (opis nowych partii jaskini); Szelerewicz M. 1971b (plan); G&#243;rny A. 1972b (opis nowych partii 2 fot. naciek&#243;w); Czepiel M. 1980 (dane morfometryczne, opis jaskini, opis dojścia, plan wg M. Napierały [1978] i M. Szelerewicza [1968]); Sanocka-Wołoszynowa E. 1981 (wymienia z jaskini jeden gatunek kosarzy i 13 pająk&#243;w); Szelerewicz M., G&#243;rny A. 1986 (opis inwentarzowy poz. 14 (II.F.44), plan wg M. Napierały [1976]); Wołoszyn B.W. 1989 (kopalne szczątki podkowca małego Rhinolophus hipposideros); Labocha M, Wołoszyn B.W. 1994 (nocek wąsatek/Brandtta Myotis mystacinus/brandtii w jaskini); Pazdur A. i in. 1999 (11 pr&#243;bek w wykazie datowanych naciek&#243;w); Goc P. i in. 2000 (w tabeli stężenia azotan&#243;w w jaskiniach południowej części Wyżyny Krakowskiej); Nowak J., Kozakiewicz K. 2000 (podkowiec mały Rhinolophus hipposideros, nocek wąsatek/Brandtta Myotis mystacinus/brandtii i gacek brunatny Plecotus auritus hibernujace w jaskini; Nowak J. i 9n. 2002 (gacek brunatny Plecotus auritus i mopek Barbastella barbastellus hibernujące w jaskini; Postawa T. 2004 (badania tanatocenozy m.in. z jaskini); Kohyt J., Postawa T. 2007 (odłowienie podkowca dużego Rhinolophus ferrumequinum poza okresem hibernacyjnym w otworze Jaskini na Tomasz&#243;wkach Dolnych (25.05.2007 r.); Kozakiewicz K., Wołoszyn B.W. 2008 (nocek łydkowłosy w otworze Na Tomasz&#243;wkach Dolnych, gatunki nietoperzy hibernujące w latach 1991-2007 w jaskiniach Wyżyny Krakowskiej - Na Tomasz&#243;wkach Dolnych w tabeli); Nowak J., Grzywiński W. 2007 (podkowiec mały Rhinolophus hipposideros, nocek orzęsiony Myotis emarginatus, nocek wąsatek/Brandta Myotis mystacinus/brandtii); Jaskinie Wyżyny Olkuskiej 2010 (plan i opis inwentarzowy). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej G&#243;rny
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1579)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=1694" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

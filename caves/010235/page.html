@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10235">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10235;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "496921,95".replace(',', '.') + "," + "199756,36".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10235','Jaskinia Wiślańska'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Wiślańska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-04.65
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;57′26,40″, φ: 49&#176;39′54,70″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Brenna (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                cieszyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SE, 890 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                889
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                37,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                41
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    2275
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                115
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Leśnica, Malin&#243;w (1117 m n.p.m), Beskid Śląski.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z Przełęczy Salmopolskiej (Biały Krzyż 934 m n.p.m.) jedziemy drogą w stronę Wisły Malinki. Po 370 m, kilkadziesiąt metrów za ostrym zakrętem w lewo, z prawej strony drogi znajduje się dość długi parking, z którego idziemy w dół przechodząc w miejscu, gdzie brakuje metalowej barierki. Kierujemy się lasem świerkowym na NW, a po 50 m stok zaczyna gwałtownie opadać do dużego rowu rozpadlinowego. Tam w odległości kilku metrów od dużego monolitycznego bloku skalnego znajduje się otwór 1. Jaskini Wiślańskiej. Drugi otwór znajduje się 6 m na NW od poprzedniego, w dnie rowu.
+Dojście nieskomplikowane, otwór łatwy do znalezienia, widoczny dopiero z kilku metrów. Zwiedzanie trudne ze względu na liczne zawaliska oraz skomplikowany układ korytarzy i przejść, niejednokrotnie o znacznym stopniu trudności do pokonania. W jaskini korytarze rozwinięte są na kilku poziomach.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Przez niewielki tr&oacute;jkątny otw&oacute;r zsuwamy się w d&oacute;ł. Pierwsza salka, do kt&oacute;rej wpada światło, przedzielona jest niskim stropem, w spągu znajdziemy trzy niewielkie otwory do niżej położonej salki z wąskimi szczelinami. Na p&oacute;łnoc przebiega niska, gliniasta pochylnia. W jej połowie, po prawej stronie znajduje się wejście do partii przewyższenia. Wejściem tym, początkowo wąsko i niewygodnie przechodzimy do rozwidlenia korytarza. W prawo na S, można zejść do niskiej salki z zaciskiem na końcu, za kt&oacute;rym znajduje się wąska szczelina (podczas opad&oacute;w pojawia się okresowy ciek wodny).<br />Wracając ku N idziemy kilka metr&oacute;w korytarzem, kt&oacute;ry skręca w lewo, a następnie wiedzie wąską, zasypaną liśćmi pochylnią (najwyższy punkt jaskini +3,5 m) lub w d&oacute;ł do wygodnego korytarza ciągnącego się kilka metr&oacute;w na południe. W p&oacute;łnocnej części korytarza znajduje się niewielka studzienka z kilkumetrową kontynuacją (ciasno). Wracamy do pierwszej salki, skąd przez niewielki prożek w jej S krańcu przedostajemy się do gliniastej szczeliny (przekop). Dalej pochylnią w d&oacute;ł do łamanego, prostokątnego korytarza. W jego środkowej części znajdziemy pola ryżowe nawadniane przez niewielki aktywny ciek wodny, kontynuujący się w piętrze niższym (opis dalej). W części końcowej pomiędzy głazami można przejść do niskiej, pochyłej salki lub skręcając w prawo, a następnie w d&oacute;ł (na S) do ważnego orientacyjnie skrzyżowania zwanego Rozdrożem.<br />Z tego miejsca prowadzą dwie drogi - pierwsza na p&oacute;łnoc do Wyśniego Dna (poziom -28,0 m), druga na południe do tzw. Szuflady.<br />Będąc w najniższej części sali możemy przejść pod dużym głazem niskim wejściem do niższego piętra z ciekiem wodnym oraz kontynuacją p&oacute;l ryżowych.<br />Idąc z sali na NW wąskim przesmykiem wchodzimy do kolejnej salki. W lewo prowadzi prosta szczelina, my idziemy prosto (na N), gdzie znajduje się niewielka studzienka (plan-przesunięcie 1) prowadząca do szczeliny idącej do niższego piętra jaskini. Kierując się dalej na p&oacute;łnoc można przejść (ciasno) do początkowych części jaskini.<br />Wracamy do studzienki i początkowo niskim korytarzem dochodzimy do pionowej szczeliny schodzącej do kolejnej salki. W to miejsce można przedostać się drugą drogą bezpośrednio z sali za skrzyżowaniem, ciasnym przejściem pomiędzy głazami (plan-przesunięcie 2). Stąd możemy udać się na p&oacute;łnoc kr&oacute;tką szczeliną, w kt&oacute;rej końcowej części poprzez prożek kierujemy się do zawaliskowych, mających charakter labiryntu partii, prowadzących do tzw. Chr&oacute;mskich Paści lub w d&oacute;ł do krawędzi wysokiej szczeliny (plan-przesunięcie 3). Mijając krawędź po lewej stronie schodzimy do r&oacute;wnoległego pęknięcia o ładnym stropie. W jego południowej części znajduje się kolejna studzienka, kt&oacute;rą w d&oacute;ł wydostajemy się do gł&oacute;wnego pęknięcia Wyśniego Dna. Wysoki na 5,0 metr&oacute;w korytarz ciągnie się w linii N-S. Idąc na p&oacute;łnoc dochodzimy do załamania szczeliny, w prawo biegnie wstecz r&oacute;wnoległa szczelina do studzienki zejściowej, w lewo gł&oacute;wnym korytarzem do kolejnego załamania kończącego się ścianą z blok&oacute;w. W najniższej części korytarza znajdziemy bardzo ciasne przejście do Sali Czornego Kutacza (plan-przesunięcie 9).<br />Wracamy gł&oacute;wnym ciągiem na południe, dochodzimy na krawędź progu (2,0 m) prowadzącego do najniższego miejsca tych partii (-28,0 m). Wracając z punktu -28,0 m na N wejdziemy do wysokiej tr&oacute;jkątnej sali. Wychodzimy na pr&oacute;g znajdujący się w jej środku i pnąc się na N wchodzimy do szczeliny z kominkiem. Tutaj znowu wspinając się (zapieraczką) wychodzimy na pośrednie piętro. Następnie ku SW natrafiamy na komin z prostą szczeliną ku S, idąc do końca wchodzimy do zawaliskowych salek bez dalszej kontynuacji. Wracamy na p&oacute;łnoc, na drugim końcu sali poprzez system kr&oacute;tkich korytarzy wejdziemy nad krawędź studni (nr 3) lub idąc szczeliną w g&oacute;rę do jeszcze wyższego pietra łączącego się z gł&oacute;wnym ciągiem w rejonie rozwidlenia do Chr&oacute;mskich Paści.<br />Opisywane wcześniej wejście do Ch&oacute;mskich Paści znajduje się po lewej stronie kr&oacute;tkiej szczeliny, na N od gł&oacute;wnego ciągu. Początkowo prosto, następnie w lewo. Korytarz rozdwaja się, w lewo dojdziemy na g&oacute;rną krawędź Wyśniego Dna natomiast w lewo (na N) poprzez system pęknięć, niskich szczelin zasypanych kamieniami i gliną (zawalisko-łatwo jest się zgubić) dotrzemy do litej salki ze studzienką po środku. Korzystając z zamocowanej liny zjeżdżamy do kolejnej większej sali o litych ścianach. W jej dolnej szczęści znajduje się wejście do długiego, niskiego korytarza o wdzięcznej nazwie Sala Czornego Kutacza. W jego początkowej części, w lewo (na N) można przejść wspomnianym wcześniej ciasnym przejściem do Wyśniego Dna (nr 9). Idąc dalej salą Cz. K. mamy trzy możliwości.<br />Pierwsza, po lewej znajdziemy wejście do litej i prostej szczeliny o długości około 10 metr&oacute;w.<br />Po prawej, wejście do korytarza z wodą, kt&oacute;ry początkowo lity, przekształca się w zawalisko o piętrowym ukształtowaniu.<br />Idąc prosto staniemy na dnie wąskiej szczeliny, skąd albo po spągu pomiędzy blokami do zawaliska łączącego się z wspomnianym korytarzem z wodą lub idąc w g&oacute;rę na wyższe piętro r&oacute;wnież połączone z zawaliskiem, lecz na innym poziomie. Partie te są dosyć trudne orientacyjnie.<br />Idąc dalej w g&oacute;rę należy odszukać skrajnie ciasną szczelinę Skurwywija (ZII). Najpierw pionowo w g&oacute;rę, by po przejściu tego miejsca przecisnąć się horyzontalnie (najlepiej na plecach) pod wiszącym głazem nad dalszą częścią szczeliny. Następnie po 2,0 m kolejny pionowy zacisk, z kt&oacute;rego wchodzimy w poziomą szczelinę z następnym zwężeniem (Partie do Skurwywija). Właśnie pokonaliśmy połączenie ze starą Jaskinią Wiślańską II.<br />Wychodząc z prostej szczeliny Partii do Skurwiwija możemy wejść w g&oacute;rę do kr&oacute;tkiej odnogi jaskini, składającej się z dw&oacute;ch korytarzy na zach&oacute;d od Partii Sk, albo wejść do wysokiego na ponad 3,0 m korytarza z progiem na końcu (prawy korytarz). Wspinamy się progiem, następnie niskim korytarzem czołgamy się na N. Korytarz skręca w prawo, a po kilku metrach jeszcze raz w prawo. Idąc prosto w d&oacute;ł wr&oacute;cimy na miejsce startu, natomiast w lewo (na E) przejdziemy do gł&oacute;wnej sali jaskini (Sala Nietoperzowa). Przebiega ona w kierunku N-S. W centralnym miejscu Sali wspinamy się progiem do g&oacute;ry (wszędzie guano). Na N przez niewielkie zwężenie można wejść do bocznego ciągu, natomiast idąc na S początkowo ładnym korytarzem, a następnie przez zwężenie dochodzimydo studzienki zejściowej. U podn&oacute;ża studzienki znajdziemy litą szczelinę zawracającą ku N.<br />Wracamy do centralnego miejsca Sali nietoperzowej, stąd przez niewielki przesmyk na E wchodzimy do wąskiej szczeliny prowadzącej w kierunku otworu Jaskini Wiślańskiej II. Mijamy ostatnią salę i niską pochylnią czołgamy się do wyjścia. Otwory jeden i dwa położone są od siebie w odległości zaledwie kilku metr&oacute;w lecz po przeciwległej stronie rowu.<br />Wracamy do Rozdroża i opisywanej wcześniej Szuflady. Wejście do niej zaczyna się w sali poniżej p&oacute;l ryżowych. Kierujemy się na SW niskim korytarzem o niezbyt stabilnie wyglądającym stropie. Schodzimy w d&oacute;ł, gdzie znajduje się niska szczelina zakręcająca w lewo i jednocześnie do g&oacute;ry. Miejsce to należy pokonywać głową do przodu i na plecach. Jest to miejsce wyjątkowo niebezpieczne (co najmniej jeden przypadek obrywu). Przedostajemy się do salki, prawdopodobnie położonej blisko powierzchni, skąd pęknięciem do szeregu sal i szczelin o zawaliskowym i niestabilnym charakterze (około 4). Na końcu znajduje się sala pokryta rumoszem skalnym (pierwsza większa), skąd kierujemy się na S. Po około 10,0 m natrafiamy na większą przestrzeń, weszliśmy do jednej z większych w jaskini sal zwaną Waszkuchnią. Stąd zmierzamy wysokim i litym korytarzem na S (do sali z lustrem tektonicznym), a następnie w d&oacute;ł przez pr&oacute;g do ostatniej szczeliny kończącej się na poziomie -22,0 m. Z sali z lustrem można przedostać się do piętra nad Waszkuchnią. Piętro ma także połączenie z dolną częścią Waszkuchni poprzez kominek w suficie oraz pochylnię.<br />Wracamy do Waszkuchni. Idąc wzdłuż lewej ściany na N wejdziemy do bocznego ciągu składającego się z piętrowo ułożonych salek i szczelin połączony z resztą systemu co najmniej w dw&oacute;ch miejscach. Idąc z Waszkuchni na W (w d&oacute;ł niewielką pochylnią) wejdziemy do niższej części sali. Rozdziela się ona na dwa odrębne kierunki. Na N, do Sali 56 (numer ciągu pomiarowego na suficie) oraz na południe niskim przekopem do Partii Żerujących.<br />Przekop do Partii Żerujących odnaleziony podczas eksploracji znajduje pomiędzy luźnymi blokami. Wyjątkowość tego &bdquo;nonsensownego&rdquo; korytarza polega na tym, że po przeczołganiu się kilkunastu metr&oacute;w w d&oacute;ł, a następnie skręcając z powrotem na N wejdziemy do wysokiego pęknięcia o litych ścianach. Kierując się w g&oacute;rę przed zejściem do pęknięcia trafimy na ciasną szczelinę do kolejnej salki. Z niej rumowiskowymi i niskimi przełazami można wr&oacute;cić do Sali 56 (uwaga na trudności w odnalezieniu właściwej drogi). Wracamy do przekopu, kr&oacute;tko przed skrętem korytarza na N znajdziemy wąską szczeliną na W. Na początku był to skrajnie trudny zacisk pokonany tylko raz przez Artura Żerę, jednakże został on poszerzony w czasie dalszej eksploracji. Za zaciskiem znajdują się dwie następujące po sobie salki. W najdalszym punkcie tej drugiej (p&oacute;łnocnym) znajdziemy ciasne tr&oacute;jkątne &bdquo;okienko&rdquo; będące wejściem do Chorych Partii. Miejsce to odnalazł oraz przekopał Jakub Pysz, kontynuując tym samym dzieło swojego kolegi Artura. We wspomniane okienko należy wejść głową, by następnie zanurkować w d&oacute;ł 1,5 m do niskiej salki, a następnie dalej na N niewygodnymi szczelinami. Po przejściu tych partii jest w miarą szeroko i wysoko, pierwsze dwie sale robią lepsze wrażenie od tych pokonywanych nieustannie na kolanach i na brzuchu. Idąc dalej na N natrafimy na kr&oacute;tką studzienkę prowadzącą do niższego, ale ładnego piętra (plan-przesunięcie 7).<br />Początkowo idziemy zawaliskową pochylnią w d&oacute;ł do połączenia z litym pęknięciem. Z niego na południe można przejść do zasypanej blokami sali i znajdującej się pod nią szczeliny. Natomiast na p&oacute;łnoc, przechodząc załamanie korytarza do kolejnej wysokiej szczelinę z widocznym g&oacute;rnym piętrem. Dostać się na nie można wąskim pęknięciem po lewej stronie, początkowo prosto (ku S), by po kilku metrach skręcić na N pochylnią. Po wejściu na piętro odnajdujemy szczelinę w d&oacute;ł, po prawej stronie sali, prowadzącą do ostatniego korytarza tych partii. Na N biegnie lita szczelina o gładkich ścianach o długości około 20,0 m. W kierunku S szczelina rozszerza się i kończy &bdquo;salą do kt&oacute;rej nikt nie chodzi&rdquo;.<br />Wracamy do Sali 56, skąd można wybrać cztery alternatywne drogi. Na S do końca sali i szczelinami w kierunku Partii Żerujących (opis powyżej). W kierunku dna jaskini (ku W) lub na N początkowo szerokim korytarzem do pochylni prowadzącej do ładnej Sali z progiem, o wysokości około 4,0 m. Stąd dalej na N biegną kruche, zawaliskowe szczeliny (nie polecane do zwiedzania) lub na S ciasnym pęknięciem do połączenia z korytarzami idącymi do dna jaskini.<br />Startujemy z Sali 56 niewielkim pęknięciem w spągu, nieco w d&oacute;ł, by przejść pod obniżeniem korytarza, a następnie do salki z dwoma studniami. Wybieramy tę prawą, schodząc w d&oacute;ł natrafiamy na dwa korytarze. W lewo w d&oacute;ł do kolejnej sali z bardzo ciasnym połączeniem do niższego piętra lub prosto w zawalisko z czaszką. Przejściem pod czaszką (na N) można dojść do wspomnianej wyżej Sali z Progiem lub pionowym pęknięciem w d&oacute;ł do niższych pięter jaskini. Po zejściu w d&oacute;ł znajdujemy się w gł&oacute;wnym ciągu do dna jaskini, na N biegnie szczelina o długości około 10,0 m. Natomiast na S od nas znajduje się sporej wielkości sala z wielkimi głazami w centralnej części. Dalej na S można przejść do kr&oacute;tkiego zawaliskowego ciągu z litą szczelina na końcu.<br />Wracamy do sali z głazami, wchodzimy pod największy z nich (rodzaj płyty skalnej) i korytarzem na S idziemy do miejsca, gdzie korytarz skręca w prawo (ku W) i łączy się z salą J. G. Z tego miejsca można iść gł&oacute;wnym ciągiem (ku S) lub w kierunku odwrotnym do pierwotnego, do mniejszej salki, a następnie prosto na N szczeliną, kt&oacute;ra w końcowej części przekształca się w pionowe pęknięcie. Po drodze mijamy wejście do bocznych korytarzy (na E). Pęknięciem schodzimy do jego dna, dalej na W i przez niewielki prożek do g&oacute;ry na wyżej położone pięterko. Znajdujemy się w zawaliskowej sali pełnej ruchomych blok&oacute;w, połączenie na N nie jest polecane ze względu na niestabilne podłoże. Zsuwamy się w d&oacute;ł (na E) do ciągu do dna. Z niego idąc na N można połączyć się z wspomnianą wyżej salą z ruchomymi blokami. Na S wchodzimy do rozszerzenia z wielką płytą w dolnej części. Pod nią znajduje się prożek do jednego z głębszych punkt&oacute;w w jaskini -36,8 m. Idąc od płyty dalej na S przez niezbyt trudny zacisk przedostaniemy się do korytarzy łączących się bezpośrednio z salą J .G.<br />Wracamy do sali J. G., z niej na S prawą stroną bezpośrednio przy ścianie (do g&oacute;ry wejście do dna &ndash; 36,8 m) idziemy prosto i przy następnym rozszerzeniu wybieramy pochylnię w lewo. Przy lewej ścianie znajduje się niewielki otw&oacute;r studzienki prowadzącej do Niźniego Dna. Idziemy cały czas na S, mijając ślepe odnogi bocznych korytarzy. W szczelinie końcowej będącej najdalej na N wysuniętym fragmentem jaskini a zarazem najgłębszym punktem pomiarowym, kt&oacute;ry ustalono na głębokości -37,5 m względem otworu gł&oacute;wnego.<br />Wracamy do gł&oacute;wnego ciągu, korytarz o charakterystycznym stropie (lustro tektoniczne), po kilku metrach obniża się i poprzez kr&oacute;tki pr&oacute;g ciągnie się w tym samym kierunku do nieco wyższego dna -30,8 m. Na NW trawersem nad kilkumetrowej głębokości studzienką przechodzimy do ostatniej dużej sali w tej części jaskini. Nad salą znajdziemy jeszcze wiszący prożek z kilkumetrową kontynuacją oraz kierując się na SW szczelinę o długości ponad 20,0 m kończąca się na głębokości -31,6 m. Wracając z powrotem możemy zejść wspomnianą studzienką w d&oacute;ł do niskiej pochylni lub salki z głazami.</p>
+<p>Według Urbana (2010) &bdquo;<em>Jaskinia występuje w gruboławicowych piaskowcach warstw godulskich g&oacute;rnych (kreda g&oacute;rna). Stanowi labiryntowy system korytarzy rozwinięty w obrębie osuwiska powstałego w wyniku grawitacyjnego rozpadu stoku g&oacute;rskiego. W g&oacute;rnej, p&oacute;łnocno-wschodniej części jaskini (w sąsiedztwie otworu) dominują ciasne korytarze wykształcone pomiędzy niezbyt dużymi blokami skalnymi (jaskinia typu blokowiskowego &ndash; talus type cave). Niżej występują ciągi większych i wyższych pustek rozwinięte wzdłuż spękań ciosowych. Ich położenie wskazuje na rozpad stoku na kilka dużych pakiet&oacute;w o wydłużeniu mniej więcej r&oacute;wnoległym do jego rozciągłości (patrz plan jaskini). Lokalnie (cześć NW) ciągi wygięte są w kierunku spadku stoku, sugerując cyrkularny charakter ruchu osuwiskowego i powstanie w przyszłości amfiteatralnej niszy osuwiskowej. Na ścianach jaskini obserwuje sie tzw. struktury żebrowe, świadczące o naprężeniach tektonicznych (r&oacute;wnoległych do spękań) występujących przed ich otwarciem a także ślady grawitacyjnego poślizgu mas skalnych. W jaskini napotkano tez niewielkie, lecz zr&oacute;żnicowane wt&oacute;rne formy mineralne: a) nieregularne stalaktyty i polewy zbudowane z opalu i amorficznej substancji, kt&oacute;re maja niekiedy rdzeń zbudowany z materii organicznej, b) pokrywy kilkumilimetrowych grzybkowych wyrostk&oacute;w kalcytowych, c) naskorupienia drobnych (1-3 mm) kryształk&oacute;w gipsu. Datowania radiowęglowe substancji organicznej z trzech stalaktyt&oacute;w wskazują na wiek 2,5-10 tys. lat, co sugeruje stosunkowo znaczny, wczesnoholoceński lub nawet p&oacute;źnoplejstoceński wiek ruch&oacute;w masowych, kt&oacute;re doprowadziły do powstania osuwiska. Jaskinia Wiślańska jest najdłuższą jaskinią zewnętrznych Karpat zachodnich i prawdopodobnie najdłuższą jaskinią w skałach niekrasowiejących Europy Środkowej. Odkryto ją jesienią 2003 r., jednak gł&oacute;wny etap jej eksploracji przypadł na lata 2006-2009. Badania geologiczno-geomorfologiczne, rozpoczęte w jaskini oraz w obrębie otaczającego ją osuwiska w 2007 r. i nadal kontynuowane, zmierzają do rozpoznania struktury stoku oraz wieku i charakteru ruch&oacute;w masowych.</em>&rdquo;<br />Jaskinia w wielu partiach jest wilgotna, szczeg&oacute;lnie w porze roztop&oacute;w, czy po długotrwałych opadach deszczu. Zaobserwowano wywiew z jaskini w okresie zimowym oraz zaciąganie powietrza w lecie. Światło sięga na pochylnie wejściowe w obu otworach, w nieznacznej odległości od wejścia do jaskiń.<br />Ściany korytarzy wejściowych pokrywają częściowo porosty. W okolicach otwor&oacute;w znajdują się korzenie drzew.<br />W jaskini zaobserwowano pająki oraz ćmy. Jaskinia jest bardzo ważnym zimowiskiem dla co najmniej 7 polskich gatunk&oacute;w (<em><strong>Rhinolophus hipposideros</strong></em>, <em><strong>Plecotus auritus</strong></em>, <em><strong>Myotis myotis</strong></em>, <em><strong>M. nattereri</strong></em>, <em><strong>M. emarginatus</strong></em>,<em><strong> M. daubentoni</strong></em>, oraz <em><strong>M. mystacinus</strong></em>). Przy czym trzy gatunki bliźniaczo podobne<em><strong> Myotis mystacinus / brandtii / Alcathoe</strong></em> oznaczane są tylko na podstawie cech zewnętrznych jako <em><strong>M. mystacinus</strong></em> sensu lato. Nieprzerwanie od 2007 roku wraz z członkami Stowarzyszenia dla Natury "Wilk" prowadzony jest spis nietoperzy. Średnia ilość nietoperzy waha się pomiędzy 100 &ndash; 130 sztuk z czego ponad 70% to podkowiec mały.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinię odkrył 20 września 2003 roku Czesław Szura. Na niewielki, zagruzowany otw&oacute;r natrafiono podczas penetrowania osuwiska. Początkowo jaskinia posiadała niewielkie wymiary (około 30 m) rozwijając się ponad otw&oacute;r (+3,5 m). Podczas prac mierniczych udrożniono jedną ze szczelin, otwierając drogę w głąb systemu. Zaledwie po kilku akcjach długość jaskini wynosiła ponad 200 m oraz 25 m deniwelacji. Kluczowym okazało się przebycie zacisku (Szuflada) prowadzącego do najgłębszych partii jaskini składających się z szeregu szczelin, sal oraz obiecujących galerii. Przez kolejne lata eksplorowano te partie osiągając głębokość -37,5 metr&oacute;w (Nowe Dno). Ostatnie większe odkrycia pochodzą z zimy 2008 i 2009 roku. W Partiach Żerujących natrafiona na boczne ciągi dochodzące do 240 m długości. Rok p&oacute;źniej podczas kartowania okolic Starego Dna odkryto obszerne partie (Chr&oacute;mskie Paści długości 160 m) podchodzące do znajdującej się niedaleko Jaskini Wiślańskiej II o długości 136 m. Prawdopodobnie jaskinie połączą się w jeden system osiągając długość bezprecedensową, jak na warunki fliszowe. Prace prowadzone są od 6 lat (z przerwą na eksploracj Jaskini Miecharskiej w zimie 2005/2006 r.), w tym czasie przeprowadzono kilkadziesiąt akcji eksploracyjnych oraz mierniczych, na kt&oacute;rych wykonano łącznie ponad 800 pomiar&oacute;w.<br />Prace eksploracyjne i dokumentacyjne w jaskini nadal trwają. Uczestniczą w niej członkowie Stowarzyszenia Ochrony Jaskiń Beskidzkich "Grupa Malinka" - B. Juroszek, Ar. Żera, J. Pysz, G. Szalbot oraz Cz. Szura.<br />[opracował Cz. Szura]<br />- 20.09.2003 r. A. Szura, Cz. Szura - wstępna eksploracja, partie o długości 20 m i głębokości 6 m. Stwierdzono występowanie motyli, pająk&oacute;w i kości.<br />- 21.09.2003 r. U. Tebin, B. Nikiel, Cz. Szura - odgruzowano kolejny fragment jaskini, bogata fauna w tych partiach. Poznane partie o długości ok. 40 m.<br />- 24.09.2003 r. Cz. Szura, M. W&oacute;jcik - odkrycie szczeliny prowadzącej w głąb osuwiska. Spenetrowano korytarze o przypuszczalnej długości ok. 200 metr&oacute;w i głębokości ok. 20 m. Napotkano formy naciekowe &ndash; stalaktyty (ok. 5 cm), polewy, pola ryżowe, draperie o długości do 5-6 cm. Gł&oacute;wna część prowadząca do Wyśniego Dna ma 7 m wysokości i lite ściany.<br />- 27.09.2003 r. Cz. Szura, M. W&oacute;jcik - wyjazd dokumentacyjny, splanowano część jaskini prowadząca do przewyższenia i Salki z Kośćmi.<br />- 01.10.2003 r. Cz. Szura - splanowano fragment w kierunku dna, łącząc przy okazji kilka odn&oacute;g w trawersy oraz gł&oacute;wny ciąg do dna. Zaobserwowano nowe lokalizacje bardzo ładnych naciek&oacute;w (największy 15 cm), niewielkie kolumny naciekowe, pola ryżowe. 1 nietoperz (Myotis myotis). W chwili obecnej pomierzono 140 metr&oacute;w jaskini. Deniwelacja wynosi: 31.5 m (-28.00, +3.50). Temperatura na Wyźnim Dnie wynosiła +10&deg;C o godz. 18.00.<br />- 09.10.2003 r. Cz. Szura - odgruzowano kolejny fragment &ndash; na zach&oacute;d od Wyźniego Dna (powyżej) oraz na wsch&oacute;d do tzw. Szuflady &ndash; piękne partie, wysokie i obszerne sale (zwiedzono niewielki fragment). Temperatura na 1 Dnie +8&deg;C o godz. 21.00.<br />- 11.10.2003 r. B. Nikiel, Cz. Szura, M. W&oacute;jcik - skartowano korytarze w pobliżu Wyźniego Dna oraz sąsiednie odnogi. Temperatura na dnie Studni +7&deg;C o godzinie 14.00. Zbadano fragment partii w pobliżu Waszkuchni, ale dalszą eksplorację zatrzymał zacisk. Na stropie Waszkuchni zaobserwowano jednego nietoperza (Myotis myotis).<br />- 21.10.2003 r. Cz. Szura - znaleziono obejście zacisku zatrzymującego eksplorację w Partiach Pirackich, wyeksplorowano kilkadziesiąt metr&oacute;w nowych korytarzy.<br />- 2.11.2003 r. Cz. Szura, Al. Żera, Ar. Żera - w rejonie Waszkuchni wyeksplorowano kilkadziesiąt metr&oacute;w nowych korytarzy zwanych Partie Żerujących. Zaobserwowano 2 nietoperze Rhinolophus hipposideros w Waszkuchi. Temperatura na Wyźnim Dnie +6&deg;C o godz. 13.00.<br />- 21.03.2004 r. Cz. Szura - Przebyto zacisk w partiach przewyższenia doprowadzający do okresowego cieku wodnego. W okolicach Waszkuchni zaobserwowano 15 nietoperzy &ndash; 11 sztuk Rhinolophus hipposideros oraz 4 Myotis myotis.<br />- 13.05.2004. r. Cz. Szura - poszerzanie otworu wejściowego. Pomiary w okolicy Wyźniego Dna, pobrano pr&oacute;bki naciek&oacute;w oraz skał dla IOP PAN w Krakowie.<br />- 26.06.2004 r. Cz. Szura, M. W&oacute;jcik - akcja eksploracyjna w Szufladzie. Pr&oacute;ba obejścia zacisku zakończona przywaleniem przez wantę ważącą ok. 100 kg - wypadek przy eksploracji.<br />- 21.07.2004 r. Cz. Szura - prace pomiarowe na powierzchni oraz zamknięcie jaskini stalowa klapą.<br />- 22.11.2004 r. J. Hałas, Cz. Szura - na Wyźnim Dnie odkryto nowe ciągi &ndash; kilkanaście metr&oacute;w. Kartowanie ciągu do Waszkuchni oraz Pośredniego Dna. Temperatura w Wyźnim Dnie +6&deg;C, zewnętrzna -1&deg;C. 10 nietoperzy w Waszkuchni &ndash; 9 szt. Rhinolophus hipposideros oraz 1 szt. Myotis myotis. W końcowym korytarzu Pośredniego Dna zauważono wyczuwalny ciąg powietrza. Udokumentowano 300 m korytarzy.<br />- 08.01.2005 r. Cz. Szura - w rejonie Waszkuchni odkryto kilkanaście metr&oacute;w nowych ciąg&oacute;w w szczelinie prowadzącej w strop. Rozebrano zacisk na Pośrednim Dnie, odkryto ponad 100 m korytarzy, przeważnie sporej wielkości ale i kilkumetrowej głębokości pęknięcia. Zaobserwowano nietoperze: 15 szt. (Rhinolophus hipposideros), 2 szt. Myotis emarginatus &ndash; wszystkie w rejonie Waszkuchni.<br />- 12.03.2005 r. Cz. Szura, G. Woś - eksploracja nowych ciąg&oacute;w do Niźniego Dna, odnaleziono ciekawą szczelinę, obecnie najdalsze miejsce od otworu (110 m).<br />- 19.03.2005 r. J. Pysz, Cz. Szura - akcja eksploracyjno-kartograficzna. Pomierzono ciąg do dna nowych partii. Znaleziono wiele nowych szczelin, kilka miejsc pozostawiono do dokładnej penetracji. Najgłębsze zmierzone miejsce wynosi obecnie: -34,8m.<br />- 25.11.2006 r. G. Szalbot, Cz. Szura, B. Juroszek - odkrycie jaskini Wiślańskiej II.<br />- 29.12.2006 r. Cz. Szura, G. Szalbot - pomierzono okolice pierwszego dna.<br />- 12.01.2007 r. Cz. Szura, G. Szalbot, B. Juroszek - pomierzono Partie żerujących.<br />- 26.01.2007 r. Cz. Szura, G. Szalbot, B. Juroszek - pomierzono 73 m.<br />- 02.02.2007 r. Cz. Szura, G. Szalbot, B. Juroszek - pomierzono 34 m.<br />- 24.03.2007 r. Cz. Szura, G. Szalbot, B. Juroszek - pomierzono 97 m.<br />- 29.03.2007 r. Cz. Szura, G. Szalbot, R. Cieślar B. Juroszek - eksploracja i kartowanie.<br />- 05.01.2008 r. G. Szalbot, Cz. Szura - pomiary za Waszkuchnią.<br />- 12.01.2008 r. B. Juroszek, Cz. Szura - pomiary okolice Nizniego Dna.<br />- 21.03.2008 r. Cz. Szura, G. Szalbot, B. Juroszek - odkrycie Chorych Partii.<br />- 21.12.2008 r. Cz. Szura, G. Szalbot - pomiary na Niźnim Dnie.<br />- 28.12.2008 r. Cz. Szura - pomiary.<br />- 11.01.2009 r. Cz. Szura - pomiary.<br />- 31.01.2009 r. Cz. Szura, G. Szalbot, B. Juroszek - pomiary.<br />- 10.04.2009 r. Cz. Szura, J. Pysz - odkrycie Hr&oacute;mskich Partii.<br />- 06.06.2009 r. Cz. Szura, G. Szalbot, B. Juroszek - pomiary i eksploracja .<br />- 27.09.2009 r. Cz. Szura, A. Szura - pomiary uzupełniające w okolicy Chr&oacute;mskich Paści. Ostatnie pomiary jaskini.<br />- 05.11.2009 r. Cz. Szura, G. Szalbot, R. Cieślar - połączenie jaskiń Wiślańskich I i II przez Partie do Skurwywija.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Ostatnie pomiary jaskini.<br />- 05.11.2009 r. Cz. Szura, G. Szalbot, R. Cieślar - połączenie jaskiń Wiślańskich I i II przez Partie do Skurwywija.<br />Pomiary wykonano busolą geologiczną Freiberg i dalmierzem laserowym Leica Disto. Wsp&oacute;łrzędne geograficzne GPS 05.07.2009 r., pomierzył Cz. Szura.<br />Plan opracował Cz. Szura, uzupełnił B. Juroszek w 2014 r.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Urban J. i in. 2006a  (pierwsza wzmianka o jaskini pod nazwą Jaskinia Wiślana); Urban J. i in. 2006b   (nacieki);  Mysłajek R.W.  i in. 2007 (nietoperze); Margielewski W., Schejbal-Chwastek M., Szura Cz. 2007 (nacieki); Mysłajek R.W., Kurek K., Nowak S. 2008 (wzmianka o ilości nietoperzy, sugestia o połączeniu z Jaskinią Wiślańską II); Szura Cz. 2008 (eksploracja oraz dokumentacja jaskini); Szura Cz. 2009a (plan, dane o deniwelacji -37.5 m); Szura Cz. 2009b (informacja o jaskini); Klassek G., Mleczek T. 2010 (wzmiankują); Szura Cz. 2010 (wzmiankuje); Urban J. 2010 (wpisanie do Centralnego Rejestru Geostanowisk Polski, nr 1412); Chybiorz R., Świniański T. 2010 (wymieniają); Franczak P., Zatorski M., Szura Cz. 2014 (informacje o wodzie w jaskini); Urban J. i in. 2015 (dane o naciekach i ich wieku); Jaskinie Polskich Karpat Fliszowych 2016a (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Bartłomiej Juroszek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(10509)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r 1
+                    </a>
+                    <a onclick="showImageInfo(10510)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=1412" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

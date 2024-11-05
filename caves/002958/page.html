@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2958">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2958;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "497071,44".replace(',', '.') + "," + "199751,34".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2958','Jaskinia Salmopolska'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Salmopolska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-04.23
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;57′33,86″, φ: 49&#176;39′54,54″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Brenna (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                cieszyński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Nr 1/93 Woj. Bielskiego z dn. 23.04.1993 r.; Dz. Urz. Woj. Bielskiego z 1993r. Nr 5 poz. 31. [wg http://crfop.gdos.gov.pl]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                910
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                28
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                1,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                29,10
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    1009,50
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Beskid Śląski, Brenna na W stoku Malinowa (1117m n.p.m.), około 250 m  od Przełęczy Salmopolskiej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z Przełęczy Salmopolskiej, z miejsca, gdzie szosa Szczyrk-Wisła osiąga najwyższy punkt schodzimy około 150 m na stronę Wisły. Po prawej stronie, około 25 m od szosy, w szerokim, zarośniętym obniżeniu (rowie), w którym po silnych opadach tworzy się jeziorko, znajduje się otwór jaskini. Dojście nieskomplikowane, otwór łatwy do znalezienia. Zwiedzanie całej jaskini uciążliwe (niektóre partie ciasne, inne miejscami pionowe).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Stary otw&oacute;r wejściowy (obecnie zawalony) znajdował się 2 m dalej na NW od obecnego, kt&oacute;ry jest wąskim, prostokątnym pęknięciem sprowadzającym pionowo do korytarza wstępnego. Ku SE prowadzi on do Sali Konia Skalnego (długości ponad 3 m, szerokości do 1,3 m) zagrodzonej sterczącym, wąskim głazem. Za salą wąskim przejściem wydostajemy się na rozdroże. Na wprost przez ukośny 2 m pr&oacute;g (w d&oacute;ł) i klinowatego kształtu korytarz (wysokości 2,6 m) przejść można do sali środkowego piętra, z prostokątnym głazem pośrodku. Ku S sala przechodzi w wąskie przejście do dalszych partii jaskini na tym poziomie. W drugim krańcu sali, za małą niszą możemy iść w trzech kierunkach:</p>
+<p>1. Przez pr&oacute;g w zakręcający korytarzyk w lewo na N. Idziemy pochylnią w g&oacute;rę 3,5 m, gdzie znajduje się zwężenie (zacisk), kt&oacute;re zostało rozkopane 06.2012 r. przez G. Szalbota, R. Cieślara, A. Kapuścika. Za nim wchodzimy do Sali Nietoperzowej, kt&oacute;ra ma wysokość do 2,0 m, jednak jej większa część jest niższa, a spąg opada ku E. Nazwa tej Sali wzięła się z zimujących tu regularnie kilku podkowc&oacute;w małych. Na N z najniższego miejsca sali prowadzi bardzo niski korytarzyk o długości 3,5 m. Jest to najbardziej na N wysunięta część jaskini.</p>
+<p>2. (Partie Wschodnie) Przez pr&oacute;g następnie w przeciwnym kierunku niż prowadzi pochylnia, czyli na SE. Wchodzimy do wąskiej pochyłej szczeliny, kt&oacute;ra zakręca po 3,0 m na N i zmienia się w pochylnię. Na jej szczycie dochodzimy do rozszerzenia i gliniastego sklepienia z widocznymi korzeniami drzew zwisającymi ze stropu. Jest to najwyższy punkt jaskini +1,1 m. Dalsze ciasne przejście zostało przekopane przez G. Szalbota, R. Cieślara, A. Kapuścika, 06.2012 r. Za nim znajduje się spora sala o litych ścianach. Jej szerokość wynosi od 1,1 do 1,5 m, a jej wysokość dochodzi do 4,5 m. Schodzimy po licznych blokach skalnych, aż do progu w g&oacute;rę, gdzie ciasnym pionowym przesmykiem przedostajemy się do g&oacute;rnych wąskich szczelin. Po paru metrach, idąc na N, znajduje się zacisk ZII prowadzący do kilkumetrowego ślepego korytarza, w przeciwnym kierunku szczelina opada i zacieśnia się.</p>
+<p>Wracając do dna sali przechodzimy pod progiem 2,2 m, gdzie po chwili dochodzimy do rozszerzenia z prawej strony. W środkowej jego części znajduje się studzienka o głębokości 2,7 m z ekstremalnie ciasnym zaciskiem ZIII, kt&oacute;ra łączy się po kilku metrach z Dolną Salą. Zacisk ten został pokonany dotychczas tylko przez C. Szurę i tylko w d&oacute;ł. Z nad wejścia do zacisku korytarz ciągnie się dalej na S, wpierw wznosząc się, a następnie przechodząc w wąski poziomy przesmyk o gliniastym spągu, kt&oacute;ry kończy się po 3 m.</p>
+<p>3. przez kominek w g&oacute;rę można się wydostać do małej Sali G&oacute;rnej o dnie wznoszącym się. Ku E dalej na S odchodzi z tego miejsca ślepy korytarz o długości 4 m. Natomiast ku S, a dalej W przez Salę z Trawersem (wysokości 2,3 m) ciasnym przejściem przez prowadzący w d&oacute;ł prożek można z piętra g&oacute;rnego ponownie dostać się do środkowego. W 2004 r., na E od opisanych partii, G. Szalbot, M. Procner, B. Juroszek (Dzika Grupa Malinka- D.G.M.) odkryli i udokumentowali fragment dolnego piętra, o przebiegu N - SE (długość ponad 7 m). Niski, r&oacute;wny korytarz, o przekroju tr&oacute;jkąta, w środkowej części rozszerzony, opada i zwęża się na SE. W środkowej części widać ślady przepływu wody (Szalbot 2004).</p>
+<p>Od wspomnianego rozdroża w prawo przez podługowatą studnię (głębokości 2,5 m) można zejść do niższego piętra jaskini - Komory Piaskowej (długości 5 m, szerokości do 1 m). Widać tu wyraźnie ślady okresowego stagnowania wody, na co uwagę zwr&oacute;cili już w 1969 r. odkrywcy nowych partii jaskini. Jednakże dopiero 26 czerwca 1995 r. J. Ganszerowi i R. Smoczyńskiemu udało się w bocznej szczelinie Komory Piaskowej zaobserwować po raz pierwszy intensywny, okresowy przepływ wody. W sierpniu 2003 r. członkowie D.G.M., w odnodze kr&oacute;tkiego korytarza odchodzącego na NW z Komory Piaskowej, odkryli nowy korytarz (długość 6 m). W kierunku S odchodzi szczelina szerokości ok. 20-30 cm i wysokości ok. 1,5 m, kt&oacute;ra łączy się z gł&oacute;wnym ciągiem w okolicy Korytarza Łupkowego niedostępną szczeliną (Procner 2003). Z Komorą Piaskową związane jest r&oacute;wnież następne odkrycie grupy D.G.M. z września 2003 r. Po usunięciu dużego głazu nad komorą przedostano się w kierunku W do szerokiej, aczkolwiek niskiej sali o wymiarach 1,5x2.5 m. Ku N znajduje się 3 m wysokości pr&oacute;g sprowadzający do łukowatej salki (długość 2,5 m, szerokość 0,5 m, wysokość 5 m), kt&oacute;rej dno jest pokryte piaskiem. W kierunku W znajduje się 3 m wznoszący się korytarzyk zakończony 1,3 m progiem. W korytarzyku stwierdzono dużą ilość złomu (garnki, puszki itp.). W kierunku N odchodzi wznosząca się salka o wymiarach 3x0,7 m i wysokości 3,5 m zakończona zawaliskiem. W stropie salki znajduje się drugi, mały otw&oacute;r ku powierzchni. Długość opisanych partii wynosi 13 m (Procner 2003).</p>
+<p>Z Komory Piaskowej wracamy do środkowego piętra. Od rozdroża nad studnią korytarz biegnie dalej. Po 7 m dochodzi do połączenia z opisanymi wcześniej partiami. Dalej na SE biegnie na tym poziomie nieduży, kruchy (niebezpieczny) Korytarz Łupkowy, kt&oacute;ry po około 5 m dochodzi do niewielkiego rozszerzenia. W d&oacute;ł przez 2,2 m tr&oacute;jkątną studnię (nieprzyjemna przy wychodzeniu) wydostać się można do Dolnej Sali (długości 4 m, szerokości ponad 1 m), w kt&oacute;rej też zaobserwowano przepływ wody. Od sali ku SE odchodzi ciasna szczelina, kt&oacute;rą zrazu udokumentowano na odcinku 4 m, do przewężeniem. W lipcu 2003 r. pokonano dalsze 4 m (Procner 2003). Ku NW sala łączy się ze szczelinami pod Korytarzem Łupkowym. Od rozszerzenia w przeciwnym kierunku (na SW) ciasnym przejściem i małym prożkiem w d&oacute;ł wychodzimy na balkon - p&oacute;łkę w Wysokiej Sali. Na tym poziomie w lewo odchodzi ślepa, prosta szczelina z "polami ryżowymi". My schodzimy 3,2 m progiem na dno sali - najładniejszej w jaskini. Tu też zaobserwowano fragment okresowego cieku. Sala o kształcie prostokąta, stropie i dnie płaskim, ścianach prostych, litych (wysokości 6 m, szerokości 1 m, długości około 4 m). W prawej ścianie sali, za 4 m progiem, odchodzi ku S (odkryty w 2004 r.) kr&oacute;tki, ślepy korytarzyk. W końcowej części salę (kt&oacute;ra jest tu jeszcze wyższa - do 7,7 m) przegradza wąska płyta, znajduje się tu też okresowe jeziorko. Na wprost, za salą odchodzi do partii końcowej bardzo ciasne przejście o długości 2,7 m. W lewo zwężająca się szczelina, przez kt&oacute;rą też płynęła woda z okolic okresowego jeziorka, dostępna jest na odcinku 2,5 m, dalej niemożliwa do przejścia, łączy się jednak z salą końcową. W g&oacute;rę przez głaz wydostajemy się do biegnącej ku S stromo w g&oacute;rę pochylni, kt&oacute;ra przechodzi w ciaśniejszy korytarzyk. Kończy się ona 2,2 m progiem sprowadzającym w d&oacute;ł w g&oacute;rnej części stromo opadającej prostokątnej, małej, ale wysokości na 5,5 m sali końcowej. W jej dolnej części jeszcze raz pojawił się ciek podziemny, kt&oacute;ry dążąc ku SE niknął w studni końcowej.</p>
+<p>W 2014 r odkryto nowe partie jaskini: zaczynają się wąskim okienkiem w S ścianie studzienki nad Studnią Końcową, kt&oacute;re według nowych pomiar&oacute;w ma głębokość -12,6 m. Wejście to zostało przekopane (częściowe przekute) przez członk&oacute;w Speleoklubu Bielsko-Biała na kilku akcjach eksploracyjnych. Ostateczne wejście nastąpiło 17.05.2014 r. Wchodzimy przez okienko do ciasnego korytarzyka prowadzącego na S, gdzie w dole prowadzi zacieśniająca się szczelina. Po 2 m na jej niedostępnym dnie widoczny jest &bdquo;kopocz&rdquo;, kt&oacute;ry spadł tam podczas transportu. Idąc dalej korytarzykiem po 3,5 m dochodzimy do krawędzi studni i progu 3 m wysokości, kt&oacute;ry sprowadza nas do obszernej Sali Tosi. Początkowo odcinek ten był zaporęczowany liną, aktualnie zostało tam zamontowane 6 stalowych stopni poprawiających bezpieczeństwo podczas pokonywania progu. Sala Tosi ma wymiary 1,5x3,5 m i wysokość do stropu 5 m. Jej dnem przepływa niewielka struga wody, kt&oacute;ra wpływa do szczeliny na SE, aby po 1,2 m pojawić się w Szczelinie Za Tosią.</p>
+<p>Z Sali Tosi możemy iść w trzech kierunkach:</p>
+<p>1. Do Sali Chińskiej.</p>
+<p>Z Sali Tosi wspinamy się w g&oacute;rę na niebezpieczny pr&oacute;g o wysokości 5,2 m do g&oacute;rnego korytarza, gdzie znajdują się dwa spity. Jego wysokość to 2,0 m i szerokość 0,9 m. Nad progiem możemy iść w dw&oacute;ch kierunkach.</p>
+<p>a) Na N w g&oacute;rę przez niską pochylnię, kt&oacute;ra doprowadza nas do obszernej Sali Chińskiej. Jej strop i ściany są lite, szerokość dochodzi do 1,3 m a długość około 8,0 m. W okolicy wejścia znajdują się na ścianie nacieki rdzawo czerwone. Sala ta znajduje się bezpośrednio pod drogą, około 7 m pod jezdnią. Dalej możemy iść na NW przez pr&oacute;g do niskiego korytarza kończącego się po kilku metrach lub na S, przez błotny przełaz, do niskiego korytarzyka r&oacute;wnoległego do Sali Chińskiej; mieści się on nad Starym Dnem.</p>
+<p>b) W przeciwną stronę niż do Sali Chińskiej. Z nad progu 5,2 m biegnie korytarz, kt&oacute;ry po 6,5 m doprowadza do odgruzowanej zaciskowej Studni z Ruchomym Głazem o głębokości 2,7 m. Znajdują się tam dwie r&oacute;wnoległe ciasne szczeliny połączone progiem 3,3 m i zaciskową (Z2) studzienką o głębokości 2,5 m. Dnem jednej ze szczelin płynie stały ciek wodny wypływający z Sali Tosi. Z nad Studni z Ruchomym Głazem możemy iść dalej zwężającym się przejściem ukierunkowanym na S, wpierw lekko w g&oacute;rę, a następnie w d&oacute;ł do zacisku nie do przejścia, do kt&oacute;rego możemy dojść zza Ucha Igielnego.</p>
+<p>2. Od Sali Tosi do Strzelistej Szczeliny.</p>
+<p>Z południowej części Sali Tosi idziemy do wysokiej szczeliny o szerokości 0,4 - 0,7 m, przechodząc pod zaklinowanym sporym głazem. Na jej dnie pojawia się okresowe jeziorko. Po 5 m w g&oacute;rę znajduje się małe okienko na wysokości 3,6 m, prowadzące do G&oacute;rnego Korytarza, kt&oacute;ry ma kilkanaście metr&oacute;w długości, a jego koniec znajduje się nad Wodną Salą. Idąc dalej dnem szczeliny dochodzimy do rozszerzenia, skąd w prawo na NW ciągnie się szczelina łącząca się z Wielkim Kanionem (opis Partii R&oacute;wnoległych Postrzodkowych). Natomiast idąc w g&oacute;rę mijamy bardzo ciasną ślepą pochylnię w d&oacute;ł. Nad nią skręcamy w lewo do zwężenia, przez kt&oacute;re wydostajemy się do sali o wysokości 1,8 m i wymiarach 1,6 x 3 m. Z niej na NE znajduje się za przełazem boczna Sala z Węglem. Jest to obszerna sala o nieregularnym dnie. Nad wejściem do niej znajduje się w stropie kawałek węgla oraz drobne nacieki grzybkowe.</p>
+<p>Wracając do gł&oacute;wnego ciągu idziemy dalej na SE, po 2,0 m dostajemy się do Ucha Igielnego (Z). Dalej kontynuujemy na S przechodząc pod skośną płytą, a za nią wychodzimy w Sali z Polami Ryżowymi. Jest ona dość spora, ma lity strop, a spąg opada na W i jest zbudowany z kamieni i łupka. Jej wymiary to 5,0 x 2,0 m . Na N nieopodal wejścia do Sali znajduje się niski korytarzyk o długości 7,0 m, na końcu kt&oacute;rego widoczna jest studzienka z niedostępnym przejściem w okolice Ucha Igielnego. Gł&oacute;wny ciąg prowadzi z Sali z Polami Ryżowymi na S, w d&oacute;ł przez przełaz do Sali z Mostem, kt&oacute;rej nazwa wzięła się od dużego kamienia zaklinowanego na jej środku. Dalsze przejście prowadzi w d&oacute;ł obok ww. kamienia, skąd można iść w dw&oacute;ch kierunkach:</p>
+<p>a) Schodzimy pod nim w d&oacute;ł przez pr&oacute;g 2,3 m do szczeliny prowadzącej na SE, kt&oacute;ra po 7,5 m doprowadza nas to bardzo trudnego i niebezpiecznego zacisku ZIII o nazwie Kosiciel, za kt&oacute;rym schodzimy 4,5 m w d&oacute;ł na dno szczeliny ze stałym ciekiem wodnym. Dalej można wspiąć się maksymalnie 3,5 m w g&oacute;rę, następnie robi się zbyt ciasno. Jedyną osobą, kt&oacute;ra dotychczas pokonała zacisk był B. Juroszek podczas eksploracji.</p>
+<p>b) Gł&oacute;wny ciąg prowadzi spod Mostu szczeliną w d&oacute;ł na N i albo wchodzimy pod stropem w niski korytarzyk, kt&oacute;ry łączy się przez odgruzowany zaciskowy kominek z salą w Partiach Postrzodkowych, albo liniowym zaciskiem w d&oacute;ł do rozszerzenia, gdzie zakręcamy na S do szczeliny o litych wysokich ścianach (możliwe jest obejście zacisku wąską studzienką). Po 4 m schodzimy progiem 1,9 m w d&oacute;ł, a następnie pochylnią w g&oacute;rę i zn&oacute;w progami 1,1 oraz 1,7 m w d&oacute;ł. Po 5 m widoczny jest kamień zaklinowany w połowie korytarza. Następnie wchodzimy w Strzelistą Szczelinę, kt&oacute;ra w tym miejscu ma 5,5 m wysokości, a na poziomie 3,2 mieści się wejście w niski, odgruzowany korytarzyk ukierunkowany na NE. Po kilku metrach możemy dostać się nim do Sali z Mostem. Idąc dalej pod progiem 3,2 m korytarz zacieśnia się do 0,4 m, jego najniższy punkt znajduje się na głębokości -21,6 m względem otworu. Było to najwcześniej odkryte dno. Za nim po kilku metrach korytarz kończy się zawaliskiem.</p>
+<p>3. Partie R&oacute;wnoległe (Postrzodkowe).</p>
+<p>Za progiem zejściowym o wysokości 4,2 m w Sali Tosi przechodzimy pod stropem przez bardzo trudne wejście do ciasnej szczeliny skierowanej na NW. Po 2,5 m schodzimy w d&oacute;ł wąskim przejściem do Wodnej Sali. Jest to obszerna pustka z dużymi zawieszonymi blokami skalnymi w jej SW części. Idąc na N możemy wczołgać się w bardzo wąską szczelinę o długości 4 m, kt&oacute;rej dnem płynie woda, na jej końcu tworząc głębokie na ok. 0,3 m jeziorko. Przed tą szczeliną w g&oacute;rę wychodzimy do pochyłej wysokiej salki, na końcu kt&oacute;rej widoczne są dwie kr&oacute;tkie ślepe szczeliny prowadzące na N oraz NW. Natomiast w d&oacute;ł znajduje się niewielka studzienka o głębokości 3,3 m prowadząca do Wodnej Pułapki, dnem kt&oacute;rej płynie niewielki ciek wodny; wypełniona jest namuliskiem. Z Wodnej Sali kierujemy się w g&oacute;rę po stromej zacieśniającej się pochylni. Po kilku metrach osiągamy jej najwyższy punkt, skąd dalej na SW pochyłym korytarzykiem pod stropem dochodzimy do rozszerzającej się ku dołowi szczeliny o głębokości 4,4 m, o nazwie Wielki Kanion. Jej dnem płynie woda, a całkowita jej długość to 8,5 m, maksymalna wysokość 5 m. W jej południowej części dostajemy się do rozszerzenia i progu w g&oacute;rę o wysokości 3 m. Z jego lewej strony znajduje się ciasna szczelina długości 4,5 m będąca początkowo zaciskiem liniowym ZI, następnie zastała odgruzowana pod stropem podczas eksploracji dalszych partii. Jest to połączenie z szczeliną odchodzącą na południe z Sali Tosi.</p>
+<p>Po wyjściu ze szczeliny do Wielkiego Kanionu znajdujemy się pod stropem nad progiem o wysokości 3 m. Dalej kierujemy się na SW na niską p&oacute;łkę, pod kt&oacute;rą mieści się niewielka salka kończąca Wielki Kanion. Idziemy niskim, zwężającym się korytarzykiem, kt&oacute;ry został przekopany w warstwie łupka pod stropem podczas eksploracji. Dostajemy się do ciasnego i uciążliwego progu w d&oacute;ł o głębokości 3,8 m, na dnie kt&oacute;rego znajduje się niedużego rozszerzenie w kierunku na W, jest tam kr&oacute;tki korytarzyk z wypływem wody i niewielkim namuliskiem. Dalej przechodzimy przez zaklinowane bloki skalne w d&oacute;ł do kolejnej wysokiej na 5 m szczeliny. Ma ona długość 5,5 m i szerokości od 0,5 do 1,4 m . Na ścianach widoczny jest osad z igliwiem do wysokości 0,5 m, sugerujący maksymalny poziom wody w okresowym jeziorku, powstającym tu podczas wiosennych roztop&oacute;w oraz dużych opad&oacute;w deszczu.</p>
+<p>W południowej części korytarza, za okresowym jeziorkiem, na SE skręca niski korytarzyk doprowadzając do progu o głębokości 1,8 m, po chwili ciasnawy korytarzyk zakręca na S. Na jego dnie znajduje się kilka dużych kamieni, za nimi dochodzimy do zwężenia i niewielkiego prożka, kt&oacute;rym schodzimy w d&oacute;ł do wysokiej, lecz wąskiej szczeliny. Idziemy wpierw lekko w d&oacute;ł a po 5 m szczelina zwęża się i dalsza droga prowadzi zapieraczkowym progiem o wysokości 2,7 m w g&oacute;rę, do sali o wysokości 2,4 m. Z jej S części widoczna jest niedostępna Szczelina Rezonansowa o długości 4,8 m łącząca się z g&oacute;rnym pięterkiem w N części Galerii Postrzodkowej. Od tej szczeliny na NE mieści się odgruzowane w warstwie łupka przejście do niewielkiej r&oacute;wnoległej salki, z kt&oacute;rej odchodzą trzy ślepe niedostępne szczeliny.</p>
+<p>Gł&oacute;wny ciąg wiedzie na SW w g&oacute;rę, przez pr&oacute;g 1,8 m, a następnie stromą pochylnią prowadzącą do niskiej salki o szerokości do 1,8 m. Po 2 m w stropie znajduje się spit, od kt&oacute;rego czołgamy się niskim przejściem do niebezpiecznego, śliskiego progu o wysokości ponad 4 m, nad kt&oacute;rym widzimy kolejny spit. Wydostajemy się w Studni Rozdzielnia, z kt&oacute;rej można iść w kilku kierunkach.</p>
+<p>A. Do Galerii Postrzodkowej</p>
+<p>Idziemy w d&oacute;ł po bardzo stromej i śliskiej pochylni naprzeciw wejścia do studni. Po 4 m zejścia znajdujemy się w okolicy jej dna, jej maksymalna wysokość to 8,5 m i szerokość do 2,1 m. Idąc dalej na NE po zejściu widoczna jest zacieśniająca się szczelina o długości 5 m, łącząca się przez niedostępną szczelinę z opisanym powyżej korytarzem pod prożkiem 1,8 m nieopodal okresowego jeziorka. My kierujemy się z E części dna Studni Rozdzielnia w d&oacute;ł przez bloki skalne za załamanie do obniżającej się szczeliny na SW. Po 3,5 m dochodzimy do zacisku przekopanego 18.10.2015 r. przez B. Juroszka i G. Szalbota. Dalej po 4 m dochodzimy do Studni Ściśni&oacute;nej Szłapy z niebezpiecznym, zaklinowanym kamieniem w spągu, kt&oacute;ry osunął się podczas pierwszego wejścia przygniatając częściowo nogę jednego z eksplorator&oacute;w. Schodzimy w d&oacute;ł ciasną studzienką do szerokiego na 1 m korytarza. Następnie rozszerza się on na S do 1,4 m doprowadzając do bardzo obszernej Galerii Postrzodkowej. Wysoka na 5,6 m, długa na 13 m i szeroka do 2,1 m staje się jak dotąd największą salą w jaskini. Jej ściany są lite i rozszerzają się ku g&oacute;rze, strop także jest litą skałą z niewielkimi poprzecznymi pęknięciami. Dnem Galerii, umiejscowionym na poziomie -22,0 m względem otworu, przepływa niewielka struga wody tworząc niewielkie jeziorko z namuliskiem gliniasto-piaszczystym. Jest to miejsce występowania studniczka, zaobserwowanego przez odkrywc&oacute;w 29.11.2015 r.</p>
+<p>W SE części Galerii wychodzimy w g&oacute;rę po pochylni do korytarza o szerokości 0,5 m, kt&oacute;rym po 7,5 m dostajemy się do rozkutego zacisku punktowego o trudności w d&oacute;ł ZI, w g&oacute;rę ZII. Schodzimy nim do ciasnej szczeliny, gdzie na dnie znajduje się praktycznie niewidoczne wejście do niskiego korytarzyka skierowanego na N. Po 2 m skręcamy nim na W przez wąski przełaz, wydostając się do głębokiej na 3,6 m szczeliny. Do jej dna prowadzi ciasna studzienka, następnie pochylnia, kt&oacute;rą dochodzimy do najgłębszego miejsca w jaskini, -28,0 m. Spod punktowego zacisku korytarz także kontynuuje się na S do załamania i wąskiego przełazu, za kt&oacute;rym widoczne są częściowo dostępne szczeliny na N i S. Od załamania idziemy 4 m niskim korytarzem do pochyłej Sali Łupkowej o długości 3,5 m, kt&oacute;ra kończy się kilkoma zaklinowanymi głazami. Jest to najbardziej wysunięty punkt jaskini na S. Rozciągłość horyzontalna do tego miejsca wynosi od otworu 102,0 m, natomiast głębokość -23,4 m.</p>
+<p>B. Do Partii Zachodnich</p>
+<p>Ze Studni Rozdzielnia, od spita idziemy w g&oacute;rę za liną przez ciasny kominek, gdzie po 3,5 m dochodzimy do poprzecznego niskiego korytarza o przebiegu E-W. Z tego miejsca od 2 spit&oacute;w kierujemy się na W rozszerzającą się szczelina do obszernej G&oacute;rnej Sali o wysokości 2,7 m, z kt&oacute;rej możemy się wydostać w trzech kierunkach. Na N, przez ciasne wejście Z do wysokiej na 2,9 m regularnej szczeliny o nazwie Zaś Matrix. Po 6 m idąc na N dochodzimy do Sali o szerokości 1,7 m, kt&oacute;ra kończy się po 4 m zawaliskiem i ślepą szczeliną. Drugi wariant to kierunek przeciwny do Matrixa, czyli na SW przez bardzo wąskie przejście, za kt&oacute;rym korytarz poszerza się i skręca na E, widzimy niedostępną, kilkumetrową szczelinę, kt&oacute;ra łączy się ze Studnią Rozdzielnia. Ostatni wariant, czyli gł&oacute;wny ciąg, prowadzi do NW części Sali, gdzie widoczna jest stroma pochylnia z pomarańczowo-rdzawymi polewami, prowadząca w g&oacute;rę.</p>
+<p>Natomiast my przed pochylnią kierujemy się w d&oacute;ł kruchą, zawaliskową studzienką o głębokości 4,3 m, prowadzącą na Mostek do Galerii Zachodniej (Galerii z Mostem). Galeria ta ma ponad 5 m wysokości, w najszerszym miejscu osiąga 2,8 m, a przeciętnie 1,5 m; całkowita jej długość wynosi 12,5 m. Ściany i strop zbudowane są z monolitycznych, prostych blok&oacute;w skalnych, strop poprzecinany jest gdzieniegdzie poprzecznymi, bardzo wąskimi szczelinami. Od Galerii na NE prowadzi wznosząca się szczelina o szerokości początkowo 0,6 m, następnie rozszerza się do 1 m, a po 8 m kończy się zawaliskiem z niedostępną szczeliną z prawej strony. Przed zawaliskiem na NW znajduje się pr&oacute;g o wysokości 2 m prowadzący do bardzo ciasnej i śliskiej szczeliny, do kt&oacute;rej wejść można tylko przy pomocy drugiej osoby służącej jako &bdquo;żywa drabina&rdquo;. Po kilku metrach szczelina wnosząc się zakręca na N i kończy zacieśniającym się przejściem.</p>
+<p>Natomiast z Mostku możemy zejść na SW progiem 2,1 m idąc dalej gł&oacute;wnym ciągiem jaskini. Po kilku metrach z prawej strony widoczne są pod stropem drobne nacieki. W lewo prowadzi obejście G&oacute;rnej Sali, kt&oacute;rym dostajemy się do Studni Rozdzielnia. Natomiast w d&oacute;ł przez pr&oacute;g 3,9 m schodzimy do korytarzyka o szerokości 0,4 m i wysokości 5,4 m r&oacute;wnoległego do Galerii, kt&oacute;ry łączy się po 5,5 m z Galerią w okolicy mostka, a na jego początku z lewej strony widoczne jest bardzo wąskie pęknięcie, z kt&oacute;rego wypływa woda i słyszalny jest odgłos przepływającej w oddali wody. Kierując się gł&oacute;wnym ciągiem lepiej przejść nad progiem 3,9 m i trawersować gzymsem 5 m, gdzie szczelina rozszerza się tworząc salę szeroką na 2,4 m i długą na 2,6 m.</p>
+<p>Dalej możemy iść w dw&oacute;ch kierunkach.</p>
+<p>Z SW części sali w Ciasne Szczeliny: przez kominek 2 m prowadzący z lewej strony do malutkiej salki z kruchym stropem, bądź w prawo do wąskiej szczeliny na NW do zaciskowego progu (Z) o wysokości 1,5 m. Za nim na S prowadzi ślepa szczelina o długości 4,5 m, a na N przejście prowadzi przez przekopany w warstwie łupku zacisk w d&oacute;ł do ciasnej studzienki o głębokości 3,0 m. Dalej na N wiedzie 3 m zwężenie i widoczna na 5 m niedostępna szczelina. Na S w d&oacute;ł schodzimy do ślepej szczeliny, kt&oacute;rej poziom znajduje się na -22,6 m względem otworu. Ostatnie odkrycie w tym rejonie miało miejsce w okolicy wejścia do Ciasnych Szczelin. Nad progiem 2 m możemy wejść przez ciasny przesmyk lekko w g&oacute;rę na N, dochodząc po kilku metrach do zacisku (Z3) Łamacz Barku, za kt&oacute;rym znajduje się niski długi na 10 m korytarz, kończący się niedostępnym pęknięciem w kierunku na NW.</p>
+<p>Drugi wariant prowadzi obok 2 m kominka (wejście do Ciasnych Szczelin), dalej na S do p&oacute;łokrągłego korytarzyka z płaskim stropem, kt&oacute;ry zakręca po 4,2 m w lewo na bardzo stromą i śliska pochylnię. Dalej przechodzimy przez niebezpieczny Zacisk z Brzytwą, a po 3,2 m docieramy do Łostatni Galerii, kt&oacute;ra rozpoczyna się salą o wymiarach 2,3 m na 2,1 m. Z niej przez bloki skalne przechodzimy w d&oacute;ł do miejsca, gdzie Galeria osiąga wysokość 4,6 m i szerokość 1,5 m. Na jej końcu wydostajemy się progiem 1,5 m do kr&oacute;tkiego korytarzyka zakończonego wąską zaciskową Z studzienką, z kt&oacute;rej kilkumetrowym ciasnym przesmykiem przeciskamy się do Łostatni Sali. Jej najniższy punkt znajduje się na poziomie -24,2 m względem otworu, a jej wymiary to 4,2 m długości i 1,3 m szerokości. Sala na SE kończy się niedostępną szczeliną w d&oacute;ł, a na SW wąskim przejściem do progu 2,8 m w g&oacute;rę do zamykającej ciąg Partii Zachodnich niskiej salki.</p>
+<p>C. Do Partii Postrzodkowych G&oacute;rnych</p>
+<p>Z g&oacute;rnej części Studni Rozdzielnia od 2 spit&oacute;w idziemy w kierunku na SE w g&oacute;rę po błotnistej pochylni do wąskiego, śliskiego kominka, kt&oacute;rym przeciskamy się do nieregularnego korytarzyka. Następnie po 4,7 m dochodzimy do rozdroża.</p>
+<p>1. Na SW w d&oacute;ł do zacieśniającej się szczeliny ze ślepym korytarzem z prawej strony. Przechodzimy prosto przez zwężenie wydostając się do niewielkiej Sali z kilkoma odnogami.</p>
+<p>- a. w lewo na SE sala się obniża i przez kilka większych głaz&oacute;w możemy dojść do ślepej odnogi z lewej strony lub niedostępnego przejścia do kolejnej salki z prawej strony.</p>
+<p>- b. w prawo idziemy obejściem kilka metr&oacute;w, zakręcając w lewo dwukrotnie, by dotrzeć przed Szufladę Salmopolską.</p>
+<p>- c. do Szuflady możemy dojść także idąc z rozdroża na wprost przez szczelinę do zawaliska, gdzie schodząc przez pr&oacute;g łączymy się z wariantem b.</p>
+<p>Znajdujemy się w Szufladzie Salmopolskiej, stąd po kilku metrach uciążliwego, załamującego się korytarzyka wychodzimy za zaciskowym Z okienkiem i przechodzimy po kilku większych głazach na S do niskiej Sali Płytowej. W jej E części widoczne są oblane czarną polewą głazy z niewielkim kociołkiem wirowym znajdującym się pośrodku, a w części południowej znajduje się kilka niedostępnych szczelin. Wysokość tej sali sięga 1,3 m, całkowita długość to 7 m, a szerokość 4 m, jej większą część tworzą duże płyty skalne, nachylone ku SW. Sala znajduje się na głębokości -13,4 m względem otworu i częściowo jest położona nad Galerią Postrzodkową. Przy wejściu do tej sali, z lewej strony, przez pr&oacute;g w d&oacute;ł znajduje się wejście do bocznego r&oacute;wnoległego korytarzyka łączącego się w S jego części z dalszą częścią Sali Płytowej.</p>
+<p>2. Na N przez wąską studzienkę o głębokości 1,8 m wchodzimy do rozszerzenia, gdzie w jego N części, w ślepym korytarzyku, widoczne są polewy i drobne nacieki; tuż obok możemy zejść progiem 2,2 m do dużej sali, kt&oacute;ra ma wysokość 4,5 m i wymiary 2,3x4,5 m. Ku N z jej dolnej części prowadzą trzy kr&oacute;tkie korytarzyki, natomiast z jej g&oacute;rnej części, zmierzając w tym samym kierunku, po 2 m napotykamy kolejne dwie ślepe szczeliny o długości odpowiednio 4,5 m oraz 3,5 m.</p>
+<p>Wracamy do wejścia do sali nad pr&oacute;g 2,2 m, skąd możliwe jest wejście na E do sąsiedniej salki, na dnie kt&oacute;rej została odgruzowana studzienka łącząca się przez niski kilku metrowy korytarz z partiami pod Salą z Mostem.</p>
+<p>D. Do Obejścia G&oacute;rnej Sali</p>
+<p>Ze Studni Rozdzielnia wchodzimy w wąską pochyłą szczelinę na S, wejście do niej znajduje się 3,6 m nad dnem studni. Po przejściu ciasnego odcinka zsuwamy się w d&oacute;ł po pochylni do sporej sali, kt&oacute;ra na wprost kończy się po 6 m, natomiast w prawo na NW r&oacute;wnież po 6 m dochodzimy do przekopanego połączenia z Galerią Zachodnią, niedaleko Mostka. Po przejściu przez przekop możemy wejść w r&oacute;wnoległy do Galerii, bardzo ciasny ciąg prowadzący na S. Od wejścia do niego po 3,5 m dostajemy się do ekstremalnie ciasnego zacisku liniowego ZIII, kt&oacute;ry przeszedł do tej pory tylko G. Szalbot. Za nim szczelina rozszerza się i zakręca kilka razy, a po około 15 m kończy się. Przed zaciskiem możemy wspiąć się w ciasną studzienkę łączącą się z gł&oacute;wnym ciągiem w okolicy wejścia do Ciasnych Szczelin.</p>
+<p>Informacje o jaskini.</p>
+<p>Jaskinia osuwiskowa, powstała w piaskowcach warstw godulskich g&oacute;rnych. Dno prawie wszystkich partii pokryte jest gruzem i większymi głazami, gdzieniegdzie gliną, tak jak w innych jaskiniach fliszowych autochtonicznego pochodzenia. Ewenementem są tu natomiast allochtoniczne namuliska piaszczyste (w Komorze Piaskowej i Sali Wysokiej). Materiał ten nanosi z zewnątrz okresowy ciek, o intensywności rzadko obserwowanej w jaskiniach beskidzkich. Po czasie roztop&oacute;w i intensywnych opad&oacute;w W jaskini występują też drobne nacieki z węglanu wapnia w formie stalaktyt&oacute;w, stalagmit&oacute;w, draperii czy p&oacute;l ryżowych o zabarwieniu białym lub brunatnym.</p>
+<p>Jaskinia w wielu partiach jest wilgotna, szczeg&oacute;lnie w porze roztop&oacute;w, czy po długotrwałych opadach deszczu, kiedy tworzą się okresowe jeziorka. W okresie zimowym zaobserwowano znaczny wywiew z jaskini oraz zaciąganie powietrza w lecie. Światło sięga pod studzienkę wejściową. W starej części jaskini oraz Sali Chińskiej słychać przejeżdżające samochody po drodze znajdującej się nad jaskinią.</p>
+<p>Ściany korytarzy wejściowych pokrywają częściowo porosty. W kilku miejscach w jaskini widoczne są korzenie drzew.</p>
+<p>Z&nbsp;fauny zaobserwowano: skoczogonki, skąposzczety, ślimaki, pająki, motyle z rodziny s&oacute;wek- szczerb&oacute;wkę ksieni (<em><strong>Scoliopteryx libartix</strong></em>) oraz nietoperze. Podczas corocznego monitoringu nietoperzy stwierdzono zimowanie 6 gatunk&oacute;w nietoperzy - w tym 3 gatunk&oacute;w z II Dyrektywy Siedliskowej UE - podkowc&oacute;w małych (<em><strong>Rhinolopus hipposideros</strong></em>), nock&oacute;w dużych (<em><strong>Myotis myotis</strong></em>), nock&oacute;w orzęsionych (<em><strong>Myotis emarginatus</strong></em>) 16.01.2016 r. zostały przeprowadzone przez: B. Juroszka szczeg&oacute;łowe liczenia nietoperzy. Zidentyfikowano 38 nietoperzy, w tym 16 egzemplarzy podkowca małego (<em><strong>Rhinolophus hipposideros</strong></em>) oraz nocki duże (<em><strong>Myotis myotis</strong></em>), Nocki orzęsione <em><strong>(Myotis emarginatus</strong></em>), nocki rude (<em><strong>Myotis daubentonii</strong></em>), nocki Natterera (<em><strong>Myotis nattereri</strong></em>), gacki brunatne (<em><strong>Plecotus auritus</strong></em>).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odsłonięta przy okazji prowadzenia rob&oacute;t przy budowie przebiegającej nieopodal szosy Szczyrk-Wisła. Pracujący tu robotnicy byli zapewne pierwszymi jej odkrywcami. Zdaje się jednak, że nie dotarli dalej niż do Sali Konia Skalnego. Odnaleziona została 12 października 1969 r. przez J. Choińskiego i Z. Ładygina (Speleoklub Bielsko-Biała) i w gł&oacute;wnych partiach wyeksplorowana.</p>
+<p>Ponowne odkrycia miały miejsce w lartach 2003-2004 - &nbsp;G. Szalbot, M. Procner, B. Juroszek odkryli w&oacute;wczas Partie D. G. M. Kolejne odkrycia rozpoczęto w 2012 r.:</p>
+<p>06.2012 r., G. Szalbot, R. Cieślar, A. Kapuścik. Odkrycie Partii Wschodnich i Sali Nietoperzowej.</p>
+<p>15.04.2012 r., K. Piekarczyk, J. Ganszer. Pierwsza pr&oacute;ba wejścia do nowych partii za Studnią Końcową.</p>
+<p>02.06.2012 r., K. Piekarczyk, J. Ganszer, K. Gajny. Druga pr&oacute;ba wejścia do nowych partii.</p>
+<p>23.03.2014 r., J. Ganszer, J. Pukowski, R. Konior, J. Koczur. Trzecia pr&oacute;ba wejścia do nowych partii.</p>
+<p>26.04.2014 r., S. Potok, J. Krajewski, J. Ganszer, J. Pukowski. Czwarta pr&oacute;ba wejścia do nowych partii, ciężkie prace ziemne.</p>
+<p>17.05.2014 r., S. Potok, T. Pukowski, Z. Mastalski, J. Ganszer. Intensywna eksploracja. Wejście do nowych partii, odkryte zostało ponad 20 m, w tym Sala Tosi.</p>
+<p>26.05.2014 r., B. Burdynowska, S. Potok, T. Pukowski, J. Ganszer. Odkryto około 35 m nowych korytarzy, udało się dotrzeć do Sali z Mostem.</p>
+<p>31.05.2014 r., B. Burdynowska, S. Potok, T. Pukowski J. Ganszer. Akcja inwentaryzacyjna, dotarto do Sali z Mostem, poruszono kilka problem&oacute;w eksploracyjnych.</p>
+<p>18.06.2014 r., G.Szalbot, J. Pysz. Odkrycie: Sala Chińska, Wielki Kanion.</p>
+<p>25.06.2014 r., G.Szalbot, B. Juroszek, J. Pysz, C. Szura, M. Cieślar. Odkrycie pierwszego dna</p>
+<p>-21.6 m (Strzelista Szczelina) i Wodnej Pułapki.</p>
+<p>12.07.2014 r., J. Krajewski, J. Ganszer. Akcja inwentaryzacyjna.</p>
+<p>23.07.2014 r., Z. Mastalski, S. Korczyk, J. Ganszer. Poszerzenie wejścia do nowych partii.</p>
+<p>31.07.2014 r., G. Klassek, Z. Mastalski, J. Pukowski, J. Ganszer. Zamontowano drabinkę w Sali Tosi.</p>
+<p>07.08.2014 r., S. Korczyk, J. Ganszer. Eksploracja.</p>
+<p>12.08.2014 r., P. Smoczyński, M. Ganszer. Poręczowanie partii nad Salą Tosi.</p>
+<p>18.08.2014 r., J. Pukowski, J. Ganszer. Eksploracja i inwentaryzacja w partiach nad Salą Tosi oraz w Sali Chińskiej.</p>
+<p>23.08.2014 r., B. Juroszek, G. Szalbot, J. Pysz, M. Cieślar. Pomiary gł&oacute;wnego ciągu od otworu do Strzelistej Szczeliny. Przekop za Wielkim Kanionem, odkrycie Studni Rozdzielnia i Obejścia G&oacute;rnej Sali.</p>
+<p>27.08.2014 r., B. Juroszek, G. Szalbot, J. Pysz. Eksploracja Partii Zachodnich.</p>
+<p>28.08.2014 r., M. Freindorf, A. Freindorf, J. Ganszer. Zakończenie inwentaryzacji partii nad Salą Chińską.</p>
+<p>02.09.2014 r., G. Szalbot, R. Cieślar. Odkrycie Ciasnych Szczelin.</p>
+<p>04.09.2014 r., J. Krajewski, J. Ganszer, M. Ganszer. Działalność w okolicy Wodnej Sali. Wbito jednego spita w Sali Chińskiej.</p>
+<p>10.09.2014 r., Z. Grebl, J.Ganszer. Działalność w rejonie Wielkiego Kanionu.</p>
+<p>02.10.2014 r., G. Gajny, K. Gajny, J. Ganszer. Wykonano korekty planu.</p>
+<p>07.10.2014 r., B. Juroszek, G. Szalbot. Pomiary gł&oacute;wnego ciągu Partii R&oacute;wnoległych do końca Ciągu Zachodniego.</p>
+<p>07.11.2014 r., J. Pukowski, J. Ganszer. Działalność eksploracyjna.</p>
+<p>20.12.2014 r., J. Pukowski, J. Ganszer. Pomiary przewyższenia.</p>
+<p>03.01.2015 r., J. Krajewski, J. Pukowski, J. Ganszer. Akcja Inwentaryzacyjna partii Wschodnich oraz Sali Nietoperzowej.</p>
+<p>05.01.2015 r., B. Juroszek, J. Pysz. Pomiary na powierzchni.</p>
+<p>10.01.2015 r., B. Juroszek, G. Szalbot. Pomiary Partii Postrzodkowych G&oacute;rnych do połączenia z Strzelistą Szczeliną. Eksploracja w S części Galerii Zachodniej: nowy korytarzyk o długości kilkunastu metr&oacute;w. Połączenie partii Nowych Postrzodkowych z Nowymi (Gł&oacute;wnym Ciągiem) w okolicy wejścia do wysokiej szczeliny w najbardziej wysuniętych na S partiach. Pomiary partii Nowych Postrzodkowych i odkrycie przejścia przez zawalisko do Niskiej Sali pod Płytą.</p>
+<p>03.06.2015 r., B. Burdynowska, J. Krajewski, J. Ganszer. Działalność na S od Wielkiego Kanionu, dotarto do Studni Rozdzielnia.</p>
+<p>20.06.2015 r., A. Byrtek, K. G&oacute;rski, J. Ganszer. Inwentaryzacja G&oacute;rnego Korytarza.</p>
+<p>06.2015 r., G. Szalbot, J. Pysz, M. Cieślar. Połączenie Partii Postrzodkowych ze Strzelistą Szczeliną. Odkrycie 5,0 m korytarza w Galerii z Mostem.</p>
+<p>18.10.2015 r., B. Juroszek, G. Szalbot. Pomiary do Sali Chińskiej i odkrycie Szczeliny za Salą Chińską (Szczelin za Tosią) i Galerii Postrzodkowej. Stwierdzono występowanie 10 Podkowc&oacute;w, 3 Nock&oacute;w (pierwszy raz widziane w Jaskini), 1 Orzęsionego (prawdopodobnie).</p>
+<p>18.11.2015 r., B. Juroszek. Rysowanie Parti Postrzodkowych i Zachodnich z Galerią Zachodnią, aż do końca ciągu i Łostatni Sali. Pomiary Obejścia G&oacute;rnej Sali, Zaś Matrixa.</p>
+<p>20.11.2015 r., B. Juroszek, G. Szalbot. Pomiary do Galerii Postrzodkowej i Ciasnych Szczelin. Zamontowanie liny na Studni Rozdzielnia oraz stopni zejściowych do Sali Tosi. Sesja fotograficzna K. Handzlika z udziałem B. Juroszka, G. Szalbota i M. Cieślara.</p>
+<p>25.11.2015 r., B. Juroszek. Odkrycie szczeliny do dna -28,0 m, pomiary do Sali Płytowej, Galerii Postrzodkowej do końca ciągu.</p>
+<p>29.11.2015 r., B. Juroszek, G. Szalbot. Pomiary do Sali Chińskiej, Wodnej Sali, r&oacute;wnoległych partii w okolicy Studni Rozdzielnia. Odkrycie Sali pod Partiami Postrzodkowymi G&oacute;rnymi. Prace eksploracyjne w S ciągu od Galerii Postrzodkowej. Stwierdzono 2 Nocki Duże, 5 podkowc&oacute;w i 2 inne nietoperze.</p>
+<p>30.11.2015 r., B. Juroszek, G. Szalbot. Pomiary i rysowanie od Sali Tosi ciągu na S do końca (Sala z Węglem, G&oacute;rny Korytarz, Sala z Mostem). Odkrycie i pomiar szczeliny K&oacute;niec Świata.</p>
+<p>04.12.2015 r., B. Juroszek. Pomiary Poprzecznego Korytarza, Bardzo Ciasnej Szczeliny, poprawki planu za Galerią Zachodnią, pomiary do przekroju jaskini. Dotychczasowe pomierzone partie jaskini: 934,8 m (w czym stare partie 175,0 m), głębokość: -28,0 m.</p>
+<p>09.12.2015 r., B. Juroszek, G. Szalbot. Pomiary szczelin Za Tosią, Szczeliny w okolicy Mostka, Sali Płytowej. Pomiary starych ciąg&oacute;w jaskini. Wszystkie zmierzone partie: długość 54,6 m.</p>
+<p>12.12.2015 r., B. Juroszek. Rysowanie starej części jaskini, planu i przekroju, pomiary Sali Nietoperzowej, Partii Zachodnich, określenie przewyższenia +1,1 m. Odkrycie 4,0 m nowego korytarzyka w g&oacute;rnych szczelinach Partii Zachodnich za zaciskiem Z2. Długość jaskini: 993,5 m.</p>
+<p>19.12.2015 r., B. Juroszek, G. Szalbot. Eksploracja w Ciasnych Szczelinach, przekopanie pod stropem wejścia do 6,0 m szczeliny. Przekopanie zacisku Z3 &bdquo;Łamacz Barku&rdquo; i ok. 15 m korytarza, pomiary nowo odkrytych korytarzy.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Około roku 1971 Z. Ładygin pomierzył pierwszy plan jaskini na osnowie, z kt&oacute;rego wykonano w 1994 r aktualną wersję z uwzględnieniem nowych partii. Materiał dokumentacyjny zebrali 21 i 26 sierpnia 1994 r. J. Ganszer i R. Gajgał (Speleoklub Bielsko-Biała). Pomiary wykonano busolą geologiczną Freiberg i taśmą parcianą. Z nowych partii odkrytych w latach 2003 i 2004 materiał dokumentacyjny zebrali G. Szalbot, M. Procner, B. Juroszek (D. G. M.). J. Ganszer w 2002 r. pomierzył wsp&oacute;łrzędne geograficzne GPS. Dane zostały zaktualizowane w 2009 r.</p>
+<p>W ostatnich latach (2012-2014 w jaskini działały dwie ekipy. Sporządzono r&oacute;wnież dwie wersje planu. Pierwszy zesp&oacute;ł składał się z: T. Pukowski, B. Burdynowska, J. Krajewski, J. Ganszer, J. Pukowski, M. Freindorf, A. Freindorf, M. Ganszer, G. Gajny, K. Gajny (wyniki opublikowano wraz z planem (Klassek, Mleczek 2015).</p>
+<p>Zamieszony w niniejszej dokumentacji plan i przekr&oacute;j oparty został na pomiarach B. Juroszka i G. Szalbota wykonanych busolą geologiczną Freiberg i dalmierzem laserowym Leica Disto. Wsp&oacute;łrzędne geograficzne GPS otworu pomierzył 05.07.2009 r. Cz. Szura.</p>
+<p>Plan i przekr&oacute;j jaskini opracował B. Juroszek.</p>
+<p>Całość dokumentacji opracował Bartłomiej Juroszek, wykorzystująć opis &bdquo;starych partii&rdquo; wg G.Klasska (1997a, 2011).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ładygin Z. 1972 (og&#243;lne dane o jaskini); Ładygin Z. 1974 (plan i opis inwentarzowy); Gawłowski P. 1989 (umiejscowienie jaskini w jednostkach litostratygraficznych); Klassek G. 1990 (ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Jaskinie Polskich Karpat fliszowych 1997a (plan i opis inwentarzowy); Ganszer J. 1998b (wzmianka o aktywnym cieku wodnym); Urban J. 1998 (wzmianka o podziemnym potoku); Michalska B., Wojtas P. 1999 (wymieniona wśr&#243;d jaskiń okolic Bielska-Białej); Mysłajek R. W. 1999b, 2000a,b (wzmianki o faunie występującej w jaskini); Alexandrowicz Z., Poprawa D. (red.) 2000 (pomnik przyrody- lokalizacja i opis og&#243;lny jaskini); Baran M. 2000 (uwagi mikroklimatyczne); Motyka J., Zawierucha L. 2001 (uwagi z zakresu chemizmu w&#243;d); Mysłajek R.W. 2002 (wzmianki o nietoperzach); Procner M. 2003 (informacje o odkryciach nowych partii); Szalbot G. 2004 (informacja o odkryciu nowego korytarza); Ganszer J. 2005b (plan jaskini z uwzględnieniem nowych partii); Klassek G., Mleczek T. 2005 (wzmianka o zwiększeniu długości jaskini do 115 m); Tomaszczyk M. 2005 (uwagi geomorfologiczne); Urban J., Margielewski W., Żak K., Schejbal-Chwostek M., Mleczek T., Szura C., Hercman H., Sujka G. 2006 (wzmianka o formach naciekowych); Beczała P. 2006 (schemat lokalizacji jaskini). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Bartłomiej Juroszek, Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2016
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12132)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(2481)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan 1994
+                    </a>
+                    <a onclick="showImageInfo(12276)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan 2015
+                    </a>
+                    <a onclick="showImageInfo(12275)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

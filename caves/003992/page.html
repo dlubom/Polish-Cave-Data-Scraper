@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3992">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3992;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "282827,3011".replace(',', '.') + "," + "345666,3660".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3992','Jaskinia za Sztolnią (S-5.38)'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia za Sztolnią (S-5.38)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                S.III-04.38
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Sudety
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 15&#176;54′28,75″, φ: 50&#176;56′12,84″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Wojciesz&#243;w (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                złotoryjski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                dolnośląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                621
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                270
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                47
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                7
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                54
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    118
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Sudety Zachodnie, Wojciesz&#243;w, G&#243;ry Kaczawskie, G&#243;ra Połom.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Ze stacji kolejowej Wojcieszów idziemy główną drogą około 1,5 km w dół doliny Kaczawy, a następnie w lewo ul. Stacyjną i pod wiaduktem kolejowym drogą jezdną doprowadzającą po 2 km do kamieniołomu. Przechodzimy obok zakładu przeróbczego i dalej drogą, aż na przełęcz (budynki technologiczne kamieniołomu). Teraz udajemy się w prawo w górę drogą na najwyższy poziom eksploatacyjny. Po około 100 m, u podnóża ściany znajdował się otwór jaskini.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    Otwór jaskini znajdował się u podnóża ściany kamieniołomu na tzw. poziomie X. Początkowo stanowił wejście do sztucznie drążonej sztolni o wysokości około 2 m. Później, w trakcie prowadzonej eksploatacji, został przysypany i zmniejszony do wymiarów około 1,0x0,7 m (stan z marca 1979 r.). Po wejściu do sztolni, po około 9 m, w jej lewej ścianie znajduje się otwór i ciasny kanalik łączący się z Salą z Głazami. Dalej spąg sztolni wznosi się w górę około 2 m i nieco w prawo, po sforsowaniu 1,5 m wysokiego progu skalnego, można dojść do krótkiego korytarzyka, a następnie niewielkiej sali z zasłanym skalnym rumoszem dnem. Wysokość salki wynosi około 1,5 m. Strop mocno spękany z głazami grożącymi zawaleniem. Trzy wyklinowujące się szczeliny uniemożliwiają dalsze przejście. W jednej z nich (w kierunku NW) znajduje się stalagmit o wys. ok. 30 cm, barwy żółtawo-białej. W korytarzyku doprowadzającym do salki, na południowej ścianie występują resztki szaty naciekowej w formie polewy kalcytowej z niewielkimi żółtymi żeberkami. Powracając przez wspomniany wyżej próg skalny do sztolni można przejść do zasadniczej części jaskini. W kierunku północnym spada w dół (pod kątem 60°) korytarz nieregularnego kształtu, o spągu z gliniastym namuliskiem (tu potrzebna jest lina). Po jego pokonaniu, tuż ze szczytu usypiska powstałego podczas robót strzałowych, można się wspiąć w prawo w górę (zapieraczka) do wąskiej szczeliny, której dno wznosi się w górę. Skały są tu spękane i grożą obwałem. Po prawej stronie szczeliny niewielki otwór doprowadza, po sforsowaniu 1 m wysokości progu, do niskiej salki (1,5 m wysokości). Dno salki, pokryte oderwanymi od stropu płytkami łupku, ma upad około 30° w kierunku E. Różnica poziomów dna salki na jej długości wynosi 4 m. W jej dolnej części znajdują się dwa bardzo ciasne otwory. Wrzucane w nie kamienie lecą kilka metrów i zatrzymują się w miękkim podłożu. Przewiewu nie stwierdzono. Nie wchodząc do salki można szczeliną zejść nieco w dół około 3 m, gdzie znajduje się ciasny otwór, podobny do tych w salce. Próby z wrzucaniem kamieni i badaniem przewiewu dały podobne rezultaty do przeprowadzonych w salce. Wracając do głównego ciągu trzeba zejść około 6 m na zasłane rumoszem skalnym dno Sali z Głazami. Ma ona wymiary około 6x6 m i wysokość 2 do 5 m. Na wschodniej ścianie sali występują bardzo skąpe nacieki grzybkowe. Przy zachodnim krańcu Sali z Głazami, przez zacisk można przedostać się niżej na rodzaj skalnego mostu, gdzie następuje rozgałęzienie pochyłego korytarza o nachyleniu od 50° do 60°. Krótsze ma kierunek zachodni i zwężając się kończy się po około 12 m rumowiskiem skalnym sięgającym stropu. Dłuższa część, o kierunku północnym, początkowo o wysokości około 2,5 m, doprowadza po około 15 m do przewężenia za skalnym progiem. Nad progiem po prawej stronie znajduje się półka ze skalnym gruzem i dalej ciasne przejście do Sali Pochyłej. Jej wysokość wynosi 2 m, upad spągu ma około 30°, a wymiary 15x16 m. Południowo-zachodni kraniec łączy się ciasnym korytarzykiem z głównym korytarzem. Strop sali, podobnie jak głównego korytarza, stanowią płaskie warstwy łupku. Spąg w dolnej części sali zasłany jest głazami. W jej najniższym punkcie znajduje się przejście do Sali Wysokiej. Ściany są myte, ze śladami intensywnego działania wody. Kotły eworsyjne, otwory i skalne ucha powodują, iż Sala Wysoka jest zupełnie różna od pozostałej części jaskini. Dwa kominy w stropie rokują nadzieję na dalsze odkrycia. W spągu Sali otwiera się studzienka o głębokości 5 m z zagruzowanym dnem<br />Powracając do głównego korytarza pokonać trzeba w dół 2 m skalny próg. Za nim znajduje się Sala Końcowa, o szerokości 7 m i wysokości 4 m. Jej spąg, nachylony pod kątem 50°, w dolnej części pokryty jest głazami aż po strop. Trzy metry powyżej dna jaskini znajduje się ciasna studzienka, częściowo zagruzowana. Wrzucane do szczelin kamienie lecą kilka metrów w dół. Przewiewu nie stwierdzono. <br /> Zarówno z materiałów kartograficznych jak i obserwacji dokonanych w jaskini wynika, iż Jaskinia za Sztolnią rozwinęła się na kontakcie warstwy łupków z marmurami. W przeważającej części korytarzy i sal stropy są płaskie, a  wysokości pustek w górotworze na ogół mniejsze od ich szerokości. W stropie znajdują się warstwy łupku. Spąg, tam gdzie nie jest pokryty namuliskiem lub rumoszem skalnym, wykształcony jest w marmurach. Wyjątek stanowi Sala Wysoka, wymyta całkowicie w marmurach oraz salka wstępna (powyżej otworu), której pierwotny charakter jednakże w znacznym stopniu naruszyły prowadzone w bezpośredniej bliskości roboty strzałowe. Znaczna część spągu zwłaszcza Sali z Głazami i dalej w tym samym kierunku rozwiniętego głównego korytarza z Salą Końcową, pokryta jest materiałem skalnym pokruszonym podczas robót strzałowych. Osady występują w formie glin i zwietrzałego łupku.<br />Światło dzienne w zasadzie do jaskini nie dociera oświetlając wyłącznie sztolnię. Woda w jaskini występuje wyłącznie w formie sączeń po ścianach i spągu.<br />Podczas pierwszej eksploracji jaskini (3.09.1977 r.) w Sali Końcowej zaobserwowano nietoperze.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    W sierpniu 1977 r. podczas prowadzenia robót strzałowych w sztolni na poziomie X "odkryto" jaskinię. 3.09.1977 r. przeprowadzono pierwszą eksplorację głównego ciągu (S. Koszela, T. Rojek, R. Stański i H. Urbacki).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    W listopadzie 1978 r. podczas kolejnej eksploracji skartowano Salę Pochyłą i Wysoką oraz szczelinę z salą na wschód od Sali z Głazami (T. Rojek, R. Stański). Dokumentacji fotograficznej nie sporządzono. W wyniku prac górniczych w kamieniołomie otwór wejściowy do sztolni został zasypany i w 1994 r. nie udało się go odszukać. Dane zaktualizował A. Szynkiewicz w 2014 r.<br />Plan opracował T. Rojek.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Tak
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Pulina M. 1977 (wzmiankuje); Rojek T. 1978, 1985, 1987  (plan, przekr&#243;j); Jaskinie Sudet&#243;w 1996 (plan i opis pod nr. S-5.38). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Tadeusz Rojek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Halina Grodzicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(3969)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(3970)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

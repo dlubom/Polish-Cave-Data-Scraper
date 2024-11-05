@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1749">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1749;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "572775,04".replace(',', '.') + "," + "157740,21".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1749','Jaskinia Jaszczurowska Wodna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Jaszczurowska Wodna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Jaskinia Jaszczurowska Wodna w Jaszczur&#243;wce, przy Kaplicy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.Z-18.01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;00′03,46″, φ: 49&#176;16′58,16″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Zakopane (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                915
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    33
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Olczyska, u wylotu Doliny Olczyskiej, w jej prawym (or. ) zboczu w pobliżu Kapliczek w Jaszczur&#243;wce. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Wg Kowalskiego 1953a: Poniżej kapliczki w Jaszczurówce przepływa rowem nad drogą strumień wody. Od miejsca, gdzie krzyżuje się z nim ścieżka, biegnąca od kapliczki do drogi, idziemy wzdłuż strumienia w górę najpierw przy drodze, potem kilkanaście metrów w bok od niej do dużego źródła, 15 m od niego znajduje się otwór do jaskini wśród bloków wapienia. Od kapliczki 3 min. Droga bez trudności. Zwiedzanie łatwe, w końcowej części wymaga jednak brodzenia po kolana w wodzie. Obecnie – od kilku już lat – obudowany jest budynkiem ujęcia wód, a jaskinia – niedostępna. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span><em>Otw&oacute;r jaskini rozwinięty jest na szczelinie, niezbyt obszerny. Niekiedy wypływa z niego struga wody, kt&oacute;ra znika zaraz pod ziemią, by wypłynąć powt&oacute;rnie 3 m dalej.</em> Na og&oacute;ł jednak korytarz za otworem jest suchy na długości ok. 10 m. Stan taki dokumentowany jest w opisie i na planie Kowalskiego (1953a), wynika też z obserwacji zespołu inwentaryzacyjnego OW PTPNoZ. Wg W&oacute;jcika (1959b) korytarz ten zalewany jest tylko w czasie silnych roztop&oacute;w. </span></p>
+<p><em><span>Na całym tym początkowym odcinku spotykamy liczne ślady łamania skały w postaci wierconych otwor&oacute;w w ścianach i stropie. Już w otworze słychać huk wody dochodzący z głębi. Po 10 m napotykamy wodę, w kt&oacute;rej trzeba brnąć dalej na czworakach, korytarz jest bowiem dość niski. Po dalszych 5 m stajemy w korytarzu z ładnymi wymyciami, zalanymi wodą do głębokości 1 m. Z prawej strony nadpływa z hukiem prąd wody, kt&oacute;ry znika w lewym, dolnym, zalanym po strop końcu korytarza. Idziemy teraz w g&oacute;rę korytarza po listwach skalnych nad poziomem wody, aż dochodzimy do rozwidlenia z ładnymi naciekami na stropie. Stąd ku g&oacute;rze idzie suchy, zatkany gruzem i gliną, korytarzyk. Prąd wody wychodzi z lewej odnogi, gdzie jaskinia rozszerza się, ale zarazem obniża. Dalej woda wypełnia Ja aż po strop. Na dnie widać tu liczne bloki granitu. </span></em></p>
+<p><span>Przy niskim stanie w&oacute;d możliwe jest przejście przez wstępne kałuże i dalej w g&oacute;rę korytarzem wodnym aż do rozgałęzienia bez specjalnego zamoczenia się. </span></p>
+<p><span>Jaskinia powstała w eoceńskim wapieniu numulitowym. Szczeg&oacute;łowy opis litologiczny profilu eocenu u wejścia do niej zawiera praca Roniewicza (1969). Pewne zr&oacute;żnicowanie litologii skał, w kt&oacute;rych rozwinięta jest jaskinia wywiera wpływ na jej morfologię. Występujące w nich wkładki łupkowe niszczone są słabiej i tworzą szereg występ&oacute;w (listew) na ścianach (W&oacute;jcik 1959b). </span></p>
+<p><em><span>Namulisko jest kamieniste, w końcowym, suchym korytarzyku widać głazy i glinę (. . . ) W stromym korytarzu wodnym dno jest skalne.</span></em></p>
+<p><span>Korytarz zablokowany jest blokami granitu, kt&oacute;rych średnica sięga do 60 cm (W&oacute;jcik 1959b). Potok w jaskini transportuje piasek kwarcowy oraz otoczaki granit&oacute;w, piaskowc&oacute;w, wapieni piaszczystych itp. (W&oacute;jcik 1966a). Materiał ten pochodzi z rozmytych pokryw fluwioglacjalnych (op. cit. ). </span></p>
+<p><span>Jaskinia ma stały przepływ wody, kt&oacute;ry podczas silnych roztop&oacute;w zwiększa się na tyle. że zalewa wstępny korytarz i wypływa otworem (W&oacute;jcik 1959b). Znikająca w jaskini woda <em>wypływa prawdopodobnie jako obfite źr&oacute;dło, znajdujące się kilkanaście metr&oacute;w poniżej jaskini jak na to wskazuje zgodność temperatur.</em> Źr&oacute;dło to ma charakter dyslokacyjno-krasowy (Gołąb 1961, Kotański 1971). Wrzosek (1933) r&oacute;wnież na podstawie pomiar&oacute;w temperatur sugeruje, że system ten może mleć także połączenie z jednym z występujących poniżej kapliczki źr&oacute;deł (w utworach fliszowych).<em> Powietrze nasycone jest wilgocią,. . . Światło sięga kilka metr&oacute;w w głąb od otworu.</em> Temperatura wody wg L. Kowalskiego waha się miedzy 5,15</span><span>&deg;C a 5,40&deg;C. Wrzosek podaje 5. 10. 1932 r. temperaturę 6,2&deg;C. Roślinność zielona ograniczona jest do samego otworu. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania osad&oacute;w i inne obserwacje geologiczne prowadził w jaskini W&oacute;jcik (1959b, 1960a,b, 1966a). Pr&oacute;bki osad&oacute;w z jaskini znajdują się w zbiorach Muzeum Ziemi PAN w Warszawie</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Według Kowalskiego (1953a): <span><em>W r. 1889 Pauli, leśniczy z Zakopanego, zwr&oacute;cił uwagę na tę jaskinię, znaną z pewnością od dawna i korzystając z zasiłku Towarzystwa Tatrzańskiego rozpoczął prace nad jej rozkopaniem. W tym okresie z pewnością rozszerzono korytarz wejściowy. W samym otworze, na głębokości 1,5 m znaleziono w&oacute;wczas całkowity szkielet samicy łosia, opisany p&oacute;źniej przez Szajnochę. Szkielet ten znajduje się w Zakładzie Geologicznym Akademii G&oacute;rniczo-Hutniczej w Krakowie (. . . ). W r. 1920 opisał jaskinię L. Kowalski podając temperaturę wody w jej wnętrzu. Opisuje ją następnie Wrzosek (1933) i Szokalski (1934). Ten ostatni nazywa ją Grotą przy Kaplicy. </em></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Plan i opis jaskini datowany na19. 08. 1952. opublikował Kowalski (1953a). Pomiary lokalizacyjne w ramach inwentaryzacji OW PTPNoZ wykonała I. Luty przy wsp&oacute;łpracy H. Hercman i W. Władymirowa w dn. 2. 09. 1979 r. busolą geologiczną Meridian i taśmą parcianą. Zaktualizował R.M. Kardaś (2009 r.).<br />Plan wg Kowalskiego (1953a).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Szajnocha, W. 1889 (o szkielecie łosia); Markiewicz. W. 1889 (o odkryciu groty przez Pauliego); Łoś w Tatrach 1890 (o odkryciu groty i szkieletu łosia); Szajnocha, W. 1980 (o szkielecie łosia); Świerz, L. 1894 (wzmiankuje o zasiłku Towarzystwa Tatrzańskiego na badania w r. 1889 i o odkryciu łosia); Kowalski, L. 1920 (opis, temperatura wody); Wrzosek, A. 1933 (opis); Kowalski, K. 1953a (plan i opis inwentarzowy pod nazwą Jaskinia Jaszczurowska);W&#243;jcik, Z. 1959b (obserwacje geologiczne i hydrograficzne); 1960a (osady); 1960b (osady); Zwoliński, S. 1961 (wzmianka o historii eksploracji); Głazek, J., W&#243;jcik, Z. 1963 (lokalizują na mapie bez podania nazwy, tabl. I); W&#243;jcik. Z. 1966a (osady, wiek); 1968 (interpretacja wiekowa); Roniewicz, P. 1969 (sytuacja geologiczna przy otworze, bez podania nazwy); Kotański, Z. 1971 (sytuacja geologiczna, wzmiankuje bez podania nazwy); TATRY POLSKIE 1984 (lokalizacja na mapie); Jaskinie TPN 1991 (opis inwentarzowy z planem Kowalskiego); Głazek, J. 2000 (wzmiankuje o badaniach Szajnochy); Wiśniewski, W.W. 2002 (wymienia wśr&#243;d znanych w 1904 r.). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Rafał M. Kardaś
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1290)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

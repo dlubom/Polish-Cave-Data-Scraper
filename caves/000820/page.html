@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F820">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 820;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "605460,42".replace(',', '.') + "," + "333542,96".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('820','Chelosiowa Jama-Jaskinia Jaworznicka'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Chelosiowa Jama-Jaskinia Jaworznicka
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                G-1.42
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Region Świętokrzyski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 20&#176;29′56,00″, φ: 50&#176;51′33,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Piekosz&#243;w (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                kielecki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                świętokrzyskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Rezerwat przyrody Chelosiowa Jama
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                W
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku W, 261,2 m n.p.m.; 3 (Jaskinia Jaworznicka) - ku S, 286,1 m n.p.m.; 4 - ku g&#243;rze, 288,1 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                257,30
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                18
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                57
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                4
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                61
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    3670
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                327
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaworznia, zesp&#243;ł nieczynnych kamieniołom&#243;w na G&#243;rze Kopaczowej. Jaskinia Chelosiowa Jama-Jaskinia Jaworznicka stanowi połączony w marcu 1996 r. system dwu jaskiń - Chelosiowej Jamy i Jaskini Jaworznickiej. Sztuczne otwory jaskini znajdują się w ścianach nieczynnych kamieniołom&#243;w na G&#243;rze Kopaczowej w Jaworzni. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Otwór główny Chelosiowej Jamy (1) zlokalizowany jest w dolnej części wschodniej ściany zachodniego kamieniołomu, przy jego południowo-wschodnim narożu. Dochodzi się do niego pochylnią wzdłuż południowej ściany wyrobiska. Drugi otwór Chelosiowej Jamy (2) znajdował się w tej samej ścianie kamieniołomu, w sąsiedztwie jego północno-wschodniego naroża, mniej więcej w 1/3 jej wysokości. Otwory Jaskini Jaworznickiej (3 i 4) położone są w górnej części ściany północnej wschodniego kamieniołomu.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <div>CHELOSIOWA JAMA</div>
+<div>&nbsp;</div>
+<p>Otw&oacute;r gł&oacute;wny Chelosiowej Jamy (1) miał pierwotnie kształt szczeliny o poziomej rozciągłości, długości 5&nbsp;m i maksymalnej wysokości 1,2&nbsp;m. Obecnie szczelina jest zamurowana a drzwi wejściowe do jaskini znajdują się w p&oacute;łnocnej, najwyższej jej części. Drugi otw&oacute;r Chelosiowej Jamy (2) miał kształt soczewkowaty, szerokość 1,4&nbsp;m i wysokość 0,7&nbsp;m. Otw&oacute;r ten został w 1988&nbsp;r. całkowicie zamurowany. Dojście do otwor&oacute;w bez trudności.</p>
+<p>Dostęp do jaskini ograniczony jest jej ochroną konserwatorską. Wejście możliwe jest jedynie za zgodą Regionalnego Konserwatora Przyrody w Kielcach. Zwiedzanie jaskini tylko z przewodnikiem ze względu na jej ochronę oraz trudną orientację w labiryncie korytarzy. Jaskinia w wielu miejscach wymaga czołgania się przez wąskie i błotniste przełazy. Trudniejsze zaciski występują w korytarzach łączących dawną Chelosiową Jamę z Jaskinią Jaworznicką. Zawaliskowy charakter wielu pustek stwarza zagrożenie obrywami oraz ruchomymi blokowiskami w dnie. Dostęp do niekt&oacute;rych partii jaskini (kominy, niekt&oacute;re studnie) możliwy jest jedynie przy użyciu liny i technik taternictwa jaskiniowego.</p>
+<p>Bezpośrednio za gł&oacute;wnym wejściem do Chelosiowej Jamy (otw&oacute;r 1) znajduje się niewielka, pochyła salka o dnie pokrytym blokami skalnymi i fragmentami dużych stalagmit&oacute;w. Z salki schodzi się stromym, kilkumetrowym zejściem do rozległej, poziomo rozwiniętej Komory Wstępnej - przy samym zejściu wysokiej, dalej jednak bardzo niskiej sali, wypełnionej gliniastym, zwykle błotnistym namuliskiem. Stąd czterema ciasnymi przejściami można wejść do Kom&oacute;r Bernasiewicza. Pierwsze od lewej przejście zaczyna się niskim, wznoszącym się w g&oacute;rę korytarzem, kt&oacute;ry przez zawalisko i zacisk łączy się z zachodnim fragmentem Kom&oacute;r Bernasiewicza. Drugie, praktycznie nie używane przejście jest bardzo niskim przełazem wprowadzającym do Kom&oacute;r. Trzecie (od strony lewej) przejście - używane najczęściej - jest prostym, kilkumetrowym korytarzykiem o gliniastym dnie. Przejście skrajnie prawe (południowo-wschodnie) doprowadza po 5&nbsp;m do prawie pionowej szczeliny przechodzącej ku g&oacute;rze w Kominek Naciekowy - niewielkiej pionowej pustki ze stalagmitami, draperiami i naciekami wełnistymi. Z kominka przeczołgujemy się dwoma przełazami do g&oacute;rnej części Kom&oacute;r Bernasiewicza. Komory te mają rozciągłość NW-SE i długość 40&nbsp;m. Cześć zachodnia, zbliżona do ściany kamieniołomu ma charakter zawaliskowy. Zwana jest Salą Sopli Kalcytowych. Środkowa część - Sala Debat - przechodzi w pochyłą, niską pustkę wznoszącą się ku południowemu-wschodowi. Pustka ta - Sala Trzech Węży - stanowiąca południowo-wschodnią część Kom&oacute;r Bernasiewicza ma skalne dno. Na jej dnie spoczywają pojedyncze wielkie bloki wapienne. W kierunku p&oacute;łnocnym odchodzi z centralnej części Kom&oacute;r Bernasiewicza kilkumetrowa, poziomo rozwinięta pustka prowadząca do niskiej salki. Do salki tej można też dotrzeć przełazem po wschodniej stronie szczeliny zwanym Skr&oacute;tem dla Wytrwałych.</p>
+<p>Opisana wyżej salka jest końcowym fragmentem Starych Partii jaskini Chelosiowej Jamy odkrytych w pierwszej połowie lat siedemdziesiątych. Ta część jaskini oraz początek następnej Dolnej Sali rozwinięta jest w obrębie megabrekcji tektonicznej zbudowanej z ostrokrawędzistych blok&oacute;w wapieni tkwiących w kalcycie, tzw. r&oacute;żance zelejowskiej. W r&oacute;żance występują liczne geody ze szczotkami kalcytowymi, kt&oacute;re odsłaniają się w stropie pustek jaskini. Większe pustki mają charakter rozległych poziomych rozwarć grawitacyjnych i pustek zawaliskowych. W Starych Partiach i następnej Dolnej Sali występują zimą i wiosną nacieki lodowe.</p>
+<div>&nbsp;</div>
+<p>Z salki na końcu Starych Partii dwoma przełazami dostajemy się do Dolnej Sali. Lewy, węższy przełaz, wyeksplorowany jednak wcześniej niż prawy Zacisk Murarzy, zwany jest Zaciskiem z Rurą. Za tymi przełazami rozwiera się największy zesp&oacute;ł pustek jaskiniowych Chelosiowej Jamy, złożony z połączonych Sal: Wielkobiwakowej, Dolnej i G&oacute;rnej o łącznej długości ponad 50 m, powierzchni ponad 1000 m2, wysokości do 6 m. Są to rozległe komory zawaliskowe. Strop tych kom&oacute;r tworzą grube ławice wapieni, nachylone pod kątem 20-300 na wsch&oacute;d.</p>
+<p>Strop Sali Wielkobiwakowej (Wielka Sala - Urban 1992) jest wysoki, r&oacute;wny, pochylony ku wschodowi (ENE). Prawie całe dno sal tworzą usypiska blok&oacute;w wapiennych. Wyjątkiem jest płat namuliska - tzw. Biwak - w części wschodniej Sali Wielkobiwakowej. Granica między Salą Wielkobiwakową a Dolną Salą jest słabo czytelna, natomiast granice G&oacute;rnej Sali wyznacza pr&oacute;g, kt&oacute;ry powstał w wyniku obrywu wyższych niż w Sali Wielkobiwakowej ławic. Dno G&oacute;rnej Sali położone jest 2,5&nbsp;m powyżej Biwaku w Sali Wielkobiwakowej. W p&oacute;łnocnej części Sali Wielkobiwakowej znajduje się korytarzyk prowadzący do drugiego - obecnie zamurowanego - otworu jaskini.</p>
+<p>Na p&oacute;łnoc od Biwaku rozpoczynają się korytarze Lewego i Prawego Meandra. Oba Meandry składają się w znacznej części z pionowych lub prawie pionowych szczelin krasowych. Lewy Meander zaczyna się wśr&oacute;d dużych blok&oacute;w w p&oacute;łnocnej części zawaliska (możliwość błądzenia przy powrocie), po czym przechodzi w pionową szczelinę z zaklinowanymi blokami. Prowadzący po blokach szczelinowaty korytarzyk (długości 16&nbsp;m) łączy się kilkumetrową studnią rozszerzajacą się ku dołowi (w drodze powrotnej przydatna lina) z niższą częścią szczeliny o gliniastym dnie. Stąd ciągnie się jeszcze wąski i miejscami kręty korytarzyk o długości 25&nbsp;m. Na końcu Lewego Meandra w namulisku pojawiają się żwiry.</p>
+<p>Wejście do Prawego Meandra znajduje się nieco na wsch&oacute;d od wejścia do Lewego Meandra, na skraju blokowiska. Początkową jego część stanowią rozwarcia międzyławicowe, genetycznie związane z tworzeniem się zawaliska Sali Wielkobiwakowej. Środkowa część tego Meandra jest prawie pionową szczeliną o szerokości 1-1,5&nbsp;m zaciskającą się stopniowo ku g&oacute;rze i ku dołowi, z licznymi jednak małymi kominkami i studzienkami. Na ścianach szczeliny bardzo ładnie zostały wypreparowane tkwiące w wapieniach szczątki amfipor i stromatoporoid&oacute;w. Szczelina stopniowo zaciska się, natomiast w prawo, a p&oacute;źniej w lewo biegnie korytarz doprowadzający do salki o wysokości 5&nbsp;m i średnicy 4-8&nbsp;m. Końcowa część Prawego Meandra to wychodzący z tej salki kręty, niższy i coraz ciaśniejszy korytarzyk rozwinięty wzdłuż spękań ciosowych. Dno korytarzyka jest pokryte gliniastym namuliskiem.</p>
+<p>Ze wschodniej i południowo-wschodniej części opisanego wyżej kompleksu sal odchodzi ciąg jaskini tworzący Wielką Pętlę. Pętla ta rozpoczyna się zygzakowatym przełazem, kt&oacute;ry z Sali Wielkobiwakowej wprowadza do Korytarza Ciągłej Ekstazy (Korytarz Naciekowy - Urban 1992). Przełaz ten zwany jest Zaciskiem 22 Lipca. Za przełazem rozwija się prosty korytarz długości około 80&nbsp;m o generalnie p&oacute;łkolistym stropie i wysokości zwykle 1,5-3&nbsp;m. Stanowi on g&oacute;rną część pustki krasowej wypełnionej obecnie częściowo namuliskiem. W ścianach i stropie korytarza obserwować można liczne kociołki, jamki i niewielkie kominki krasowe. Namulisko, zbudowane w g&oacute;rnej części z brązowo-ż&oacute;łtego materiału gliniastego, ma nier&oacute;wną powierzchnię, zaś pokrywająca go miejscami polewa kalcytowa (ze stalagmitami wysokości do 0,5&nbsp;m) jest spękana. Cechą charakterystyczną Korytarza Ciągłej Ekstazy jest występowanie licznych niedużych naciek&oacute;w na stropie i ścianach. Są to stalaktyty długości 10-20cm a także draperie, wełniste polewy. Wśr&oacute;d stalaktyt&oacute;w częste są formy o skomplikowanych kształtach, w tym haczykowate lub rosnące poziomo. Rzadkie są natomiast klasyczne makarony.</p>
+<p>Mniej więcej w połowie Korytarza Ciągłej Ekstazy odchodzi od niego w kierunku południowo-wschodnim kanał dochodzący do Lewego Sera.</p>
+<p>Przedłużeniem Korytarza Ciągłej Ekstazy jest Sala Deszcz&oacute;w o podobnym charakterze jak Korytarz. Jak sugeruje jej nazwa, słychać w niej jednostajny szelest spadających kropli. Najciekawszym jej elementem jest odsłonięcie dużego, kopalnego kanału krasowego całkowicie wypełnionego zlityfikowanymi (zwięzłymi) osadami węglanowo-piaszczysto-mułowcowymi o czerwonym zabarwieniu przerośniętymi soczewami (polewami) grubokrystalicznego kalcytu. Mniejsze tego typu formy wypełnione czerwonymi osadami spotyka się w wielu miejscach Korytarza Ciągłej Ekstazy. W stropie Sali Deszcz&oacute;w odsłaniają się r&oacute;wnież liczne żyły kalcytu-r&oacute;żanki, zaś w jej południowej części znajduje się wielka geoda w obrębie r&oacute;żanki (długości 4&nbsp;m, szerokości 1-2&nbsp;m) o ścianach zbudowanych ze szczotek krystalicznych.</p>
+<p>W kierunku zachodnim odchodzi od Sali Deszcz&oacute;w system niskich rozległych pustek o gliniastym, błotnistym dnie - tzw. Prawy Ser. Natomiast w części południowo-wschodniej rozwija się ciasna szczelina schodząca w d&oacute;ł i łącząca się z krasowym kanałem zwanym Korytarzem pod Torami. Leży on 6&nbsp;m poniżej Sali Deszcz&oacute;w. Jego dno pokrywa gliniaste namulisko z fragmentami polew naciekowych i stalagmit&oacute;w.</p>
+<p>Z Sali Deszcz&oacute;w strome, kilkumetrowe zawalisko i ścianka sprowadzają do niewielkiej Salki ze Świeczką, obecnie już bez świeczki. Świeczka bowiem - śnieżnobiały stalagmit zbudowany z drobnokrystalicznego kalcytu - została zniszczona.</p>
+<p>Nie schodząc w d&oacute;ł, lecz trawersując ściankę, wchodzi się w sieć mylnych kanał&oacute;w zwanych Lewym Serem. Od trawersu przechodzi się kanałem nad studzienką do miejsca połączenia kilku korytarzyk&oacute;w. W jednym z nich, zakończonym ślepo można obserwować odsłonięcie kopalnej pustki krasowej wypełnionej zlityfikowanym, laminowanym osadem namuliska węglanowo-piaszczystego. Inny kanał doprowadza do Studni Tomka (głębokości 5&nbsp;m), w kt&oacute;rej znajduje się - zawieszony na ścianach niczym most - fragment polewy kalcytowej o grubości rzędu 1&nbsp;m.</p>
+<p>Z Lewego Sera wychodzi się ciasnym przełazem do Rozdroża, z kt&oacute;rego w kierunku p&oacute;łnocno-wschodnim odchodzi Wielki Korytarz, zaś na wsch&oacute;d - Tr&oacute;jkąt. W tym miejscu i w sąsiednich pustkach na początku lat dziewięćdziesiątych przedostawały się do jaskini zanieczyszczenia z szamba na powierzchni. Wielki Korytarz jest jedną z najobszerniejszych pustek jaskini. Ma długość 30&nbsp;m, szerokość 6&nbsp;m i wysokość 7&nbsp;m. Jest to obszerna i wysoka pustka częściowo zawaliskowa. Wśr&oacute;d blok&oacute;w wapienia na dnie spotyka się fragmenty stalagmit&oacute;w grubości 0,3-0,7&nbsp;m, wysokości 1-2&nbsp;m. Korytarz biegnie stromo w d&oacute;ł, początkowo po zawalisku, p&oacute;źniej po nachylonych ścianach skalnych, aż do stopnia wysokości 2-3&nbsp;m, za kt&oacute;rym położona jest Sala z Jeziorkiem.</p>
+<p>Sala z Jeziorkiem ma kształt pionowej, grubej soczewki, wysokości rzędu 15&nbsp;m, szerokości 10&nbsp;m i długości 20&nbsp;m. W jej stropie znajduje się komin wysokości 9&nbsp;m z trzema kr&oacute;tkimi korytarzykami. W swej dolnej części sala zwęża się zasypana zawaliskiem, po kt&oacute;rym schodzi się do Jeziorka Błękitnych - studni zalanej wodą o głębokości 7&nbsp;m. Jeziorko jest najniższym punktem jaskini (-57&nbsp;m), położonym na poziomie zwierciadła w&oacute;d gruntowych (dno jeziorka na poziomie 228,7&nbsp;m n.p.m.). Po pochyłych ścianach sali pełzną do jeziorka płaty czerwonego, plastycznego iłu. Dawniej powierzchnia iłu usiana była błotnymi piramidkami, teraz w całości zadeptanymi. Przepłynąwszy przez jeziorko, można jeszcze dostać się do kr&oacute;tkiego Korytarza za Jeziorkiem.</p>
+<p>Następny odcinek Wielkiej Pętli - G&oacute;rny Korytarz - rozpoczyna się w dolnej części Wielkiego Korytarza, 3&nbsp;m powyżej jego dna (trzeba wspiąć się na ściankę). G&oacute;rny Korytarz jest początkowo dość wysoki, owalny w przekroju, wspinając się do g&oacute;ry zmniejsza swe rozmiary, by skończyć się dwoma zaciskami. W początkowej części jego dno pokrywają bloki skalne, wyżej w dnie pojawia się czarne namulisko zbudowane z okruch&oacute;w skał węglanowo-ilasto-manganowych. Drugim interesującym obiektem w tym korytarzu jest duży stalagmit zawieszony na przyczepionej do ścian polewie na wysokości 1,5&nbsp;m nad dnem bocznej wnęki.</p>
+<p>G&oacute;rny Korytarz zaciskiem - tzw. Grzybkiem - łączy się z jedną z najciekawszych sal jaskini - Salą z Kominem. Jest to obszerna - długości 40&nbsp;m, szerokości 10&nbsp;m i wysokości do 6&nbsp;m - komora w części zawaliskowa. Strop jej jest nier&oacute;wny, utworzony w środkowej części sali w wyniku obłamywania się ławic wapiennych. Widoczne w tej części stropu antyklinalne wygięcie ławic kontynuuje się do Sali z Kabotem i zauważalne jest r&oacute;wnież w ścianie kamieniołomu na powierzchni. Dno w tej części sali jest obniżone i pokryte blokami wapienia. W p&oacute;łnocno-wschodniej części sali strop ma charakter krasowy i pocięty jest meandrującymi kanałami, zaś namulisko sięga wysoko, 1-2&nbsp;m poniżej stropu i jest gliniaste. Ze stropu zwieszają się tu nieduże stalaktyty o nieregularnych, często haczykowatych kształtach. Namulisko gliniaste występuje też w południowej części sali. W bocznej wnęce po stronie południowo-wschodniej zlokalizowany jest komin wysokości 16&nbsp;m (267.8&nbsp;m n.p.m.). W dnie tej samej części komory znajduje się pionowa szczelina zwana Zaciskiem Jednego Przejścia. Znaczna część ściany zachodniej Sali z Kominem pokrywa gruba polewa kalcytowa pęknięta i od dołu oberwana. W ścianach Sali z Kominem, prawie na całej ich długości odsłania się ponadto poziomo leżący pakiet zlepieńc&oacute;w oraz piaskowc&oacute;w wapnistych (wapieni piaszczystych) niezgodnie przecinający ławice wapieni dewońskich. Ma on grubość 1-1,5&nbsp;m i reprezentuje zlityfikowane osady wypełniające kopalną formę krasową wieku permsko-triasowego. W centralnej części Sali z Kominem znajduje się r&oacute;wnież największe nagromadzenie "kaszki kalcytowej" - drobnych, luźnych kryształ&oacute;w kalcytu i agregat&oacute;w krystalicznych pokrywających blokowiskowe dno warstewką o grubości do 5cm.</p>
+<p>Z p&oacute;łnocnej części Sali z Kominem rura krasowa doprowadza do niewielkiej Sali z Wantą o gliniastym dnie z blokiem skalnym pośrodku. W części południowo-zachodniej sali odchodzi ciasny kanał zakończony salką zwaną Wsorpem z charakterystycznym lejem w gliniastym dnie. Z Sali z Wantą ciąg Wielkiej Pętli prowadzi poprzez Zacisk Pawia do Płaskiej Sali. Komora ta jest rozległą i niską, poziomo rozwiniętą pustką krasową wypełnioną częściowo namuliskiem gliniastym. W części wschodniej przechodzi ona w podobny do niej, szeroki, lecz zaciskający się korytarz zwany Problemami Chłopc&oacute;w z Zagnańska. Biegnący w kierunku przeciwnym niski Korytarz Fredka łączy Płaską Salę z Salą z Kabotem. Sala z Kabotem jest dość obszerna, w planie poziomym ma kształt owalny, długość około 20&nbsp;m, wysokość do 4&nbsp;m. Sala ma charakter zawaliskowy, znaczny fragment jej dna pokryty jest jednak czerwonobrązowym, gliniastym namuliskiem. Sala jest jednym z bardziej mokrych miejsc w jaskini. Namulisko jest błotniste, zaś w miejscu obniżonym, na namulisku tworzy się okresowo tzw. Błotne Jeziorko i mniejsze kałuże.</p>
+<p>Z części zachodniej Sali z Kabotem można się dostać poprzez ciasny przełaz do kilkunastometrowego ciągu niskich pustek stanowiących rozwarcia międzyławicowe, tzw. Ruchomych Schod&oacute;w. W kierunku południowo-zachodnim odchodzi z tej sali kręty, prowadzący częściowo w zawalisku Korytarz Filozof&oacute;w. Doprowadza on do G&oacute;rnej Sali zamykając w ten spos&oacute;b Wielką Pętlę.</p>
+<p>Fragment Wielkiej Pętli obejmujący Wielki Korytarz, Korytarz G&oacute;rny oraz Salę z Kominem stanowi jednocześnie część tzw. Małej Pętli. Zwiedzanie Małej Pętli można rozpocząć od tej ostatniej sali. Z niej Zaciskiem Jednego Przejścia, kt&oacute;ry jest studzienką o głębokości 4&nbsp;m (trudną do pokonania w kierunku odwrotnym), dostajemy się do biegnącego w kierunku południowo-wschodnim ciasnego, miejscami rurowatego korytarzyka wychodzącego w dnie Dziurawej Sali (Sala z Dziurą - Urban 1992). Dziurawa Sala jest nieregularną w kształcie pustką o długości do 20&nbsp;m, wysokości do 4&nbsp;m i nier&oacute;wnym dnie. Z jej p&oacute;łnocno-zachodniej części zwanej Zaciskiem Solisty można wr&oacute;cić do G&oacute;rnego Korytarza. Odchodzące z p&oacute;łnocno-wschodniej części tej sali przecinające się, ślepo zakończone korytarzyki zwane są Rurami. Najdłuższy z nich o kluczokształtnym przekroju poprzecznym jest bardzo interesującym przykładem meandra krasowego powstałego w wyniku przepływu strumienia wodnego przy powolnym obniżaniu się zwierciadła w&oacute;d. Z Dziurawej Sali dwoma ciasnymi korytarzykami stanowiącymi w części rury krasowe, w części zaś szczeliny zawaliskowe dochodzi się do obszernego korytarza zwanego Tr&oacute;jkątem. Jeden z korytarzyk&oacute;w ma wylot na poziomie dna Tr&oacute;jkąta, drugi - w kominie 6&nbsp;m nad jego stropem.</p>
+<p>Tr&oacute;jkąt stanowi długi, prawie 200-metrowy, poziomy korytarz, łączący Wielką Pętlę z tzw. Nowymi Partiami. Biegnie on generalnie r&oacute;wnoleżnikowo, tworząc jednak zakola i przecinając liczne poprzeczne szczeliny ciosowe. W miejscach przecięć z poprzecznymi spękaniami ciosowymi tworzą się głębokie wnęki lub odchodzą korytarzyki krasowe przechodzące jednak szybko w wąskie, niedostępne szczeliny. Gł&oacute;wny korytarz ma szerokość zwykle 2-3&nbsp;m i wysokość od 0,5&nbsp;m do 3&nbsp;m. Tr&oacute;jkąt wypełniony jest w znacznej części namuliskiem mułkowo-piaszczystym i piaszczystym. Fragmenty listew na jego ścianach wskazują na poziomy przepływ strumienia wodnego, zaś przyczepione do ścian, często tuż pod stropem resztki polewy kalcytowej są dowodem na znaczne zasypanie korytarza osadami po starszym etapie jego krasowej korozji. Ponad polewą zachowała się miejscami bogata szata naciekowa.</p>
+<p>Z miejsca wylotu korytarzyk&oacute;w z Dziurawej Sali można w prawo wr&oacute;cić Tr&oacute;jkątem do Rozdroża, zamykając Małą Pętlę. W przeciwnym kierunku, w lewo Tr&oacute;jkąt doprowadza po około 80&nbsp;m do ciasnego przełazu, za kt&oacute;rym w niewielkiej salce odsłaniają się szczeliny o grubości 10-30cm wypełnione takimi samymi zlepieńcami, jakie występują w permsko-triasowej soczewie krasowej w Sali z Kominem.</p>
+<p>Salka z odsłonięciem zlepieńc&oacute;w była do 1987&nbsp;r. najdalszym punktem jaskini. Pokonanie zacisku (lewego Dującego Kominka) w jej stropie doprowadziło do odkrycia Krypty WJ a następnie, w 1988&nbsp;r. - Nowych Partii. Przebywszy Dujący Kominek (w g&oacute;rę dość trudny) i kilkumetrową ciasną rurę krasową w salce zwanej Kryptą WJ można przekonać się, że wypełniające szczeliny zlepieńce przechodzą ku g&oacute;rze w poziomą soczewę o znacznej rozciągłości (jak w Sali z Kominem). Sama Krypta WJ jest niską salą o dnie pokrytym ilastym namuliskiem, z kt&oacute;rego sterczą bloki i płyty wapienne odspojone od stropu. P&oacute;łnocna odnoga Krypty WJ doprowadza do Całki, zacisku, za kt&oacute;rym zaczynają się Nowe Partie. Nowe Partie Chelosiowej Jamy składają się z dwu obszernych sal: Herbaciarni oraz Sali z Wi&oacute;rkami, łączącego je obszernego korytarza (lub wydłużonej sali) zwanego Kamienne Tablice oraz dwu bocznych korytarzy - Wschodniej Orientacji i Zapomnianej Pętli. Bezpośrednio z Całki wchodzi się do Kamiennych Tablic - obszernej pustki zawaliskowej o pochyłym dnie utworzonym z oberwanych ze stropu wielkich płyt, kt&oacute;re stanowią fragmenty ławic wapieni oraz r&oacute;wnym, r&oacute;wnież pochylonym stropie wyciętym wzdłuż powierzchni spągowych ławic. Przedłużeniem tej pustki w kierunku p&oacute;łnocnym jest Herbaciarnia.</p>
+<p>Herbaciarnia stanowi poziomą salę o wysokości do 3,5&nbsp;m, długości 30&nbsp;m i szerokości 12&nbsp;m. Ma ona wydłużenie o kierunku południkowym, zgodne z upadem ławic wapieni. W części południowej komora jest łukowato sklepiona i ma strop oraz ściany krasowo wymodelowane. Dno pokrywa tu gliniaste namulisko, wypełniające przestrzeń pomiędzy blokami skalnymi. Wśr&oacute;d blok&oacute;w spotyka się fragmenty wielkich stalagmit&oacute;w. Na starych, skorodowanych naciekach rosną tu kilkumilimetrowe słupkowe agregaty kalcytowe. Charakterystyczne listwy na ścianach oraz wydłużenie sali wskazują, iż reprezentuje ona fragment dawnego ciągu korytarzowego, wykorzystywanego przez podziemny ciek wodny. Ciąg ten ku p&oacute;łnocy został zawalony, cała bowiem p&oacute;łnocna część Herbaciarni jest pustką zawaliskową podobną do otwierających się po jej przeciwnej stronie Kamiennych Tablic.</p>
+<div>&nbsp;</div>
+<p>Około 10&nbsp;m na wsch&oacute;d od początku Herbaciarni (wzdłuż ściany Kamiennych Tablic) znajduje się niewielka wnęka, z kt&oacute;rej przez ciasny przełaz przechodzi się do krasowej salki zwanej Laleczką. Stąd prowadzi przejście do części systemu należącej do Jaskini Jaworznickiej.</p>
+<p>W kierunku wschodnim Kamienne Tablice doprowadzają do Sali z Wi&oacute;rkami. Jest to duża komora o przebiegu NE-SW, długości 30&nbsp;m, szerokości do 12&nbsp;m, wysokości do 5&nbsp;m. Oś sali biegnie skośnie do kierunku upadu wapieni. P&oacute;łnocno-wschodnia część sali stanowi duże rozwarcie międzyławicowe, kt&oacute;rego spąg tworzą płyty wapienne nachylone ku p&oacute;łnocy a od południa opadające progami o wysokości 3&nbsp;m do południowo-zachodniej części sali. Na dnie tego fragmentu sali pokrytym blokami skalnymi pojawiają się płaty gliniastego namuliska. Na powierzchni namuliska oraz blokowiska leży płat "kaszki kalcytowej".</p>
+<p>W części Nowych Partii obejmującej Herbaciarnię, Salę z Wi&oacute;rkami oraz Kamienne Tablice znowu odsłaniają się w wielu miejscach wielkie, poziomo rozwinięte kopalne soczewy krasowe wypełnione zlepieńcami i piaskowcami węglanowymi powstałe w permsko-triasowym okresie krasowym. Najciekawsze ich odsłonięcia znajdują się na brzegu wnęki prowadzącej do Laleczki oraz u wejścia do korytarza Wschodnia Orientacja. Trzy odsłonięcia zlokalizowane są w okolicach Herbaciarni. Interesujące odsłonięcie stropu soczewy zarejestrowano w południowo-wschodniej części Sali z Wi&oacute;rkami.</p>
+<p>Ostatnią częścią Nowych Partii jest system pustek długości około 100&nbsp;m, odchodzący od p&oacute;łnocnej części Sali z Wi&oacute;rkami. Są one niezbyt obszerne, poszerzają się jednak miejscami w niewielkie salki. Lewy ciąg nazywa się Wschodnią Orientacją. Osiąga on szerokość do 14&nbsp;m i wysokość do 4&nbsp;m. Dno korytarza jest nier&oacute;wne, pokryte najczęściej gliniastym namuliskiem, rzadziej rumoszem wapienno-kalcytowym. Ił na powierzchni namuliska jest miejscami kostkowo spękany, co może być efektem jego wysychania. Ściany końcowych salek korytarza pokrywają miejscami grube, efektowne nacieki - polewy, draperie, stalagmity (np. typu "pagoda"). Spotyka się też stalaktyty długości do 20cm zbudowane z prawie przeźroczystego kalcytu. Prawy ciąg, zwany Zapomnianą Pętlą jest początkowo zawaliskowy, dalej zaś przechodzi w korytarz krasowy. W południowym odcinku Zapomnianej Pętli znajduje się wejście do szczeliny o długości 20&nbsp;m i południkowym przebiegu. W poprzek jej końcowej części biegnie korytarzyk, kt&oacute;rego zachodni kraniec zamknięty jest blokiem skalnym. Za blokiem znajduje się mała salka, do kt&oacute;rej można się dostać zaciskiem zwanym Problemem z Wantą.</p>
+<p>Ciąg pustek jaskiniowych łączący Chelosiową Jamę z Jaskinią Jaworznicką i odkryty wiosną 1996&nbsp;r. rozpoczyna się w okolicach Herbaciarni, za salką zwaną Laleczka, z kt&oacute;rej poprzez wąski przełaz przechodzi się do Partii Flipa i Flapa. Mają one długość około 60&nbsp;m, rozwinięcie południkowe i składają się z kominka 2&nbsp;m wysokości, dwu małych salek oraz kanału krasowego o wysokości do 1,5&nbsp;m, szerokości do 1,7&nbsp;m. W kierunku wschodnim od kanału odchodzą dwie ciasne, niezbyt długie odnogi. W końcowej jego części znajduje się wejście do Rozm&oacute;wnicy 96 - kilkumetrowej rury krasowej o średnicy 0,5&nbsp;m, w kt&oacute;rej spotkali się uczestnicy akcji prowadzący eksplorację z dwu stron, od Chelosiowej Jamy i Jaskini Jaworznickiej.</p>
+<div>&nbsp;</div>
+<div>JASKINIA JAWORZNICKA</div>
+<div>&nbsp;</div>
+<p>Gł&oacute;wny otw&oacute;r Jaskini Jaworznickiej (3) stanowi szczelinę o pionowym rozwinięciu osiągającą szerokość 1&nbsp;m i wysokość 1,5&nbsp;m. Otw&oacute;r ten został zabezpieczony metalowymi drzwiami. Nad nim znajduje się zakratowany otw&oacute;r 4 o wydłużonym kształcie, długości 3&nbsp;m i szerokości do 1,4&nbsp;m. Otwory Jaskini Jaworznickiej położone są na bardzo stromym zboczu (ślisko w czasie opad&oacute;w).</p>
+<p>Dostęp do jaskini ograniczony jest jej ochroną konserwatorską. Wejście możliwe jest jedynie za zgodą Regionalnego Konserwatora Przyrody w Kielcach. Zwiedzanie jaskini tylko z przewodnikiem ze względu na jej ochronę oraz trudną orientację w labiryncie korytarzy. Jaskinia w wielu miejscach wymaga czołgania się przez wąskie i błotniste przełazy. Trudniejsze zaciski występują w korytarzach łączących dawną Chelosiową Jamę z Jaskinią Jaworznicką. Zawaliskowy charakter wielu pustek stwarza zagrożenie obrywami oraz ruchomymi blokowiskami w dnie. Dostęp do niekt&oacute;rych partii jaskini (kominy, niekt&oacute;re studnie) możliwy jest jedynie przy użyciu liny i technik taternictwa jaskiniowego.</p>
+<p>Za drzwiami wejściowymi rozwija się Komora Wstępna o długości 6&nbsp;m, szerokości 4&nbsp;m i dnie pokrytym blokowiskiem. W części wschodniej i p&oacute;łnocnej Komory Wstępnej znajdują się wejścia do dwu ciąg&oacute;w korytarzy, z kt&oacute;rych dłuższy, wschodni ma około 20&nbsp;m długości.</p>
+<p>Nad Komorę Wstępną zaraz za otworem (3) rozwija się kominek dochodzący do otworu 4, obecnie zakratowanego. Przy tym otworze zlokalizowane są Partie Kuny - kilkunastometrowy ciąg niewielkich salek zawaliskowych. G&oacute;rna część Partii Kuny stanowi najwyższy punkt jaskini (+4&nbsp;m w stosunku do otworu 3). Kierunku południowo-zachodnim komora obrywa się stromym Korytarzem Stal&oacute;wki (konieczna lina), k&oacute;ry przechodzi niżej w obszerną zawaliskową Komorę Złomisk o dnie nachylonym w kierunku zachodnim. Dno sali pokrywają wielkie bloki skalne, strop jest nier&oacute;wny. Odchodzące od wschodniej części sali liczne korytarzyki, m.in. Mysi Ciąg, Zawiły Ciąg, Wiszący Korytarzyk, r&oacute;wnież rozwinięte są w blokowisku. Ich długość sięga kilkudziesięciu metr&oacute;w. Sala występuje w obrębie kopalnej megabrekcji, przy czym udział materiału piaszczysto- drobnodetrytycznego o czerwonym zabarwieniu jest miejscami znaczny.</p>
+<p>W zachodniej części komory znajduje się wejście do kilkumetrowego korytarzyka w zawalisku nazwanym Longplay, poniżej kt&oacute;rej za 2 m progiem położona jest Sala NPWZ.</p>
+<p>Sala NPWZ jest rozległa (długość 40&nbsp;m, szerokość do 25&nbsp;m) i wysoka (do 5&nbsp;m), wyraźnie pochylona w kierunku p&oacute;łnocno-zachodnim i zachodnim. Gł&oacute;wna jej część występuje w obrębie wapieni dewońskich pociętych dość regularną siecią uskok&oacute;w (biegnących co kilka, maksymalnie kilkanaście metr&oacute;w). Strefy uskokowe, doskonale odsłaniające się w r&oacute;wnym stropie sali wypełnione są osadami piaszczysto-brekcjowymi o czerwonym zabarwieniu. Powierzchnie uskok&oacute;w często mają charakter luster tektonicznych. Sama sala ma charakter gł&oacute;wnie zawaliskowy. Dno pokrywają wielkie fragmenty ławic, strop jest r&oacute;wny, utworzony z powierzchni spągowych ławic i nachylony na p&oacute;łnoc. Na stropie widoczne są jednak ślady p&oacute;źniejszego krasowienia. Miejscami, zwłaszcza w p&oacute;łnocnej części komory płyty wapienne pokrywa gliniaste namulisko. Tu też znajduje się niska Salka Naciekowa o rzeźbie krasowej z nielicznymi lecz ładnie wykształconymi naciekami.</p>
+<p>Zachodni kraniec NPWZ jest miejscem rozejścia się dw&oacute;ch dalszych ciąg&oacute;w jaskini. Obszerniejszy nazwany jest Larmo i przechodzi w ciąg korytarzy o długości 30&nbsp;m. Dno tego niskiego, choć miejscami szerokiego i mylnego ciągu tworzą w części początkowej (przy sali NPWZ) powierzchnie ławic wapiennych, dalej zaś - gliniaste namulisko. Doprowadza on do sali zwanej Gang. Sala ta, nieco mniejsza niż NPWZ (długości 30&nbsp;m, szerokości 15&nbsp;m, wysokości do 3,5&nbsp;m), występuje w obrębie kopalnej megabrekcji om&oacute;wionej już przy opisie Pseudorozdroża. Tu jednak znajdują się najlepsze odsłonięcia tego osadu. Tu też można obserwować nakładanie się na ten utw&oacute;r nieco tylko młodszej tektoniki blokowej znanej z NPWZ (lustra tektoniczne). Gang jest pustką całkowicie zawaliskową i podobnie jak Pseudorozdroże cechuje się bardzo nieregularnym kształtem. Centralną jego część zajmuje spłaszczony stożek usypiska blok&oacute;w i głaz&oacute;w. W kilku miejscach na ścianach pojawiają się młode i nieduże, lecz wyraźnie odr&oacute;żniające się białą barwą od czerwono-szarego tła polewy naciekowe. Pod jedną z nich w ścianie zachodniej znajduje się przełaz prowadzący poprzez niewielką salkę i zacisk Czarną Dziurę do sali Umaguma.</p>
+<div>&nbsp;</div>
+<p>Umaguma - ostatnia z sal tego ciągu jest najrozleglejszą pustką jaskini, wyraźnie wydłużoną r&oacute;wnoleżnikowo i osiągającą w tym kierunku długość 80&nbsp;m. Wejście do niej (Czarna Dziura) znajduje się w najszerszej, wysuniętej ku p&oacute;łnocy części sali, kt&oacute;ra ma tu szerokość 20&nbsp;m i wysokość 7&nbsp;m. Dno pokrywa tu namulisko gliniaste. Tu też występują na ścianach nacieki kalcytowe - polewy, stalaktyty i stalagmity. P&oacute;łnocna część sali występuje jeszcze w obrębie kopalnej megabrekcji, natomiast południowe, wydłużone r&oacute;wnoleżnikowo "ramiona" rozwinęły się już w prawie nie zmienionych, płytowych wapieniach dewońskich zapadających pod kątem 20-30<sup>0</sup> na p&oacute;łnoc. Sala miejscami, zwłaszcza w części p&oacute;łnocnej nosi ślady korozji krasowej. Gł&oacute;wny jednak fragment sali ma charakter zawaliskowy. W jej dnie występuje tu wydłużony, pochylony pr&oacute;g zbudowany z wielkich płyt wapiennych oraz bloki skalne miejscami przykryte płatami gliniastego namuliska. W części zachodniej sali w namulisku rozwija się lej w miejscu gdzie strop i spąg przebity jest otworem wiertniczym odwierconym podczas dokumentowania złoża wapieni "Jaworznia". Z tej części sali odchodzi r&oacute;wnież rurowaty kanał krasowy CDN, w kt&oacute;rym wyczuwa się przewiew. Stąd też był on swego czasu oczyszczany z wypełniającego go namuliska w nadziei połączenia z Chelosiową Jamą. Z przeciwległego, wschodniego krańca sali wybiega ku p&oacute;łnocy meandrujący korytarz krasowy - Szczelina Kunegundy o długości 20&nbsp;m. W środkowej jego części znajduje się wejście do r&oacute;wnoległej, kilkumetrowej szczeliny oraz drugie przejście do Umagumy. Przy końcu po stronie prawej rozwija się kilkumetrowy kominek.</p>
+<p>Ciąg prowadzący z sali NPWZ do Umagumy kończy się ślepo, natomiast gł&oacute;wny ciąg jaskini kontynuuje się po przejściu ciasnego przełazu Salką pod Bambulcem o średnicy 9&nbsp;m i wysokości 3,5&nbsp;m. Występuje ona r&oacute;wnież w strefie megabrekcji i podobna jest do następnej zwanej Pseudorozdrożem, kt&oacute;ra rozpoczyna dalszy ciąg jaskini o nazwie Stan Przedzawałowy. Pseudorozdroże jest niedużą lecz wysoką (średnicy do 10&nbsp;m, wysokości do 5,5&nbsp;m) i nieregularną w kształcie salką zawaliskową pozbawioną praktycznie poziomego dna. Znajduje się ona dokładnie w strefie przejścia zwartego masywu wapiennego (w obrębie kt&oacute;rej występuje znaczna część Chelosiowej Jamy i Stan Przedzawałowy Jaskini Jaworznickiej) w kopalną megabrekcję zbudowaną z wielkich, czasem wielometrowych blok&oacute;w wapiennych tkwiących w zlityfikowanym (zwięzłym) materiale detrytycznym, piaszczysto-brekcjowym o zabarwieniu czerwonym. Innym interesującym zjawiskiem w tej sali są ładne nacieki kalcytowe noszące ślady rozwoju na poziomie zwierciadła zbiornika wodnego wypełniającego niegdyś częściowo pustkę. W lewo (na zach&oacute;d) odchodzi z Pseudorozdroża kr&oacute;tki kanał krasowy wprowadzający do kilku malutkich salek o ścianach w całości pokrytych polewą naciekową, z kt&oacute;rych ostatnia (za zaciskiem) zwie się Salką Żelaznej Dziewicy. Salka ta zakończona jest niedostępną szczeliną, w kt&oacute;rej wyczuwalny jest silny przewiew. W zachodniej części Pseudorozdroża znajduje się wejście do korytarza rozwiniętego wzdłuż wyraźnej szczeliny, mającego wysokość do 3&nbsp;m i szerokość do 1,5&nbsp;m. W dalszej części korytarz przechodzi w system ciasnych rurkowatych kanał&oacute;w zwany Rurkami., za kt&oacute;rymi znajduje się Korytarz Czołgist&oacute;w o długości 40&nbsp;m, wysokości do 0,5&nbsp;m, szerokości do 1,5&nbsp;m. Przejście korytarza możliwe jest w pozycji leżącej aż do miejsca połączenia obu jaskiń -ciasnego przełazu - Rozm&oacute;wnicy 96. System korytarzy pomiędzy Korytarzem Czołgist&oacute;w a Nowymi Partiami Chelosiowej Jamy stanowi zesp&oacute;ł poszerzonych krasowo powierzchni międzyławicowych oraz regenerowanych stref krasu kopalnego (odsłaniających się w Partiach Flipa i Flapa). Pustki te wypełnia w znacznej części osad mułowy (pylasty).</p>
+<div><strong>&nbsp;</strong></div>
+<p><strong>Informacje o systemie.</strong></p>
+<p>&nbsp;Jaskinia Chelosiowa Jama-Jaskinia Jaworznicka składa się generalnie z szeregu kom&oacute;r i korytarzy mających rozwinięcie poziome. Korytarze nie układają się w ciąg o wyraźnej tendencji kierunkowej. Część korytarzy tworzy dwie pętle zamknięte. Sale i korytarze wypełnione są w mniejszym lub większym stopniu namuliskiem, gruzem lub blokami wapiennymi. Dominują szerokie, p&oacute;łkoliście sklepione korytarze krasowe. Rzadsze są korytarze zawaliskowe o nier&oacute;wnym dnie, a także korytarze szczelinowe, związane wyraźnie z pionowymi lub stromo biegnącymi spękaniami i mające przekr&oacute;j poprzeczny zbliżony do pionowej soczewki. Często spotykanym typem korytarzy jaskini są r&oacute;wnież ciasne kanały o kształcie rur. Jeszcze innym rodzajem korytarzy są grawitacyjne rozwarcia międzyławicowe oraz pustki w obrębie blokowisk. Wśr&oacute;d sal przeważają obszerne pustki zawaliskowe. Dno sal tworzą blokowiska skalne, w stropie niekt&oacute;rych kom&oacute;r rozwijają się kominy krasowe o znacznej wysokości.</p>
+<p>&nbsp;Stosując morfologiczną klasyfikację Palmera (1991) Chelosiową Jamę-Jaskinię Jaworznicką należy zaliczyć do grupy jaskiń labiryntowych ("maze"), jej fragmenty wykazują cechy zbliżone do jaskiń typ&oacute;w "branchwork", "anastomotic" oraz "spongework". Jaskinia stanowi fragment systemu krasowego rozwiniętego w pasie występowania wapieni dewońskich południowego skrzydła synkliny kieleckiej. Występuje w obrębie: 1) gruboławicowych wapieni dewońskich nachylonych pod kątem 20-30&deg; na p&oacute;łnoc; 2) brekcji tektonicznej wapienno-kalcytowej wieku waryscyjskiego; 3) kopalnej strefy wietrzenia wapieni oraz megabrekcji erozyjno-wietrzeniowej wieku dolnotriasowego. Intensywny rozw&oacute;j systemu krasowego w tych skałach jest wynikiem specyfiki budowy geologicznej i występujących w niej warunk&oacute;w hydrogeologicznych (Urban 1992). Cechy geologiczne poszczeg&oacute;lnych fragment&oacute;w jaskini zostały om&oacute;wione w jej opisie powyżej. Poniżej kr&oacute;tko scharakteryzowano jej rozw&oacute;j oraz genezę niekt&oacute;rych zjawisk geologicznych jaskini.</p>
+<p>Wsp&oacute;łcześnie istniejące pustki jaskiniowe Chelosiowej Jamy-Jaskini Jaworznickiej powstały w kenozoicznym okresie krasowym. W części systemu należącej do Chelosiowej Jamy w wielu miejscach nakładają się one jednak na podziemne kanały krasowe rozwinięte w postwaryscyjskim okresie krasowym, w permie lub triasie i wypełnione całkowice zlityfikowanymi (zwięzłymi) osadami (Kuleta, Migaszewski 1993 - arch., Urban 1993a - arch., Kuleta, Urban 1996, Urban 2007). W Sali z Kominem i w Krypcie WJ w stropie permskotriasowych soczew krasowych wypełnionych osadami zlepieńcowo-piaszczysto-węglanowymi rozwinięty jest system wąskich tubularnych kanał&oacute;w anastomotycznych ("rur"), kt&oacute;re mogą reprezentować wczesną fazę rozwoju jaskini. Z kolei większość sal Jaskini Jaworznickiej - Gang, Komora Złomisk, Stan Przedzawałowy - występuje w strefie kopalnego zbocza i megabrekcji powstałej w wyniku powierzchniowego wietrzenia i erozji wapieni dewońskich w dolnym triasie (warunki jej powstania omawiają Głazek, Romanek 1976).</p>
+<p>Obok nakładania się r&oacute;żnowiekowych form krasu, na kierunki i kształt niekt&oacute;rych wsp&oacute;łczesnych korytarzy oraz kom&oacute;r jaskini niewątpliwy wpływ miała r&oacute;wnież tektonika oraz wypełnienie spękań wapieni kalcytem-r&oacute;żanką, tworzącym sieć żył. Wskazuje na to: 1) rozwinięcie niekt&oacute;rych korytarzy wzdłuż wiązek żył kalcytowych (ciąg pomiędzy Salą z Kominem a Dziurawą Salą); 2) forma kom&oacute;r występujących w obrębie brekcji wapienno-r&oacute;żankowej (przy otworze 1); 3) kształt sali NPWZ powstałej w strefie rozwoju blokowej tektoniki postwaryscyjskiej (tektonika blokowa rozwinęła się w okresie sedymentacji osad&oacute;w dolnotriasowych - Głazek, Romanek 1976, Głazek, Roniewicz 1976); 4) położenie kilku kom&oacute;r (Sala z Kominem, Sala z Wantą, Korytarz Fredka, Sala z Kabotem) na osi lokalnej antykliny, skośnej w stosunku do og&oacute;lnego upadu wapieni. Ciosowe spękanie wapieni determinuje często kierunki poszczeg&oacute;lnych odcink&oacute;w korytarzy, nie wydaje się jednak czynnikiem decydującym o generalnym planie gł&oacute;wnych ciąg&oacute;w jaskini (Urban 1992). Przykładem może być tu Tr&oacute;jkąt przecinający poprzecznie liczne płaszczyzny pionowych spękań, wzdłuż kt&oacute;rych rzadko rozwijają się korytarze o dłuższym zasięgu.</p>
+<p>Chelosiowa Jama oraz część pustek Jaskini Jaworznickiej należy do niższego piętra krasowego obserwowanego w obrębie wzniesień wapiennych Jaworzni. Wiele ciąg&oacute;w korytarzowych Chelosiowej Jamy (korytarze w Nowych Partiach oraz ciągu łączącym Chelosiową Jamę z Jaskinią Jaworznicką, okolice Płaskiej Sali, częściowo Rury) utworzyło się w warunkach freatycznych, najprawdopodobniej w strefie leżącej płytko poniżej zwierciadła w&oacute;d. P&oacute;źniejszy ich rozw&oacute;j następował w strefie zwierciadła w&oacute;d i powyżej niego. Świadczy o tym poziomy lub lekko nachylony (w jedną stronę) przebieg niekt&oacute;rych korytarzy oraz ich kluczokształtny przekr&oacute;j poprzeczny (Tr&oacute;jkąt, Rury). W trakcie dalszej ewolucji (ale jeszcze podczas tego samego cyklu rozwoju jaskini) pustki krasowe zostały wypełnione częściowo namuliskiem. Na namulisku, w warunkach subaerycznych utworzyły się grube kalcytowe polewy, duże stalagmity i kolumny naciekowe (Wielki Korytarz, G&oacute;rny Korytarz, Sala z Kominem, Herbaciarnia, Tr&oacute;jkąt, Studnia Tomka). Badania wieku dwu "starych" naciek&oacute;w przeprowadzone metodą uranowo-torową przez H. Hercman wykazały, że powstały one w okresie zlodowaceń środkowopolskich, najprawdopodobniej podczas ociepleń interglacjalnych lub interstadialnych tego okresu (inf. ustna H. Hercman). Pustki jaskiniowe są starsze, mogły powstać podczas wcześniejszych plejstoceńskich interglacjał&oacute;w lub w pliocenie, gdy położenie zwierciadła w&oacute;d (warunkowane ewolucją rzeźby lub nasuwaniem się lądolodu) wielokrotnie zmieniało się i mogło na dłuższy czas ustabilizować się na poziomie gł&oacute;wnych pustek jaskini.</p>
+<p>Podczas jednego z ostatnich okres&oacute;w (częściowego) zalania jaskini (zlodowacenie Warty?) nastąpiło wymycie namulisk i mechaniczne zniszczenie starej szaty naciekowej. Dlatego też wielkie nacieki starszej generacji są zazwyczaj porozbijane. Modelowanie pustek jaskini w tym i następnym etapie jej ewolucji polegało gł&oacute;wnie na zawalaniu się strop&oacute;w i tworzeniu nowych wypełnień namuliskowych. Większość kom&oacute;r i część korytarzy jaskini ma obecnie charakter zawaliskowy, stanowi więc pustki utworzone wt&oacute;rnie nad pierwotnymi formami krasowymi. Zawaliska złożone są najczęściej z dużych blok&oacute;w skalnych wielkości od kilkudziesięciu centymetr&oacute;w do 1-2&nbsp;m ("block breakdown"), jednak nie są rzadkością pustki powstałe w wyniku grawitacyjnego rozwarcia wielkich fragment&oacute;w ławic ("block breakdown"), co świadczy o znacznych rozmiarach pierwotnych form krasowych.</p>
+<p>Wypełnienia namuliskowe mają charakter ilasty (plastyczne iły wiśniowoczerwone, czerwonobrązowe) lub gliniasty (gliny i mułki o zabarwieniu ż&oacute;łtym i brązowym zawierające niekiedy rumosz wapieni bądź kalcyt&oacute;w naciekowych). Morfologia i skład tych namulisk wskazują, że przynajmniej ich wierzchnia warstwa kształtowana była przez wody kapiące. Osady piaszczyste występują jedynie w Tr&oacute;jkącie i dochodzącej do niego Piaskowej Szczelinie. Były one przemywane (i prawdopodobnie nanoszone) przez płynący okresowo ciek wodny (kt&oacute;ry jednak nie pojawił się od czasu odkrycia jaskini) Do najciekawszych form namuliskowych jaskini należą czarne, bogate w tlenki manganu, zwięzłe okruchy występujące w G&oacute;rnym Korytarzu oraz drobne konkrecje ilasto-manganowe w Tr&oacute;jkącie.</p>
+<p>Zakładając, że w p&oacute;źnym plejstocenie i holocenie poziom zwierciadła w&oacute;d podziemnych nie był wiele wyższy niż obecnie, można przyjąć, iż większość pustek jaskini znajdowała się w strefie aeracji. Były one jednak praktycznie odcięte od powierzchni (znikoma była wymiana powietrza). Spowodowało to silną korozję krasową ścian jaskini oraz miejscami naciek&oacute;w starszej generacji, powstanie charakterystycznych naciek&oacute;w młodszej generacji, a także tworzenie się specyficznych form kalcytowych, w tym unikatowej "kaszki kalcytowej".</p>
+<p>"Kaszka kalcytowa" to luźne kalcytowe agregaty krystaliczne o kilkumilimetrowej zazwyczaj wielkości, kt&oacute;re tworzą mniejsze lub większe skupienia gł&oacute;wnie na spągu jaskini. Dotąd zinwentaryzowano prawie 20 stanowisk "kaszki kalcytowej" w jaskini (Kuleta, Migaszewski 1993 - arch., Urban 1993a - arch.). Opr&oacute;cz typowej "kaszki" w dwu miejscach napotkano na powierzchni namulisk większe agregaty krystaliczne &ndash; r&oacute;że kalcytowe (o kilkucentymetrowych rozmiarach), a także - w kilku innych punktach - gałązkowe zrosty kalcytowe występujące w obrębie namulisk i mające podobne do nich, czerwone zabarwienie. "Kaszka kalcytowa" była przedmiotem obserwacji i badań laboratoryjnych. Udowodniono, że nie jest ona związana z żadną inną generacją kalcytu badaną dotąd w jaskini (kalcyty żyłowe i naciekowe) i powstała w vistulianie. Przedstawiono hipotezę tłumaczącą powstanie "kaszki kalcytowej" w wyniku szybkiej precypitacji kalcytu z wysoko zmineralizowanych roztwor&oacute;w wodnych podczas gwałtownego spadku ciśnienia cząsteczkowego dwutlenku węgla w momencie otwarcia jaskini (Durakiewicz, Hałas, Migaszewski, Urban 1995). Hipoteza ta, określająca fizyczno-chemiczne warunki tworzenia się "kaszki", nie wyjaśniła szeregu geologicznych aspekt&oacute;w występowania tego unikatowego zjawiska, m.in. braku ślad&oacute;w zbiornik&oacute;w wodnych przy skupieniach "kaszki", znacznej ilości agregat&oacute;w kalcytowych i luźnego ich charakteru w skupieniach. Ostatnio wykonane badania kaszki kalcytowej i r&oacute;ż kalcytowych (CCC-cryogenic cave calcite) wykazały, że formy te powstały w warunkach wytrącania się kalcytu z wielokrotnie zamrażanych i rozmrażanych w&oacute;d występujących w jaskiniach podczas ostatniego okresu lodowcowego plejstocenu (Żak i in.2004). Podobne utwory kalcytowe zostały opisane r&oacute;wnież z jaskiń: Czech, Słowacji i Niemiec (Żak i in.2004; Richter, Niggemann 2005; Richter, Riechelmann 2008).</p>
+<p>Najmłodszą generację form kalcytowych reprezentują nieduże lecz charakterystyczne nacieki występujące w Korytarzu Ciągłej Ekstazy, Sali z Kominem i ciągu Wschodnia Orientacja. Są to najczęściej kilkucentymetrowe stalaktyty zbudowane z bardzo grubokrystalicznego kalcytu. Liczne są wśr&oacute;d nich formy pochyłe i powyginane. Cechy te świadczą o powolnym wzroście w warunkach złego kontaktu atmosfery jaskini z powierzchnią. Znacznie rzadziej spotyka się małe, śnieżnobiałe, drobnokrystaliczne stalagmity, kt&oacute;rych najlepszym przykładem był zniszczony naciek z Sali ze Świeczką.</p>
+<div>Opracował Jan Urban.</div>
+<p>W jaskini nie prowadzono systematycznych badań mikroklimatycznych. Og&oacute;lne obserwacje i pojedyncze pomiary temperatury (pomiary wykonywał T. Wr&oacute;blewski po odkryciu wstępnej części Chelosiowej Jamy) wskazują na dynamiczny charakter środowiska jaskini. Obserwuje się w niej typową dla tego środowiska cyrkulację powietrza - jego przepływ do g&oacute;rnego otworu zimą i w d&oacute;ł latem. Niekt&oacute;re fragmenty jaskini wykazują jednak odmienne cechy mikroklimatyczne. Na przykład Prawy Meander i Partie Kuny mają mikroklimat statyczny ciepły, podczas gdy inne, położone w pobliżu dolnego otworu wymarzają.</p>
+<p>Zimą w przyotworowych partiach jaskini (Komory Bernasiewicza, Dolna Sala) występują formy lodowe, kt&oacute;re utrzymują się niekiedy do końca czerwca. Wśr&oacute;d nich godne uwagi są liczne stalagmity ("chłopki lodowe") osiągające wysokość 1&nbsp;m, kolumny lodowe do 1,2&nbsp;m i stalaktyty (sople lodowe). Obserwuje się też l&oacute;d wł&oacute;knisty.</p>
+<p>Najwyższa wilgotność utrzymuje się w rejonie Sali z Jeziorkiem, zaś zimą r&oacute;wnież w okolicy g&oacute;rnych otwor&oacute;w, kt&oacute;rymi wydobywa się cieplejsze powietrze.</p>
+<p>Niemal cała jaskinia znajduje się w strefie ciemności. Światło z otworu 1 dociera do początk&oacute;w Komory Wstępnej, natomiast od otwor&oacute;w 3 i 4 - do podstawy Korytarza Stal&oacute;wki (Komora Złomisk).</p>
+<p>&nbsp;</p>
+<p>Flora przyotworowa występuje praktycznie jedynie w okolicach najwyższego (4) otworu jaskini (dawnej Jaskini Jaworznickiej). Stanowią je rośliny zielne kiełkujące na namulisku z wpadających tu nasion. Kiełki roślin z nasion zawleczonych przez zwierzęta i ludzi można napotkać w głębszych częściach jaskini. Na odchodach kuny powszechnie występują grzyby pleśniowe. W okolicach Rozdroża w okresie intensywnej infiltracji zanieczyszczeń z powierzchni znajdowano kępy grzyb&oacute;w kapeluszowych. Infiltracjom towarzyszy niewątpliwie bogata flora bakteryjna.</p>
+<p>&nbsp;</p>
+<p>Faunę reprezentują liczne grupy organizm&oacute;w bezkręgowych oraz ssaki. Spośr&oacute;d nich do grupy troglofili należą: przyślepek warzywny <strong><em>Onychiurus armatus </em></strong>Tullberg reprezentujący skoczogonki (Collembola), chrząszcze z gatunku <strong><em>Quedius mesomelinus mesomelinus </em></strong>(Marsh.) reprezentującego kusakowate (Staphylinidae) i <strong><em>Sphodurus leucophtalmaes </em></strong>(L.) reprezentującego biegaczowate (Carabidae) a także r&oacute;wnonogi (Isopoda), reprezentowane prawdopodobnie przez stonogę murową <strong><em>Oniscus asellus </em></strong>L<span>.</span>(Gubała 1996a).</p>
+<p>Spośr&oacute;d trogloksen&oacute;w stwierdzono: szczerb&oacute;wkę ksieni<strong> <em>Scoliopteryx libatrix </em></strong>(L.), rusałkę pawik <strong><em>Inachis io </em></strong>(L.) i <strong><em>Triphosa dubitata </em></strong>L. reprezentujące motyle, a także gatunki ślimak&oacute;w z rodziny szklarkowatych (Zonitidae) i pomrowcowatych (Limacidae). Ponadto obserwowano: chruściki (Trichoptera), błonk&oacute;wki (Hymenoptera), much&oacute;wki (Diptera) w tym komarowate (Culicidae) oraz pająki (Araneae). Napotkano r&oacute;wnież chrząszcze: pustoszowate (Ptynidae), otrupkowate (Byrrhidae) i ryjkowce (Curculionidae), te ostatnie reprezentowane przez gatunek opuchlak owalny <strong><em>Otiorhynchus ovatus </em></strong>(L.).</p>
+<p>Częstym gościem w jaskini jest kuna <strong><em>Martes </em></strong>sp., kt&oacute;rej stare i świeże odchody oraz ślady posiłk&oacute;w stwierdzano niemal na całym jej terenie. W sali Gang znaleziono szkielet kuny leśnej <strong><em>Martes martes </em></strong>L<em>.</em></p>
+<p>Obserwacje faunistyczne prowadzone są od 1994&nbsp;r. przez J. Gubałę i A. Kaszę, chrząszcze oznaczał M. Bidas.</p>
+<p>Nietoperze Chelosiowej Jamy-Jaskini Jaworznickiej reprezentuje 7 gatunk&oacute;w: nocek duży <strong><em>Myotis</em> <em>myotis </em></strong>(Borkhausen), nocek rudy<strong> <em>Myotis daubentonii </em></strong>(Kuhl), nocek Natterera <strong><em>Myotis nattereri</em> </strong>(Kuhl). nocek Bechsteina <strong><em>Myotis bechsteinii </em></strong>(Kuhl), nocek wąsatek<strong> <em>Myotis mystacinus </em></strong>(Kuhl), nocek Brandta<strong> <em>Myotis Brandtii </em></strong>(Eversmann) i gacek brunatny <strong><em>Plecotus auritus </em></strong>(L.) (Wołoszyn 1994a, Gubała 1996b). Og&oacute;łem zimuje w jaskini stale ponad 200 osobnik&oacute;w nietoperzy, dzięki czemu Chelosiowa Jama-Jaskinia Jaworznicka jest jednym z największych stanowisk występowania tych ssak&oacute;w wśr&oacute;d jaskiń Polski.</p>
+<p>Zimowe badania nietoperzy zapoczątkowano w latach 1988-89 (Wołoszyn 1994). Począwszy od 1994&nbsp;r. prowadzą je członkowie Świętokrzyskiej Grupy Chiropterologicznej (Gubała 1996b).</p>
+<div>Opracował Jacek Gubała.</div>
+<p>Fauna wodna jaskini jest dość uboga, a zasiedlenie badanych zbiornik&oacute;w - nier&oacute;wnomierne. W misie skalnej w ścianie Korytarza Ciągłej Ekstazy nie stwierdzono obecności zwierząt. W kałuży w Sali Deszcz&oacute;w znaleziono nicienie (Nematoda), skąposzczety (Oligochaeta) (<strong><em>Enchytraeus buchholzi </em></strong>Vejd. i <strong><em>Enchytraeus dominicae </em></strong>Dum<strong><em>.</em></strong>) oraz widłonogi (Copepoda). Ta ostatnia grupa występowała też w kałużach Sali z Kabotem. W Tr&oacute;jkącie pr&oacute;cz Nematoda i Oligochaeta znajdowano okresowo Aphanoneura (<strong><em>Aeolosoma </em></strong>sp.) - zwierzęta spokrewnione z Oligochaeta. Jest to pierwsze stwierdzenie tej grupy w wodach podziemnych Polski.</p>
+<p>W jeziorku żyje najbardziej zr&oacute;żnicowana fauna: Nematoda, Oligochaeta (<strong><em>Enchytraeus </em></strong>sp. i<strong> <em>Cernosvitoviella </em></strong>sp.), Copepoda i r&oacute;wnon&oacute;g (Isopoda) <strong><em>Asellus aquaticus</em></strong> (L.). Ten ostatni gatunek jest pospolity w wodach powierzchniowych, lecz znaleziony osobnik wykazywał pewne zmiany morfologiczne charakterystyczne dla gatunk&oacute;w stygobiontycznych: redukcję ubarwienia i wielkości oka oraz wydłużenie czułk&oacute;w. Na powierzchni jeziorka występują skoczogonki (Collembola) (Dumnicka, Wojtan 1992).</p>
+<div>Opracowała Elżbieta Dumnicka.</div>
+<div>&nbsp;</div>
+<p>&nbsp;W okresie od odkrycia w obu jaskiniach dają się zauważyć znaczne zmiany antropogeniczne. Bezpośrednie zniszczenia w korytarzach i salach jaskini objawiają się przede wszystkim: zadeptaniem namulisk (w tym interesujących naukowo form na dnie jaskini), miejscami - zwłaszcza w partiach przyotworowych Chelosiowej Jamy i w Korytarzu Ciągłej Ekstazy - zniszczeniem niekt&oacute;rych naciek&oacute;w, okopceniem ścian, napisami na ścianach w Sali Wielkobiwakowej. Obecnie wszystkie zachowane formy namuliskowe i naciekowe na dnie jaskini zabezpieczone są taśmami ochronnymi. Znacznie groźniejsze dla środowiska jaskini były jednak zanieczyszczenia przesączające się na początku lat dziewięćdziesiątych w rejon Rozdroża. Pochodziły one z zakładu przemysłowego przechowującego substancje chemiczne, a p&oacute;źniej - starego szamba znajdującego się obok zakładu. Dzięki staraniom Dyrektora Wydziału Ochrony Środowiska Urzędu Wojew&oacute;dzkiego (S. Piskorza) oraz Wojew&oacute;dzkiego Konserwatora Przyrody (J. Pajdaka) zakład został zlikwidowany 15.08.1993&nbsp;r., zaś szambo usunięto.</p>
+<p>Podstawowa zmiana antropogeniczna jaka zaszła w ciągu ostatnich kilkudziesięciu lat w jaskini polega prawdopodobnie na udrożnieniu połączeń wiążących ją z powierzchnią. Przed rozcięciem wzg&oacute;rza przez kamieniołom środowisko (w tym atmosfera) jaskini było znacznie słabiej połączone z powierzchnią i mniej zależne od wpływ&oacute;w zewnętrznych. Połączenie z powierzchnią spowodowane eksploatacją niewątpliwie zmieniło warunki mikroklimatyczne jaskini.</p>
+<div>Opracował Andrzej Kasza.</div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W dotychczasowej historii poznania jaskiń systemu Chelosiowa Jama-Jaskinia Jaworznicka wyr&oacute;żnić można dwa okresy eksploracji. Pierwszy okres eksploracji systemu obejmuje lata 1972-73 i związany jest z prowadzonymi przez kieleckich i warszawskich geolog&oacute;w badaniami w kamieniołomach w Jaworzni. W&oacute;wczas to poznano wstępne, zawaliskowe partie Jaskini Jaworznickiej o długości około 200 m oraz przyotworowy fragment Chelosiowej Jamy o długości około 150 m. <br /> Drugi okres przypada na lata 1984-96. Prawie wszystkie prace eksploracyjne z tego okresu są efektem działalności grotołaz&oacute;w ze Speleoklubu Świętokrzyskiego w Kielcach (dawniej Sekcji Taternictwa Jaskiniowego i Alpinizmu przy Zrzeszeniu Student&oacute;w Polskich). Od grudnia 1984 r. do czerwca 1988 r. poznano w Chelosiowej Jamie prawie 2600 m nowych korytarzy o deniwelacji 39 m. W latach 1988-94 odkryto w Chelosiowej Jamie i Jaskini Jaworznickiej jedynie kilkadziesiąt metr&oacute;w nowych korytarzy. Prowadzono w niej jednak w tym czasie badania geologiczne oraz obserwacje biologiczne, wykonano dokumentację fotograficzną wielu obiekt&oacute;w tej jaskini. Na przełomie lat osiemdziesiątych i dziewięćdziesiątych podjęto szereg praktycznych krok&oacute;w w kierunku ochrony obu jaskiń. <br /> Ostatni etap intensywnej eksploracji rozpoczął się w listopadzie 1994 r. odkryciem nowych korytarzy o długości około 450 m w Jaskini Jaworznickiej a uwieńczony został w marcu 1996 r. połączeniem obu jaskiń w jeden system. <br /> Informacje o poszczeg&oacute;lnych dokonaniach eksploracyjnych i badawczych rozproszone są w wielu publikacjach zebranych w zestawieniu literatury. Nieco obszerniej historia poznania Chelosiowej Jamy do 1990 r. została przedstawiona w publikacji Urbana (1992) oraz opracowaniu archiwalnym (Urban 1993a). Przy opracowaniu poniższego zestawienia danych dotyczących eksploracji i badań Chelosiowej Jamy-Jaskini Jaworznickiej wykorzystano jednak przede wszystkim informacje ustne uzyskane od J. Bednarza, L. Dziubińskiego, T. Kapicy, R.M. Kardasia, J. Rogalskiego, J. Stradowskiego, J. Urbana, T. Wr&oacute;blewskiego i D. Ziacha oraz dane autora. Poniżej zestawiono chronologicznie podstawowe fakty z historii poznania systemu jaskiniowego (w przypadku gdy odkryć dokonywali członkowie Speleoklubu Świętokrzyskiego pominięto w zestawieniu informacje o przynależności klubowej). <br />&bull; Lato 1960 r. - odsłonięty zostaje otw&oacute;r Jaskini Jaworznickiej, mieszkańcy Jaworzni opuszczając się przy pomocy stalowej liny zwiedzają pierwszą jej salę nazwaną p&oacute;źniej Komorą Złomisk. <br />&bull; Czerwiec 1972 r. - odsłonięty zostaje większy otw&oacute;r Chelosiowej Jamy.<br />&bull; Wrzesień i grudzień 1972 r. - studenci Uniwersytetu Warszawskiego: R.M. Kardaś, W. Przybyszewski i A. Romanek penetrują i kartują (w skali 1:250) przyotworową część Jaskini Jaworznickiej (długości ponad 200 m) nadając jej nazwę. <br />&bull; Jesień 1973 r. - warszawski geolog R. Chlebowski powiadamia pracownik&oacute;w Oddziału Świętokrzyskiego Instytutu Geologicznego w Kielcach o zauważonym w kamieniołomie w Jaworzni wejściu do jaskini (p&oacute;źniejszej Chelosiowej Jamy). <br />&bull; 1973 r. - informacja o otworze jaskini zostaje rozpowszechniona r&oacute;wnież przez tw&oacute;rcę ludowego z Jaworzni Jana Bernasiewicza <br />&bull; 16.11.1973 r. - Z. Kowalczewski, M. Nowak, E. Wr&oacute;blewska, T. Wr&oacute;blewski z Oddziału Świętokrzyskiego Instytutu Geologicznego, penetrują przyotworową część Chelosiowej Jamy o długości około 150 m, sporządzając wstępny jej plan i nadając jej nazwę. <br />&bull; 10.12.1984 r. - J. Bednarz, J. Borzechowski i A. Jarząb odkrywają Dolną Salę, Salę Wielkobiwakową, G&oacute;rną Salę i Prawy Meander. <br />&bull; Grudzień 1984 r. - J. Bednarz i L. Dziubiński podczas jednej akcji odkrywają Lewy Meander. <br />&bull; 1985-1986 r. - członkowie Sekcji Taternictwa Jaskiniowego i Alpinizmu kartują przyotworowe i odkryte przez siebie partie Chelosiowej Jamy (skala 1:200). <br />&bull; Styczeń 1985 r.: <br />- J. Bednarz i T. Kapica sugerując się przewiewem oczyszczają z gruzu korytarzyk długości 5 m w zachodniej części Sali Wielkobiwakowej odkrywając 2 otw&oacute;r jaskini. <br />- J. Bednarz i T. Kapica po odgruzowaniu Zacisku 22 Lipca odkrywają Korytarz Ciągłej Ekstazy (Korytarz Naciekowy), Salę Deszcz&oacute;w, Prawy Ser i Salę ze Świeczką. <br />- J. Bednarz, T. Kapica, K. Kulawik, J. Rogalski dokładnie penetrują Prawy i Lewy Ser. <br />- K. Kulawik, A. Lipowski i J. Rogalski poznają boczne korytarzyki odchodzące z Korytarza Ciągłej Ekstazy w kierunku Lewego Sera. <br />- J. Bednarz, T. Kapica i J. Rogalski podczas pomiar&oacute;w w Sali Deszcz&oacute;w odkrywają Korytarz pod Torami. Tego samego dnia J. Bednarz i J. Rogalski pokonując przełaz w Lewym Serze odkrywają Tr&oacute;jkąt, Wielki Korytarz, Salę z Jeziorkiem, G&oacute;rny Korytarz i Salę z Kominem. Po tych odkryciach długość jaskini przekracza 1000 m a deniwelacja - 26 m.<br />&bull; Luty 1985 r. - J. Bednarz i T. Kapica w czasie biwaku wspinają się na wysokość kilku metr&oacute;w w Wielkim Kominie. <br />&bull; Marzec 1985 r.:<br />- K. Kulawik, A. Lipowski, J. Rogalski i R. Szczęśniak wspinając się w Wielkim Kominie osiągają rejon zaklinowanego bloku. <br />- J. Bednarz i J. Rogalski odkrywają kilkanaście metr&oacute;w korytarzy pod Wielkim Kominem, tzw. Partie na Kaczych Łapkach. <br />&bull; Kwiecień 1985 r.:<br /> - L. Dziubiński wspina się do końca Wielkiego Komina osiągając salkę na jego szczycie. <br />- P. Rysiak rozpoczyna eksplorację w Zacisku Solisty. <br />- J. Bednarz i T. Kapica przekopują Błotny Korytarzyk w p&oacute;łnocnej części Sali z Kominem, odkrywają Salę z Wantą i Wsorp. <br />- J. Bednarz eksploruje Zacisk Solisty i odkrywa Dziurawą Salę oraz Rury. W tym samym dniu L. Dziubiński i A. Ludert przekopują Zacisk Pawia i przez Płaską Salę oraz Salę z Kabotem dochodzą do Sali Wielkobiwakowej. W ten spos&oacute;b zamknięta zostaje Wielka Pętla.<br /> &bull; Maj 1985 r. - L. Dziubiński i J. Stradowski znajdują przejście w Sali z Kabotem do Ruchomych Schod&oacute;w. Podczas tej samej akcji, wraz z J. Rogalskim penetrują Dziurawą Salę łącząc ją z Tr&oacute;jkątem. <br />&bull; Lipiec 1985 r. - w czasie tzw. wielkiego biwaku J. Bednarz przepływa jeziorko odkrywając za nim niewielki korytarz, L. Dziubiński i J. Stradowski pokonują zacisk Zetkę w Rurach i odkrywają tam kilkunastometrowy ciąg korytarzyk&oacute;w, K. Korpiela przechodzi Zacisk Jednego Przejścia łącząc Dziurawą Salę z Salą z Kominem. <br />&bull; Wrzesień 1985 r.:<br /> - J. Bednarz, L. Dziubiński i T. Kapica wspinają się do szczytu komina w Sali z Jeziorkiem i odkrywają niewielkie korytarzyki odchodzące w jego g&oacute;rnej części.<br /> - K. Kulawik i J. Rogalski eksplorują korytarz w rejonie Płaskiej Sali, tzw. Problemy Chłopc&oacute;w z Zagnańska. <br />&bull; Jesień 1985 r.-wiosna 1986 r. - w Zacisku z Rurą zostaje założone pierwsze, prowizoryczne zabezpieczenie zamykające głębsze partie Chelosiowej Jamy (J. Bednarz, L. Dziubiński, T. Kapica, J. Myśluk). Szybko jednak zostaje zniszczone. <br />&bull; Wiosna 1986 r. - Chelosiową Jamę odwiedzają powt&oacute;rnie geolodzy z Oddziału Świętokrzyskiego Instytutu Geologicznego, J. Urban i R. Knapczyk wprowadzeni do niej przez J. Myśluka; po wizycie opracowują notatkę o wysokich wartościach naukowych jaskini i konieczności jej ochrony, przekazaną Wojew&oacute;dzkiemu Konserwatorowi Przyrody w Kielcach. <br />&bull; 18.07.1986 r. - informacja o odkryciach w Chelosiowej Jamie ukazuje się w lokalnej gazecie codziennej "Słowo Ludu" (Wroński 1986). Jest to pierwsza publikacja informująca szersze grono czytelnik&oacute;w o odkryciu), po niej zwiększa się ilość wejść do jaskini os&oacute;b spoza klubu eksplorującego obiekt. <br />&bull; 22.07.1986 r. - J. Bednarz łączy Lewy Ser z kanałem odchodzącym od Korytarza Ciągłej Ekstazy. <br />&bull; 17-19.10.1986 r. - Chelosiowa Jama prezentowana jest podczas 20 Sympozjum Sekcji Speleologicznej PTP im. M. Kopernika w Kielcach (referat); uczestnikom (z wyjątkiem kilku) nie udaje się zwiedzić jaskini. <br />&bull; Zima 1986-87 r. - u Wojew&oacute;dzkiego Konserwatora Przyrody w Kielcach zostaje złożona dokumentacja projektowa rezerwatu "G&oacute;ra Kopaczowa", kt&oacute;ry ma objąć obszar kamieniołom&oacute;w wraz z Chelosiową Jamą i Jaskinią Jaworznicką. <br />&bull; 3-5.04.1987 r. - P. Dąbrowski, J. Książek, S. Paćko (Speleoklub Warszawski) i K. Skonecki (Warszawski Klub Płetwonurk&oacute;w) nurkują w Jeziorku Błękitnych, osiągając dno na głębokości 7 m. <br />&bull; 3.05.1987 r. - D. Ziach pokonuje zacisk Tylko Darek w Sali z Jeziorkiem i odkrywa za nim korytarzyk o długości 6 m. <br />&bull; Maj 1987 r. - L. Dziubiński, M. Słyś, i M. Walaszek w ramach obozu szkoleniowego AKG AGH Krak&oacute;w odkrywają przejście do Krypty WJ.<br />&bull; Lato 1987 r. - pracownicy Kieleckich Zakład&oacute;w Przemysłu Wapienniczego w Miedziance oraz geolodzy z Oddziału Świetokrzyskiego Państwowego Instytutu Geologicznego zabezpieczają kratą większy (1) otw&oacute;r Chelosiowej Jamy, mniejszy (2) zaś zamurowują (wrzesień 1987 r. i 11.01.1988 r.). Odtąd opiekę nad Chelosiową Jamą z ramienia Wojew&oacute;dzkiego Konserwatora Przyrody sprawują: Oddział Świętokrzyski PIG oraz Sekcja Taternictwa Jaskiniowego i Alpinizmu, p&oacute;źniej zaś - osobiście A. Kasza.<br />&bull; 1987-1988 r. - geolodzy z Oddziału Świętokrzyskiego PIG (J. Urban, początkowo z Z. Deręgowskim, p&oacute;źniej Z. Złonkiewiczem) prowadzą w Chelosiowej Jamie obserwacje geologiczne, m. in. przeprowadzają badania namuliska w Tr&oacute;jkącie. <br />&bull; 23.02.1988 r. - obserwacje nietoperzy przeprowadzone przez K.P. Wołoszyna. <br />&bull; 5.06.1988 r. - T. Kapica i D. Ziach przekopują zamulony korytarzyk w Krypcie WJ i odkrywają Nowe Partie. Długość Chelosiowej Jamy wzrasta do 2600 m. <br />&bull; Listopad 1988 r. - J. Bednarz, T. Kapica i A. Mucha znajdują przejście łącząc Zapomnianą Pętlę z Salą z Wi&oacute;rkami. <br />&bull; 13-14.01.1989 r. - K. Krawiec (Speleoklub Warszawski) eksploruje Problem Z Wantą na końcu Zapomnianej Pętli i odkrywa Salkę Zawieszonych.<br />&bull; 4.02.1989 r. - obserwacje nietoperzy prowadzone przez K. Wołoszyna, J. Sygockiego, J. Klimczaka. <br />&bull; 1989-1990 r. - przy wsp&oacute;łpracy wielu os&oacute;b z PIG oraz Technikum Geologicznego J. Urban wykonuje dokumentację fotograficzną zjawisk geologicznych w Chelosiowej Jamie. Powstaje regulamin wejść do Chelosiowej Jamy i zostaje założona książka wejść do jaskini przechowywana na portierni Zakład&oacute;w (obecnie zaginiona). <br />&bull; 23.03.1990 r. - L. Zawadzki i D. Ziach eksplorują ciasne korytarzyki przy Herbaciarni. <br />&bull; Lipiec 1990 r. - kwiecień 1991 - badania fauny wodnej w Chelosiowej Jamie prowadzi E. Dumnicka z Zakładu Biologii W&oacute;d PAN, Krak&oacute;w (wejścia 10.07.90, 8.08.90, 15.11.90, 6.02.91, 26.04.91).<br />&bull; 10.7.1990 r. - E. Dumnicka, A. Kasza, P. Kita i J. Urban stwierdzają skażenie zanieczyszczeniami rejonu Rozdroża i Wielkiego Korytarza, pobierają pr&oacute;bkę wody do badań w Oddziale Świętokrzyskim PIG (J. Prażak) oraz w Zakładzie Biologii W&oacute;d PAN. <br />&bull; Wiosna 1991 r. - pierwsze badania form krasu kopalnego prowadzi J. Urban (Instytut Ochrony Przyrody PAN, Krak&oacute;w) przy wsp&oacute;łpracy M. Kulety i J. Nawrockiego (PIG). <br />&bull; 5.12.1991 r. - kamieniołomy na G&oacute;rze Kopaczowej wraz z jaskiniami zostają uznane Zarządzeniem Wojewody Kieleckiego (5/91) za pomnik przyrody. <br />&bull; Lato 1992-jesień 1993 r. - realizowany jest temat badawczy "Badania geologiczne w rezerwacie przyrody (projektowanym) Chelosiowa Jama w Jaworzni" sponsorowany przez Wydział Ochrony Środowiska Urzędu Wojew&oacute;dzkiego w Kielcach i obejmujący badania krasu kopalnego oraz form kalcytowych (gł&oacute;wnie "kaszki kalcytowej") w Chelosiowej Jamie. Badania prowadzą: J. Urban (IOP PAN, Krak&oacute;w) oraz M. Kuleta i Z. Migaszewski (Oddział Świętokrzyski PIG, Kielce), wsp&oacute;łpracują: T. Durakiewicz i S. Hałas (Uniwersytet im. M. Curie-Skłodowskiej, Lublin), J. Nawrocki (PIG, Warszawa) oraz M. Domański i A. Kasza. Bezpośrednim ich rezultatem są opracowania archiwalne (Kuleta, Migaszewski 1993, Urban 1993a). <br />&bull; 13.07-26.07.1992 r. - intensywne prace badawcze (obserwacje, pobieranie pr&oacute;bek) prowadzą w Chelosiowej Jamie i Jaskini Jaworznickiej J. Urban oraz M. Domański i A. Kasza. <br />&bull; 11.02.1993 r. - P. Janaszek i A. Kasza odkrywają kilkumetrowy korytarz pod Kominkiem Naciekowym w przyotoworowych partiach Chelosiowej Jamy.<br />&bull; Listopad 1992 r. - A. Kasza zakłada pierwsze taśmy zabezpieczające przed przypadkowym zniszczeniem stanowiska "kaszki kalcytowej" w Chelosiowej Jamie. <br />&bull; Listopad 1992-1993 r. - odwiedzający jaskinię stwierdzają wzrost skażenia jaskini (intensywny zapach), w rejonie Rozdroża pojawiają się czarne, organiczne naloty na ścianach. Pobierane są pr&oacute;bki wody do badań dla Państwowej Inspekcji Ochrony Środowiska, Kielce: 24.02.1993 (A. Kasza, W. Krupski), 22.05.1993 (T. Kapica, A. Kasza, H. Kołodziejczyk), 8.07.1993 (A. Kasza, S. Piskorz, J. Urban). <br />&bull; Marzec i lipiec 1993 r. - zostają pobrane pr&oacute;bki form kalcytowych z Chelosiowej Jamy do badań uranowo-torowych, wykonanych przez H. Hercman (Uniwersytet im. A. Mickiewicza, Poznań). <br />&bull; Wiosna 1993 r. - opracowana zostaje, w oparciu o nowe dane badawcze oraz uaktualniony plan geodezyjny powierzchni dokumentacja projektowa rezerwatu "Chelosiowa Jama", zastępująca dokumentację opracowaną w 1986 r. (Urban 1993b - arch.).<br />&bull; 9.05.1993 r. - J. Bednarz, T. Kapica, A. Kasza i H. Kołodziejczyk odkrywają w zawalisku kilkumetrowy korytarzyk w Komorze Złomisk w Jaskini Jaworznickiej. <br />&bull; 20.06.1993 r. - J. Bednarz, T. Kapica i H. Kołodziejczyk eksplorują w zawalisku kilkumetrowy korytarz w Komorze Wysokiej Jaskini Jaworznickiej. <br />&bull; 27.06.1993 r. - J. Bednarz, T. Kapica, A. Kasza i H. Kołodziejczyk kontynuują eksplorację w Komorze Wysokiej odkrywając dalszy odcinek korytarza z silnym przewiewem. <br />&bull; 7 i 12.08.1993 r. - P. Janaszek i A. Kasza eksplorują korytarzyk na początku Tr&oacute;jkąta docierając do dna Studni Tomka. <br />&bull; 1994-1996 r. - w Chelosiowej Jamie i Jaskini Jaworznickiej prowadzone są przez zesp&oacute;ł J. Gubała, M. Gwardian, E. Jachimkowska, A. Kasza oraz (pojedyncze wejścia) K. Nowakowska, W. Piwko, E. Snoch systematyczne zimowe obserwacje nietoperzy; daty obserwacji: 6.02.1994 r. (Chelosiowa Jama), 10.02.1994 r. (Jaskinia Jaworznicka), 5.02.1995 r. (obie jaskinie - wsp&oacute;łudział Mazowieckiej Grupy Badaczy Nietoperzy), 10.02.1996 r. (Jaskinia Jaworznicka), 11.02.1996 r. (Chelosiowa Jama). J. Gubała, A. Kasza oraz M. Bidas prowadzą okresowe obrserwacje innej fauny lądowej. <br />&bull; 14.03.1994 r. - E. Dumnicka prowadzi badania fauny wodnej w Sali z Kabotem, B.W. Wołoszyn z zespołem (Centrum Informacji Chiropterologicznej PAN, Krak&oacute;w) - obserwacje nietoperzy. <br />&bull;12.11.1994 r. - J. Bednarz, G. Borek, A. Kasza, K. Rytka oczyszczają z blok&oacute;w przełaz Longplay w dnie Komory Złomisk w Jaskini Jaworznickiej odkrywając Salę NPWZ oraz eksplorując ciąg korytarzyk&oacute;w Stanu Przedzawałowego o długości około 80 m. <br />&bull;13.11.1994 r. - J. Bednarz, T. Kapica, A. Kasza, K. Rytka kontynuują eksplorację Stanu Przedzawałowego odkrywając na jego końcu Rurki oraz korytarze w rejonie Pseudorozdroża. <br />&bull; 19.11.1994 r. - J. Bednarz, A. Chudzik, T. Kapica, A. Kasza i L. Kuleszyński odkrywają Larmo na przedłużeniu Sali NPWZ oraz salę Gang, przełaz Czarną Dziurę i salę Umaguma, eksplorując łącznie w ciągu jednego dnia około 200 m jaskini. W tym samym dniu oraz 26.11. J. Bednarz i A. Kasza zakładają w jaskini taśmy zabezpieczające stanowiska "kaszki kalcytowej". <br />&bull; 20.11.1994 r. - A. Kasprzyk, J. Stradowski i D. Ziach eksplorują (odkopują) 5 m korytarza CDN odchodzącego z Umagumy. <br />&bull; 26.11.1994 r. - J. Bednarz i A. Kasza eksplorują kilkumetrowy korytarzyk w Stanie Przedzawałowym, korytarze o długości około 20 m we wschodniej części NPWZ oraz kominek w Szczelinie Kunegundy. <br />&bull; 28.11.1994 r. - A. Kasprzyk, J. Stradowski i D. Ziach kontynuują odkopywanie korytarzyka CDN dochodząc po dalszych 5 m do szczeliny z silnym przewiewem. <br />&bull; 2.12.1994 r. - J. Gubała, J. Hyzicki i J. Kasza wstępnie kartują nowo odkryte ciągi Jaskini Jaworznickiej o długości około 450 m.<br />&bull; 18.12.1994 r. - J. Bednarz, J. Hyzicki i A. Kasza odkrywają drugie przejście w zawalisku z Komory Złomisk do Sali NPWZ a następnie eksplorują studzienkę w Stanie Przedzawałowym. <br />&bull; 18.03.1995 r. - E. Jachimkowska pokonuje Problem z Naciekiem w rejonie Stanu Przedzawałowego odkrywając za nim salkę Żelaznej Dziewicy; następnie wraz z A. Kaszą rozpoczyna eksplorację w korytarzu Kręgielnia. <br />&bull; 6.04. i 8.04.1995 r. - założenie drzwi oraz kraty na otworach Jaskini Jaworznickiej. Krata i drzwi wykonane zostały w KZPW w Miedziance, montaż przeprowadzili: J. Gubała, M. Gwardian, E. Jachimkowska, A. Kasza i S. Snoch. <br />&bull; 20.04.1995 r. - obserwacje i pomiary form mikrorzeźby ścian w Chelosiowej Jamie (Biwak, rejon Tr&oacute;jkąta) prowadzi H. Hercman z grupą student&oacute;w z UAM, Poznań. <br />&bull; 2.05.1995 r. - J. Gubała, P. Janaszek, A. Kasza, C. Majcher kontynuują odkrycia w Kręgielni. <br />&bull; 8.05.1995 r. - J. Gubała i M. Gwardian kończą eksplorację Kręgielni. <br />&bull; 2.07.1995 r. - M. Gwardian, A. Kasza, W. Piwko odkrywają korytarz o długości 10 m w przyotworowej części Jaskini Jaworznickiej poniżej Ciągu Zawiłego. <br />&bull; 11.08-16.11. 1995 r. - prace kartograficzne w Chelosiowej Jamie (sponsorowane przez Wojew&oacute;dzki Fundusz Ochrony Środowiska w Kielcach) prowadzone są przez zesp&oacute;ł: Z. Grzela, J. Gubała, A. Kasza, J. Rogalski; efektem jest plan jaskini w skali 1:200 i przekroje w skali 1:500 (Grzela, Gubała, Kasza, Rogalski, Śmigielski, Szeja, Kulbicki 1995 - arch.). &bull; 2.10.1995 r. - Z. Grzela odkrywa nowe przejście z Kom&oacute;r Bernasiewicza do Komory Wstępnej Chelosiowej Jamy. <br />&bull; 21-22.10.1995 r. - Z. Grzela eksploruje kominek w stropie Piaskowej Szczeliny w Chelosiowej Jamie. <br />&bull; 3.03.1996 r. - S. Gumula, W. Krupski przekopują korytarzyk odchodzący od Laleczki w Nowych Partiach Chelosiowej Jamy odkrywając Partie Flipa i Flapa o długości około 50 m. <br />&bull; 5.03.1996 r. - M. Gradziński, M. Rospondek i J. Szulc z Uniwersytetu Jagiellońskiego w Krakowie pobierają pr&oacute;bki polewy naciekowej w Sali z Kominem do badań mikrofacjalnych. <br />&bull; 7.03.1996 r. - R. Biegała, S. Gumula, M. Handerek i W. Krupski kontynuują eksplorację Partii Flipa i Flapa odkrywając dalsze 10 m. <br />&bull; 10-11.03.1996 r. - Ł. Kobiec i W. Krupski eksplorują Rurki oraz fragment (15 m) Korytarza Czołgist&oacute;w na końcu Stanu Przedzawałowego. <br />&bull; 16.03.1996 r. - W. Chudzik, Ł. Kobiec, W. Krupski, L. Kuleszyński kontynuują prace w Korytarzu Czołgist&oacute;w odkrywając dalsze 20 m. <br />&bull; 24.03.1996 r. - Ł. Kobiec i L. Kuleszyński przedłużają Korytarz Czołgist&oacute;w o kilka metr&oacute;w.<br /> &bull; 27.03.1996 r. - J. Gubała i D. Ziach będąc na końcu Korytarza Czołgist&oacute;w w Jaskini Jaworznickiej nawiązują kontakt głosowy z S. Gumulą i A. Kaszą przebywającymi w końcowej części Partii Flipa i Flapa Chelosiowej Jamy. <br />&bull; 28.03.1996 r. - J. Gubała i D. Ziach kontynuują eksplorację w Korytarzu Czołgist&oacute;w zaś R. Biegała, S. Gumula i A Kasza - w partiach Flipa i Flapa. Po przekopaniu kilku metr&oacute;w w namulisku uczestnicy akcji łączą Chelosiową Jamę i Jaskinię Jaworznicką w jeden system. <br />&bull; Sierpień-październik 1996 r. - J. Gubała i A. Kasza wykonują plan Jaskini Jaworznickiej, połączenia z Chelosiową Jamą i Chelosiowej Jamy w skali 1:500. <br />Opravcował A. Kasza</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokumentację jaskini sporządzili w 1996 r. E. Dumnicka, J. Gubała, A. Kasza i J. Urban. Lokalizację otworu jaskini wykonał 4.01.2009 r. A. Kasza przy pomocy odbiornika GPS Map60CSx. Zaktualizował A. Kasza w 2009 r.<br />Plan opracowali Jacek Gubała i Andrzej Kasza na podstawie materiał&oacute;w archiwalnych (Grzela, Gubała, Kasza, Rogalski Śmigielski, Szeja, Kulbicki 1995) oraz własnych prac terenowych.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kardaś R., Romanek A. 1975 (odkrycie, opis, plan przyotworowej części Jaskini Jaworznickiej); Głazek J., Romanek A. 1976 (kopalny kras powierzchniowy w kamieniołomie, lokalizacja otworu Jaskini Jaworznickiej oraz otworu 1 Chelosiowej Jamy na planie); Głazek J., Roniewicz P. 1976 (tektonika wapieni dewońskich w kamieniołomie, żyły klastyczne); Siedlecka W., Micuła G. 1976,  (opis, plan Jaskini Jaworznickiej); Rubinowski Z., W&#243;jcik Z., 1978 (Jaskinia Jaworznicka - ochrona); Kardaś R. 1986 (nowe odkrycia w Chelosiowej Jamie); Wroński P. 1986 (pierwszy opis Chelosiowej Jamy - liczne nieścisłości); Wiercica 1987 (nurkowanie w jeziorku); Bednarz J., Dziubiński L., Knapczyk R., Urban J. 1988 (eksploracja, opis, geologia i geneza, uproszczony plan Chelosiowej Jamy); Bednarz J., Krupski W. 1988 (kr&#243;tki opis, eksploracja Chelosiowej Jamy); Wr&#243;blewski T. 1988 (kr&#243;tki opis, odkrycie Chelosiowej Jamy); Głazek J. 1989 (kopalny kras powierzchniowy w kamieniołomie); Urban J. 1989 (wzmianka, ochrona Chelosiowej Jamy); Urban J., Złonkiewicz Z. 1989 (geologia i geneza Chelosiowej Jamy); Wiśniewski W. 1989 (długość Chelosiowej Jamy i Jaskini Jaworznickiej); Wołoszyn B.W. 1989 (kolonia nietoperzy); Urban J. 1990 (wartości naukowe, ochrona Chelosiowej Jamy); Stradowski J. 1991 (opis i uproszczony plan Chelosiowej Jamy); Wiśniewski W. 1991a (długość); Wiśniewski W. 1991b (długość Chelosiowej Jamy); Dumnicka E., Wojtan K. 1992 (fauna wodna Chelosiowej Jamy); Kasprzyk A., Strugała A. 1992 (opis, mikroklimat, ochrona, plan); Pukowski J. 1992 (Chelosiowa Jama, sympozjum speleo. referaty o krasie kopalnym i faunie wodnej); Urban J. 1992 (eksploracja, zjawiska geologiczne, geneza, opis, wartości naukowe, plan Chelosiowej Jamy); Wiśniewski W. 1992 (wzmianka); Barcicki M. 1993 (opis Chelosiowej Jamy - plagiat); Urban J. 1993 (ochrona Chelosiowej Jamy); Barcicki M. 1994 (w sprawie plagiatu);Urban J. 1994 (kr&#243;tki opis, zjawiska geologiczne, ochrona Chelosiowej Jamy, fotografie); Urban J., Barcicki M. 1994 (w sprawie plagiatu opisu Chelosiowej Jamy); Wołoszyn B.W. 1994a (nietoperze); Wołoszyn B.W. 1994b (nietoperze); Baryła J.  1994-1995 (nazwa); Durakiewicz T., Hałas S. Migaszewski Z., Urban J. 1995 (formy kalcytowe w Chelosiowej Jamie); Kasza A. 1995 (nowe odkrycia w Jaskini Jaworznickiej); Kulbicki P. 1995a (nietoperze); Kulbicki P. 1995b (praktyczna ochrona ważnych naukowo zjawisk w Chelosiowej Jamie); Przyroda 1995 (pomnik przyrody, projektowany rezerwat); Baryła J. 1996 (nazwa); Bednarz J., Kasza A., Krupski W., Ziach D. 1996 (historia eksploracji); Jastrzębski C. 1996 (pierwsza informacja o połączeniu Chelosiowej Jamy i Jaskini Jaworznickiej); Dumnicka E., Urban J. 1996 (kr&#243;tki opis, fauna wodna); Gradziński M. 1996 (wielkość po połączeniu); Gradziński M., Rospondek M., Szulc J. 1996 (badania naciek&#243;w); Gubała J. 1996a (fauna); Gubała J. 1996b (nietoperze); J. Gubała, A. Kasza., Urban J. 1996a (wielkość jaskini po połączeniu); Jastrzębski C. 1996 (połączenie Chelosiowej Jamy i Jaskini Jaworznickiej); Kasza A. 1996 (połączenie Chelosiowej Jamy z Jaskinią Jaworznicką); Kuleta M., Urban J. 1996 (kras kopalny Chelosiowej Jamy); Rogalski J. 1996 (dokumentacja kartograficzna Chelosiowej Jamy); Rubinowski Z., Kuleta M. Urban J., Kasza A. 1996 (wartości naukowe, ochrona); Sikorski Z. 1996 (wzmianka o odkryciu Chelosiowej Jamy); Stachura J. 1996 (historia eksploracji, opis, ochrona); Wiśniewski W. 1996 (wielkość Chelosiowej Jamy - dane nieaktualne); Wołoszyn B.W. 1996 (nietoperze Chelosiowej Jamy); Jałowiecki R. 1996 (Chelosiowa Jama - wzmianka); Jaskinie Regionu Świętokrzyskiego 1996 (dokumentacja, plan); Wr&#243;blewscy T. i E. 1996 (wzmianka); Bujna E., Klauzińska M. 1997  (Chelosiowa Jama-nietoperze); Gubała J., Gwardian M., Kasza A. 1997 (nietoperze); Gradziński M. 1997 (długość-wzmianka); Kasza A. 1997 ( możliwość połączenia z jaskinią Pajęczą); (r) 1997 (wzmianka); Urban J., Gubała J., Kasza A. 1997a (wielkość, fauna, ochrona); Urban J., Gubała J., Kasza A. 1997b (długość, geologia, wartości przyrodnicze, ochrona); Kasza A. 1998 (eksploracja-wzmianka); Gubała J., Kasza A. 1999a (możliwość połączenia z jaskinią Pajęczą); Kasza A. 1999 (wzmianka); Motyka J., Prażak J. 1999 (chemizm w&#243;d podziemnych, skażenie); Pulina M. 1999 (wzmianka); Urban J. 1999 (kras kopalny Chelosiowej Jamy); Paszkowski M. 2000 (kr&#243;tki opis); Wr&#243;blewski T. 2000 (długość-wzmianka); Paszkowski M. 2001 (długość-wzmianka); Kasza A., Szynkiewicz A. 2002 (Chelosiowa Jama-wzmianka); Urban J. 2002 (kras kopalny Chelosiowej Jamy); Wiśniewski W.W. 2002 (Chelosiowa Jama-wzmianka o nurkowaniu); Aleksandrowicz Z. 2003 (ochrona-wzmianka); Kasza A., Szynkiewicz A., Gubała J. 2003 (Chelosiowa Jama-wzmianka); Wr&#243;blewski T. 2003 (długość-wzmianka); Wr&#243;blewski T. 2003 (Chelosiowa Jama-zagospodarowanie turystyczne); Richter D.K., Riechelmann D.F.Ch. 2004 (kaszka kalcytowa w Chelosiowej Jamie); Urban J. 2004a (Chelosiowa Jama-ochrona); Urban 2004b (znaczenie naukowe); Urban J., Wr&#243;blewski T. 2004 (wzmianka); Ž&#225;k K., Tulis J., Hercman H., C&#237;lek V. 2004a (kaszka kalcytowa w Chelosiowej Jamie-wzmianka); Ž&#225;k K., Urban J., Cilek V., Hercman H. 2004b (opis i geneza kaszki kalcytowej); Gradziński M. 2005, s.4, 6 (długość-wzmianka); Richter D.K., Niggemann S. 2005 (Chelosiowa Jama-kaszka kalcytowa); Urban J. 2005c (wzmianka-długość); Alexandrowicz Z. 2006 (znaczenie naukowe); G&#243;rniak M., J&#243;źwiak M., Kasza A., Urban J. 2006 (geologia, historia eksploracji, opis, plany); Kasza A., Saganowski M. 2006a (wzmianka); Kasza A., Saganowski M. 2006b (wzmianka); Urban J., Kasza A. 2006 (historia badań i eksploracji); Urban J. 2006 (wzmianka); Obiekty przyrody nieożywionej w Kieleckim Obszarze Metropolitalnym 2007 (wykorzystanie w geoturystyce); Urban J. 2007 (permsko-triasowy kras kopalny w jaskini); Richter D.K., Riechelmann D.F.Ch. 2008 (kaszka kalcytowa- wzmianka); Urban J., Gągol J. 2008 (wartości geologiczne, długość); Ž&#225;k K., Onac B.P., Persoiu A. 2008 (kaszka kalcytowa w Chelosiowej Jamie).
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Myśluk J., Saltarski W. 1986; Kuleta M., Migaszewski Z. 1993; Urban J. 1993a,b; Grzela Z., J. Gubała, A. Kasza., Rogalski J., Śmigielski W., Szeja A., Kulbicki P. 1995; Urban J. 2000.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej Kasza, Jan Urban
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15122)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(307)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

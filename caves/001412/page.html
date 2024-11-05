@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1412">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1412;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "563689,41".replace(',', '.') + "," + "152526,68".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1412','Jaskinia Jagnięca'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Jagnięca
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Pod Gniazdem
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-09.02
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;52′30,66″, φ: 49&#176;14′12,96″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                SSW
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SSW, 1290 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1291
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                125
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                2,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                2,40
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                5,20
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    29
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Kościeliska, na prawym orograficznie zboczu Wąwozu Krak&#243;w, w stoku opadającym spod Upłazkowej Turni, w wystającej z niego  samodzielnej skałce powyżej zgrupowania jaskiń w rejonie Arkady T.E - 09.07 i Skoruszowej T.E - 09.03. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Wąwozem idziemy do Rynku, jak do Jaskini z Mostami T.F-09.19, Dwuotworowej Krakowskiej T.F-09.07 i Trójkątnego Schronu T.F-09.08. Po lewej stronie (prawe orograficznie zbocze) do dna wąwozu dochodzi przecinający ukośnie stok mur skalny, u podnóża którego znajduje się otwór ostatniej z wspomnianych jaskiń. Zboczem, pod skałami prowadzi perć wznosząca się ukośnie na Przełączkę za Saturnem. Idąc nią podchodzimy, a następnie trawersujemy zbocze lekko się wznosząc. Mijamy pierwszą, mniej wybitną skałkę (są w niej otwory jaskiń: Nad Zachodem T.E-09.17 i Nad Zachodem Wyżniej T.E-09.18), trawersujemy szeroki piarg i docieramy do podnóża kolejnej samodzielnej, wystającej ze stoku skałki (naprzeciwko znajdującej się w zboczu Żaru Wielkiej Turni). W środkowej, najwyższej części skałki, 6 m nad ziemią rzucają się w oczy otwory jaskini. Dotarcie do nich wymaga pokonania 6-metrowego, skalno-trawiastego, łatwego prożka. Dojście i zwiedzanie bez trudności.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Z widocznych w ścianie skałki otwor&oacute;w, gł&oacute;wnym jest p&oacute;łokrągło sklepiony, wysoki na 1,5 m, położony nad trawniczkiem. W lewo i w g&oacute;rę od niego znajduje się szczelinowe wejście (wysokość 2,5 m) do bocznego korytarzyka jaskini. W prawo, nieco niżej jest boczny, owalny otw&oacute;r, opadający 1,5 m prożkiem do luźnego zagłębienia w ścianie (stąd z daleka wygląda on na szczelinowaty). Jeszcze niżej w prawo, 1,6 m nad ziemią znajduje się okrągły, dolny otworek Korytarzyka pod Jagnięcą T.E-09.14.</p>
+<p>Od gł&oacute;wnego otworu jaskinia zaczyna się poziomym, obszernym korytarzem. Po ok. 2 m w prawo dość ciasny przełaz prowadzi do około 1,5 m studzienki i mytego, okrągłego korytarzyka, prowadzącego wstecz, do prawego, bocznego otworu.</p>
+<p>Posuwamy się dalej gł&oacute;wnym korytarzem jaskini. Po około 5 m rozgałęzia się on. Lewa, niska kontynuacja jest kr&oacute;tkim, ślepym jego zakończeniem. W prawo natomiast wiedzie korytarz, z początku poziomy, a następnie wznoszący się i opadający nad szczelinowatą ślepą studzienką o głębokości 4 m.</p>
+<p>Na lewo od otworu, kt&oacute;rym weszliśmy do gł&oacute;wnego korytarza jaskini znajduje się wzmiankowane powyżej szczelinowe wejście do bocznego korytarzyka. Jest on kr&oacute;tki (około 5 m), szczelinowaty, początkowo wspina się sporo w g&oacute;rę, a przy końcu dno ma poziome i stanowi najwyższy punkt jaskini.</p>
+<p>Jaskinia wymyta jest na szczelinach tektonicznych w wapieniach urgonu autochtonicznej serii wierchowej. Namulisko od gł&oacute;wnego otworu po rozgałęzienie (wraz z lewą odnogą), a także na końcu bocznego korytarzyka ponad gł&oacute;wnym otworem składa się z gliny z gruzem. Obok studzienki końcowej i studzienki w ciągu od bocznego otworu jest ono gliniaste. W części jaskini namuliska brak. W&oacute;jcik (1966a) wspomina tylko o występowaniu ił&oacute;w rezydualnych oraz wzmiankuje og&oacute;lnie o podobieństwie osad&oacute;w do innych jaskiń tego samego piętra, wyrażając pogląd o pochodzeniu materiału allochtonicznego z rejonu g&oacute;rnej części doliny&nbsp;&ndash; spod Tomaniarskiego Twardego Upłazu (W&oacute;jcik 1968). W korytarzu gł&oacute;wnym spotyka się pojedyncze nacieki grzybkowe, w dalszych partiach nacieki grzybkowe i polewy. Występują też nacieki o charakterze kulistych konkrecji o średnicy około cm.</p>
+<p>Jaskinia jest wilgotna, woda kapie ze stropu, a w studzience końcowej sączy się po ścianach. Światło sięga do końca gł&oacute;wnego korytarza (rozgałęzienia) oraz obejmuje boczne ciągi: korytarzyk w lewo nad gł&oacute;wnym otworem i drugi, prowadzący w prawo, do bocznego otworu. Przewiewu brak. Roślinność występuje przy gł&oacute;wnym otworze. Badania fauny przeprowadzone 12 lipca 1977 r. przez E. Sobiepanek-Krzyżanowska wykazały obecność następujących gatunk&oacute;w:</p>
+<div><em>Araneae</em>: <strong><em>Pardosa nigra</em></strong>,</div>
+<p><em>Opiliones</em>: <strong><em>Leiobunum rupestre</em></strong>(1 ),</p>
+<p><em>Diptera</em>:- <strong><em>Limoniidae</em></strong> (1 okaz nieoznaczony).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta przez grotołaz&oacute;w zakopiańskich. Datę odkrycia&nbsp;&ndash; 1954 r. podaje dopiero Rajski (1988). Publikacje relacjonujące odkrycia w tym roku nie wspominają wprawdzie o niej (Zwoliński 1954a, Stecki 1956), jest ona jednak bardzo prawdopodobna, gdyż p&oacute;źniejsza notatka Zwolińskiego (1955a) wspomina o Jaskini Gawrze odkrytej w "ubiegłych latach". Okres zaś objęty tym sprawozdaniem z eksploracji rozpoczyna się od jesieni 1954 r., kt&oacute;rą zamknęła poprzednia relacja (Zwoliński 1954a). Jest niezwykle prawdopodobne, że odkrycie obu sąsiadujących ze sobą jaskiń (Gawry i Jagnięcej) nastąpiło jednocześnie. Odkrywcy nadali jaskini nazwę Jagnięca. Stosowana jest ona np. w notatkach terenowych J. Rudnickiego z 1957 r. i w spisie jaskiń Wąwozu Krak&oacute;w archiwalnego inwentarza S. W&oacute;jcika (ok. 1959 r.). Używa jej też w relacjach ustnych E. Winiarski. Pierwszą opublikowaną informację o jaskini znajdujemy u Z. W&oacute;jcika (1966a), kt&oacute;ry jednak stosuje inną nazwę "Pod Gniazdem", przyjętą następnie w innych publikacjach (poza mapą topograficzną i Rajskim). Właściwe wydaje się powr&oacute;cenie do nazwy pierwotnej. Dodać można, że poza kwestią nazewnictwa, pewne zamieszanie w p&oacute;źniejszych (pochodnych) informacjach wywołała także rozbieżność w ocenie wielkości jaskini w poszczeg&oacute;lnych pracach W&oacute;jcika. Długość jej podawał jako 28 m (1966a) lub 16 m (1969a). Ta druga wartość (obarczona błędem) była następnie wielokrotnie cytowana. Natomiast r&oacute;żnica wysokości między otworami wynosi według W&oacute;jcika (op. cit.) aż 6 m, zapewne więc dane dotyczą gł&oacute;wnego otworu Jagnięcej i dolnego Korytarzyka pod Jagnięcą, wliczanego widocznie przez niego do tej jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach prac inwentaryzacyjnych OW PTPNoZ w dniu 12 lipca 1977 w. przeprowadzone zostały badania fauny (E. SobiepanekKrzyżanowska) oraz sporządzono dokumentację jaskini (M. Kardaś przy wsp&oacute;łpracy R. Kardaś, T. Ostrowskiego i E. Sobiepanek-Krzyżanowskiej). Pomiary wykonano busolą geologiczną Meridian i taśmą parcianą. Zaktualizował R.M. Kardaś (2009 r.).<br />Plan opracował M. Kardaś.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, Z. 1966a (dane morfometryczne i geologiczne - stosując nazwę &quot;Pod Gniazdem&quot;); W&#243;jcik, Z. 1968 (charakter osad&#243;w, nazwa j.w.); W&#243;jcik, Z. 1969 (dane morfometryczne i geologiczne – błędnie długość - nazwa j.w.); Tatry Polskie, 1984 (lokalizacja na mapie topograficznej pod nazwą &quot;Jagnięca&quot;); Gradziński, R. i in. 1985a (dane morfometryczne, nazwa &quot;Pod Gniazdem&quot;); Rajski, M. 1988 (data odkrycia, pod nazwą &quot;Jagnięca&quot;); Jaskinie TPN 1994 (plan, przekr&#243;j i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Rudnicki, J. 19571959 [notatnik terenowy], (szkic sytuacyjny otwor&#243;w Gawry i Jagnięcej - w części notatnika z 1957 r., a w części z 1959 r. – wymienia nazwę &quot;Jagnięca&quot;); W&#243;jcik, S. 1959 – &quot;Inwentarz jaskiń tatrzańskich&quot; (wymienia w spisie jaskiń Wąwozu Krak&#243;w): Sobiepanek-Krzyżanowska, E. 1979 (fauna).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Michał Kardaś
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(930)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan i przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

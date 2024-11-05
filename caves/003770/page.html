@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F3770">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 3770;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "531437,3187".replace(',', '.') + "," + "311476,7461".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('3770','Jaskinia Brzozowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Brzozowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Schronisko Lejek z Kościami
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Cz.II-05.06
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;26′42,00″, φ: 50&#176;40′10,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Niegowa (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                myszkowski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                398
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                18,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                18,50
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    645
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Częstochowska, Wzg&#243;rza Ludwinowskie, Ludwin&#243;w, G&#243;ra Leszczyny. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się we wzgórzu Leszczyny, położonym na południe od centrum wsi Ludwinów, nieco powyżej Jaskini Ludwinowskiej, na ugorowanych polach.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Jej otwór jest ukryty na dnie lejka w ziemi, pod charakterystycznie pochylonymi brzozami. Do wnętrza prowadzi 2-metrowa studzienka, o średnicy około 1 m, o ścianach wapiennych, miejscami przerośniętych korzeniami drzew. Jest ona umocniona betonową cembrowiną, zamykaną stalowym włazem. </span></p><p><span>Dalej prowadzi ku zachodowi niski do 0,5 m korytarzyk, po 3 metrach skręcający na północ, podcięty 3,5-metrową studzienką. Można tutaj także dojść ciasnym obejściem, odchodzącym na północ z poziomu dna wlotówki. Studzienka ma w połowie ciasne przewężenie. Jej ściany od strony bardziej połogiej (wschodniej) są utworzone przez kamienno-próchniczo-gliniaste namulisko, z przeciwnej – lite. W namulisku widoczne są pojedyncze kości współczesnych zwierząt. Studzienka na głębokości 3,5 m przechodzi w stromą pochylnię, utworzoną z obsypanego materiału, która doprowadza do Pierwszej Sali. Sala jest owalna, o średnicy około 6 m i wysokości około 3-4 m. W stropie znajduje się 6-metrowej wysokości, wąski kominek. Nacieki tu nie występują, za to jest nienaruszone namulisko ilaste, z wyraźnymi śladami przepływu wody, odizolowane od zwiedzających kolorową taśmą. W południowej części Pierwszej Sali, tuż za wlotową pochylnią, znajduje się ciasny przełaz, prowadzący do Komory Bojankowej. Jest ona stosunkowo duża, o wymiarach 8x10 m i wysokości do 2 m. Kończy się ona w południowej części ślepym kominkiem o wysokości 3 m. W stropie tej sali jest jeszcze jeden, 6-metrowy komin. Namulisko jest tutaj piaszczysto-ilaste, ze śladami cieku wodnego, przepływającego do Pierwszej Sali. W północnej części jest stożek usypiskowy, będący fragmentem zawaliska pod lejem. Komora nie jest udostępniona do zwiedzania. </span></p><p><span>Od Pierwszej Sali prowadzi w kierunku wschodnim krótki, skośny przełaz, do czasu odkrycia zablokowany materiałem z zawaliska. Po trzech metrach ukazuje się największa w jaskini – Sala HKTJ. Jej boczne ściany tworzą kwadrat o boku 15 m. Wysokość jest zmienna, od jednego do trzech metrów. W stropie są ukryte 3 kominki, z których największy, Emilowy Komin, ma wysokość 8 m. W górnej części posiada on krótką szczelinę, skierowaną na zachód. Namulisko jest bardzo obfite, głównie ilaste, pod ścianą zachodnią i północną ze śladami przepływu cieku wodnego. Ślady te zanikają w północnej części sali. W namulisku są widoczne wykapki, świadczące o obecności wody w jaskini. Na stropie jest sporo drobnych, ciągle rosnących stalaktytów. Przy ścieżce zdeponowano znalezione podczas prac porządkowych kości, m. innymi czaszki dwóch drapieżników. W północnej części sali znajduje się krótki i zamulony, 3-metrowy korytarzyk, zakończony kominkiem. W ściance kominka jest ciasna, ślepa szczelina.</span></p><p><span>Sala HKTJ w części wschodniej ma swoje przedłużenie w postaci dość dużej odnogi - Korytarza Galeriowego. Ma on długość 16 m i szerokość początkową 4,2 m, potem stopniowo zwężającą się. Wysokość sięga 4 m. Korytarz prowadzi na południe, w części końcowej stanowi zwężającą się pochylnię, zasypaną na końcu zawaliskiem. Wzdłuż jego prawej ściany, na wysokości około 2 metrów, biegnie charakterystyczna galeryjka. Na jej początku odchodzi krótki korytarzyk, zakończony zamuloną 1,5-metrową studzienką. Nieco dalej, w stropie galeryjki jest, niewidoczny z korytarza, 2,4-metrowy kominek. W końcu Korytarza, na wysokości pochylni, odchodzą w lewo, ku SE, dwa ciasne korytarzyki, dalej połączone w jeden ślepy. Namulisko (ilaste) jest widoczne tylko na początku korytarza, w głębi spąg jest pokryty drobnym rumoszem skalnym. Gdzieniegdzie występują stalagmity, o wysokości do 0,3 m. Na ścianie pod galerią są polewy naciekowe z drobnymi żeberkami. Na stropie - drobne stalaktyty. </span></p><p><span>Na początku Korytarza Galeriowego leżą wielkie wanty, tworzące 1,5-metrowy, łagodnie pochylony próg. Nad nimi zaczyna się wysoki, obszerny korytarz, początkowo prowadzący na zachód ale po 6 metrach raptownie skręcający na północ. Nad tym zakrętem wisi potężna, krucha i popękana, wielotonowa wanta – stąd miejsce nazywa się Przejściem pod Gilotyną. Powyżej wanty znajdują się dwa korytarzyki. Pierwszy prowadzi na zachód ale po 5 m kończy się przewężeniem. Drugi doprowadza do środkowej części sąsiedniego, 7-metrowego kominka. Ta część jaskini ma charakter zawaliskowy, spąg jest utworzony przez różnej wielkości głazy. W niektórych miejscach widoczna jest zwietrzelina wapienna. Występują także słabo wykształcone polewy.</span></p><p><span>Za wzmiankowanym zakrętem zaczyna się Korytarz Zawaliskowy. Ma on długość 25 m i prowadzi na północ. Jest utworzony przez kilka niedużych sal przedzielonych wąskimi przełazami. Jego szerokość jest zmienna, od 2 do 4 metrów. Jest stosunkowo wysoki, powyżej 3 m, z kilkoma kominkami i kotłami w stropie. </span></p><p><span>W odległości 4 m za Przejściem, pod prawą ścianą Korytarza znajduje się stromo nachylone, niskie wejście do bocznego ciągu – Korytarza dla Pawła. Prowadzi on w kierunku NE i po 4 metrach doprowadza do salki, o 2,5-metrowej szerokości i wysokości 1m. Występuje tu bardzo bogata szata naciekowa, najładniejsza w całej jaskini. Salka ma swą kontynuację dalej w kierunku północnym, ale jest przegrodzona zasłoną zwisających gęsto stalaktytów, sięgających długości 0,5 m. Na kamienistym spągu wyrosło kilka dość niskich (0,3 m) ale grubych stalagmitów; niektóre są naturalnie przewrócone. Z zakamarków stropu - kilku niedużych kominków - zwisają draperie, zasłony i makarony. Z prawej strony salki jest wejście do bocznego ciągu, prowadzącego na wschód. Początkowo jest to wąska i ciasna rura, po 5 m tworząca charakterystyczny zakręt. W miejscu tym, pod 4-metrowym kominkiem, utworzył się błotny zamek. Dalej Korytarz Zamkowy powiększa się do szerokości 2 m i takiej samej wysokości. Po 15 m kończy się wąską szczeliną, zalaną polewą naciekową. Na dnie tego korytarza jest namulisko ilaste, pokryte drobnym gruzem, jedynie w części środkowej – piaszczyste z dużą ilością materiału kostnego. </span></p><p><span>Korytarz Zawaliskowy początkowo prowadzi na północ. Po 12 m za Przejściem jest on przegrodzony 1,3-metrowym prożkiem. Tworzy się tutaj mała salka. Z jej lewej strony odchodzi ku NW krótki ciąg – wąska pochylnia, ślepo zakończona po około 5m. Ponad progiem odchodzi następny, również ku NW, wysoki około 4 m korytarzyk. Na początku jest on w połowie wysokości przegrodzony mostkiem skalnym, z którego spodniej strony zwisają piękne stalaktyty; jeden z nich ma formę długiego do 0,3 m, masywnego noża. Korytarzyk ten parę metrów dalej zakręca w prawo, ku SE, i kończy się 2,5-metrowym progiem, wypadającym bezpośrednio nad Salą Środkową. Natomiast główny ciąg, jakim jest Korytarz Zawaliskowy, po przekroczeniu wspomnianego prożka, zakręca na zachód, nieco opadając w dół. Spąg jest tutaj ciągle utworzony przez wanty, natomiast na ścianach pojawiają się licznie nacieki. Między innymi, 1,5-metrowej wysokości żebro, charakterystycznie skręcone, dodatkowo zdobne draperiami. Występują także polewy i drobne stalaktyty. Korytarz kończy się w Sali Środka. </span></p><p><span>Sala ta jest miejscem, gdzie rozpoczynają się ciągi kilku korytarzy. Na wschód odchodzi szeroki początkowo (2 m) korytarz. Na jego początku, w prawej części znajduje się małe wejście do ciągu połączonego z Korytarzem dla Pawła, umożliwiającego dotarcie do opisywanej stalaktytowej przegrody od drugiej strony. Nieco (6 m) dalej korytarz zacieśnia się do rozmiarów trudnego zacisku (ZI), prowadzącego do tzw. Pętli Zira. Wcześniej mija po lewej stronie dwa ciasne wejścia do pochylni, prowadzącej do tej Pętli od drugiej strony. Za zaciskiem prowadzi na NE wąska 5-metrowa szczelina, podcięta w połowie 1,8-metrową studzienką. Kończy się ona w małej salce, o średnicy około 1 metra, w stropie której znajduje się 6-metrowy kominek. Dalej droga prowadzi w kierunku NW, poprzez bardzo trudny zacisk (ZII). Za nim lekko meandrujący 5-metrowy korytarzyk doprowadza do Sali z Wydmą. Nazwa jej pochodzi od rozległego usypiska piaszczystego, zalegającego na dnie. Sala ma kształt prostokątny, o wymiarach 4x6 m i wysokości do 1 m. Na stropie występują drobne makarony. Oprócz wspomnianego meanderka odchodzą z niej jeszcze dwa korytarze. Jeden prowadzi na północ do dalszych partii jaskini, drugi zaś na południe, poprzez obszerniejszą nieco salkę do ciasnych pochylni wychodzących dwoma otworami z powrotem do szerokiego korytarza, doprowadzającego do Sali Środka. Na przeciwległej ścianie tej sali, ponad 2,5-metrowym progiem znajduje się drugie wejście do korytarzyka ze skalnym mostkiem.</span></p><p><span>Stąd główny korytarz prowadzi na północ. Stopniowo traci zawaliskowy charakter, jest ciągle obszerny (szerokości około 2 m) i wysoki. Strop jest bogato rozbudowany, pełen zakamarków, kominków i kotłów wirowych, tworzy górne piętro. W wielu miejscach zwisają efektowne skupiska stalaktytów, niejednokrotnie przekraczających długość 0,5 m. Na ścianach bocznych korytarzy widoczne są pozostałości starej polewy, świadczące o dawniejszych, wyższych poziomach namuliska. Same ściany są dość mocno skorodowane, miejscami o gąbczastej strukturze. Po 6 m ciąg ten doprowadza do charakterystycznego rozwidlenia, nazwanego przez odkrywców Skrzyżowaniem Martwych Dusz. Tuż przed nim, pod lewą ścianą na spągu tkwią dwa efektowne, grube stalagmity o wysokości do 0,3 m oraz skupienie kilku stalaktytów odpadłych ze stropu i okazałych kości, pokrytych grzybkami i zespolonych z dnem jaskini naciekową polewą. </span></p><p><span>Od Skrzyżowania odchodzi w prawo, ku NE, boczny korytarz, dość wąski (szerokości 1 m) ale wysoki (około 6 m), po około 10 m przechodzący w wąską szczelinę, podciętą 2,5-metrowym progiem. Po zejściu w dół dociera się do północnej części Sali z Wydmą. </span></p><p><span>Ciąg główny ze Skrzyżowania kontynuuje się na północ szerokim (2 m) korytarzem. Ma on myty charakter, o dnie wypełnionym gliniastym namuliskiem. Po 4 m przechodzi w niewielką salkę, o wymiarach 3x4 m i wysokości 5m. W jej zachodniej ściance, ponad 1,7-metrowym progiem znajduje się ciasny, boczny ciąg, uchodzący po 6 m z drugiej strony do Sali Makaroniarzy. Natomiast w jej części północnej, poprzez niewielkie 1-metrowe obniżenie, główny ciąg prowadzi dalej, by po 7 m osiągnąć Rajskie Wrota. Jest to niezwykle efektowne miejsce. Główny ciąg, dotąd logicznie narzucający oś jaskini, tutaj kończy się, wchodząc poprzez regularny, gotycki prześwit (szerokości 1,5 m, wysokości 2 m) do prostopadłych, bardzo przestronnych galerii. </span></p><p><span>Nieco wcześniej przed Wrotami, od ciągu głównego odchodzi w prawo niski korytarzyk (szerokości 1 m, wysokości 0,6 m), prowadzący do niedużej pochylni, po 5 m połączonej z innym ciągiem, tworząc tu niedużą salkę. Razem stanowią labirynt, połączony z północną częścią Sali z Wydmą. </span></p><p><span>Już za Rajskimi Wrotami, w lewo (na zachód) odchodzi obszerny (szerokości 3 m, wysokości 3 m) korytarz, prowadzący do Sali Makaroniarzy. Jest ona stosunkowo duża (4x6 m), o wysokości do 2 m. Na stropie sporo drobnych stalaktytów–makaronów. Spąg jest pokryty gliniastym namuliskiem, w końcowej części i pod ścianami – gruzem skalnym i zwietrzeliną. Ściany są w niektórych miejscach porowate – przypominają gąbkę. W Sali znajduje się bardzo duży blok skalny. Kończy się ona w postaci ślepego korytarzyka o długości 10 m, prowadzącego na południe. Na wschód od Wrót (w prawo) prowadzi obszerny korytarz, po paru metrach rozdzielający się. W lewo, na północny wschód skręca imponująca galeria, tzw. Korytarz XXL, kontynuując podstawowy kierunek rozwinięcia jaskini. Zaś na wprost, w stronę zachodnią, wiedzie boczny, znacznie mniejszy korytarz, prowadzący do tzw. Zaułka Rozkoszy. Ma on na szerokość 3 m, dalej stopniowo zwężającą się, i wysokość około 4 m. Na jego początku, w ścianie południowej znajdują się wejścia do dwóch korytarzyków, prowadzących w stronę Sali z Wydmą. Pierwszy z nich to nieduża pochylnia, łącząca się z podobną, odchodzącą od ciągu głównego przed Wrotami. Drugi korytarz, wyższy i przestronniejszy, po 5 m jest podcięty 1,5-metrowym progiem. Poniżej łączy się on z opisanymi wcześniej pochylniami i kieruje się na południe, dochodząc do Sali z Wydmą. Partie te są pozbawione nacieków, ściany mają porowatą strukturę, namulisko jest gliniasto-piaszczyste i piaszczyste. W sąsiednim Zaułku Rozkoszy są ładnie wykształcone polewy naciekowe. W końcowej części występują także drobne pola ryżowe. W niektórych ich zagłębieniach stagnuje woda. </span></p><p><span>Korytarz XXL ma długość 20 m i trójkątny przekrój o wymiarach 3x3 m. W stropie znajdują się kominki, niektóre zdobne stalaktytami i draperiami o długości do 25 cm. Spąg pokrywa piaszczyste namulisko. Jest ono w końcowej części zapadnięte na głębokość 0,8 m, tworząc owalny ponor o średnicy 1,5 m. Korytarz ten kończy się niespodziewanie, nie mając logicznej kontynuacji. W jego końcowej części znajdują się trzy wejścia do niedużych i ciasnych partii końcowych. Jednym z nich jest 3-metrowa studzienka, o średnicy około 1,3 metra, która krótką pochylnią, schodzącą ku NE, doprowadza do Ostatniej Sali (2,5x4 m). Jej dno pokrywa rumosz skalny. W jednym z niewielkich kominków występują niezwykłe nacieki w kształcie purchawek. Sala jest dodatkowo połączona z Korytarzem XXL poprzez ciasną rurę. Jest ona prawie równoległa do pochylni i wyprowadza bezpośrednio nad wlotem wspomnianej studzienki. Z dna tej ostatniej odchodzi na południe jeszcze jeden, bardzo ciasny i niski ciąg, tzw. Partie Tytusa. Początkowy korytarzyk, za skrzyżowaniem z dwoma bocznymi paru-metrowymi odnogami, poprzez 1,5-metrowy prożek, prowadzi do niedużej salki. Osiągnięty to poziom –18,5 m jest najgłębszym miejscem w jaskini. Z salki odchodzą dwa korytarzyki: jeden to idąca do góry, ku SW, 6-metrowa pochylenka, drugi to krótki, prowadzący na południe korytarzyk, zakończony 3-metrowym kominkiem. Dno tych korytarzy jest pokryte piaszczystym namuliskiem. </span></p><p><span>Na przedłużeniu Korytarza XXL, po minięciu opisanej studzienki, znajduje się wejście do ciasnego korytarzyka, o średnicy 1 m, stopniowo zacieśniającego się, ale przy końcu rozgałęzionego na 4 krótkie odnogi. Ich rzut na planie przypomina sylwetkę leżącego człowieka, stąd ich nazwa – Pływak.</span></p><div>&nbsp;</div><p><span>Jaskinia powstała w wapieniach górnojurajskich, jest generalnie rozwinięta na osi SW-NE. Kiedyś prawdopodobnie tworzyła wspólny system odwodnienia razem z sąsiednią Jaskinią Ludwinowską. Budowa i układ korytarzy wskazuje na ich powstanie w strefie freatycznej. Duże ilości naniesionego piasku i iłu świadczą o infiltracji wód lodowcowych oraz dawniejszym połączeniu z powierzchnią. Pierwsza Sala, Bojankowa Komora, oraz Sala HKTJ stanowiły w nieodległej przeszłości jedną całość. Jednakże z powodu zawału części stropu wybitnego komina, usytuowanego kiedyś na styku tych trzech sal, nastąpiło ich rozdzielenie, a przy okazji także połączenie z powierzchnią ziemi. Utworzony lej krasowy stał się pośrednio przyczyną powstania zawaliska, przegradzającego te trzy w/wymienione sale. Zawalisko powstało z materiału otaczającego strop komina, oraz w późniejszym czasie, z materiału (odpadków) naniesionego do leja przez człowieka. Na uwagę zasługują liczne kości, ukryte w namulisku całej praktycznie jaskini. Szczególnie cenna jest wspaniała, nienaruszona szata naciekowa, będąca dużą ozdobą obiektu. </span></p><p><span>Mikroklimat jest typowo jaskiniowy, ustabilizowany. Cyrkulacja powietrza jest znacznie utrudniona, z powodu istnienia tylko jednego połączenia z powierzchnią, dodatkowo zamykanego klapą. </span></p><p><span>W jaskini zimują nietoperze. W dniu 23.11.2000 r. zaobserwowano nocka dużego <strong><em>Myotis myotis</em></strong> (3 osobniki), nocka wąsatka <strong><em>Myotis mystacinus</em></strong> (1 os.), nocka Brandta <strong><em>Myotis brandtii</em></strong> (1 samiec) i nocka Natterera <strong><em>Myotis nattereri</em></strong> (1os.). Obserwowano także gacka brunatnego <strong><em>Plecotus auritus</em></strong>. Podstawowym ograniczeniem ilości występowania tych zwierząt jest sposób zamknięcia otworu.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    Charakterystyczny lej krasowy, położony wśród uprawnych pól, był znany od dawna miejscowej ludności. Służył on m.in. jako miejsce, gdzie wrzucano wyorane kamienie – obyczaj bardzo rozpowszechniony na Jurze. W naszym przypadku dodatkowo traktowano lej jako śmietnik – wrzucano tam także padlinę. Stąd zapewne wzięły się liczne kości w przyotworowym zawalisku wewnątrz jaskini. Jako potencjalny problem speleologiczny, lejek zlokalizował w roku 1974 M. Czerny ze Speleoklubu Katowice. W tym samym roku ekipa grotołazów z tego klubu próbowała przekopać się w dół. Jednak wybrany urobek był przez chłopów wrzucany z powrotem do leja, dodatkowo deszcze wszystko zamulały, spłukując do środka świeżo zaoraną glebę. Sytuacja zmieniła się w latach osiemdziesiątych, gdy zaprzestano w tym miejscu uprawy rolnej. Procesy denudacyjne poszerzyły lejek, zaś rozwijająca się roślinność wzmocniła jego ścianki. <br />We wrześniu 1999 r. eksplorację leja rozpoczęła ekipa Harcerskiego Klubu Taternictwa Jaskiniowego z Brzeszczy (koło Oświęcimia). 25-29.09.1999 r. zespół: R. Pest, R. Gach, M. Mitoraj, T. Zając i T. Frazik, po przekopaniu się przez namulisko, odkrył główne ciągi jaskini. Tydzień później odkryto Bojankową Komorę i Partie Tytusa. Nad wejściową studzienką zamontowano betonową cembrowinę. 17 października odkryto Pętlę Zira, 14 listopada – Korytarz dla Pawła ( nazwany tak dla upamiętnienia zmarłego kolegi z Klubu), 9 stycznia 2000 r. – Korytarz Zamkowy. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    Obiekt ten, na podstawie informacji M. Czepiela, był wzmiankowany w  „Pełnym wykazie jaskiń i schronisk Wyżyny...” przez Szelerewicza i  Górnego (1986), jako Schronisko Lejek z Kościami, pod numerem  VI.A.7.Pomiary jaskini wykonał&nbsp; A. Sanak przy współpracy R. Pesta, R.  Wykręta, M. Mitoraja, T. Zająca i A. Jarka, przy pomocy teodolitu  laserowego, taśmy parcianej i busoli geologicznej. Ukończono je w lecie  2000 r. Dokumentację opracował A. Sanak. Opis jaskini wraz z planem i  historią odkrycia został opublikowany w kwartalniku „Jaskinie” nr 4(21) w  2000 r. Dane zaktualizował J. Zygmunt (2009 r.).<br />Plan opracował A. Sanak.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Szelerewicz M., G&#243;rny A. 1986 (wzmianka); Sanak A. 2000 (plan, opis); Czepiel M. 2001 (sprostowanie); Postawa T. 2001 (sprawozdanie z obserwacji nietoperzy); Stefaniak K. i in. 2009a (fauna subfosylna); Stefaniak K. i in. 2009d (niepełne dane morfometryczne, kr&#243;tka charakterystyka, zakres badań); Tyc A. 2009a (wzmiankuje w aspekcie genezy); Jaskinie Wyżyny Częstochowskiej 2011b (opis i plan inwentarzowy)
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Czepiel M. i in. 2003 (dokumentacja).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jerzy Zygmunt
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15064)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(3556)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

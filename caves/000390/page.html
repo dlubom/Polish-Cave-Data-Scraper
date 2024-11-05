@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F390">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 390;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "453929,95".replace(',', '.') + "," + "761327,45".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('390','Grota w Mechowej'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Grota w Mechowej
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Mechauer H&#246;hle, Grota w Mechowej, Jaskinia w Mechowej koło Pucka, &quot;Groty Mechowskie&quot;,  &quot;Grota Mechowska&quot;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                NP-01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Niż Polski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 18&#176;17′04,80″, φ: 54&#176;42′48,65″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Puck (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                pucki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                pomorskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Komunalny
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Dz. Urz. WRN nr 1, poz. 4, 1955 r.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                S
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                56
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    61
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Jaskinia jest usytuowana we wschodniej części miejscowości Mechowo (w użyciu była też nazwa - Mechowa), leżącej około 9 km na W od Pucka. 
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Dojazd i dojście do jaskini są oznakowane (drogowskazy, turystyczny "szlak Grot Mechowskich").
+Otwory znajdują się na ogrodzonej działce u podnóża lewego, północnego zbocza dolinki niewielkiego potoku i leżą między dwoma drogami - asfaltową, biegnącą przez wieś i odchodzącą od niej drogą gruntową, przy której, przed jaskinią zlokalizowano parking. Jaskinia, zaznaczona na mapach turystycznych, jest udostępniona dla ruchu turystycznego, a jej zwiedzanie jest płatne.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia posiada kilka otwor&oacute;w, z kt&oacute;rych dwa (na planie nr 1 i 2) stanowią początek (1) i koniec (2) odcinka udostępnionego do zwiedzania. Między kolumnami stojącymi w rejonie otwor&oacute;w jest jeszcze kilka okien i prześwit&oacute;w, prowadzących do wstępnych partii jaskini. Na kolumnach tych opiera się okap skalny o charakterze płyty, Korytarz łączący gł&oacute;wne otwory przechodzi w głębi w dość rozległą, ale niską salkę, z kt&oacute;rej, generalnie w&nbsp;kierunku N ciągnie się korytarz o przeciętnej wysokości 0,7&nbsp;m.</p>
+<p>Jaskinia rozwinięta jest w gruboziarnistych piaskowcach i zlepieńcach plejstoceńskich cechujących się przekątnym warstwowaniem. Skały te są niezbyt silnie lecz dość jednolicie scementowane spoiwem kalcytowym w głębszych partiach jaskini, w strefie przypowierzchniowej wykazują zaś bardzo zr&oacute;żnicowany stopień scementowania, co decyduje o bogactwie rzeźby tego fragmentu jaskini i ściany skalnej, w kt&oacute;rej są usytuowane jej otwory. Kolumny skalne, nabrzmienia ścian, pakiety tworzące okap oraz inne wypukłe formy rzeźby zbudowane są z piaskowca o większej zwięzłości.</p>
+<p>Dno jaskini w części przyotworowej nie jest obecnie naturalne. W części jaskini udostępnionej do zwiedzania dno zostało pokryte warstwą ostrokrawędzistego żwiru, tzw. grysem. Jak wynika z najstarszego opisu jaskini (1818 r.) jej pierwotne dno w części przyotworowej położone było około 1 m niżej, zaś leżące poniżej piaszczyste namulisko zawierało ciemnoszare wkładki wzbogacone w substancję organiczną, fragmenty kopalnego drewna i kości zwierząt. Znaleziono w nim r&oacute;wnież muszle małży oraz fragment bursztynu (Kleefeld, Wrede 1829).</p>
+<p>Miejscami, na ścianach i stropie korytarza biegnącego z salki ku N występują twarde nacieki kalcytowe - polewy, żebra i kr&oacute;tkie stalaktyty. Największe, zabarwione na czerwonawy kolor nacieki, zwane &bdquo;Serce&rdquo; (&bdquo;Krwawiące Serce&rdquo;) oraz &bdquo;Korona&rdquo;, występują w dwu rozszerzeniach korytarza, w kt&oacute;rych zwiększone jest przesączanie (kapanie) w&oacute;d. Analizy uranowo-torowe naciek&oacute;w wykazały ich wiek nie starszy niż kilkaset lat (Urban i in. 2007).</p>
+<p>Gł&oacute;wnymi procesami odpowiedzialnymi za powstanie przypowierzchniowych fragment&oacute;w jaskini (kolumnady oraz komory wstępnej położonej bezpośrednio za nią) są selektywne wietrzenie oraz erozja wodna i eoliczna, a także osypywanie się luźnego materiału (Kowalski 1954, Szukalski 1961, 1962). Natomiast głębsze fragmenty jaskini są efektem proces&oacute;w naturalnych i działalności człowieka. Szczeg&oacute;łowe pomiary nachylenia jej korytarzy dowodzą, że pierwotne zluźnienia osadu i niewielkie pustki wzdłuż osi korytarzy mogły powstać w wyniku mechanicznego wymywania ziarn piasku (z niezlityfikowanego osadu pod zwięzłą płytą piask&oacute;w scementowanych) przez przesączające się wody. Jednak kanały o wielkości umożliwiającej wejście człowieka mogły powstać w rezultacie poszerzania (rozkopywania) pierwotnych pustek podczas eksploracji jaskini (Urban i in. 2007). Potwierdzają to plany jaskini wykonane w r&oacute;żnych okresach, na kt&oacute;rych jaskinia ma r&oacute;żną wielkość i kształt (z wyjątkiem kolumnady i komory położonej bezpośrednio za nią). Por&oacute;wnanie planu Kowalskiego (1954) z planem wykonanym w 1998 r. ewidentnie wskazuje. że ostatni odcinek najdłuższego korytarza (długości 4 m) powstał w wyniku znacznego poszerzenia (rozkopania) istniejącej wcześniej wąskiej szczeliny.</p>
+<p>Partie przyotworowe jaskini są widne. Głębiej, szczeg&oacute;lnie w korytarzu końcowym, jest całkowicie ciemno. Wstępne partie jaskini, korytarz łączący gł&oacute;wne otwory oraz przylegająca do niego salka, są zwykle suche. Tylko po dużych i gwałtownych opadach, okresowo zalewane jest obniżenie przed otworami i przyotworowe części jaskini. Duża wilgotność panuje natomiast w korytarzu końcowym, gdzie w partiach z naciekami zwykle ze stropu kapie woda (w kilku miejscach o kolorze czerwonym), a na dnie tworzą się kałuże. Ta część posiada już typowy mikroklimat jaskiniowy.</p>
+<p>Na ścianach kolumn we wstępnej części jaskini występują glony oraz porosty, tworzące niewielkie naskorupienia. U nasady kolumn sporadycznie spotyka się grzyby - "pleśnie" oraz wypłonione kiełki roślin naczyniowych. Ze stropu w kilku miejscach wystają martwe korzenie (kilkudziesięcioletnie drzewa rosnące nad otworami, zostały wycięte w ostatnim okresie). Na starszych fotografiach przedstawiających otwory jaskini można obserwować rośliny naczyniowe, w tym także młode osobniki gatunk&oacute;w drzewiastych, rosnące między kolumnami.</p>
+<p>Wewnątrz jaskini zauważono obecnie tylko komary. K. Kowalski (obserwacje z lipca 1949&nbsp;r.) wymienia jeszcze owady bezskrzydłe i pająki (kokony pająk&oacute;w). W jaskini miały w&oacute;wczas nory dzikie kr&oacute;liki. Podobno przed laty przebywały w jaskini nietoperze, niedawne obserwacje wskazują jednak na ich brak (Ciechanowski 2003).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została po raz pierwszy opisana i skartowana przez Radcę Miasta Gdańska Kleefelda w 1818 r., jednak z opisu tego wynika, że dostępna była i znana miejscowej ludności co najmniej kilkadziesiąt lat wcześniej. W 1818 r. miała około 70 m długości i składała się &ndash; opr&oacute;cz komory wstępnej &ndash; z korytarza biegnącego w kierunku zachodnim, kt&oacute;ry jeszcze w dwu miejscach miał otwory wejściowe (obecnie niedostępnego). Wykonane w&oacute;wczas prace obejmowały r&oacute;wnież wykopy w namulisku i pobieranie pr&oacute;bek, kt&oacute;rych badania wykonał profesor Wrede z Kr&oacute;lewca (Kleefeld, Wrede 1829). Następny obszerny opis obiektu opublikował Conwentz w 1910 r. Wynika z niego, że jaskinia ponownie była "czyszczona" około połowy XIX w. W 1910 r. "pruski zarząd powiatowy" wykupił działkę z jaskinią od prywatnych właścicieli. Wykonano w niej wtedy prace zabezpieczające i restauracyjne (Conwentz 1910).<br />W pierwszej połowie XX w. informacje o jaskini, stanowiącej wartościowy obiekt przyrodniczy, znalazły się w opracowaniu poświęconemu budowie geologicznej Prus Zachodnich (Sonntag 1919). Z planu i opisu jaskini pochodzącego z 1938 r. (Meyer 1938) wynika, że dostępna w&oacute;wczas jej część była znacznie kr&oacute;tsza niż obecnie i obejmowała praktycznie jedynie salę za kolumnadą.<br />Najstarszą wzmianką w języku polskim jest prawdopodobnie notatka w Słowniku Geograficznym Kr&oacute;lestwa Polskiego z 1885 r. Natomiast pierwszą większą polską publikacją jest opracowanie Gąsiorowskiego (1924). W 1931 r. J. Urbański publikuje artystyczną fotografię kolumn stojących w rejonie otwor&oacute;w. Jaskinię w Mechowie, jako jedyną na obszarze niżowej Polski, wymienia w swym spisie Danysz-Fleszarowa (1933).<br />Po II wojnie światowej, na wniosek Państwowej Rady Ochrony Przyrody, w 1948 r. przeprowadzono w jaskini gruntowne prace zabezpieczające (Sulma 1949).<br /> Następne prace zostały przeprowadzone w 1981 r. oraz w latach 1997-98 w oparciu o szczeg&oacute;łowe badania warunk&oacute;w geologiczno-inżynierskich i zaktualizowany plan geodezyjny całego obiektu (J. Darowski, R. Wrzosek - opracowanie archiwalne). Te ostatnie roboty polegały na rekonstrukcji otwor&oacute;w wejściowych, łączącego je korytarza i niekt&oacute;rych filar&oacute;w, a także - wykonaniu odprowadzenia w&oacute;d powierzchniowych ze skarpy nad jaskinią (informacja pisemna Wojew&oacute;dzkiego Konserwatora Przyrody).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Dokładną inwentaryzację jaskini, łącznie ze sporządzeniem jej planu, wykonał K.&nbsp;Kowalski w lipcu 1949 r. (Kowalski 1953, 1954). Następna inwentaryzacja i plan jaskini ukazały się w tomie &bdquo;Jaskinie Niżu Polskiego&rdquo; (1998). W latach 2005-2006 przeprowadzono w jaskini badania geologiczno-geomorfologiczne mające na celu określenie jej genezy i wieku (Urban i in. 2007).</p>
+<p>Szereg wzmianek, notatek i artykuł&oacute;w o Jaskini w Mechowie ukazało się w&nbsp;czasopismach oraz popularnych wydawnictwach krajoznawczych - ich wyb&oacute;r zamieszczono poniżej. Informacje o jaskini znalazły się r&oacute;wnież w wydawnictwach zwartych, o charakterze zestawień, katalog&oacute;w i monografii tematycznych, np.: Jakubowski (1971), Alexandrowicz i in. (1975), Jarosz (1976 i wydania wcześniejsze), Słownik geograficzno-krajoznawczy Polski (1983), a także w&nbsp;przewodnikach i informatorach turystycznych (np.: Przewodnik po Polsce1996, Tworek 1997, 2004, Piekarec, Porzeziński 1998, Ellwart 2006 i wydania wcześniejsze).</p>
+<p>Jaskinia w Mechowie była także celem wycieczek specjalistycznych, w tym - sedymentologicznej (Piątkowski 1966) oraz speleologicznej (podczas 39. Sympozjum Speleologicznego w 2005 r. &ndash; Bartoszewski i in. 2005). W okresie po II wojnie światowej, od 1949 r. jest formalnie udostępniona turystycznie (za opłatą).</p>
+<p>Tradycja ludowa wiąże jaskinię z odległym o 10 km klasztorem w Żarnowcu, z kt&oacute;rego lochami niegdyś jaskinia miała być połączona (Ellwart 2006).</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Inwentaryzację wykonali J. Baryła, J. Urban i S. Zag&oacute;rski, pomiary - J.&nbsp;Urban i S. Zag&oacute;rski (10 sierpnia 1998&nbsp;r.), uaktualnił Jan Urban, 2009 r. W efekcie zgłoszenia błędu w lokalizacji jaskini (Z.Kucharek, 26.08.2017) dokonano korekty wsp&oacute;łrzędnych geograficznych polożenia jaskini według mapy topograficznej GUGIK publikowanej na Geoportalu 2. (Redakcja)</p>
+<p>Plan opracował S. Zag&oacute;rski.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kleefeld, Wrede 1829 (opis i plan jaskini, opis skał, okaz&#243;w paleontologicznych i minerał&#243;w); Słownik Geograficzny 1885 (wzmianka); Conwentz H. 1910 (odnalezienie jaskini, jej opis, ochrona i prace zabezpieczające, fot.); Sonntag P. 1919 (kr&#243;tka charakterystyka, fot.); Danysz-Fleszarowa R. 1923  (opis, fot.); Gąsiorowski H. 1924 (geneza piaskowc&#243;w i opis jaskini, fot.); Urbański J. 1931 (fot. kolumn); Danysz-Fleszarowa R. 1933 (wymienia); Meyer P. 1938 (opis i plan); Sulma T. 1949 (prace zabezpieczające); Kowalski K. 1953 (og&#243;lna charakterystyka); Kowalski K. 1954 (dokładny opis i plan, wykaz piśmiennictwa); Szukalski J. 1961: (sytuacja geologiczna, geneza jaskini); Szukalski J. 1962 (opis, geneza i ochrona jaskini); Piątkowski J. 1966 (charakterystyka piaskowc&#243;w, opis jaskini); Jakubowski K. 1971 (opis, szkic, fot.); Alexandrowicz Z. i in. 1975 (informacja o jaskini i jej statusie ochronnym, fot.); Jarosz S. 1976 (kr&#243;tki opis i fot.); Słownik geograficzno-krajoznawczy Polski 1983 (kr&#243;tki opis); Alexandrowicz Z. i in. 1992 (ochrona, kr&#243;tki opis); Szukalski J. 1994 (opis, geneza jaskini); Przewodnik po Polsce 1996 (wzmianka); Tworek J. (red.) 1997 (informacje turystyczne, fot. - odwr&#243;cone w druku); Jaskinie Niżu Polskiego 1998 (opis, historia badań, plan); Ostaszewska K., Więckowski M. (red.); 1998: (kr&#243;tki opis); Piekarec A., Porzeziński P. 1998 (kr&#243;tki opis); Baryła J. 1999a (opis, historia badań, plan, fot.); Baryła J. 1999b (wzmianka); Baryła J. 1999c (wzmianki, geneza skał); Szukalski J. 1999 (wzmianka); Urban J. 1999b (opis, plan); Urban J. Otęska-Budzyn J. 1999 (wzmianka); Urban J. 2000 (kr&#243;tki opis, geneza); Ciechanowski M. 2003 (brak nietoperzy); Tworek J. 2004 (wzmianka); Urban J, 2004 (znaczenie naukowe); Bartoszewski D. i in. 2005 (opis, plan); Baryła J. 2005 (wzmianka, fot.); Ciborowski T. 2005 (wzmianka, geneza skał); Alexandrowicz Z. 2006 (znaczenie naukowe); Ellwart J. 2006 (legenda); Kaliński T., Zalewski P. (red.) 2005 (opis); Urban J. 2006 (ochrona); Urban J. i in. 2006 (geneza); Kowalczyk A. 2007 (wzmianka); Urban J. i in. 2007 (geneza, plan, przekr&#243;j, fot.). 
+
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Jan Urban, Janusz Baryła
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(15011)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otwory
+                    </a>
+                    <a onclick="showImageInfo(19)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(15012)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        wnętrze
+                    </a>
+            </td>
+        </tr>
+            <tr>
+                <td>
+                    Obiekt w serwisie Geostanowiska
+                </td>
+                <td>
+                    <a href="http://geostanowiska.pgi.gov.pl/gsapp_v2/ObjectDetails.aspx?id=142" target="_blank" class="btn">
+                        <img src="/Images/View.gif" title="Geostanowisko" alt="Geostanowisko" /> Geostanowisko
+                    </a>
+                </td>
+            </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

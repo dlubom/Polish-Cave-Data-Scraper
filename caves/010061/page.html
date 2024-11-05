@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10061">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10061;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "542601,12".replace(',', '.') + "," + "275588,85".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10061','Jaskinia Błotna'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Błotna
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                J.Olk.II-03.03
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Wyżyna Śląsko-Krakowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;35′56,11″, φ: 50&#176;20′45,26″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Klucze (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                olkuski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa (Lasy Państwowe)
+|                Park krajobrazowy Orlich Gniazd
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                428
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                42
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                42
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    140
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Wyżyna Olkuska, Jaroszowiec, Stołowa G&#243;ra; Obszar NATURA 2000 Jaroszowiec.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia Błotna położona jest w centralnej części wschodniego wzniesienia Stołowej Góry; jej otwór znajduje się na wschodnim zboczu. Najdogodniejsze dojście do jaskini wiedzie z Jaroszowca. Z parkingu nieopodal restauracji kierujemy się na północ. Zaraz za Domem Kultury wchodzimy w las, idąc drogą prowadzącą ku północy. Wiedzie ona łagodnie pod górę, przekraczając grzbiet. Dalej idziemy drogami leśnymi, utrzymując ogólnie kierunek północny(duża ilość dróg leśnych i brak charakterystycznych punktów w terenie uniemożliwiają precyzyjne opisanie tego fragmentu trasy). Droga biegnie poziomo, potem nieco pod górę, wyprowadzając na przełączkę pomiędzy wzniesieniami (1,1 km od Domu Kultury). Stąd kierujemy się w lewo (na zachód), po czym podchodzimy na strome zbocze, idąc na południe. Następnie trawersujemy stok (nie wychodzić na grzbiet). Po przejściu ok. 100 m natrafiamy na przecinającą zbocze rozpadlinę ze schroniskiem (J.Olk.II-03.11). Nadal idąc trawersem po ok. 80 m, nieco wyżej (8 m powyżej otworu wspomnianego schroniska) natrafiamy na podobną, ale słabiej czytelną w terenie rozpadlinę z otworami Jaskini Błotnej. Otwór wyżej położony to szczelina, za wąska, aby człowiek mógł się przez nią przedostać. Głównie z niej wydostają się zimą masy ciepłego powietrza. Do wnętrza prowadzi otwór niżej położony.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia o rozwinięciu pionowym. Z uwagi na ciasnotę, może być zwiedzana tylko przez osoby szczupłe. Studnia wejściowa, powstała na rozległej szczelinie o głębokości 23 m, jest bardzo ciasna (szerokość na odcinku kilkunastu metr&oacute;w - 25 cm), szczeg&oacute;lnie uciążliwa w trakcie wychodzenia. W ciągu jaskini progi wymagające wspinaczki, niebezpieczne z uwagi na niestabilność zawaliska, szczeg&oacute;lnie w rejonie sal.</p>
+<p>Przez niewielki otw&oacute;r dostajemy się do rozległej, bardzo wąskiej szczeliny. Dla pokonania tego fragmentu jaskini niezbędne jest użycie 25-metrowej liny (mocowanej do drzewa, bezpośrednio przy otworze). Na znacznym, odcinku zjazdu szerokość szczeliny wynosi 25 cm; dopiero na głębokości 15 m szczelina nieco się rozszerza, by na poziomie dna osiągnąć szerokość 60 cm. Zjeżdżamy wzdłuż żeber naciekowych i zaklinowanych kamieni. Ponieważ w linii spadku szczelina bardzo się zwęża, należy w czasie zjazdu przesuwać się w głąb niej (tj. w kierunku SW). Dno szczeliny osiągamy na poziomie -22,7 m. W tym miejscu i w bezpośrednim sąsiedztwie pokrywa je warstwa osad&oacute;w, pochodzących z rozkładu szczątk&oacute;w roślinnych. W kierunku NE szczelina - coraz węższa - ciągnie się dalej, dostępna na odcinku 5 m; w przeciwną stronę prowadzi ona do dalszych partii jaskini. Dno szczeliny opada w d&oacute;ł, na nieco stromszym odcinku tworząc błotną &bdquo;ślizgawkę&rdquo;. Miejsce to trudne jest do przebycia pod g&oacute;rę, gdyż ściany i dno są tu bardzo śliskie. Ściany szczeliny, kt&oacute;rą idziemy, pokrywają nacieki - żeberka, kaskady, itp. o czysto białej barwie. Szczelinę zamyka zawalisko scementowane kalcytem. Nieco nad dnem można pomiędzy kamieniami przecisnąć się do wąskiej studni o głębokości 5 m. Powstała ona na dolnym fragmencie gł&oacute;wnej szczeliny. Dno studni położone jest na poziomie -29,5 m.</p>
+<p>Droga do dalszych partii jaskini prowadzi po progach utworzonych przez bloki zalegające w szczelinie. Początkowy pr&oacute;g (o wysokości 4,4 m) pokonujemy zapieraczką. Na krawędzi progu zaklinowany jest blok - Wanta z Pętlą. (W opisie tym dla charakterystycznych, oficjalnie dotąd nie nazwanych obiekt&oacute;w i fragment&oacute;w jaskini wprowadzono nazwy własne takie, jak np. podana wyżej). Odkrywcy jaskini założyli na tym bloku pętlę ułatwiającą wejście, nie należy z niej jednak korzystać, gdyż może to spowodować oderwanie głazu!</p>
+<p>Po zaklinowanych blokach wspinamy się na najwyższy punkt zawaliska. Dno pokrywają polewy cementujące bloki, a na ścianach rozwinięte są żebra i nacieki wełniste. Z miejsca tego doskonale widać szczelinę oraz nacieki pokrywające ściany, formy te zbudowane są z porowatego kalcytu i mleka wapiennego. Poprzez zwężenie wśr&oacute;d naciek&oacute;w przedostajemy się na najwyższy poziom zawaliska (-16,3 m). Na dalszym odcinku szczelina, kt&oacute;rą się posuwamy, posiada wciętą p&oacute;łkę pokrytą polewą; p&oacute;łka ta - Szczelina z Trawersem - biegnie na tym poziomie do końca pr&oacute;żni. Schodzimy zapieraczką na dno rozpadliny, by po kilku metrach wejść do Sali z Naciekami - obszernej pr&oacute;żni o kształcie trapezu i wymiarach 10x7 m, przy wysokości dochodzącej (w południowej części) do 4 m. Dno całej Sali zalega rumowisko skalne, w części południowej komorę zamyka stożek usypiska. Wzdłuż p&oacute;łnocnej części komory spotykamy nagromadzenie r&oacute;żnych form naciekowych, z największym skupiskiem we wschodnim krańcu gdzie strop pokrywają stalaktyty o nieregularnych formach a na ścianach znajdują się zasłony pokryte naciekiem wełnistym, pod nimi usytuowane są masywne stalagmity z polami ryżowymi wypełnionymi wodą. W środkowej części p&oacute;łnocnego rejonu Sali z Naciekami dominuje masywny stalagmit otoczony misami naciekowymi wypełnionymi wodą, mierzący 0,3 m wysokości. Strop w p&oacute;łnocno-zachodnim krańcu komory pokrywają stalaktyty. Wszystkie nacieki dalej przyrastają, są czysto białej barwy.</p>
+<p>Z komory tej idziemy w d&oacute;ł do położonej 3 m poniżej Sali na Wantach. Osiągając poziom tej Sali (-23,7 m) schodzimy przy przepaści, otwierającej się do najniższej komory. Zachodnia ściana Sali na Wantach jest nachylona, zbudowana z litego wapienia. Wspierają się na niej bloki skalne tworzące dno komory; narosły na nich niewielkie stalaktyty o ż&oacute;łto-brązowej barwie. Pomiędzy blokami znajdują się przestrzenie prowadzące pionowo w d&oacute;ł do Dolnej Komory. W p&oacute;łnocnej części Sali na Wantach, wśr&oacute;d zawaliska, znajduje się ciasne przejście do Dolnej Komory; szerokie przejście do niej wiedzie w d&oacute;ł, przez niewielki prożek, z południowego krańca Sali. W południowym krańcu Sali na Wantach rozwinięte są dwie wnęki o krasowej genezie, przechodzące w&nbsp;kominki z zagłębieniami wirowymi. Dna obu wnęk pokrywają stożki napływowe zbudowane z osad&oacute;w piaszczysto-gliniastych.</p>
+<p>Najniższa z sal - Dolna Sala - położona jest na poziomie -30 m (-29,6 m). Ma kształt prostokąta o rozmiarach 10x5 m, a jej wysokość dochodzi do 5 m. Dno Sali zalega gruz skalny i osady piaszczysto-gliniaste z fragmentami połamanych naciek&oacute;w starszej generacji (m.in. duże fragmenty stalagmit&oacute;w, dochodzące do 0,5 m długości) oraz oryginalne kuliste konkrecje piasku scementowanego kalcytem (do 20 cm średnicy). Wśr&oacute;d osad&oacute;w występują liczne kości nietoperzy i innych drobnych kręgowc&oacute;w. Na ścianach i stropie znajdują się starsze nacieki, obecnie w niewielkim stopniu przyrastające, o barwie ż&oacute;łto-brunatnej. Osobliwością jaskini są występujące w tej komorze bloki piaskowca, geologicznie stosunkowo młodego, powstałego w wyniku scementowania piaszczystego namuliska kalcytem. Wskutek wt&oacute;rnego rozmycia przez wodę zawierającą dwutlenek węgla - powstały w ławicy tego piaskowca (o dużej miąższości) liczne drobne, doskonale obecnie widoczne kanały oraz wypreparowane zostały kuliste konkrecje, leżące na dnie komory lub tkwiące nadal w ścianie. Ławica piaskowca jest silnie strzaskana.</p>
+<p>Z p&oacute;łnocnego krańca Dolnej Sali (-29,8 m) poprzez 3-metrowy pr&oacute;g osiągamy korytarz rozwinięty na wąskiej szczelinie. Jego dno stromo opada do 9-metrowej, wąskiej studni, na kt&oacute;rej dnie znajduje się najniższy dostępny punkt jaskini, położony 42 m poniżej otworu wejściowego. Szczelina biegnie dalej w kierunku SW przechodząc w zacisk - najpierw ZI a potem ZII, nazwany przez odkrywc&oacute;w Zaciskiem Komandosa. Za tym zaciskiem jaskinia kończy się w pochyłej szczelinie - Szczelinie Mistrza.</p>
+<p>Jaskinia rozwinęła się w wapieniach skalistych g&oacute;rnej jury (oksford). Znaczna jej część powstała na rozwartym pęknięciu o azymucie ok. 40&deg;. Rozpadlina ta jest doskonale czytelna na powierzchni zbocza, na odcinku kilkudziesięciu metr&oacute;w. Azymut tego pęknięcia odpowiada kierunkowi rozpadlin, jakie spotykamy w g&oacute;rach Stołowej i Ostrej. Szczelina, prawie 30-metrowej głębokości, doprowadza do dużej pr&oacute;żni, kt&oacute;ra powstała w silnie spękanych kompleksach skalnych; kolejne, coraz niższe poziomy są przestrzeniami pomiędzy zaklinowanymi blokami. Z najniższej części zawaliska prowadzi w d&oacute;ł studnia powstała na szczelinie, o azymucie zbliżonym do 40&deg;, jednak nie wykazująca związku ze szczeliną, kt&oacute;ra tworzy odcinek wejściowy. O rozwoju sal i korytarzy Jaskini Błotnej decydowały gł&oacute;wnie ruchy tektoniczne; dopiero uformowana w ich wyniku pr&oacute;żnia była modelowana przez procesy krasowe.</p>
+<p>Jaskinia Błotna ma bogatą, zachowaną w stanie nienaruszonym szatę naciekową, zabrudzoną i nieco zniszczoną jedynie w miejscach, w kt&oacute;rych nie dało się tego uniknąć przy przechodzeniu. W rejonie studni wejściowej występują polewy, duże stalaktyty i nacieki wełniste, utworzone z miękkiego lub stwardniałego mleka wapiennego o białej barwie. Nacieki charakteryzują się dużym tempem wsp&oacute;łczesnego przyrostu. Do bogatej szaty naciekowej występującej w głębi jaskini należą polewy o r&oacute;żnej grubości (do kilkunastu cm), w wyższych partiach jaskini zbudowane z kalcytu porowatego, a niżej z drobnokrystalicznego. Na polewach nacieki spływowe tworzą draperie, na ścianach przewieszonych - zasłony, a na lekko pochylonych - drobne miseczki p&oacute;l ryżowych i niewielkie misy o brzegach osiągających 10 cm wysokości, wypełnione wodą. Stalaktyty są niewielkich rozmiar&oacute;w - do 30 cm. Często są one zakończone makaronami. W najniższej części jaskini, w namulisku i na jego powierzchni występują resztki starej, potrzaskanej przez zawalisko, szaty naciekowej. Wśr&oacute;d jej pozostałości znaleźć można duże stalaktyty i stalagmity - znacznie większe od rozwijających się obecnie.</p>
+<p>Osady w Dolnej Sali, zawierające szczątki kości i starej szaty naciekowej, a także cementacyjne formy piaskowcowe, mogą stanowić interesujący przedmiot specjalistycznych badań naukowych.</p>
+<p>Pr&oacute;żnię tę cechuje mikroklimat dynamiczny, wyczuwalny jest przewiew dzięki kt&oacute;remu jaskinia została odkryta.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini został zlokalizowany w listopadzie 1988 roku przez grotołaz&oacute;w z Bielska-Białej: J. Chowańca, R. Pesta, A. Sanaka i A. Jarka. Sygnałem istnienia nieznanej pr&oacute;żni było topienie śniegu w miejscu, w kt&oacute;rym masy ciepłego powietrza wydostawały się na zewnątrz. Tam też grotołazi odsłonili wąską szczelinę, za ciasną jednak, aby można ją było pokonać. Dopiero dalsze prace, prowadzone kilka metr&oacute;w poniżej, doprowadziły do odkrycia otworu jaskini.</p>
+<p>Pierwsze artykuły z informacjami na temat jaskini, ukazały się kr&oacute;tko po jej odkryciu, w 1989 roku. Był to artykuł A. Sanaka w 8 numerze Zacisku oraz artykuł M. Szelerewicza w Eksploranciku.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W&nbsp;1989 roku powstaje dokumentacja dla Zarządu Zespołu Jurajskich Park&oacute;w Krajobrazowych woj. katowickiego. Jej autorami są M. Szelerewicz i A. G&oacute;rny. Dokumentacja ta zawiera najbardziej obszerne informacje na temat jaskini. Jest w niej plan, przekr&oacute;j i liczne, czarno-białe zdjęcia. W opracowaniu tym jaskinia nosi numer IV.A.17. Wykonane przez Sanaka i Szelerewicza plany i przekroje r&oacute;żnią się znacznie od siebie (szczeg&oacute;lnie w końcowych partiach jaskini). Szczeg&oacute;lnie duża r&oacute;żnica pojawia się w przypadku długości jaskini (Sanak podaje aż 235 m, co wydaje się mało prawdopodobne). Na planach pojawia się r&oacute;wnież odmienne nazewnictwo tych samych miejsc. Do niniejszego opracowania wykorzystano plan i przekr&oacute;j autorstwa Szelerewicza z uwzględnieniem niewielkich uzupełnień z planu Sanaka. Jednocześnie do długości jaskini podanej przez Szelerewicza (120 m) wniesiono niewielką korektę wynikającą z planu Sanaka, gdzie pojawiają się korytarze, nieuwzględnione przez Szelerewicza.</p>
+<p>Dane zaktualizował A. Polonius (2014).</p>
+<p>Plan i przekr&oacute;j opracował M. Szelerewicz.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Sanak A. 1989 (lokalizacja, opis jaskini, plan i przekr&#243;j); Szelerewicz M.  1989 (lokalizacja, opis, przekr&#243;j); Polonius A. 1994 (wymienione w wykazie, lokalizacja na mapie); Tyc A. 1994 (wymienia w aspekcie mikroklimatu jaskiniowego); Kurek A. 1995 (wymienia, podaje wymiary); Kurek A., Wiśniewski W.W. 1995 (wymieniona, bardzo kr&#243;tki opis); Jaskinie Wyżyny Olkuskiej 2016 (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    G&#243;rny A., Szelerewicz M. 1989 (lokalizacja na mapie 1:10 000, og&#243;lna charakterystyka, plan, przekr&#243;j, czarno-białe fotografie otworu i wnętrza).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Andrzej G&#243;rny, Mariusz Szelerewicz
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(10171)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(12080)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(12081)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F2931">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 2931;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "500440,26".replace(',', '.') + "," + "207174,46".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('2931','Jaskinia u Jakubca'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia u Jakubca
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bs-04.06
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;00′22,00″, φ: 49&#176;43′55,00″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Szczyrk (gm. miejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                bielski
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                śląskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Pomnik przyrody
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                Rozp. Nr 1/93 Woj. Bielskiego z dn. 23.04.1993 r.; Dz. Urz. Woj. Bielskiego z 1993r. Nr 5 poz. 31. [wg http://crfop.gdos.gov.pl]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                816
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                13
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    83
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                W SW stokach Magury (1095 m n.p.m.) - G&#243;rki (654 m n.p.m.). 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Od szlaku turystycznego (znaki niebieskie) biegnącego ze Szczyrku przez Górkę na siodło Klimczok - Magura przed skrzyżowaniem ze szlakiem biegnącym z doliny Biłej (znaki zielone) około 200 m za słupkiem granicznym LP nr 108/105/104 skręcamy na SW (225°). Schodzimy około 200 m do starego budynku nr 158 (nieopodal okazały, nowszy budynek nr 159) Pana Jakubca (stąd nazwa jaskini). Tu w obejściu otwór jaskini’ zabezpieczony drewnianą klapą (obecnie bardzo zniszczoną). Do budynku nr 158 dojść można też inną drogą ze Szczyrku Biłej za DW "Klimczok", idąc w górę około 40 minut. Dojście nieskomplikowane, budynek i otwór jaskini łatwy do znalezienia. Otwarcie jaskini i zwiedzanie wymaga zgody gospodarza. Przejście głównego ciągu bez trudności, boczne ciągi miejscami uciążliwe (ciasno). Z uwagi na kruszyznę ścian zalecane jest założenie ubezpieczenia w studni wejściowej.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Przez nieduży, poziomo usytuowany otw&oacute;r, kt&oacute;ry odsłonił się samoistnie w gliniastym klepisku nieopodal wejścia do zabudowania gospodarczego, schodzimy do studni wejściowej o&nbsp;głębokości 4,5&nbsp;m. Ściany studni na przestrzeni około 3&nbsp;m są kruche, gliniaste, przetykane luźnymi blokami skalnymi, stąd celowe jest założenie poręcz&oacute;wki. Dopiero w&nbsp;końcowej części, gdzie studnia rozszerza się uchodząc do Komory Wstępnej, kruszyzna się zmniejsza, występują duże bloki skalne. Komora Wstępna o&nbsp;nieregularnym, wydłużonym kształcie, jest dość przestronna: długości 5 m, szerokości w okolicy wylotu studni 2,5 m, w dalszej części rozszerza się do około5&nbsp;m przechodząc w pochyłą, okazałą wnękę. R&oacute;wnie zmienna jest także jej wysokości: od 1,5 do 2,5&nbsp;m. Dno nachylone (od studni wejściowej zbiega w kierunku N), pokryte rumoszem skalnym i&nbsp;grubszą warstwą gliny. Strop nieregularny, nachylony ku W, zaburzony tak, jak i&nbsp;ściany - szczeg&oacute;lnie w&nbsp;strefie wschodniej.</p>
+<p>&nbsp;Od sali w kierunku W dwoma przejściami przedostać się można do ciągu bocznego, o&nbsp;kt&oacute;rym poniżej.</p>
+<p>&nbsp;Ciąg gł&oacute;wny jaskini kontynuuje się w kierunku N. Pochyłym 2&nbsp;m korytarzykiem (w&nbsp;prawo od wąskiej, nie penetrowanej do końca szczeliny) przedostajemy się do niewielkiej nachylonej salki (wysokości do 2 m, szerokości 3 m, długości 2,5 m). Stąd ku NW kr&oacute;tki zwężający się korytarzyk doprowadza do ciasnej, zaciskowej szczeliny (szerokości 0.4-0,3&nbsp;m, długości około 2 m) rozwiniętej na kierunku N-S. Szczelina od p&oacute;łnocy zablokowana jest okazałym głazem, po jego minięciu wydostajemy się do Sali z&nbsp;Puszką (w marcu 1988&nbsp;r. inwentaryzujący umieścili tu puszkę do wpis&oacute;w). Sala ta o&nbsp;wysokości około 2 m, szerokości 1,3&nbsp;m i&nbsp;długości około 4 m, ma ściany lite, regularne, nachylone nieco ku E. Dno zrazu płaskie, pokryte rumoszem skalnym i&nbsp;kilkoma blokami, w dalszej części podnosi się i&nbsp;tu jest pokryte sypkim, żwirowatym materiałem, po czym znowu jest płaskie. Strop natomiast jest nier&oacute;wny, silnie zaburzony. Zaraz na wstępie od sali ku E odchodzi ślepa, 2&nbsp;m szczelina, zaś na W biegnie 3 metrowy, zwężający się znacznie korytarzyk. Przy jego prawej ścianie znajduje się studzienka, od kt&oacute;rej odchodzi (pod wspomniany korytarzyk) niewielka szczelina. Vis a&nbsp;vis otwiera się druga, głęboka na 2 m, ślepa studnia, nad kt&oacute;rą wydostać się można do korytarza urozmaiconego brzytwami skalnymi, biegnącego w kierunku S, r&oacute;wnolegle do zaciskowej szczeliny w ciągu gł&oacute;wnym. Z&nbsp;uwagi na niepewny strop korytarz penetrowano tylko na 3&nbsp;m odcinku.</p>
+<p>&nbsp;Za Salą z&nbsp;Puszką ciąg gł&oacute;wny zmienia sw&oacute;j charakter. Przechodzi w zesp&oacute;ł ciasnych, zagmatwanych szczelin. W&nbsp;kierunku N odchodzi wąski korytarzyk, kt&oacute;ry po 2&nbsp;m łączy się z&nbsp;poprzeczną szczeliną doprowadzającą do niewielkiej studzienki. Dalej dwoma obejściami można powr&oacute;cić do Sali z&nbsp;Puszką, zaś w kierunku NE przedostać się do małej salki. Wspomniany korytarzyk za rozdrożem zwęża się i&nbsp;podnosi, doprowadzając po 2,5&nbsp;m do niskiego, nachylonego rozszerzenia, od kt&oacute;rego w bok odchodzi jedynie ciasna szczelina do wspomnianej małej salki za studzienką. Tu ciąg gł&oacute;wny się kończy - za meandrycznym zakrętem ku E biegnie jeszcze przez około 3&nbsp;m wyklinowującą się szczeliną, a&nbsp;przez studzienkę głębokości 1,5&nbsp;m można przejść ku NE do 2,5&nbsp;m szczeliny kończącej się zawaliskiem.</p>
+<p>&nbsp;Odrębną część jaskini stanowi labiryntowy, tr&oacute;jpoziomowy ciąg boczny, odchodzący od Komory Wstępnej (tak jak wspomniano uprzednio) dwoma przejściami ku zachodowi. Nieopodal studni wejściowej znajduje się pierwsze ciaśniejsze przejście, kt&oacute;re wyprowadza do niskiej salki (I poziom), maksymalnie około 1&nbsp;m wysokości, przy szerokości około2 m, o&nbsp;nieregularnym stropie i&nbsp;dnie zasłanym rumoszem skalnym. O&nbsp;bliskim kontakcie tych partii z&nbsp;powierzchnią świadczą, gdzieniegdzie obserwowane korzenie drzew. W&nbsp;kierunku N opisana salka przechodzi nad studnią (prowadzącą do niższego poziomu) w węższy, nachylony w d&oacute;ł korytarzyk, kt&oacute;ry po około 2&nbsp;m łączy się z&nbsp;korytarzem (z metrowym prożkiem pośrodku) biegnącym od drugiego wspomnianego przejścia, usytuowanego w p&oacute;łnocnym krańcu Komory Wstępnej. Za rozdrożem przedostać się można ciasnym przejściem z&nbsp;2&nbsp;m progiem jeszcze około 3-4&nbsp;m do niskich, a&nbsp;dość szerokich szczelin, kt&oacute;re tworzą piętrowy, o&nbsp;skomplikowanej konfiguracji, zesp&oacute;ł kończący ciąg boczny ku p&oacute;łnocy.</p>
+<p>&nbsp;Przejście do II poziomu tego ciągu prowadzi przez wspomnianą już studnię (głębokości 4,5 m) za rozszerzeniem. Wydostajemy się do dość okazałej, prostokątnej szczeliny (wysokości około 2 m, szerokości 1,8 m) o&nbsp;r&oacute;wnych, nachylonych ścianach, stropie płaskim i&nbsp;dnie zasłanym gdzieniegdzie głazami. Jest ona rozwinięta na kierunku NE-SW. Zaraz na początku szczeliny (za niewielkim prożkiem) w lewo znajduje się ślepa podługowata nisza (długości około 2 m), zaś ku N odchodzi w d&oacute;ł ciasny korytarzyk, kt&oacute;ry po około 4&nbsp;m kończy się w rejonie wspomnianego uprzednio piętrowego zespołu szczelin. Szczelina w&nbsp;swoim gł&oacute;wnym przebiegu po około 3&nbsp;m skręca pod kątem prostym ku SE i&nbsp;po dalszych 3-4&nbsp;m kończy się.</p>
+<p>W drugiej części opisywanej szczeliny (ograniczonej z&nbsp;prawej strony wydatną p&oacute;łką) znajdują się trzy studzienki. Pierwsza prowadzi do III poziomu ciągu bocznego, kt&oacute;ry tworzy około 6&nbsp;m długi, ciasny korytarz o&nbsp;przebiegu NW-SW. Dwie następne studnie o&nbsp;głębokości 2&nbsp;m i&nbsp;2,5&nbsp;m są ślepe.</p>
+<p>&nbsp;Jaskinia osuwiskowa, powstała w piaskowcach warstw godulskich środkowych. Rozwinięta generalnie na kierunku N-S, składa się z&nbsp;dw&oacute;ch r&oacute;żniących się charakterem, odrębnych ciąg&oacute;w:</p>
+<p>1) gł&oacute;wny, jednopoziomowy - to okazałe szczeliny (tworzące dwie większe sale) w&nbsp;przeważającej części o&nbsp;regularnym przebiegu;</p>
+<p>2) boczny, o&nbsp;trzech poziomach - ciaśniejszy i&nbsp;zagmatwany, nie wykazujący regularnego przebiegu.</p>
+<p>Dno jaskini jest zasłane gruzem i&nbsp;większymi blokami skalnymi, gdzieniegdzie sypkim, żwirowatym materiałem i&nbsp;gliną, kt&oacute;ra szczeg&oacute;lnie obficie występuje w Komorze Wstępnej (okolice wylotu studni wejściowej).</p>
+<p><span>&nbsp;Jaskinia jest na og&oacute;ł sucha, tylko we wstępnych partiach Sali z&nbsp;Puszką obserwowano intensywny deszcz podziemny. Przewiew bardzo słaby. Światło sięga do Komory Wstępnej (przy wylocie studni wejściowej). W&nbsp;trakcie dokumentowania jaskini nie stwierdzono występowania flory i&nbsp;fauny.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Według relacji p. Jakubca otw&oacute;r jaskini odsłonił się samoistnie jesienią 1987 r. O tym niecodziennym zdarzeniu poinformowani zostali grotołazi ze Szczyrku (z grupy prowadzonej przez St. Misztala), kt&oacute;rzy pierwsi zwiedzili jaskinię (brak szczeg&oacute;ł&oacute;w co do zakresu tej pierwszej eksploracji). Do bielskiego klubu informację o nowej jaskini w Szczyrku Biłej przekazał M. Januła.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Materiał dokumentacyjny zebrali dnia 19 marca 1988 r. M. Januła, M. Krajewski, K. Krajewski. Pomiary wykonano busolą geologiczną Freiberg i taśmą parcianą. Wsp&oacute;łrzędne geograficzne GPS w 2004 r. pomierzył J. Ganszer(Speleoklub Bielsko-Biała). Dane zostały zaktualizowane w 2009 r.<br />Plan opracował M. Krajewski.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Ganszer J. 1988a (wzmianki o wyjeździe eksploracyjnym); Klassek G. 1989 (ujęta na liście zinwentaryzowanych jaskiń); Gawłowski P. 1989 (umiejscowienie jaskini w jednostkach litostratygraficznych); Klassek G. 1990 (plan i opis inwentarzowy, ujęta w wykazie jaskiń i schronisk podskalnych Beskid&#243;w i Pog&#243;rza Karpackiego); Rozporządzenie nr 1/931993 (uznana za pomnik przyrody nieożywionej); Jaskinie Polskich Karpat fliszowych 1997a (plan i opis inwentarzowy); Michalska B., Wojtas P. 1999 (wymieniona wśr&#243;d jaskiń okolic Bielska-Białej); Alexandrowicz Z., Poprawa D. (red.) 2000 (lokalizacja i og&#243;lny opis jaskini, jako pomnika przyrody).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Grzegorz Klassek
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2011
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(2453)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

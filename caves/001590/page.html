@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1590">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1590;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "567702,50".replace(',', '.') + "," + "152846,32".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1590','Koprowa Studnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Koprowa Studnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-13.08
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;55′49,35″, φ: 49&#176;14′21,76″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1808,01
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                150
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                47
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                47
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    90
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Małej Łąki, w prawym orograficznie zboczu Doliny Małej Łąki, w NW zboczu Kopy Kondrackiej, w skałach lewego (or.) ograniczenia Koprowego Żlebu. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Żółto znakowanym szlakiem podchodzimy Doliną Małej Łąki w pobliże Przełęczy Kondrackiej, skręcamy na prawo i w dogodnym miejscu trawersujemy (bez ścieżki) trawiaste zbocze nad Mnichowymi Turniami i dalej – górną część Koprowego Żlebu. Docieramy pod widoczny z daleka poziomy pas skał o jasnej barwie. Stąd wyraźną półką idziemy do piargu, po czym lekko do góry trawiasto-skalistym terenem, aż na grzędę skalną po prawej stronie, dalej stromo w dół, do widocznego z grzędy otworu. Znajduje się on pod ścianą, ukryty w małym zagłębieniu (z dna Koprowego Żlebu można zobaczyć jedynie jego okolicę – szczelinę w kształcie litery T). Można również dojść do Koprowego Żlebu jak do Zaspałkowej Szczeliny T.E-13.04, ścieżką wiodącą przez Niżnią i Wyżnią Świstówkę. Dojście łatwe, lecz w końcowym fragmencie eksponowane i mylne, zwiedzanie wymaga użycia sprzętu jaskiniowego.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Do wnętrza jaskini prowadzą dwa niewielkie otwory częściowo nakryte skalnym okapem, a w zasadzie jest to jeden otw&oacute;r rozdzielony na dwie części przez zaklinowany blok skalny. Prawą ciasną część cechuje wschodnia ekspozycja. Obszerniejszy i zarazem dogodniejszy do zwiedzania jest lewy otw&oacute;r o ekspozycji zenitalnej. Wprowadza nas on do szczelinowej obszernej studni. Po około 8 metrach zjazdu trawersujemy ją w kierunku jej środka po charakterystycznym skośnym gzymsie (p&oacute;łce), skąd 30-metrowym zjazdem osiągamy dno studni wlotowej. Tuż przed osiągnięciem jej dna mijamy most skalny złożony z zaklinowanych blok&oacute;w skalnych. Kiedyś korek śnieżny nie pozwalał zjechać bezpośrednio na dno i po owym mostku skalnym trzeba było się przemieścić ku W i zjechac na dno studni po drugiej stronie mostka. Pomijając powyższy zjazd i kontynuując trawersowanie (III) studni dostajemy się do niewielkiego okna, a poprzez nie do kilkumetrowego, wznoszącego się korytarzyka. Z dna studni wlotowej w kierunku E przez ciasny przełaz i niewielki prożek dostajemy się do ślepo zakończonej podłużnej salki. Wracamy do dna studni wlotowej. Stąd udajemy się w kierunku W i pokonując 2-metrowej wysokości prożek dostajemy się do owalnej sali. Następnie przez ciasny przełaz i kolejny 2-metrowy prożek za kt&oacute;rym stroma pochylnia doprowadza nas do niewielkiej ciasnej studzienki. Dno tej studzienki stanowi najniższy punkt jaskini. <br /><br />Jaskinia rozwinęła się w wapieniach cukrowatych starszego anizyku (trias środkowy) należących do jednostki Ździar&oacute;w, jednostki niższego rzędu w obrębie płaszczowiny Czerwonych Wierch&oacute;w. Jaskinia założona jest na gł&oacute;wnej szczelinie zapadającej pod średnim katem 60&ndash;80&deg;S, sprzężonej z powierzchnią uskokową zapadającą 40&ndash;55&deg;SE. W miejscu sprzężenia tych dw&oacute;ch powierzchni rozwinęło się rozszerzenie z p&oacute;łką w studni zlotowej. Z uskokiem tym związane są liczne spękania przyczyniające się do kruchego charakteru jaskinii za pewne r&oacute;wnież do zawalisk na jej dnach. Jaskinia rozwinięta jest poprzecznie do stratyfikacji (20&ndash;45&deg;W i NW), nie odnotowano wpływu powierzchni międzyławicowych na kształt jaskini. <br />W Koprowej Studni jest wyraźnie widoczna działalność erozyjna wody, zwłaszcza w samej studni oraz korytarzu biegnącym ku W. Korytarz za trawersem oraz korytarz w stronę Jaskini Świstaczej mają bardziej tektoniczny charakter. <br />W jaskini dominują osady autochtoniczne, gł&oacute;wnie nieobtoczony gruz i bloki skalne, wyścielają praktycznie każdy stosunkowo połogi odcinek spągu. W zawalisku na dnie występują r&oacute;wnież okruchy skał krystalicznych pochodzące zapewne z czapki krystalicznej na Kopie Kondrackiej. <br />Z zestawienia ciąg&oacute;w poligonalnych Koprowej Studni oraz Jaskini Świstaczej T.E-13.30&nbsp;można wnioskować, że jest to genetycznie jedna jaskinia. Przebieg jaskiń jest zbliżony do sąsiadujących z nimi ścian ograniczających lewą (or.) stronę żlebu Koprowego. Co mogło by wskazywać na częściowy wpływ grawitacyjnego rozwierania szczelin na rozw&oacute;j jaskiń. Przemawiają za tym zrzutowy-normalny w większości ruch udokumentowanych uskok&oacute;w oraz kruszyzna w jaskiniach. Powierzchnie uskok&oacute;w są zmineralizowane, co dowodziło by, iż są znacznie starsze od jaskiń, a ewentualne ruchy odprężeniowe/grawitacyjne wykorzystały by już istniejące powierzchnie. Wyraźne uwarunkowanie tektoniczne obu jaskiń nie klasyfikuje ich jednak jako obiekty o charakterze tektonicznym. Widoczne na ścianach ślady działalności wody, kaskadowy charakter w Jaskini Świstaczej (dno Koprowej Studni jest najprawdopodobniej kolejną kaskadą tego systemu) i myta studnia w Koprowej Studni oraz allochotniczne osady na dnie Koprowej Studni świadczą o utworzeniu jaskiń przez erozyjną działalność płynącej wody <br />Jaskinia jest wilgotna, w czasie opad&oacute;w i roztop&oacute;w w studni zlotowej i w sali na dnie zaobserwowano deszcz podziemny. Na dnie studni zlotowej występował korek śnieżny, kt&oacute;ry w czasie wykonywania dokumentacji był już wytopiony. <br />Światło sięga w jaskini do mostka skalnego w studni zlotowej tj. do głębokości ok. 30 m. <br />Jaskinia charakteryzuje się dynamicznym mikroklimatem. Zimą zaobserwowano zasysanie zimnego powietrza do otworu. R&oacute;wnież w szczelinie na dnie jaskini wyczuwalny jest ciąg powietrza. <br />Flora przyotoworowa jest uboga, reprezentowana gł&oacute;wnie przez mchy i porosty i pojedyncze trawy. Wśr&oacute;d fauny zaobserwowano jedynie nietoperze. <br /></span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Badania geologiczne w jaskini prowadził J. Szczygieł (2013a,b, 2015b).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini znany był od dawna g&oacute;ralom pasącym owce w okolicy. Baca Mrazik wskazał go w dniu 11 lipca 1960 r. M. Kruczkowi i S. W&oacute;jcikowi z Zakopanego. Tego dnia grotołazi ci opuścili niżej głaz leżący przy otworze i zbadali studnię &bdquo;do dna&rdquo;(do 30 m). W dniu 7 sierpnia 1960 r. powt&oacute;rnie zwiedzili jaskinię w towarzystwie Botko, Z. Danka, J. Flacha i W. Habila. Dla potrzeb inwentarza sporządzanego przez S. W&oacute;jcika oznaczono ją numerem 4.2.2. Wzmiankę o odkryciu i opis studni zamieścił Habil (1961). Z jego relacji wynika, że dno na poziomie -30 m było całkowicie zagruzowane. Być może jednak nie zostało w&oacute;wczas zbadane dość dokładnie. W dniu 3 lipca 1963 r. Z. Skwierczyński, B. Miller i M. Lewicki z Krakowa przeszli przez szczelinę między ścianą a korkiem śnieżnym i dostali się do dalszych ciąg&oacute;w opadających stromo, osiągając &bdquo; -70 m&rdquo;. (Prawdopodobnie była to kom&oacute;rka od strony wschodniej, na głębokości 42 m) . Brak danych o tym, kto pierwszy zjechał do obszernej części studni pod zawaliskiem najprostszą obecnie drogą. W dniu 4 sierpnia 1969 r. J. Bzowski i J. Krukowski ze Speleoklubu Warszawskiego PTTK pokonali zacisk przy dnie studni (od strony zachodniej) i stwierdzili, że &bdquo;korytarz&rdquo; (Kom&oacute;rka Końcowa) kończy się po 10 m.</p>
+<p>W latach 2005 &ndash; 2007 z inicjatywy Włodzimierza Porębskiego prace inwentaryzacyjne w tej jaskini prowadził Speleoklub Dąbrowa G&oacute;rnicza. W tym okresie zainstalowano w jaskini stałe punkty asekuracyjne typu &bdquo;Batinox&rdquo;. Celem umożliwienia dostępu do korytarza wschodniego otw&oacute;r jaskini zasłonięto płachtą, w wyniku czego gromadzenie się śniegu na dnie studni wlotowej przestało być problemem. W studni tej na głębokości około 8 m wykonano trawers do wypatrzonego uprzednio okna, za kt&oacute;rym odkryto kilkumetrowy ciasny korytarzyk. Usilne pr&oacute;by znalezienia kontynuacji jaskini w zawalisku na jej dnie zakończyły się fiaskiem.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Podczas prac nad inwentaryzacją jaskiń tatrzańskich OW PTPNoZ dokumentację groty sporządziła w dniu 5 sierpnia 1978 r. I. Luty przy wsp&oacute;łpracy K. Pohoskiego, uzupełniając ją 6 sierpnia 1983 r. przy wsp&oacute;łpracy A. Pohoskiej. Fotografie otworu wykonał T. Ostrowski. Pomiary wykonano busolą geologiczną Meridian i taśmą parcianą. Zauważono, że zacisk przed Kom&oacute;rką Końcową został zlikwidowany (wybrano wanty z dna). Dokonali tego prawdopodobnie w dniu 6 sierpnia 1982 r. grotołazi zakopiańscy (K. Dudziński, Z. Bodurka i G. Albrzykowski), podając następnie błędną wzmiankę o pogłębieniu jaskini (Cikowski,1983). Dane sytuacyjno-wysokościowe położenia otworu podano na podstawie pomiar&oacute;w wykonanych w dniu 22 września 1982 r. przez Zesp&oacute;ł Koła Naukowego Geodet&oacute;w G&oacute;rniczych AGH pod kierownictwem W. Borowca. Wg informacjj ustnej E. Soji 2005 r. prace eksploracyjne podjął zesp&oacute;ł ze Speleoklubu Dabrowa G&oacute;rnicza z inicjatywy W. Porębskiego. Założono wtedy płachtę w otworze, co spowodowało wytopienie lodu. Wyeksplorowano kilka metr&oacute;w w danie jaskini i kilka metr&oacute;w w oknie za studnią wstępną. Dane zaktualizowała I. Luty (2009).</p>
+<p>We wrześniu 2011 roku E. Soja i J. Szczygieł przy okazji prowadzonych obserwacji geologicznych sporządzają nową dokumentację kartograficzną jaskini Koprowa Studnia. Według zaktualizowanych pomiar&oacute;w Koprowa Studnia ma -52,17 głębokości i 106,39 długości <br />Plan i przekr&oacute;j jaskini opracował J. Szczygieł.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Habil W. 1961 (wzmianka o odkryciu, opis jaskini); W&#243;jcik S. 1962 (uwagi o występowaniu śniegu); [Baryła, J.] J.B. 1963b (wzmianka o eksploracji i odkryciu partii pod śniegiem); W&#243;jcik Z. 1966a (niekt&#243;re dane morfometryczne, lokalizacja na mapkach, wzmianka dot. geologii); Bzowski J. 1970b (informacja o eksploracji); Borowiec W. i in. 1977,1878 (niekt&#243;re dane morfometryczne); W&#243;jcik Z. 1978c (wzmianka o genezie); Kardaś,R. M. 1979e (informacja o sporządzeniu dokumentacji); Zembrzuski, J. 1979 (limit osobowejść); Cikowski W. 1983 (błędna wzmianka o „pogłębieniu”); Kardaś R. M. 1984d (informacja o uzupełnieniu dokumentacji); Luty I. 1982b (informacja o pomiarach sytuacyjno-wysokościowych); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10000); Gradziński,R. i in. 1985a (niekt&#243;re dane morfometryczne, orientacyjna lokalizacja na mapie); Luty I. 1989b (nowe dane morfometryczne, lokalizacja na mapie, dane historyczne); Siarzewski W. 1994 (zjawiska lodowe); Cywiński W. 1995 (wzmianka o lokalizacji i drodze dojścia); Jaskinie TPN 2000 (plan, przekr&#243;j i opis inwentarzowy); Soja E., Szczygieł J. 2013 (informacje o genezie i geologii, zestawienie z planem Jaskini Świstaczej); Szczygieł J. 2013a,b (wymienia w kontekście badań geologicznych); Szczygieł J. 2015b (wzmiankuje w kontekście genezy i badań tektonicznych).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Emanuel Soja, Jacek Szczygieł
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2014
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(12271)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        otw&#243;r
+                    </a>
+                    <a onclick="showImageInfo(2955)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan 
+                    </a>
+                    <a onclick="showImageInfo(4983)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

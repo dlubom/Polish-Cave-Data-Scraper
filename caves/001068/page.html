@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1068">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1068;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "559079,51".replace(',', '.') + "," + "153476,88".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1068','Szczelina Chochołowska'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Szczelina Chochołowska
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Szczelina
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.D-04.02
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;48′43,14″, φ: 49&#176;14′45,40″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                E
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku SE, 1072 m n.p.m.; 3 - kuNE, 1083 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1051
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                26
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                60
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    2320
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Chochołowska, ponad leśnicz&#243;wką w Bramie Chochołowskiej Wyżniej, na lewym (or.) zboczu Doliny Chochołowskiej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Doliną Chochołowską idziemy aż do dawnego schroniska Blaszyńskich (obecnie leśniczówka). Otwór dolny – główny (1) znajduje się o 50 m od leśniczówki, ku NW od niej, na przełączce w małym żeberku skalnym, spadającym do potoku poniżej domu. Jest on  mały, z wyłamaną kratą. Otwór górny (2) leży wprost ponad leśniczówką w Bramie Chochołowskiej Wyżniej, na lewym (or.) zboczu Doliny Chochołowskiej. Znajduje się wśród głazów, na półce przecinającej niewielki pas skałek, pod rosnącym na skale jaworem, niewidoczny z daleka; jest  również zakratowany. 
+Dojście do otworu 3 wiedzie od 2 otworu około 200 m percią trawersującą zbocze doliny ku S. Otwór o średnicy 0,5 m, położony w lesie, pod zwalonym pniem, prowadzi w głąb pochyłą studzienką o głębokości 1,5 m. Ciasne wejście w rumoszu skalnym ulega częstemu zagruzowaniu, zwłaszcza w okresie wiosennym, zimą – zasypaniu śniegiem. Dojście do otworów – bez trudności, nieznakowanymi perciami. Zwiedzanie głównego ciągu jaskini nie przedstawia poważniejszych trudności i nie wymaga użycia liny. Zwiedzanie górnej części, przejście z górnej części do dolnej, jak również zwiedzanie niektórych bocznych odgałęzień części dolnej jest trudne. 
+Zwiedzanie głównego ciągu jaskini nie przedstawia poważniejszych trudności i nie wymaga użycia liny. Zwiedzanie górnej części, przejście z górnej części do dolnej, jak również zwiedzanie niektórych bocznych odgałęzień części dolnej jest trudne. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Opis jaskini sporządzony jest na podstawie opisu Kowalskiego (1953a), zmieniony z uwzględnieniem uzupełnień Koisara (1969) dotyczących położenia otworu 3, partii nad Widłami (od salki z &bdquo;polami ryżowymi&rdquo;, będącej zachodnią częścią Skośnej Komory) oraz partii za Komorą Końcową, a także z uwzględnieniem uzupełnienia Puliny (1959) dotyczącego okolic Salki z Jeziorkiem. </span></p>
+<p><span>Otw&oacute;r g&oacute;rny (2) jest ciasny, położony wśr&oacute;d rumowiska głaz&oacute;w. Ciasnym przejściem wśr&oacute;d blok&oacute;w przeciskamy się nad 1,5-metrowy pr&oacute;g, za kt&oacute;rym rozpoczyna się obszerniejszy już korytarz. Spotykamy tu pierwsze nacieki z mleka kamiennego. Po paru metrach natrafiamy na duży głaz, nad kt&oacute;rym można przejść g&oacute;rą. 5 m pod nim biegnie dno korytarza wyprowadzające wkr&oacute;tce nad brzeg ogromnej szczeliny skalnej. Szczelina ta ma 11 m głębokości, jest nieco ukośna, u g&oacute;ry zapełniona mlekiem wapiennym. Dno jej biegnie kilka metr&oacute;w ku SE, podchodząc pod otw&oacute;r jaskini, o czym świadczą leżące na dnie liście i pr&oacute;chnica. W przeciwnym kierunku dalszy bieg szczeliny zablokowany jest głazami. Wspinając się w tym miejscu 7 m do g&oacute;ry, wydostajemy się na most skalny, skąd idziemy w g&oacute;rę przez rumowisko głaz&oacute;w do małej kom&oacute;rki posiadającej piękne nacieki z mleka wapiennego. Ku W przechodzi ta kom&oacute;rka w ciasny, mlekiem kamiennym zwężony korytarzyk, kt&oacute;ry dalej rozszerza się i doprowadza ponad wielki komin (studnię). Otwiera się on w stropie Wielkiej Szczeliny w dolnej części jaskini. </span></p>
+<p><span>Z komory z naciekami mleka kamiennego odchodzi ku N obszerny korytarz zwężony zrazu wielkim blokiem. Po kilku metrach doprowadza i on nad brzeg wielkiego komina. Zaraz dalej widzimy w połowie wysokości korytarza most z blok&oacute;w, a na nim dwa wielkie, do 1,5 m wysokie stalagmity. Na końcu korytarza mamy zn&oacute;w dwa kominy (studnie) otwierające się jak poprzedni, w stropie części dolnej w okolicy Wysokiej Komory. </span></p>
+<p><span>W dalszym swym biegu g&oacute;rna część jaskini skręca niemal pod kątem prostym ku wschodowi. Utworzony przez to załamanie narożnik przebity jest ciasnym chodniczkiem. Gł&oacute;wny chodnik rozszerza się w małą komorę o r&oacute;wnym, mulistym dnie. Dalej w korytarzu napotykamy wielki głaz, obok kt&oacute;rego z trudem można się przedostać do komory o gliniastym dnie. Wychodzący z komory korytarzyk o skalnym dnie rozwinięty jest na ukośnej szczelinie. Po kilku metrach kończy się on zwaliskiem blokującym całkowicie jego światło. </span></p>
+<p><span>Otw&oacute;r dolny (1) jaskini znajduje się na maleńkiej przełączce w żebrze skalnym spadającym na dno doliny tuż poniżej leśnicz&oacute;wki. Jest on szczelinowaty, ciasny. Po 2 m napotykamy na głaz, nad kt&oacute;rym trzeba przepełznąć. Zaraz za nim schodzimy 5 m w d&oacute;ł na niemal r&oacute;wne dno korytarza. W prawo biegnie tu ukośny komin doprowadzający do ciasnego korytarzyka zakończonego kom&oacute;rką. W lewo idzie dość obszerny chodnik mający w lewej ścianie okienko do powierzchni. Dalej korytarz staje się ciasny i ma charakter wąskiej szczeliny. Zakręca on dwukrotnie pod kątem ostrym (możliwe jest obejście zakręt&oacute;w wąską szczeliną) i biegnie dalej ku W jako bardzo wysokie, ale ciasne pęknięcie w czerwonych, bulastych wapieniach. Doprowadza ono do rozwidlenia, skąd na prawo wiedzie droga do Komory na Rozdrożu. Od rozwidlenia skręcamy w lewo i po skośnym progu skalnym dochodzimy do dużego chodnika, kt&oacute;rego dno tworzą głazy. Z ostatniego z nich schodzimy 5-metrowym progiem na dno Piaskowej Kom&oacute;rki. Ku W kończy się ona ślepo &ndash; dalszy ciąg jest zamulony. W g&oacute;rę biegnie jednak komin, kt&oacute;ry doprowadza do gł&oacute;wnego ciągu jaskini. </span></p>
+<p><span>Pod głazami, po kt&oacute;rych doszliśmy do Piaskowej Kom&oacute;rki, biegnie stromo w d&oacute;ł szczelina. Po kilku metrach ma ona piękny balkon rozwinięty na ukośnym pęknięciu. Poniżej szczelina opada w d&oacute;ł 10-metrową przewieszką. Schodzimy na dno Szczeliny z Jeziorkiem, kt&oacute;ra biegnie najpierw poziomo, potem stromo w d&oacute;ł. Wysokość jej wynosi kilkanaście metr&oacute;w, tak że robi ona imponujące wrażenie. Na końcu szczelina rozszerza się, a dno jej zajmuje spore jeziorko. Słychać tu szum Chochołowskiego Potoku, dobiegający aż do Piaskowej Kom&oacute;rki. Na SE od Salki z Jeziorkiem (około l m nad powierzchnią jeziorka) znajduje się bardzo ciasny zacisk. Za nim, ku S ciągnie się wąski korytarz rozgałęziający się po 9 m. Jego odgałęzienie ku zachodowi przechodzi w niedostępną szczelinę, z kt&oacute;rej słychać odgłos wody dochodzący od ponoru Sali z Jeziorkiem. W pobliżu rozgałęzienia znajduje się wodospad. Woda ginie nieco poniżej, w niedostępnej szczelinie biegnącej na NE od korytarza. Woda ta wypływa ponownie ze szczelin po NE stronie Salki z Jeziorkiem, wpływa do Jeziorka i dalej do ponoru przy SW ścianie Salki. </span></p>
+<p><span>Wracamy teraz do Komory na Rozdrożu i kierujemy się ku p&oacute;łnocnemu-zachodowi. Przeciskamy się obok wielkich głaz&oacute;w i wznosimy się w g&oacute;rę do małej kom&oacute;rki. Biegnie stąd ku W ciasna szczelina, kt&oacute;rą trzeba przejść przy pomocy zapierania około 20 m. Pod naszymi nogami szczelina ma jeszcze około 6 m głębokości, ku dołowi staje się coraz węższa (można też przejść dołem szczeliny). W jednym punkcie łączy się ona kominem z Piaskową Kom&oacute;rką. Na końcu szczelina rozszerza się przechodząc w kom&oacute;rkę. Wprost dalej wyklinowuje się ona, w prawo można jednak znaleźć wśr&oacute;d głaz&oacute;w ciasne przejście, wiodące do dalszej części jaskini. Przecisnąwszy się wśr&oacute;d blok&oacute;w wchodzimy do ciasnego chodnika, kt&oacute;ry wznosząc się doprowadza po paru metrach na balkon nad Wysoką Komorą. Bez większych trudności schodzimy na dno opadające ku NE (przydatna lina). W tym kierunku dalsze przejście z sali zamknięte jest namuliskiem, kt&oacute;re prawdopodobnie wypełnia połączenie z Piaskową Kom&oacute;rką. Ku SW dno Wysokiej Komory wznosi się stromo. Omijamy ogromny blok skalny i stajemy w miejscu, gdzie w stropie uchodzi komin z g&oacute;rnej części jaskini. Skręcamy nieco w lewo i dochodzimy do imponującej Wielkiej Szczeliny. Jest to pęknięcie kilkanaście metr&oacute;w wysokie, w kt&oacute;rego stropie uchodzi drugi komin z g&oacute;rnej części groty. Po przeszło 40 m drogi Wielką Szczeliną docieramy do Dolnej Kazalnicy. Tworzy ją zagłębienie w ścianie szczeliny położone kilka metr&oacute;w nad dnem. Biegnie z niej w d&oacute;ł długi, ciasny korytarzyk o skalnym dnie, uchodzący zn&oacute;w do Wielkiej Szczeliny, w g&oacute;rę zaś parometrowy chodnik &ndash; do G&oacute;rnej Kazalnicy. Stąd wprost ku p&oacute;łnocy spada komin wiodący do dolnych części groty, o kt&oacute;rych mowa będzie dalej. Ku W natomiast biegnie od Kazalnicy obszerny chodnik, kt&oacute;rego p&oacute;łnocna ściana utworzona jest przez powierzchnię warstwy, albo może wygładzoną ścianę zdyslokowanej szczeliny kliważu, zupełnie płaską i gładką, przypominającą płytę betonową. Chodnik opada stromo ku dołowi, doprowadzając do obszernej sali o stromo nachylonym dnie, zwanej Skośną Komorą. </span></p>
+<p><span>Wielka Szczelina, przedłużając się poza Kazalnicę dochodzi r&oacute;wnież do Skośnej Komory. W pobliżu wylotu do tej sali kryje ona piękne nacieki. Są to gł&oacute;wnie &bdquo;łopaty&rdquo;, charakterystyczne dla opisywanej jaskini utwory z miękkiego mleka kamiennego, wiszące nie pionowo, lecz ukośnie z występ&oacute;w ścian. Powierzchnia ich jest zwykle brunatna, z dołu zaś są śnieżno białe. Na jednym z głaz&oacute;w zaobserwować tu możemy jeszcze jeden osobliwy utw&oacute;r. Jest to zagłębienie wypełnione wodą, o doskonale wyszlifowanym dnie, w kt&oacute;rym leżał mały kamyczek, kształtem dostosowany ściśle do dna zagłębienia. (aktualnie kamyczka już nie ma). Formę tę nazwaną &bdquo;bawolim okiem&rdquo; opisał Z. W&oacute;jcik (1957b.) Powstała ona wskutek uderzeń kropli wody, kapiących z sufitu, kt&oacute;re przesuwały nieustannie kamyczek w zagłębieniu, szlifując jego powierzchnię. </span></p>
+<p><span>Z NE końca Skośnej Komory opada stromo szczelinowaty korytarz. W dalszym biegu jest on poziomy, a dno jego pokrywa piasek granitowy. Przez bardzo niskie przejście przepełzamy do podn&oacute;ża wspomnianego poprzednio komina opadającego spod Kazalnicy. Dalej ku wschodowi korytarz rozszerza się w ukośną szczelinowatą kom&oacute;rkę. Z dna jej idzie ku SE spory, ślepo zakończony korytarz, ku W zaś ciasna szczelina, prowadząca do dużego ciągu korytarzy, zaczynających się pod studnią w Skośnej Komorze, kt&oacute;re opisane będą dalej. </span></p>
+<p><span>Wspinając się ze wspomnianej szczelinowatej kom&oacute;rki pod kominem ku wschodowi znajdujemy dwa ciasne przejścia prowadzące do poprzecznego, obszernego korytarza. Stąd mamy dwa przejścia wiodące dalej: jedno proste, drugie załamane, prowadzące do Tr&oacute;jkątnej Komory. Jest to ładna, wysoka salka o strono opadającym, głazami pokrytym dnie. W stropie biegnie szczelina, kt&oacute;rą można przejść do paru ciasnych korytarzyk&oacute;w. Ze wschodniego narożnika Tr&oacute;jkątnej Komory odchodzi szczelinowaty chodnik, zakończony ślepo. W połowie jego długości zaczyna się ładny, soczewkowaty korytarz, doprowadzający nad brzeg 3-metrowej studni. Z jej dna idzie ku zachodowi szerokie, niskie przejście, a dalej wąski korytarzyk, doprowadzający do dolnego końca Tr&oacute;jkątnej Komory. Ten wąski korytarzyk leży już w granicach wahań poziomu podziemnego przepływu Chochołowskiego Potoku, gdyż jego dno zalega piasek i żwir granitowy ze śladami świeżego przemywania. </span></p>
+<p><span>Nad wschodnim brzegiem wspomnianej już, 3-metrowej studni, leży niewielka Komora za Studnią. W jej południowo-zachodnim końcu znajduje się ponad 3-metrowym progiem parę ciasnych chodnik&oacute;w. Idąc od nich zapieraczką w szczelinie stropu Sali, dochodzimy do długiego, bardzo ciasnego i stromo w d&oacute;ł opadającego chodniczka. Końcowa jego część nosi zn&oacute;w ślady okresowego zalewania przez wodę. Z południowo-zachodniego krańca sali odchodzi ciasne przejście wśr&oacute;d głaz&oacute;w, doprowadzając do g&oacute;rnej części Wysokiej Komory, blisko początku Wielkiej Szczeliny. </span></p>
+<p><span>Powr&oacute;ćmy teraz zn&oacute;w do Skośnej Komory. Strop jej biegnie ukośnie na wysokości 2&ndash;3 m nad zasłanym głazami dnem i posiada ciekawe formy wymycia. Komora ta powstała bowiem na ukośnej szczelinie, kt&oacute;rej ściana miała na powierzchni odporniejszą warstewkę (Prawdopodobnie powierzchnia ta jest lustrem tektonicznym, utworzonym przez cienką warstewkę odporniejszego na rozpuszczanie kalcytu &ndash; przyp. red. nauk.). Silniejsze rozpuszczanie wapienia poza tą warstewką spowodowało utworzenie się osobliwych utwor&oacute;w w kształcie grzybk&oacute;w zwisających ze stropu. W g&oacute;rnej części komory znajduje się ciasna studnia, 15 m głęboka. Prowadzi ona niemal pionowo w d&oacute;ł do wąskiego, rozwiniętego na szczelinie korytarzyka, opadającego ku zachodowi. Ściany jego pokryte są mlekiem wapiennym. Po kilku metrach napotykamy na parometrową odnogę ku południowi, dalej całkowicie zablokowaną namuliskiem. Poza nią korytarz idzie już mniej pochyło, a dalej poziomo. Jest on bardzo wilgotny, na dnie występują &bdquo;pola ryżowe&rdquo;, a na ścianach łopaty i naciek wełnisty z mleka wapiennego. Po małym rozszerzeniu, skąd odchodzi ciasna szczelina ku SW, następuje zwężenie, kt&oacute;re wyprowadza do kom&oacute;rki przedzielonej dwoma filarami skalnymi. W prawej jej ścianie zaczynają się dwa korytarze z płytkimi jeziorkami. Łączą się one dalej i tworzą długi, rozwinięty na szczelinie korytarz, biegnący ku p&oacute;łnocnemu-wschodowi. Ma on poziome, gdzieniegdzie płytkimi kałużami pokryte dno, ściany lśniące biało i choć nie jest obszerny, stanowi jedną z najładniejszych partii jaskini. Kończy się on dwumetrowym progiem, za kt&oacute;rym napotykamy rozdwojenie. </span></p>
+<p><span>W lewo 1,5-metrowym progiem schodzimy do kom&oacute;rki, skąd jeszcze parę metr&oacute;w przecisnąć się można ku wschodowi. Drogę zamyka tu zwężenie z małym jeziorkiem, z kt&oacute;rego płynie strumyk wpadający w szczeliny dna. W tym miejscu słychać wyraźnie w głębi szum wody. </span></p>
+<p><span>Od progu w prawo, skalnym, rozdwojonym korytarzykiem przechodzimy do tr&oacute;jkątnej salki. Rozwinęła się ona na gł&oacute;wnej szczelinie warunkującej najważniejsze korytarze jaskini a bok jej tworzy wielka płyta skalna (&bdquo;płyta betonowa&rdquo;). Komora ta zwęża się ku dołowi, po czym przechodzi w bardzo ciasna szczelinę. Z trudem można tu przecisnąć się do opisywanej już poprzednio skośnej kom&oacute;rki pod kominem spod Kazalnicy. </span></p>
+<p><span>Wracamy teraz zn&oacute;w do kom&oacute;rki z filarami pod kominem ze Skośnej Komory. Idzie stąd bardzo ciasne przejście do korytarza skręcającego ku południowi. Poprzez kilka zakręt&oacute;w sporym chodnikiem dochodzimy do niskiego, w d&oacute;ł biegnącego korytarza, zablokowanego wreszcie zupełnie głazami i gliną. </span></p>
+<p><span>Wracamy do Skośnej Komory. Końcowa jej część oddzielona jest od reszty zwaliskiem blok&oacute;w, przez kt&oacute;re prowadzi tylko kilka ciasnych przejść. Poza nimi znajduje się niewielka kom&oacute;rka &bdquo;p&oacute;l ryżowych&rdquo;. Ma ona piękne nacieki w stropie i charakterystyczne utwory błotno-naciekowe na dnie. Utwory te przedstawiają się jako małe, tarasowato ułożone zbiorniczki wody, obrzeżone wałkami z nacieku, a podobne do p&oacute;l ryżowych na stokach g&oacute;r. Występują one jeszcze w paru miejscach w jaskini, a przy wzrastającej stromości dna przechodzącego w ścianę, wykazują ciągłe przejście do &bdquo;naciek&oacute;w wełnistych&rdquo; znanych m. in. z jaskiń Wyżyny Krakowsko-Wieluńskiej. </span></p>
+<p><span>Kom&oacute;rka z &bdquo;polami ryżowymi&rdquo;, będąca zachodnią częścią Skośnej Komory, oddzielona jest 2-metrowym progiem, a dalej olbrzymimi wantami leżącymi na dnie, od następnej komory, bardzo wysoko i regularnie sklepionej. Ozdabiają ją duże stalagmity i stalaktyty. Dno wznosi się ku zachodowi, do g&oacute;ry. Komorę zamyka zn&oacute;w zwalisko głaz&oacute;w, z kt&oacute;rego schodzimy po 3-metrowym progu na dno obszernego korytarza. Po kilkunastu metrach mijamy dwa chodniki idące w prawo (Widły) i posuwamy się dalej ku WNW. Na ścianach chodnika widać tu wszędzie ładne nacieki z mleka wapiennego, a na stropie i dnie stalaktyty i stalagmity. Są one szczeg&oacute;lnie piękne w miejscu rozwidlenia korytarzy. Lewa gałąź biegnie stąd na długości 10 m, kończąc się ślepo wśr&oacute;d zwaliska głaz&oacute;w, prawa zaś, mająca kilka ciasnych odn&oacute;g w prawej ścianie, doprowadza do niewielkiej, lecz wysokiej Ślepej Komory. Z prawej strony tej komory oraz z okna w lewej ścianie prowadzą ciasne korytarze z bogatą szatą naciekową z mleka wapiennego, łączące się nad Widłami. Tam przez okno w stropie Wideł można wolnym zjazdem wr&oacute;cić do gł&oacute;wnego ciągu. Można też iść dalej korytarzem, by do gł&oacute;wnego ciągu wr&oacute;cić jednym z trzech korytarzyk&oacute;w wyprowadzających do korytarza biegnącego z Wideł do Ślepej Komory. Partie te są ciasne i przejście przez nie powoduje zniszczenie naciek&oacute;w z kamiennego mleka. </span></p>
+<p><span>Wracamy do Wideł &ndash; miejsca odgałęzienia dw&oacute;ch korytarzy biegnących ku p&oacute;łnocy. Łączą się one wkr&oacute;tce z sobą, tworząc regularną rurę opadającą stromo ku p&oacute;łnocy. Po 20 m korytarz załamuje się pod kątem ostrym, skręcając ku SW. W tr&oacute;jkącie utworzonym przez to załamanie korytarza znajduje się cały labirynt ciasnych chodniczk&oacute;w. W jednym z nich spotykamy dość duże jeziorko, największe w całej jaskini, jeśli nie liczyć fragmentu podziemnego przepływu potoku. </span></p>
+<p><span>Dalszy ciąg korytarza jest wysoką, lecz wąską szczeliną, kt&oacute;ra doprowadza zn&oacute;w do gł&oacute;wnego ciągu jaskini. W lewo zamyka drogę zwalisko głaz&oacute;w oddzielające tę część groty od położonej blisko &ndash; jak widać z planu &ndash; Ślepej Komory. W prawo biegnie w głąb skały wielki, soczewkowaty korytarz. Trzeba jeszcze wspomnieć, że naprzeciw ujścia korytarza, kt&oacute;rym doszliśmy do gł&oacute;wnego ciągu, znajduje się komin wiodący w g&oacute;rę 10 m, a potem w d&oacute;ł. Doprowadza on na balkon leżący na poziomie gł&oacute;wnego korytarza, lecz oddzielony od niego głazami blokującymi przejście. Stąd komin opada jeszcze 20 m, a z jego dna odchodzi parę ciasnych korytarzyk&oacute;w, kt&oacute;re jednak wkr&oacute;tce przechodzą w niedostępne dla człowieka, wąskie szczeliny. </span></p>
+<p><span>Gł&oacute;wny ciąg jaskini doprowadza nas po 50 m pięknego, prostego chodnika do Komory Końcowej. Utworzyła się ona na szczelinie poprzecznej, kończy się zaś ku południowi wyraźnym syfonem wypełnionym gliną jaskiniową. Sala Końcowa ma dno zbudowane z głaz&oacute;w i ładne nacieki na ścianach. </span></p>
+<p><span>Za przekopanym w 1966 r. Syfonem Końcowym na odcinku około 90 m biegnie w kierunku SSE&ndash;SE Korytarz Nowy, rozwinięty na nachylonym ku wschodowi uskoku. Dno korytarza jest pochylone i pokryte głazami na całej przestrzeni. 25 m za syfonem pod lewą ścianą Korytarza Nowego można zejść 1,5 m studnią do czynnego ponoru. Na tej samej wysokości w prawej ścianie korytarz widoczny jest szeroki prożek o wysokości l m, wprowadzający do dw&oacute;ch korytarzy r&oacute;wnoległych do ciągu gł&oacute;wnego i rozwiniętych na tym samym uskoku. Ciasne te korytarze są pokryte bogatą szatą naciekową z mleka wapiennego. Pierwszy łączy się z Korytarzem Nowym po 8 m. Drugi, wyżej położony, Korytarz Nowy skręca ku wschodowi przechodząc w ciasną szczelinę, pokonywaną zapieraczką, z naciekami w postaci grzybk&oacute;w jaskiniowych (Tarka). Kończy się ona na wysokości wyraźnego zagłębienia w prawej w ścianie korytarza. Od tego miejsca korytarz rozszerza się i przechodzi w wygodny, obszerny chodnik. Po 20 m staje się u wylotu bocznego ciągu odchodzącego w prawo (Korytarz Trzech). Za widocznym u wejścia do tego systemu 4-metrowym progiem kryje się 10 m ciasnego korytarzyka, ślepo kończącego się. </span></p>
+<p><span>Korytarz Trzech na pierwszym odcinku za wejściem do niego kilkakrotnie zmienia kierunek. Jest to system szczelin o szerokości około l m i wysokości dochodzącej do kilku metr&oacute;w. Po 14 m od wejścia do Korytarza Trzech z lewej strony na wysokości 5 m nad dnem korytarza widoczne jest okno będące wejściem do korytarzyka obejściowego, łączącego się z gł&oacute;wnym ciągiem korytarza po kilkunastu metrach. Od połączenia się korytarzy biegnie w kierunku W pionowa szczelina o ścianach pokrytych mlekiem wapiennym. Jej dno stanowią zaklinowane głazy. Dalsza droga wiedzie między głazami do kontynuującej się szczeliny prowadzącej ku południowi. W dalszym swoim biegu przechodzi ona w kilkumetrowe odcinki korytarzy o zmiennym przebiegu. Mijając z lewej strony 7-metrową, ślepą studnię, dociera się do obszernego korytarza, na dnie kt&oacute;rego leżą bloki skalne. Korytarz ten zakończony jest zwężającymi się szczelinami nie do przejścia. W jego połowie, w prawo opada korytarz zakończony jeziorkiem. </span></p>
+<p><span>Od odgałęzienia się Korytarza Trzech gł&oacute;wny ciąg jaskini, rozwinięty na szczelinie, rozszerza się, tworząc obszerną salę, w kt&oacute;rej są szanse eksploracji w zwalisku zamykającym dalszy bieg szczeliny. </span></p>
+<p><span>Sala o nachylonym dnie wznosi się ku SE, następnie zwęża się i przechodzi w szczelinowy korytarz doprowadzający do niewielkiej kom&oacute;rki z głazem w środku. W tym miejscu korytarz zmienia kierunek ku SW, nie zmieniając charakteru. Ciasne, boczne odnogi z obu stron korytarza kończą się ślepo po kilku metrach. Po około 45 m korytarz (G&oacute;rne Obejście) znajduje ujście w Zawaliskowym Labiryncie. Zasadniczy ciąg jaskini przebiega niżej i wiedzie z opisanej uprzednio sali przez 3-metrową studnię, znajdującą się pod lewą ścianą sali. Studnia ta sprowadza do &Oacute;semki &ndash; obszerniejszego korytarza z wyraźnie zaznaczonymi dwoma poziomami przepływu w&oacute;d. Nazwa ta znajduje w pełni pokrycie w kształcie przekroju korytarza. Ściany pokryte są grzybkami naciekowymi, a w zagłębieniach znajdują się resztki scementowanego żwirowiska. Na wysokości wyjścia z bocznego, ciasnego obejścia w prawej ścianie, na mulistym dnie korytarza okresowo zbiera się woda &ndash; Okresowe Jezioro. Począwszy od Okresowego Jeziora zaczyna się około 15-metrowy Zawaliskowy Labirynt, dający szereg możliwości przejścia między blokami skalnymi. </span></p>
+<p><span>W południowej części Zawaliskowego Labiryntu gł&oacute;wny ciąg łączy się z G&oacute;rnym Obejściem, skąd około 20 m idziemy wygodnym korytarzem do wejścia w system Korytarzy Jurkowskiego. Od wejścia w system wiedzie szczelinowy korytarz ku SE, klinujący się po około 44 m. W jego połowie w prawo odchodzi korytarzyk o podobnym charakterze, biegnący w kierunku NW. Osiąga się nim małą kom&oacute;rkę, z kt&oacute;rej ku południowi prowadzi ciasna szczelina z bogatym stanowiskiem &bdquo;p&oacute;l ryżowych&rdquo;. Szczelina ta kończy się ślepo po 20 m. Najładniejsze pola ryżowe znajdują się tuż przy wejściu do niej. Zwiedzanie korytarzyka powoduje niszczenie szaty naciekowej. Z NW części kom&oacute;rki prowadzi korytarz zakręcający po kilku metrach ku SE. Po 24 m w nier&oacute;wnym, mulistym dnie korytarza jest Jezioro Błotne, na kt&oacute;rym po około 20 m szczelina korytarza wyklinowuje się. Kilka metr&oacute;w za Jeziorem Błotnym, z prawej strony korytarza, opada 12-metrowa studnia, na dnie kt&oacute;rej znajduje się Syfon zasilany wodą opadową. Gł&oacute;wny ciąg jaskini od wejścia w system Korytarzy Jurkowskiego zmierza ku wschodowi i dalej ku SEE obszernym, wygodnym korytarzem rozszerzającym się w salę o dnie pokrytym głazami. Z sali w lewo, w g&oacute;rę, wiedzie korytarz następnie opadający i kończący się ślepo. Wprost, w d&oacute;ł opada dojście do małej komory zwaliskowej. W lewo odchodzi wygodny, wysoki korytarz &ndash; Soczewka, kt&oacute;ry po kilkunastu metrach przechodzi w system ciasnych korytarzyk&oacute;w i niewielkich salek &ndash; Kreci System, doprowadzający do pochyłego kominka w zwietrzelinie, stanowiącego otw&oacute;r 3. </span></p>
+<p><span>Szczelina Chochołowska jest systemem korytarzy i kom&oacute;r rozciągniętych w kierunku W&ndash;E oraz NW&ndash;SE. Większość korytarzy jaskini ma wyraźna predyspozycję tektoniczną. Obok chodnik&oacute;w spotykamy obszerne komory. Grota jest dawnym podziemnym przepływem Chochołowskiego Potoku, stanowiącym ogniwo pośrednie między najstarszymi przepływami, kt&oacute;rych resztkami są: Zb&oacute;jecka Dziura i Kamienne Mleko, a przepływem wsp&oacute;łczesnym reprezentowanym przez Jaskinię Rybią. Obejmuję ona jednak nie jedno, ale kilka pięter dawnych przepływ&oacute;w. Cześć g&oacute;rna stanowi piętro najstarsze, w części dolnej zaś dochodzimy w paru miejscach do korytarzy okresowo zalewanych, a w jednym miejscu nawet do stałego przepływu potoku. Można przypuszczać, że w czasie powstawania gł&oacute;wnego poziomu jaskini, wody płynące z g&oacute;rnych partii Doliny Chochołowskiej przedostawały się do wnętrza skały szczeliną o przebiegu N&ndash;S, po czym natrafiwszy w miejscu dzisiejszej Komory Końcowej na silnie rozwinięty system szczelin W&ndash;E, kierowały się wzdłuż niego, aby wreszcie wypłynąć na powierzchnię. </span></p>
+<p><span>Najniższe części jaskini nie mają zupełnie naciek&oacute;w, na gł&oacute;wnym poziomie spotyka się je w dużej ilości, w g&oacute;rnym zaś piętrze występuje niezwykle silnie rozwinięte &bdquo;kamienne mleko&rdquo;. W og&oacute;le jaskinia jest jednym z najpiękniejszych w Polsce przykład&oacute;w rozwoju naciek&oacute;w z kamiennego mleka, tworzących osobliwe, gdzie indziej wyjątkowo tylko spotykane formy, jak pola ryżowe i łopaty. Dwa stalagmity znajdujące się w g&oacute;rnej części, ze swą wysokością około 1,5 m, zaliczone są do największych u nas form tego typu. Nie brak zresztą w jaskini naciek&oacute;w z krystalicznego kalcytu, zwłaszcza stalaktyt&oacute;w i stalagmit&oacute;w. </span></p>
+<p><span>Namulisko jaskini w pobliżu otwor&oacute;w tworzy pr&oacute;chnica, kt&oacute;ra jednak nie sięga daleko w głąb. Przy g&oacute;rnym otworze widać na dnie trochę kości ptak&oacute;w i ssak&oacute;w o świeżym wyglądzie. W głębi jaskini często są kości nietoperzy. Dno w głębi tworzą przeważnie głazy, często z odłamkami naciek&oacute;w. W początkowych korytarzach dolnej części groty są one otoczone. Piasek i żwir granitowy występują m. in. na dnie Szczeliny z Jeziorkiem, Piaskowej Kom&oacute;rki oraz korytarzyk&oacute;w poniżej Tr&oacute;jkątnej Komory. Czystą glinę jaskiniową spotyka się rzadko (m. in. przy końcu części g&oacute;rnej i w końcowym syfonie części dolnej). Niekt&oacute;re chodniki mają dno skalne bez namuliska. </span></p>
+<p><span>Części jaskini położone blisko wylot&oacute;w są suche, głębsze wilgotniejsze, lecz deszcz podziemny występuje tylko w niewielu punktach i nie jest obfity. Wodę płynącą w postaci fragmentu podziemnego przepływu potoku spotykamy w Szczelinie z Jeziorkiem. Za Tr&oacute;jkątną Komorą występuje mała struga wody wędrującej. Zbiorniki wody stojącej są bardzo nieliczne: poza paroma drobnymi kałużami są to płytkie jeziorka w Korytarzu za Studnią pod Skośną Komorą, w Korytarzu Trzech i największy zbiornik &ndash; jeziorko w korytarzyku za Widłami (około 3 m długie, 0,5 m głębokie i tyleż szerokie) oraz Syfon za Błotnym Jeziorem. </span></p>
+<p><span>Przewiew przed przekopaniem 3 otworu był na og&oacute;ł słaby, jednak w czasie wiatru halnego 8.08.1951 r. do g&oacute;rnego otworu wpadał prąd powietrza, kt&oacute;ry wydostawał się silnym strumieniem z dolnego wylotu. Temperatura mierzona 22.09.1951 r. wynosiła w głębi +5,5&deg; C. </span></p>
+<p><span>Światło sięga bardzo płytko, zaledwie parę metr&oacute;w od otwor&oacute;w, wskutek niewielkich ich rozmiar&oacute;w. </span></p>
+<p><span>Roślinność zielona nie występuje poza otworami. </span></p>
+<p><span>Na ścianach blisko wylot&oacute;w spotyka się zwykły zesp&oacute;ł owad&oacute;w trogloksenicznych, w głębi na kałużach &ndash; owady bezskrzydłe. W jaskini zimują nocki wąsatki <em>Myotis mystacinus</em> i nocki duże <em>Myotis myotis</em>, te ostatnie liczniej niż w jakiejkolwiek jaskini tatrzańskiej.&nbsp;</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Badania geologiczne masywu Bobrowca z uwzględnieniem obserwacji geologicznych w jaskini prowadzili Jaroszewski (1958), Pulina (1959), W&oacute;jcik (1959a, 1967a). W&oacute;jcik i Zwoliński (1959), Bac (1967, 1971). W&oacute;jcik (1967a) om&oacute;wił szczeg&oacute;łowo sytuację geologiczną jaskini. Korytarze począwszy od I otworu rozwinięte są w malmie &bdquo;znad schroniska&rdquo;, podobnie korytarze w okolicach II otworu. Natomiast w głębi korytarze starych ciąg&oacute;w są rozwinięte r&oacute;wnież w wapieniach piaszczystych i krynoidowych liasu. Kontakt między malmem i liasem ma charakter tektoniczny. Lias zachodniej części fałdu Olejarni spoczywa na kimerydzie &bdquo;znad schroniska&rdquo;. W okolicy Wideł uskoki zrzucają malm &bdquo;znad schroniska&rdquo;, w związku z czym korytarze te są rozwinięte całkowicie w liasie. W pobliżu Komory Końcowej znajdują się ponownie wapienie kimerydu &bdquo;znad schroniska&rdquo;, lecz już za przekopanym Syfonem Końcowy korytarze rozwinięte są w wapieniach liasu, stanowiących osłonę fałszywej antykliny malmu &bdquo;znad schroniska&rdquo;. Bardziej na południowy-zach&oacute;d korytarze przechodzą stopniowo w wapienie piaszczyste i krynoidowe liasu oraz doggeru fałdu Wielkich Turni Chochołowskich. Począwszy od Korytarza Trzech ciągi za Syfonem Końcowym wchodzą w wapienie kimerydu i oksfordu fałszywej synkliny Zawiesisej. W końcowych korytarzach jaskiń, w pobliżu otworu III, odsłaniają się krynoidowe wapienie bądź krynoidowe i piaszczyste osady liasu. Otw&oacute;r III leży w wapieniach liasu należących do fałdu Kobylarki. Gł&oacute;wne korytarze starego ciągu predysponowane są pionowymi lub prawie pionowymi pęknięciami (Zapieraczka, Wielka Szczelina) lub też rozwinęły się na niezgodności tektonicznej między wapieniami kimerydu, a wapieniami piaszczystymi malmu. Dominujący kierunek to w przybliżeniu E&ndash;W. Ciągi za Syfonem Końcowym mają kierunek NE&ndash;SW. Przeważają pęknięcia pionowe lub prawie pionowe z wyjątkiem Korytarza Nowego, rozwiniętego na szczelinie zapadającej na SE pod kątem około 30&ndash;40&deg;. Poszczeg&oacute;lne korytarze, tworzące 3 piętra, zostały wyerodowane przez cieki fluwioglacjalne w plejstocenie. Następnie zostały one zdeformowane na skutek grawitacyjnych osunięć na zboczu doliny. Szata naciekowa z grubokrystalicznego kalcytu i mleka wapiennego powstała najprawdopodobniej w holocenie. </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Uwagi o wieku i genezie jaskini podali r&oacute;wnież Zwoliński (1961) i Rudnicki (1967). W&oacute;jcik i Zwoliński (1959) badali młode przesunięcia tektoniczne. Stwierdzili, że maja one znaczną długość i skierowane są w kierunku doliny. Pulina (1959) i W&oacute;jcik (1967a) om&oacute;wili wpływ przesunięć na formy korytarzy. </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Badania osad&oacute;w w jaskini prowadził W&oacute;jcik (1960a, 1960 b, 1966a, 1967a). W części odkrytej w 1966 r. widać obok pospolitego gruzu skalnego gruboklasyczne osady allochtoniczne z otoczkami o średnicy dochodzącej do 5 cm. Najpełniejszy profil żwirowisk allochtonicznych jest odsłonięty w syfonie obok Komory Końcowej, gdzie występują naprzemianlegle warstwy piasku i żwiru, u g&oacute;ry z iłami rezydualnymi. W przekopie obniżenia syfonalnego widać scementowane piaskowce. W innych miejscach, zwłaszcza w Ponorze za Studnią odsłaniają się osady przypominające iły wstęgowe, pokryte od g&oacute;ry gruzem skalnym i żwirowiskiem z otoczak&oacute;w granit&oacute;w, gnejs&oacute;w i piaskowc&oacute;w. Często spotykanym w pozostałej części jaskini osadem są żwirowiska oraz częściej osad piaszczysty (Komora Piaskowa, dolny korytarz poniżej Komory Skośnej i in.). </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pokrywa allochtoniczna jest namuliskiem rzeki, kt&oacute;ra płynęła od otworu III ku Komorze Końcowej i stąd wracała do Doliny Chochołowskiej. Osad ma charakter policykliczny. Starsze namuliska scementowane węglanem wapnia zostały następnie rozmyte, ponorami przeniesione niżej i redeponowane w młodszych, jako otoczaki zlepleńc&oacute;w. Na miejscu pozostały konkrecje cementacyjne. Osady dokumentują obecność co najmniej 2 stadiał&oacute;w zlodowacenia Tatr, rozdzielonych ciepłym interstadiałem. </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Autochtoniczna pokrywa dna występuje w postaci obrywisk tam, gdzie korytarze rozwinęły się w wapieniach liaso-doggeru, w innych miejscach dominuje drobny gruz wapieni oksfordu i kimerydu. We wstępnych korytarzach (przy otworze I) jest on częściowo obtoczony. </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Osady pochodzenia chemicznego (nacieki) opracowane zostały przez Gradzińskiego i Radomskiego (1957), Gradzińskiego i Unruga (1960), Gradzińskiego i W&oacute;jcika (1961), Biela (wg danych W&oacute;jcika 1967a i Koisara 1969), Lisa i Stępniewskiego (1967). Gradziński i Unrug (1960) stwierdzili związek między naciekami z mleka wapiennego a naciekami z grubokrystalicznego kalcytu. Gradziński i W&oacute;jcik 1961) podali morfologiczny opis naciek&oacute;w. Opisują oni stalaktyty, stalagmity, nacieki grzybkowe oraz utwory z mleka wapiennego. Mleko wapienne występujące w Szczelinie Chochołowskiej tworzy polewy naciekowe o powierzchni przypominającej pola ryżowe, a na bardziej stromych odcinkach &ndash; naciek wełnisty. Na pionowych i przewieszonych partiach ścian tworzy żebra, zasłony i nawisy (maksymalna długość nawis&oacute;w wynosi do 40 cm, szerokość około 150 cm, a grubość około 1&ndash;2 cm). Występują też nacieki kożuchowe o grubości kilkudziesięciu centymetr&oacute;w, utworzone z lublinitu, nie mające na powierzchni warstwy wody. W miseczkach p&oacute;l ryżowych znaleziono miękkie perły jaskiniowe. Badania S. Biela przeprowadzone w 1966 r. (wg W&oacute;jcika 1967a i Koisara 1969) zmierzały do stwierdzenia jaki udział w powstaniu naciek&oacute;w miękkich mają mikroorganizmy, kt&oacute;rych koncentracja w wodach jaskini jest znacznie większa niż w potoku Chochołowskim. Obecność substancji organicznych w mleku wapiennym stwierdzona została przez S. Biela. Lis i Stępniewski (1967), zajmowali się r&oacute;wnież rentgenografią i geochemią mleka wapiennego, w kt&oacute;rym opr&oacute;cz kalcytu występuje lublinit. Wg Koisara (1969) zbadano też z wynikiem ujemnym promieniotw&oacute;rczość naturalną osad&oacute;w. Pr&oacute;bki osad&oacute;w przechowywane są w Muzeum Ziemi PAN w Warszawie.</span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;W 1966 r. K. Galubińska (1968) przeprowadziła badania psychologiczne. a J. Kubica i A. Rogoziński &ndash; badania medyczne ze szczeg&oacute;lnym uwzględnieniem fizjologii człowieka, S. Biel kierował pracami laboratorium polowego. </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Obserwacje i badania warunk&oacute;w hydrogeologii krasu w Wyżnie j Branie Chochołowskiej prowadzili Zwoliński (1955b, 1961) Pulina (1959), Dąbrowski (1961, 1967a, b), Dąbrowski i Rudnicki (1964), W&oacute;jcik (1967a) oraz Solicki i Koisar (1973). Przypuszczenia Puliny (1959), Dąbrowskiego (1967a, b) i W&oacute;jcika (1967a) o przepływie w&oacute;d potoku Chochołowskiego do zlewni Doliny Bobrowieckiej nie zostały udowodnione barwieniami. Hipotezę tę wg Dąbrowskiego (1967b) zdają się potwierdzać zagłębienia wirowe i kierunek rozwinięcia korytarzy w dolnych partiach Szczeliny Chochołowskiej oraz duża wydajność źr&oacute;deł w Dolinie Bobrowieckiej. Przepływ między Jaskinią Rybią i dolnymi partiami Szczeliny Chochołowskiej wielokrotnie potwierdzano barwieniami i obserwacjami (Zwoliński 1961, W&oacute;jcik 1967a, Solicki i Koisar 1973). Związek hydrauliczny w&oacute;d Potoku Chochołowskiego, systemu Szczeliny Chochołowskiej i Rybiej z Wywierzyskiem Chochołowskim sugerowany przez Zwolińskiego (1955b, 1961) oraz Wit i Ziemońską (1960) został udowodniony dopiero w 1971 r. (barwienia przeprowadził T. Solicki) i potwierdzony pomiarami oporu elektrycznego, jest on uwarunkowany dyslokacją tektoniczną (Solicki, Koisar 1973). </span></p>
+<p><span> W p&oacute;źniejszym okresie </span><span>Hercman i in. (1998) zbadali rozw&oacute;j systemu Szczeliny Chochołowskiej w świetle datowania naciek&oacute;w: <em>&bdquo;1. Po osuszeniu jaskini, około 350 ka na starszych zawaliskach zaczynają krystalizować nacieki. Tempo ich powstawania regulowane jest przez zmieniające się warunki klimatyczne. 2. 115&ndash;95 ka BP powstało zawalisko w rejonie Ślepej Komory. Jest to czas, w kt&oacute;rym mało prawdopodobny jest w Tatrach znaczny rozw&oacute;j lodowc&oacute;w i dotarcie lodowca w Dolinie Chochołowskiej aż do rejonu Wyżniej Bramy Chochołowskiej. Trzeba więc wziąć pod uwagę genezę tektoniczną zawaliska w rejonie Ślepej Komory. 3.Ponowny napływ w&oacute;d do jaskini, prawdopodobnie spowodowany nasunięciem jęzora lodowcowego. Zniszczeniu ulegają nacieki wystepujace na drodze cyrkulacji wody oraz przemodelowana zostaje Rura. Po wycofaniu sie lodowca nastepuje osuszenie jaskini i ponowna krystalizacji naciek&oacute;w</em>&ldquo;. </span><span>Budowę geologiczną i rozw&oacute;j jaskini przedstawili Nowicki (1995, 2000), na podstawie wcześniejszej literatury. M. Gradziński (1995a) przedstawił genezę tzw. kalcytu igłowo-wł&oacute;knistego, M. Gradziński i in. (1992, 1994) oraz M. Gradziński (1997) &ndash; genezę mleka wapiennego, a A. Pazdur i in. (1999) &ndash; skład izotopowy naciek&oacute;w z mleka wapiennego na podstawie badań w tej jaskini. Nowicki i Hercman (2004) analizę naciek&oacute;w wykorzystali jako źr&oacute;dło danych o paleoklimacie. Badania hydrogeologiczne prowadził Barczyk (2000a,b, 2002,2003, 2008). Uwagi o genezie zawarli M. Gradziński i in. (2005), M. Gradziński i in. (2009). O minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin pisali Szczygieł, J. i in. (2020).</span></p>
+<p><span>Mikroklimat jaskini badał Pulina (1959). Temperatura powietrza w jaskini mierzona w lutym 1959 r. utrzymuje się w granicach 0,8&deg;C (sala na Rozdrożu) do 6,2&deg;C w Komorze Końcowej. Wilgotność rosła w&oacute;wczas w miarę oddalania się od otworu I od 85 do 97%. Mikroklimat uległ zasadniczy zmianom po odkryciu partii za Syfonem Końcowym i przebiciu III otworu. Koisar (1969) podaje, że pomiary wykonał w lutym 1966 r. J. Kubica. Po odkryciu otworu III w Komorze Końcowej temperatura znacznie obniżyła się. Wyczuwalny jest przewiew. Powietrze wpada do otwor&oacute;w II i III, by wydostać się na powierzchnię otworem I. Utwory lodowe badali w jaskini M. Z. i M. Pulinowie (1972). </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Około 1980 r., przez kilka lat, zesp&oacute;ł student&oacute;w pod kierownictwem Z. Zwolińskiego z Zakładu Geomorfologii Instytutu Geografii Uniwersytetu im. A. Mickiewicza w Poznaniu przeprowadzał w jaskini badania geomorfologiczne. Wyniki ich przedstawiono na mapie geomorfologicznej (jako podkład wykorzystano plan Kowalskiego (1953a) powiększony do skali 1:100). </span></p>
+<p><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Badania botaniczne nad określeniem składu flory przyotworowej prowadzone były przez T. Szota (wg Koisara 1969). Nawiązał on do wynik&oacute;w obserwacji A. Żmudy z pierwszych lat naszego stulecia. W ramach Inwentaryzacji jaskiń tatrzańskich OW PTPNoZ badania flory przyotworowej przeprowadziła w 1975 r. T. Bielska. Zebrała ona następujące gatunki roślin (oznaczenia mszak&oacute;w wykonała J. Mickiewicz):</span></p>
+<div>Otw&oacute;r 1:</div>
+<p><span>kwiatowe: <em>Arabis alpina</em> L., <em>Arabis halleri</em> L., <em>Delphinium oxysepalum</em> Borb. et Pax, <em>Saxifraga aizoon</em> Jacq., <em>Poa alpina</em> L., <strong><em>Festuca tatrae</em></strong> Degen;</span></p>
+<p><span>paprocie: <em>Cystopteria fragilis</em> Bernh;</span></p>
+<p><span>mszaki: <em>Distichium montanum</em> Hag., <em>Tortella tortuosa</em> Limpr., <em>Mnium orthorrhynchum</em> Br. eur., <em>Encalypta contorta</em> Lindb. </span></p>
+<div>Otw&oacute;r 2:</div>
+<p><span>kwiatowe: <em>Arabis alpina</em> L., <em>Chrysosplenium alternifolium</em> L., <em>Delphinium oxysepalum</em> Borb. et Pax, <em>Arabis halleri</em> L., <em>Poa alpina</em> L., <em>Viola biflora</em> L., <em>Festuca supina</em> Schur;</span></p>
+<p><span>mszaki: <em>Stenidium molluscum</em> Mitt., <em>Distichium montanum</em> Hag., <em>Conocephalum conicum</em> (L). Dum, <em>Plagiophila asplenoides</em> (L. ) Du, B<em>rachythecium volutinum</em> Br., <em>Thuidium philbertii </em>Limpr., <em>Metageria pubescens</em> Baddl, <em>Mnium orthorrynchum</em> Br., eur., <em>Encalypta contorta</em> Lindb., <em>Orthotrichum </em>sp. </span></p>
+<div>&nbsp;</div>
+<p><span>Badania fauny w Szczelinie Chochołowskiej prowadził Kowalski (1953a, 1955a, 1962, 1965). Kowalski (1955a) podaje liczne gatunki, należące do rzęd&oacute;w Isopoda, Opiliones, Oniscomorpha<strong>,</strong> Collembola, Lepidoptera, Trichoptera, Diptera, Chiroptera, Carnivora. Wzmiankuje o znalezieniu martwego kreta kilkadziesiąt metr&oacute;w od otworu. Zwoliński (1961) zamieścił wzmiankę o znalezieniu ryb w jeziorku dolnego ciągu. Badania kontynuowali Skalski (1969, 1967) i Wołoszyn (1967, 19705. Skalski (1967) zebrał gatunki należące do rzęd&oacute;w Flagellata, Ciliata, Nematoda, Oligochaeta, Amphipoda, Isopoda, Araneae, Opiliones, Acari&nbsp;<em>&ndash; </em>roztocza, Diplopoda, Collembola, Coleoptera, Lepidoptera, Hymenoptera, Diptera, Chiroptera. Obserwacje dotyczące zespoł&oacute;w lądowych i wodnych wsp&oacute;łczesnej fauny bezkręgowc&oacute;w prowadził on w latach 1958&ndash;1966. Stwierdził występowanie 27 gatunk&oacute;w bezkręgowc&oacute;w, z czego 17 nie było dotąd znane w Szczelinie Chochołowskiej, a 12 gatunk&oacute;w nie stwierdzono w żadnej innej jaskini tatrzańskiej. Żaden z określonych gatunk&oacute;w nie może być uznany za relikt trzeciorzędowy. Ponadto w pracy z 1969 r. opisuje gatunki z rzędu Trichostrongylidae i z Hymenoptera. Wołoszyn (1967) opisał wsp&oacute;łczesną i subfosylną faunę ssak&oacute;w należąca do rzęd&oacute;w Chiroptera<em>&nbsp; </em>i Carnivora. Wskazał on, że w optimum klimatycznym holocenu zamieszkiwał w Szczelinie Chochołowskiej odmienny zesp&oacute;ł zwierząt. W pracy z 1970 r. podaje gatunki ssak&oacute;w z rzęd&oacute;w Chiroptera, Insectivora, Carnivora<strong>. </strong></span></p>
+<p><span>Piksa (1998) wymienia następujące gatunki nietoperzy: </span><em>Myotis myotis</em> (Borkhausen, 1779) &ndash; obserwowany r&oacute;wnież latem, <em>Myotis nattereri</em> (Kuhl, 1817), <em>Myotis mystacinus</em> (Leisler), <em>Myotis daubentonii</em>, <em>Eptesicus nilssonii</em> (Keyserling et Blasius 1839), <em>Plecotus auritus</em> (L.), a Piksa i Wołoszyn (2001) &ndash; <em>Myotis myotis</em>, <em>Myotis brandtii</em>, <em>Myotis nattereri</em>, <em>Myotis dasycneme</em>,<em> Myotis daubentonii</em>,<em> Eptesicus nilssonii</em>.</p>
+<p>Wiek jaskiń i ich związek z rozwojem dolin badali Szczygieł J. i in. (2020a). Badania paleoklimatyczne prowadzili Błaszczyk i in. (2021).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>Otw&oacute;r Szczeliny Chochołowskiej znaleźli w 1933 r. S. Zwoliński i J. Zachorski. Nie mogąc przecisnąć się w głąb, wycofali się w przekonaniu, że jest to wylot niedostępnej szczeliny z silnym przewiewem (Zwoliński 1961). W 1938 r. uczniowie gimnazjum zakopiańskiego Kopkowicz i Gross przedostali się przez ciasny otw&oacute;r i doszli prawdopodobnie do Komory na Rozdrożu, skąd przeszli w lewo nad Szczelinę z Jeziorkiem, w kt&oacute;rej jednak nie byli. Wiadomość o tym odkryciu podpisana kryptonimem &bdquo;K&rdquo; została zamieszczona w ostatnim przedwojennym roczniku &bdquo;Wierch&oacute;w&rdquo;. Podany tam opis korytarzy nie jest dokładny. Długość przebytych korytarzy ocenili zwiedzający na 120 m, co jednak, wydaje się, jest liczbą przesadzoną jak zwykle przy opisach jaskini bez dokładnych pomiar&oacute;w. Od czasu odkrycia nie robiono żadnych pr&oacute;b dalszego zwiedzania jaskini, choć odkrywcy pisali, że zamierzają kontynuować badania. </span></p>
+<p><span>Kilka lat przed wojną właściciel schroniska w Dolinie Chochołowskiej J. Blaszyński wykorzystywał jaskinię jako chłodnię (Kostrzewski 1960). Po 1945 r. Blaszyński rozkopał otw&oacute;r jaskini w nadziei, że stanowić ona może atrakcję dla turyst&oacute;w (Zwoliński 1961). 29.07.1951 r. K. Kowalski, poszukując Szczeliny Chochołowskiej, odkrył g&oacute;rny (II) otw&oacute;r groty i częściowo zwiedził cześć g&oacute;rną, uważając ją początkowo za nową, nieznaną jaskinię. 8.08.1951 r. K. Kowalski i zaproszony przez niego do wsp&oacute;łpracy S. Zwoliński zwiedzili resztę g&oacute;rnej groty, a następnego dnia odnaleźli dolny otw&oacute;r i zwiedzili części jaskini opisane przez odkrywc&oacute;w z 1938 r. oraz Szczelinę z Jeziorkiem i Piaskową Kom&oacute;rkę, prawdopodobnie dotąd nie zwiedzane. Dnia 1.09.1951 r. W. Danowski, K. Kowalski i M. Kuczyński, planując znane partie dolnej części jaskini, odkryli przypadkowo przejście do Wysokiej Komory i zwiedzili całą oś gł&oacute;wną jaskini, aż do Komory Końcowej. W czasie następnych wypraw w zimie 1951/1952 K. Birkenmajer, P. Burchard, W. Danowski, R. Gradziński, K. Kowalski, M. Kuczyński i W. Starzecki odkryli kilkaset metr&oacute;w nowych korytarzy bocznych. Wykonali plan oraz opis i fotografie jaskini. Wiadomość o odkryciu ukazała się w prasie i kilku czasopismach. </span></p>
+<p><span>Odkrycia grotołaz&oacute;w krakowskich i zakopiańskich w latach 1951-1952 dały w wyniku około 1650 m. Dokumentacja tych odkryć została przedstawiona w pracy Kowalskiego (1953a). Zawiera ona plan, opis i fotografie jaskini; datowana jest na 6.08.1952 r. </span></p>
+<p><span>W 1955 r. grotołazi krakowscy odkryli w dolnych partiach jaskini korytarz zaczynający się nad taflą Jeziorka (Gradziński 1956). </span></p>
+<p><span>W czasie wyprawy wrocławskiej w lutym 1959 r. przebyto kilkanaście metr&oacute;w nowych korytarzy, położonych r&oacute;wnież za Salką z Jeziorkiem. Udokumentował je Pulina (1959). </span></p>
+<p><span>W 1962 r. odkryto nowe partie jaskini nad Widłami. Plan uzupełniony został przez B. Koisara. </span></p>
+<p><span>W dniach 4-18. 02. 1966 r. odbyła się wyprawa naukowo-badawcza i eksploracyjna Sekcji Taternictwa Jaskiniowego KW z Warszawy, z udziałem zespołu Wojskowego Instytutu Higieny i Epidemiologii, zespołu Muzeum Ziemi oraz Wytw&oacute;rni Film&oacute;w Dokumentalnych. Dokonano w&oacute;wczas odkrycia nowych ciąg&oacute;w za Syfonem Końcowym. Przekopanie syfonu było uwieńczeniem prac zainicjowanych już w latach pięćdziesiątych przez konkurujące ze sobą grupy, grotołaz&oacute;w krakowskich pod kierownictwem P. Burcharda oraz grotołaz&oacute;w zakopiańskich. W latach tych kopano w 5-metrowej ślepej studni w Komorze Końcowej, oraz w piaskowym Syfonie Końcowym. Po przekopaniu około 10 m i natrafieniu na scementowane namulisko zaniechano dalszych prac. </span></p>
+<p><span>W trakcie trwania wyprawy (w lutym 1966 r. ), po przekopaniu l m otworzyły się możliwości przejścia do dalszych partii. Za syfonem odkryto 840 m ciąg&oacute;w, zakończonych otworem III, przekopanym r&oacute;wnież podczas wyprawy. Korytarze te przedłużyły jaskinię do około 2300 m. Splanował je B. Koisar przy wsp&oacute;łpracy Z. Jurkowskiego i Cz. Momatiuka. Przeprowadził on r&oacute;wnież ciąg busolowy między otworem I a Komorą Końcową, dokonując drobnych uzupełnień planu K. Kowalskiego. Pomiary wykonano przy użyciu busoli geologicznej Meridian i taśmy parcianej. Opis uzupełnił B. Koisar, a dokumentację fotograficzną wykonał J. Mikuszewski. Podczas wyprawy przeprowadzono badania geologiczne, mikroklimatyczne, bakteriologiczne i medyczne oraz nakręcono film. Kompleksowe badania dotyczące zagadnień geologicznych, geochemicznych, mikroklimatycznych i biologicznych były kontynuowane w kwietniu 1966 r. przez wyprawę Muzeum Ziemi. </span></p>
+<p><span>W p&oacute;źniejszym okresie eksplorację prowadzili grotołazi z KKTJ. Istnieje wzmianka o odkryciu w lutym 1976 r. &bdquo;<em>około 100 m korytarzy w rejonie korytarza Trzech Kr&oacute;li</em>&rdquo; (Kronika, Jamnik nr 4 &ndash; 1976). Ponieważ brak jakiejkolwiek dokumentacji tego odkrycia, a określenie jego miejsca budzi wątpliwości (prawdopodobnie jest to rejon Korytarza Trzech &ndash; nie uwzględniono go przy podawaniu długości jaskini. Około 20 m korytarza położonego pod dnem Wielkiej Szczeliny odkryto w 1980 r., podczas badań geomorfologicznych prowadzonych przez zesp&oacute;ł Uniwersytetu w Poznaniu. </span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p><span>W ramach inwentaryzacji jaskiń tatrzańskich OW PTPNoZ przeprowadzono w 1975 r. pomiary sytuacyjno-wysokościowe otwor&oacute;w oraz badania flory przyotworowej. </span></p>
+<p><span>W dniach&nbsp;15.05 2004 r. oraz 15 i 17.12.2006 r. F. Filar z grupą z ST prowadzili dokumentację i monitoring jaskini dla TPN (Kronika &ndash; jaskinie 2005, 2008).&nbsp;Dane zaktualizowała I. Luty (2009). Lokalizacja została skorygowana w oparciu o mapę topograficzną Tatr (http://maps.geoportal.gov.pl) w 2013 r przez J. Grodzickiego.</span></p>
+<p><span>Załączony plan zestawiony został przez B. Koisara w 1967 r. (z uzupełnieniem wg Puliny 1959). Jest on niekompletny, zawiera pewne niedokładności, nie był weryfikowany.</span></p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Kowalski K. 1951c (kr&#243;tki opis odkrycia nowych korytarzy); Kowalski K. 1952b (opis odkrycia i jaskini, fot. naciek&#243;w); Kowalski K. 1953a (plan i opis, fotografie); Kowalski K. 1953b, 1953c (nietoperze); Kowalski K. 1955a (fauna); Kowalski K. 1955b (wzmianka, występowanie nietoperzy); Stecki K. jun. 1956 (o pracach eksploracyjnych); Gradziński R. 1956 (wzm. o dalszych odkryciach); Gradziński R., Radomski A. 1957 (badania mleka wapiennego); W&#243;jcik Z. 1957b (opis i geneza tzw. „bawolego oka”); Jaroszewski W. 1958 (budowa geologiczna); Zwoliński T. 1958 (kr&#243;tka charakterystyka); Kowalski K. 1959 (opis eksploracji, lokalizacja, plan); Pulina M. 1959 (obserwacje geomorfologiczne, mikroklimatyczne, hydrologiczne, młode ruchy tektoniczne, opis i plan nowych partii); W&#243;jcik Z. 1959a (geologia); W&#243;jcik, Z. 1959b (uwagi o geomorfologii); W&#243;jcik Z., Zwoliński S. 1959 (młode przesunięcia tektoniczne); W&#243;jcik Z. 1960a, 1960b (osady); W&#243;jcik Z. 1960d (dalsze odkrycia); Kostrzewski A. 1960 (og&#243;lny opis); Gradziński R., Unrug R. 1960 (geneza naciek&#243;w grzybkowych); Wit K., Ziemońska Z. 1960 (badania hydrografii); Gradziński R., W&#243;jcik Z. 1961 (opis morfologii naciek&#243;w); Dąbrowski T. 1961 (badania hydrogeologiczne); Zwoliński S. 1961 (częściowy opis, plan wg K. Kowalskiego, historia, nacieki, geneza, hydrografią, fotografie); W&#243;jcik Z. 1963b (wzmianka o dalszych odkryciach); Dąbrowski T., Rudnicki J. 1964 (obserwacje hydrogeologiczne); Burchard P. 1966a, 1966b (opis eksploracji, wzmianka o badaniach naukowych); W&#243;jcik Z. 1966a (badania osad&#243;w); W&#243;jcik Z. 1966b (o pracach wyprawy naukowej l nowych odkryciach, geneza); Bac M. 1967 (budowa geologiczna); Dąbrowski T. 1967a. 1967b (badania hydrogeologiczne); Lis B., Lis J., Stępniewski M. 1967 (badania mleka wapiennego); Rudnicki J. 1967 (uwagi o genezie l wieku jaskini); Skalski A. 1967 (fauna); Wołoszyn B. 1967 (fauna); Burchard P. 1967b (eksploracja, wzmianka o badaniach naukowych); Wołoszyn B.W. 1967 (fauna ssak&#243;w); W&#243;jcik Z. 1967a (wyniki szczeg&#243;łowych badań geologicznych, plan, fotografie); W&#243;jcik Z. 1967b (badania geologiczne, geochemiczne, mikroklimatyczne i biologiczne); W&#243;jcik Z. 1968 (rozw&#243;j geomorfologiczny, uwagi o geologii); Galubińska K. 1968 (badania psychologiczne); Koisar B. 1969 (uzupełnienia opisu, plan, historia badań); Skalski A. 1969 (fauna); Bac M. 1971 (geologia); Galubińska K. 1970 (badania psychologiczne); Kotański Z. 1971 (geologia); Wołoszyn B. 1970 (fauna); Pulinowa M.Z., Pulina M. 1972 (badania utwor&#243;w lodowych); Solicki T., Koisar B. 1973 (hydrogeologia); Kubica J., Jethon Z. 1973 (badania medyczne); W&#243;jcik Z. 1976a (wzmianka, og&#243;lna charakterystyka morfologii); W&#243;jcik Z. 1976b (wzmianka o badaniach i konieczności ochrony); Kronika… Jamnik 4, 1976 (wzmianka o odkryciu około 100 m korytarza); TPN (mapa turystyczna 1:30 000), 1976; Tatry Polskie (mapa zastępcza, skala 1:10 000), 1976; Burchard P. 1977 (opis wyprawy naukowo-badawczej pod nazwą „Operacja Kret”, historia eksploracji); W&#243;jcik Z. 1979 (uwagi o związku jaskini z przebiegiem zlodowaceń); Mapa Geologiczna Tatr Polskich 1:30 000, 1979; Głazek J. i in. 1979b (wzmianka, uwagi o osadach); Borowiec W. i in. 1977 (dane morfometryczne); Gradziński R. i in. 1985a (dane morfometryczne); TATRY POLSKIE 1984 (lokalizacja na mapie 1:10 000); Jaskinie TPN,  1991 (plan i opis inwentarzowy); Gradziński M. i in. 1994 (geneza mleka wapiennego); Gradziński M. 1995a (geneza tzw. kalcytu igłowo-wł&#243;knistego); Gradziński M. 1995b (o nieścisłościach dokumentacji); Nowicki T. 1995 (geologia, geneza); Gradziński M. 1997 (geneza mleka wapiennego); Piksa K. 1998 (nietoperze); Hercman H. i in. 1998 (rozw&#243;j systemu Szczeliny Chochołowskiej w świetle datowania naciek&#243;w); Pazdur A. i in. 1999 (skład izotopowy naciek&#243;w z mleka wapiennego); Bielska T., Mickiewicz J. 2000 (flora); Nowicki T. 2000 (budowa geologiczna i rozw&#243;j jaskini);  Barczyk G. 2000a,b, (badania hydrogeologiczne); Piksa K., Wołoszyn, B. 2001 (nietoperze); Barczyk G. 2002, 2003 (badania hydrogeologiczne); Nowicki T., Hercman H. 2004 (analiza naciek&#243;w a paleoklimat); Barczyk G. 2008 (szczeg&#243;łowe badania hydrogeologiczne, plan, niekt&#243;re dane morfometryczne, geologia systemu wywierzyskowego); Gradziński M. i in. 2005 (uwagi o genezie); Kicińska D. 2005 (wzmiankuje, wiek naciek&#243;w); Kronika – jaskinie 2005, 2008 (dokumentacja i monitoring jaskini dla TPN); Gradziński M. i in. 2009 (uwagi o genezie); Szczygieł J. i in. 2020a (o minimalnym wieku osuszenia jaskiń oraz zależności pomiędzy jaskiniami i rozwojem dolin); Błaszczyk M. i in. 2021 (badania paleoklimatyczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Grodzicki J. i in. 2000 (antropogeniczne zmiany). 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Izabella Luty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(540)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>

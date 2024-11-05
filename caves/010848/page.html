@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="https://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1PNKP4Z2L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-1PNKP4Z2L1');
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F10848">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="https://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href=" https://baza.pgi.gov.pl/"><span class="text-strong">CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="https://baza.pgi.gov.pl/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 10848;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "694600,22".replace(',', '.') + "," + "188682,11".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = '//bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('10848','Jaskinia Słowiańska-Drwali'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Słowiańska-Drwali
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                K.Bn-09.70
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Karpaty
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 21&#176;41′25,47″, φ: 49&#176;32′03,40″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Dukla (gm. miejsko-wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                krośnieński
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                podkarpackie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Prywatny
+|                Obszar Natura 2000 Osuwiska w Lipowicy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                ku g&#243;rze
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 - ku N.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                405
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                23,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                23,80
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    601
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Lipowica, G&#243;ra Kielan&#243;wka (559,8 m n.p.m.), na wschodnim zboczu Kielan&#243;wki (Kielanowskiej, Kilanowskiej), Beskid Niski.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Z przystanku Lipowica Kamieniołom idziemy drogą krajową nr 19 około 300m w stronę Dukli i gdy zbocze po lewej stronie robi się wyraźnie strome skręcamy w lewo (na W), na niewyraźną ścieżkę. Podchodzimy stromo około 350 m, po czym na niewiekim wypaszczeniu skręcamy na N i ścieżką podchodzimy do kolejnego wypłaszczenia, po którym biegnie droga okrążająca stary kamieniołom. Idziemy nią około 50 m i skręcamy do widocznego po prawej zakratowanego otworu jaskini, znajdującego się na niewielkim wyniesieniu. Jaskinia trudna do zwiedzania przez liczne zaciski, do pokonania części prożków i studni konieczna lina.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Przez 4,5 m studzienkę (trudności IV, 3 kotwy stanowiskowe) schodzimy do przestronnej Błotnej Sali. Stąd na N wchodzimy do pochyłego, poprzedzielanego prożkami korytarza, kt&oacute;ry po 7 m wprowadza do Sali z Wantą (Sala Wielbłąda). Sala ma rozmiary 5x4 m i wysokość do 5 m, na jej środku znajduje się duża, zaklinowana wanta dzieląca salę na dwa poziomy. Po wejściu pod wantę schodzimy ciasną studzienką 1,1 m do Sali Obozowej, kt&oacute;ra kontynuuje się na SE i po 8 m kończy się szczelinami nie do przejścia. W dolnej części Sali znajduje się 0,9 m studzienka wprowadzająca do kr&oacute;tkich, ciasnych szczelin, kończących się po 3 metrach.</p>
+<p>Z Sali z Wantą idziemy na N i przez ciasny przełaz wchodzimy w Ciąg za 6 Zaciskami. Jest to ciąg niskich i wąskich korytarzy oraz niewielkich salek, oddzielonych zaciskami, długości około 40 m, kończący się: na N niską salką szerokości 4 m i długości 3 m i odchodzącą od niej szczeliną nie do przejścia; na W większą salką długości 3 m i szerokości 2 m, wysokości do 1,7 m.</p>
+<p>Z korytarza przed Salą z Wantą wspinamy się 4,5 m do zaciskowego (ZI) i kruchego kominka wprowadzającego do dolnego piętra Schroniska L-11, kt&oacute;re obecnie stanowi drugi otw&oacute;r jaskini. Spod kominka przedostać się wąskim korytarzem na E do szczeliny długości 8 m wprowadzającej do N części Korytarza Słowiańskiego.</p>
+<p>Z Błotnej Sali idziemy na S, wchodzimy przez szczelinę po lewej stronie. Przez wysoki, zaciskowy odcinek korytarza wchodzimy do Korytarza Naciekowego. Ma on około 30 m długości; po 10 m przechodzimy przez prożek 2 m do niewielkiego rozszerzenia (do 2 m szerokości). Po 5 m korytarz zakręca o 180&deg; i kontynuuje się na NNE przechodąc w ciasną szczelinę (szerokość 0,3-1,0 m). W tej części korytarza znajduje się gł&oacute;wne nagromadzenie naciek&oacute;w: polewy, żebra, stalaktyty, makarony. Z korytarza progiem wchodzimy do studzienki i ciągiem pochylni schodzimy do Szczeliny Piwowarka.</p>
+<p>Jest to silnie popękana szczelina, kontynuująca się na S przez około 12 m, kończąca się zawaliskiem; na N po 12 m wchodzimy przez kominek 2,3 m do szeregu szczelin i zaciskowych Błędnych Komin&oacute;w, kończących się zaciskami nie do przejścia. Partie te są mocno niestabilne, grożą zawaleniem.</p>
+<p>Z Korytarza Naciekowego, po około 8 m od wejścia, wchodzimy przez kominek 2,0 m do Salki &bdquo;Raj&rdquo;. Salka ma wymiary 3,5x2,5 m i wysokość do 1 m, znajduje się tu spora polewa kalcytowa i drobne nacieki, i makarony. Przez ciasną szczelinę (nie do przejścia) Salka ma połączenie z Jaskinią Stalaktytową K.Bn-09.11.</p>
+<p>Wracamy do Błotnej Sali. Idziemy na S i przez prawy przełaz wchodzimy do przestronnego Korytarza Słowiańskiego. Korytarz ma około 35 m długości, 1-3 m szerokości i wysokość do 3,5 m Opada on na SW i po 20 m doprowadza nad Preszowską Studnię, głębokości 4 m. Po przetrawersowaniu studni idziemy jeszcze około 7 m i pod wantą (ku N) wchodzimy do ciasnego przełazu. Po przejściu śliskiego, 1,5 m prożka wchodzimy na W do szczeliny prowadzącej pod Studnię Preszowską. Z tego miejsca wchodzimy w wąski korytarzyk na SW i przez 2,5 m prożek wchodziy do przestronnej Chłodnej Sali. Sala ma wymiary około 10 m długości, do 5 m szerokości i wysokość do 5,5 m. W zachodniej części Sali znajduje się kilka mniejszych szczein i koryatrzy r&oacute;wnoległych do jej ścian. W SW części Sali zjaduje się ciasne wejście do systemu szczelin - Labiryntu - gdzie znajduje się najniższy punkt jaskini (-23,8 m). Nad wejściem do Labiryntu przez pochyły prożek 5,5 m dostajemy się do 4 m długości salki Balkon.</p>
+<p>Wracamy do Błotnej Sali. 2 metry za wejściem do Korytarza Słowiańskiego, pod dużą, płaską wantą, znajduje się ciasna, 1,4 m studzienka, kt&oacute;ra przechodzi w zacisk wprowadzający na W do Gorlickiej Studni. Studnia ma od 3 do 6,6 m głębokości, opadający na N gliniasty spąg, niedostępną szczeliną łączy się ze Szczeliną Piwowarka.</p>
+<p>Spod prożka 1,5 m, przez kt&oacute;ry wcześniej dostaliśmy się pod Studnię Preszowską przechodzimy około 1,5 m na NE i wchodzimy w ciasną szczelinę, kt&oacute;ra wprowadza nas nad Salę Genowefy (długość 6 m, szerokość do 3,5 m, wysokość do 4 m). Idziemy dalej na W i przy kolejnym rozszerzeniu możemy przez prożek i kominek prowadzące na S wyjść do Słowiańskiego Korytarza (przez Studnię Podkowca) lub skręcić na N i przez Wysoki Pr&oacute;g (2,5 m) wejść w system niskich szczelin na E zwanych Partiami Mario-netek. Partie pod i nad progiem są mocno niestabilne, dochodzi tu do częstych zawał&oacute;w i miany topografii korytarzy.</p>
+<p>Ten sam ciąg wprowadza na N do sali Jadalni. Sala ta ma około 10 m długości, do 4 m szerokości i do 5,5 m wysokości. W p&oacute;łnocnej części przechodzi w szereg niskich, zaciskowych szczelin, będących najdalej wysuniętą na N częścią dolnych partii jaskini. Natomiast w NW części sali znajduje się niskie wejście do Wietrznego Korytarza, długości 11 m, szerokości do 1,4 m i wysokości do 2,7 m. Korytarz jest silnie modelowany przez obrywy i jest jedną z najmniej stabilnych części jaskini. Lekko opadającym spągiem schodzimy na SW, po około 8 m można wejść przez prożek 1,5 m na W, do ciągu ciasnych szczelin. Na końcu Korytarza schodzimy do niskiego przełazu, przechodzącego w zacisk (ZII), przez kt&oacute;ry dostajemy się do niskich szczelin z licznymi zaciskami, wyladzanych w okresie zimy i wiosny &ndash; Zimnych Piwniczek. Z tego ciągu, przez dwie zaciskowe studzienki (1,7 m i 1,7 m) na S dostajemy się do N części Sali Genowefy.</p>
+<p>Jaskinia osuwiskowa, typu szczelinowego powstała w piaskowcach cergowskich. Obiekt rozwinął się na szczelinach o gł&oacute;wnej orientacji NE-SW, prawdopodobnie w tym samym czasie co osuwisko na Kilanowskiej. Część partii jaskini jest znacznie starsza lub istniała przez długi czas w innej niż obecnie postaci. Wskazują na to nacieki i poziomy kalcytowe, czy pochylone stalaktyty w Korytarzu Naciekowym. Jaskinia łączy się nie tylko z obiektami poza gł&oacute;wną niszą osuwiska, ale ma także połączenie z jaskiniami w zapadlisku pod Turnią &ndash; Gangusiową Jamą K.Bn-09.05 czy Lodową Szczeliną K.Bn-09.15. Świadczy o tym przepływ dymu palonego ogniska (spod Gangusiowej do Słowiańskiej-Drwali) i pomiary usytuowania jaskiń względem siebie. Ta sytuacja wpływa na specyficzny mikroklimat systemu. Do tej pory nie odnaleziono miejsca połączenia. Namulisko jest giniaste, skaliste, usłane wantami i drobnymi głazami.</p>
+<p>Jaskinia ma mikroklimt dynamiczny. Pomimo, że dolne partie są okresowo mocno wymrażane, a w niekt&oacute;rych latach warstewka lodu utrzymywała się nawet przez cały rok, nie określa to mikroklimatu tych partii jako statycznego. Wymrożenia są spowodowane silnym przewiewem od szczelin Wietrznego Korytarza, obejmującym całe dolne partie (wyjątkiem są lepiej izolowane części Szczeliny Piwowarka), tworząc nacieki i polewy lodowe. Za przewiew odpowiedzialna jest specyficzna sytuacja mikroklimatyczna systemu jaskiń i szczelin - powietrze jest zasysane przez niżej położne jaskinie w niszy osuwiska (także wymrażane), a uwalniane już po ogrzaniu przez otwory Jaskini Słowiańskiej-Drwali. W g&oacute;rnych partiach jaskini temperatura w okresie zimowym wynosiła 6-8&deg;C. Światło dzienne oświetla tylko partie pod studnią wejściową i okolice drugiego otworu.</p>
+<p>Flora, gł&oacute;wnie mchy na ścianach, występuje tylko w okolicy studni wejściowej i drugiego otworu.</p>
+<p>W jaskini stwierdzono zimowanie podkowc&oacute;w małych (<em><strong>Rhinolophus hipposideros</strong></em>) , nock&oacute;w dużych (<em><strong>Myotis myotis</strong></em>), nock&oacute;w wąsatk&oacute;w/Brandta (<em><strong>Myotis mystacinus complex</strong></em>), nock&oacute;w rudych (<em><strong>Myotis daubentonii</strong></em>), nock&oacute;w Natterera (<em><strong>Myotis nattereri</strong></em>) i gack&oacute;w brunatnych (<em><strong>Plecotus auritus</strong></em>). Stwierdzono także przebywanie popielicy (<em><strong>Glis glis</strong></em>). W okolicy otworu stwierdzano chrząszcze, gł&oacute;wnie z rodzaj&oacute;w <em>Carabus</em> i <em>Pterostichus</em>, wpadające przez studnię wejściową. Występują tu także ćmy szczerb&oacute;wki ksieni (<em><strong>Scoliopteryx libatrix</strong></em>) i pająki z rodzaju <em>Meta</em>.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia została odkryta 14.12.2003 roku podczas Speleoobozu SSB przez S. Kościelniaka. W pierwszej akcji eksploracyjnej brało udział około 30 os&oacute;b, w tym członkowie SSB i Speleokubu Saris. Do połowy 2004 roku wyeksplorowano i udokumentowano ponad 400 m ciąg&oacute;w (w pracach pod przewodnictwem R. Suskiego (KKTJ) udział wzięli: K. Brzuszek, M. Dudzik (SSB), K. Fidzińska (AKG), M. Ignasiak (KKTJ), M. Jachym, A. Kapturkiewicz (SSB), M. Krajewski (AKG), J. Nowak (KKTJ), D. Otfinowski (KKTJ), J. Piechaczek, M. Szot (KKTJ, SSB), J. Ślusarczyk (STJ KW Krak&oacute;w), R. Tęczar (SSB)). W 2004 i 2005 roku eksplorację prowadzili W.J. Gubała (SSB, SOJ Grupa Malinka), Cz. Szura (SBB), A. Kapturkiewicz (SSB), przedłużając ją do ponad 550 m.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Latem 2006 W.J. Gubała udokumentował ciasne ciągi, przedłużając jaskinię do prawie 600 m, obecną długość Słowiańska-Drwali zawdzięcza pomiarom T. Mleczka. Pomiary wykonano taśmą mierniczą i busolą geologiczną Freiberg.</p>
+<p>Plan opracował W.J. Gubała&nbsp;na podstawie plan&oacute;w K. Fidzińskiej i R. Suskiego (J.Słowiańska-Drwali) i T. Mleczka (Schronisko L-11).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Działalność inwentaryzacyjna Stowarzyszenia Speleoklub Beskidzki 2004 (informacje o eksploracji); Gubała W.J. 2004d (opis odkryć w jaskini); Gubała W.J., Mleczek T. 2004 (o nowych odkryciach); Klassek G. 2004 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T. 2004b (ujęta w wykazie najgłębszych jaskiń polskich Karpat fliszowych); Mleczek T. 2004a (opis jaskini); Mleczek T. 2004b (opis jaskini); Mleczek T. 2004c (nietoperze); Suski R., Tęczar R. 2004 (opis inwentarzowy, historia eskploracji); Gubała W.J. 2005b (l&#243;d w jaskini); Gubała W.J. 2006a (o nowej długości); Klassek G., Mleczek T. 2005 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Gubała W.J. 2006b (opis nowych partii); Klassek G., Mleczek T. 2006 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Urban J., Margielewski W., Ž&#225;k K., Schejbal-Chwastek M., Mleczek T., Szura Cz., Hercman H., Sujka G. 2006a (badania naciek&#243;w w jaskini); Urban J., Margielewski W., Ž&#225;k K., Schejbal-Chwastek M., Mleczek T., Szura Cz., Hercman H., Sujka G. 2006b (badania naciek&#243;w w jaskini); Klassek G. Mleczek T. 2007 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G. Mleczek T. 2008 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T. 2009 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Siuda K. i in. 2009 (egzopasożyty nietoperzy); Klassek G., Mleczek T. 2010 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T. 2011 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Klassek G., Mleczek T. 2012 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Urban J., Schejbal-Chwastek M., Margielewski W., Ž&#225;k K. 2012 (skład izotopowy naciek&#243;w w jaskini); Franczak P., Szura Cz., Zatorski M. 2013 (nacieki lodowe w jaskini); Franczak P., Zatorski M., Szura Cz. 2014 (nacieki lodowe w jaskini); Klassek G., Mleczek T., 2014 (ujęta w wykazie najdłuższych i najgłębszych jaskiń polskich Karpat fliszowych); Urban J., Margielewski W. (Centralny Rejestr Geostanowisk); Urban J. i in. 2015 (wiek naciek&#243;w);  Zatorski M., Franczak P., Mleczek T. 2015 (waloryzacja, fotografia kolonii podkowc&#243;w małych); Jaskinie Polskich Karpat Fliszowych 2016d (plan i opis inwentarzowy).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Wojciech J. Gubała
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2015
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(11637)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="https://www.pgi.gov.pl">Państwowy Instytut Geologiczny – PIB</a>
+        </div>
+    </div>
+    <script src="https://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({ position: { my: "bottom", at: "center" } });
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>
