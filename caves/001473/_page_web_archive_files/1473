@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="http://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-579068-10', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>             
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1473">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="http://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href="http://geoportal.pgi.gov.pl"><span class="text-strong">Portal CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="http://geoportal.pgi.gov.pl/jaskinie_polski/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1473;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565859,83".replace(',', '.') + "," + "152857,98".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = 'http://bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1473','Ptasia Studnia'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Ptasia Studnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                SYSTEM Ptasia Studnia
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.06
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′18,21″, φ: 49&#176;14′22,86″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                N
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                2 (Jaskinia Lodowa Litworowa) - ku N, 1576 m n.p.m.; 3 (Jaskinia nad Dachem) - ku N, 1522 m n.p.m.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1627
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                277
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                352
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                352
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    6283
+                </div>
+                <div style="min-height: 15px;">
+                    650
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                245
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, po zachodniej stronie Ratusza Mułowego, około 300 m nad dnem Wielkiej Świst&#243;wki, w kominku powyżej trawiastych zachod&#243;w przebiegających w poprzek Progu Mułowego i Ratusza Mułowego. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Po osiągnięciu Przełączki pod Chudą Turnią czerwonym szlakiem z Doliny Kościeliskiej (lub zielonym szlakiem z Doliny Tomanowej) trawersujemy lekko obniżając się w dół, aż osiągniemy siodełko przy szczycie Kazalnicy Miętusiej (punkt 1805 m n.p.m.). Stąd schodzimy początkowo skalistą ścieżką na płaśń pod moreną w Dolince Mułowej i dalej na skraj Progu Mułowego. Trzymając się krawędzi progu po lewej, osiągamy żleb opadający ku Dolinie Miętusiej. Żlebem schodzimy w dół, aż do miejsca, gdzie przechodzi on w wyraźny trawiasty, stromy stok po lewej i wysoką skalną ścianę po prawej. Stąd istnieją dwa warianty dojścia do trawiastego zachodu doprowadzającego do otworu Ptasiej Studni.
+Wariant historyczny każe nam przetrawersować w lewo wspomniany wyżej trawiasty stok i nie dochodząc do niewyraźnej skalisto-trawiastej grzędy zejść w dół, aż do płyt, skąd po prawej zakładamy zjazd linowy. Początkowo zjazd prowadzi stromym terenem trawiasto-skalistym, potem pionowym 10 m progiem, do górnej części trawiastego zachodu. Po około 50 m trawersu w kierunku Ratusza Mułowego (na wschód) dochodzimy do płytkiej i wysokiej nyży. Dalej idziemy trawersując wąską, eksponowaną skalną półeczką poprzez żebro do rynny. Wspinamy się nią do otworu około 5 m w górę (trudności III, w górnej części rynny ślisko). 
+Wariant obecnie stosowany: po wyjściu ze żlebu, idąc pod ścianą po prawej schodzimy nad krawędź progu skąd prowadzi zjazd linowy (około 55 m) do trawiastego zachodu, na który zjeżdżamy około 10 m od początku eksponowanego trawersu i wspomnianej wyżej nyży. Od niej do otworu droga prowadzi jak w wariancie historycznym.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinię stanowi bardzo skomplikowany system korytarzy, meandr&oacute;w, komin&oacute;w, studni i sal rozwiniętych wzdłuż bardzo stromo lub pionowo przebiegających szczelin i pęknięć. Dające się wyr&oacute;żnić gł&oacute;wne ciągi, stanowiące zasadniczy szkielet jaskini, wielokrotnie łączą się pomiędzy sobą w r&oacute;żnych miejscach tworząc trudny do opisania, bardzo skomplikowany, pionowo rozwinięty labirynt. Opis jaskini poprowadzono według dających się wyr&oacute;żnić dziewięciu zasadniczych ciąg&oacute;w:</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1. Otw&oacute;r Ptasiej Studni&nbsp;&ndash; Studnia Palidera;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2. Studnia Palidera&nbsp;&ndash; Syfon Końcowy drogą odkrywc&oacute;w;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3. Studnia Palidera&nbsp;&ndash; Sala Dantego&nbsp;&ndash; Bazylika;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4. Sala Dantego&nbsp;&ndash; Syfon Końcowy przez Prosty Meander;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5. Studnie Flacha&nbsp;&ndash; Szczelina Strzygi;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6. nad Studnią Wścietoperzy&nbsp;&ndash; Sala pod Trawersem&nbsp;&ndash; Studnia z Mostkiem Pirat&oacute;w;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7. Mostek Pirat&oacute;w&nbsp;&ndash; Komin Pustynna Burza;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 8. Komin Pustynna Burza&nbsp;&ndash; Partie Sądeckie;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9. Komin Pustynna Burza&nbsp;&ndash; Partie CDN;</p>
+<p>Opisy wchodzących w skład system Jaskini Lodowej Litworowej i Jaskini nad Dachem zamieszczono osobno, tu podano całkowitą długość i deniwelację systemu</p>
+<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+<div><strong>&nbsp;1. Otw&oacute;r Ptasiej Studni&nbsp;&ndash; Studnia Palidera.</strong></div>
+<p>Otw&oacute;r jaskini znajdujący się w g&oacute;rnej połowie ściany Ratusza Mułowego, pod dużych rozmiar&oacute;w przewieszką. Ma kształt bramy o wymiarach 1,4x2,5 m i jest widoczny z daleka jako wyraźna, pionowa szczelina.</p>
+<p>Od otworu prowadzi w d&oacute;ł kr&oacute;tki, stromy korytarzyk zasłany częściowo rumoszem skalnym, częściowo rozdeptanym osadem ilastym. Po około 4 m od otworu korytarzyk urywa się 64 m Studnią Wlotową (P. 64). Po około 15 m zjazdu mijamy stromo nachyloną p&oacute;łkę. Na przeciwległej ścianie znajduje się okno&nbsp;&ndash; wnęka o wymiarach 1,5x4 m., z kt&oacute;rej odchodzą dwie wąskie szczeliny: lewa po paru metrach staje się niedostępna, prawa przechodzi w kr&oacute;tki meanderek wznoszący się dzwonowatym prożkiem, nad kt&oacute;rym kontynuuje się szczelina zbyt wąska do przejścia.</p>
+<p>Poniżej p&oacute;łki zjazd prowadzi bez kontaktu ze ścianą. Około 9 m nad dnem mijamy kolejną p&oacute;łką z zaklinowanych blok&oacute;w skalnych. Tu zaczyna się 70 m długości, prowadzący w d&oacute;ł Zapomniany Meander. Początkowo jest on wysoki i wąski. W połowie długości po kolejnym przewężeniu urywa się 12 m progiem do stosunkowo obszernej salki. Widoczne nad nią po przeciwległej stronie kominy kończą się ślepo, natomiast poniżej niej meander biegnie w d&oacute;ł, opadając progami wysokości 4, 7 i 5 m i uchodzi w stropie Studni Palidera, 34 m nad jej dnem (patrz opis w dalszej części).</p>
+<p>Dno Studni Wlotowej ma kształt owalny o rozmiarach 4x6 m. Na przeciwległej do zjazdu ścianie poniżej wspomnianej p&oacute;łki znajduje się niezbyt szeroka szczelina doprowadzająca do podłużnej salki. W jej końcowej części odsłania się fragment głębokiego, mytego pęknięcia, kt&oacute;rym należy nieco się obniżyć, by zaraz wyjść w g&oacute;rę do następnej, pięknej salki. Salka ma płaskie, owalne dno o wymiarach 4x3 m i wysokość około 15 m. Wymyta w dnie meandrująca szczelina po paru metrach otwiera się w obszerną studnię zwaną Czterdziestką (P.30).</p>
+<p>Po około 20 m zjazdu w zachodniej ścianie studni widoczne jest okno, usytuowane poniżej zaklinowanych blok&oacute;w skalnych, prowadzące na dno komina, kt&oacute;ry około 7 m wyżej łączy się ponownie z Czterdziestką. Z dna komina odchodzi w d&oacute;ł zawaliskowy korytarz, kt&oacute;ry po paru metrach urywa się 2 m progiem. Pod nim odsłania się głęboki i wąski meander, kt&oacute;ry na końcu urywa się 11 m głęboką studzienką. Tu w zawaliskowej salce dochodzimy do wysokiego (miejscami do 10 m), mytego meandra. W kierunku wschodnim wznosi się on paroma progami i kończy w wąskiej szczelinie z grzybkami naciekowymi na ścianach. W kierunku południowo-zachodnim meander opada parometrowymi progami, prawdopodobnie aż do połączenia z ciągiem odkrywc&oacute;w w Salce Jadwigi (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w).</p>
+<p>Wracamy do Czterdziestki. Około 13 m nad dnem, po przeciwnej do zjazdu stronie mijamy wejście do kolejnego okna w tej studni. Za niewysoką barierą skalną biegnie w d&oacute;ł kilkumetrowy meander, zakończony zwężeniem niedostępnym dla człowieka.</p>
+<p>Dno Czterdziestki jest częściowo skaliste, częściowo zasłane rumoszem skalnym. Nieco ponad dnem odchodzi w głąb jaskini prosty, niski korytarzyk o owalnym przekroju, kt&oacute;ry po około 8 m kończy się oknem w Studni Palidera (23 m nad dnem). Idąc za ściekającą wodą z dna Czterdziestki niskim przełazem, dostajemy się do 7 m korytarzyka, by przecisnąwszy się obok leżącego pod prawą ścianą bloku wyjść w oknie nad Studnią Palidera (21 m nad dnem). Ma ona 34 m głębokości, a jej strop można osiągnąć z najniższej p&oacute;łki w Studni Wlotowej, przechodząc zaczynającym się tam Zapomnianym Meandrem.</p>
+<p>11 m poniżej krawędzi Studni Palidera, po prawej stronie w niewielkiej odległości od linii zjazdu znajduje się małe okienko. Prowadzi ono do korytarzyka, kt&oacute;ry po około 10 m urywa się 48 m głęboką Studnią "Wcześniak&oacute;w". Studnia ta ma parę okien, a jej dno to dno Sali pod Kolosalną Wantą (patrz opis w części 2 Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w, oraz opis w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander). Około 20 m od g&oacute;ry studni znajduje się okienko, za kt&oacute;rym kilkumetrowy, wąski korytarzyk urywa się w ścianie Sali Dantego. 5 m poniżej okienka studnia rozdziela się na dwie części. Szeroko rozwarta prawa część opada pionowo, lewa, wąska, o charakterze wymycia, wyprowadza na zawalisko w g&oacute;rnej części Sali Dantego, nieopodal miejsca, gdzie kończymy zjazd do Sali Dantego idąc od Studni Palidera (patrz opis w części 3: Studnia Palidera&ndash;Sala Dantego&ndash;Bazylika). Około 10 m poniżej rozdzielenia, w gł&oacute;wnej części studni natrafiamy na Kolosalną Wantę&nbsp;&ndash; zaklinowaną pomiędzy ścianami grupę blok&oacute;w, z kt&oacute;rych szczeg&oacute;lnie dwa wyr&oacute;żniają się dużymi rozmiarami. Stąd, wspinając się parometrowym progiem, możemy przedostać się na zawalisko w g&oacute;rnej części Sali Dantego (patrz opis w części 3: Studnia Palidera&nbsp;&ndash; Sala Dantego&nbsp;&ndash; Bazylika i w części 4: Sala Dantego przez Prosty Meander). Po przeciwległej stronie (od wschodu) Kolosalnej Wanty widoczne są wyloty dw&oacute;ch, niezbadanych komink&oacute;w.</p>
+<p>Około 8 m nad dnem Studni Palidera, w ścianie przeciwległej do zjazdu znajduje się okno, prowadzące do partii opisanych w części 3: Studnia Palidera&ndash;Sala Dantego&ndash;Bazylika.</p>
+<p>Dno Studni Palidera jest lite, skalne, częściowo przysypane rumoszem skalnym.</p>
+<div><strong>&nbsp;</strong></div>
+<div><strong>2. Studnia Palidera&nbsp;</strong><strong>&ndash; Syfon Końcowy drogą odkrywc&oacute;w.</strong></div>
+<p>We wschodnim krańcu z dna Studni Palidera odchodzi początkowo wąski lecz wysoki meander, kt&oacute;ry urywa się 8 m progiem do Salki Jadwigi. Stąd odchodzą trzy ciągi. W lewo do g&oacute;ry stroma pochylnia kończy ciąg idący od okna w Czterdziestce (opisanego wyżej).</p>
+<p>Na wprost do g&oacute;ry dochodzimy meandrem do stropu Studni z Mostkiem Pirat&oacute;w (P.52). Stąd, od zaklinowanego bloku skalnego, odchodzi w g&oacute;rę stromy, wąski meanderek, kt&oacute;ry kończy się po 16 m w niedostępnej szczelinie. W połowie jego wysokości odchodzi prawie pozioma, myta, niska rura, kt&oacute;ra otwiera się w ścianie Salki Jadwigi. Zjeżdżając ze stropu Studni z Mostkiem Pirat&oacute;w można dostać się na Kolosalną Wantę (opisana wyżej)</p>
+<p>Z Salki Jadwigi idąc meandrem w d&oacute;ł, osiągamy po paru metrach krawędź Studni z Mostkiem Pirat&oacute;w. Po 7 m zjazdu stajemy na polce zwanej Mostkiem Pirat&oacute;w. Studnia ma od tej strony 42 m głębokości. Kontynuuje się do g&oacute;ry, aż po strop meandra odchodzącego od Salki Jadwigi na wprost do g&oacute;ry (patrz wyżej). Mniej więcej po drugiej stronie Mostka Pirat&oacute;w znajduje się Kolosalna Wanta (patrz opis w części l: otw&oacute;r Ptasiej Studni&ndash;Studnia Palidera). Można dostać się na nią ze stropu Studni z Mostkiem Pirat&oacute;w, z dna g&oacute;rnej części Sali Dantego (opis w części 3: Studnia Palidera&ndash;Sala Dantego&ndash;Bazylika) oraz ze stropu Studni Wcześniak&oacute;w (opis w części 1: otw&oacute;r Ptasiej Studni-Studnia Palidera).</p>
+<p>Pod Kolosalną Wantą znajduje się okno, kt&oacute;rego podstawa leży 17 m nad dnem Studni z Mostkiem Pirat&oacute;w. Okno to, od drugiej strony, opisano w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander.</p>
+<p>Zjeżdżając z Mostka Pirat&oacute;w (35 m nad dnem) mijamy kilka okien:</p>
+<p>&ndash;&nbsp;&nbsp; po 7 m i 8 m ukryte daleko po prawej małe okienka, będące wyjściami meandr&oacute;w na dojściu do Pustynnej Burzy (patrz opis w części 7: Mostek Pirat&oacute;w&ndash;Komin Pustynna Burza),</p>
+<p>&ndash;&nbsp;&nbsp; po 12 m niskie i ukośne okno (o wymiarach 3x1 m) prowadzące do Komina Pustynnej Burzy,</p>
+<p>&ndash;&nbsp;&nbsp; po 25 m pionowe, wąskie, szczelinowe okno prowadzące między innymi nad Studnię Wścietoperzy (patrzopis w części 6: nad Studnią Wścietoperzy&ndash;Sala z Trawersem&ndash;Mostek Pirat&oacute;w).</p>
+<p>W zachodniej części dna Studni z Mostkiem Pirat&oacute;w, odchodzi wysoka&nbsp;szczelina, kt&oacute;rą przechodzimy do opadającego korytarza.</p>
+<div>Tu, po przejściu paru metr&oacute;w znajdują się kolejno:</div>
+<p>&ndash;&nbsp;&nbsp; po lewej stronie, lekko w g&oacute;rę wejście do Korkociągu,</p>
+<p>&ndash;&nbsp;&nbsp; nad głową 18 m kominek doprowadzający do Korytarza Urojeniowego i do g&oacute;rnych okien w Studni z Mostkiem Pirat&oacute;w (opis w części 7: Mostek Pirat&oacute;w&ndash;Komin Pustynna Burza oraz w części 8: Komin Pustynna Burza&ndash;Partie Sądeckie).</p>
+<p>&ndash;&nbsp;&nbsp; na wprost sala biwakowa "pod Mostkiem Pirat&oacute;w". Nad końcem jej prawej części w stropie widoczny jest wylot Studni na Zakręcie (opis w części 6: nad Studnią Wścietoperzy&nbsp;&ndash; Sala pod Trawersem&ndash;Studnia z Mostkiem Pirat&oacute;w).</p>
+<p>Korkociąg jest wąskim, miejscami wysokim na parę metr&oacute;w, ładnie mytym (liczne listwy erozyjne i wcięcia zakolowe) meandrem. Po paru metrach rozszerza się w 3 m głębokości studzienkę, po przekroczeniu kt&oacute;rej znowu się zwęża. Jest możliwy do przejścia zar&oacute;wno dołem jak i g&oacute;rą, niemniej trzymając się stropu jest zdecydowanie mniej uciążliwy. Łączna długość Korkociągu wynosi około 25 m. Kończy się kaskadową studnią o głębokości 29 m (P.29), Nad studnią, po prawej stronie na wysokości około 3 m znajduje się wejście do Korytarza Urojeniowego (patrz opis w części 8: Komin Pustynna Burza&ndash;Partie sądeckie). Studnia P.29 kończy się w bardzo wąskiej, długiej na 6 m szczelinie z jeziorkiem. W swej skrajnie wąskiej formie kontynuuje się ona dnem jeszcze parę metr&oacute;w w kierunku Studni Taty i łączy od g&oacute;ry z Meandrem, szczeliną ciągnącą się od połączenia Ptasiej z Lodową Litworową do Studni Taty (patrz dalej). Studnia P.29 nic ma kontynuacji do g&oacute;ry. Z dna studni wspinamy się około 10 m na przeciwległą ścianę, na małą stromą p&oacute;łkę (trudności II). Jest to miejsce, gdzie Ptasia Studnia łączy się z Lodową Litworową (patrz opis Jaskinia Lodowej Litworowej). Trawersem p&oacute;łką w lewo osiągamy początek Meandra&nbsp;&ndash; szczelinowatego, otwartego od dołu korytarza.</p>
+<p>Na początku Meandra w stropie widoczny jest stromy, zwężający się ku g&oacute;rze kominek, kt&oacute;ry po paru metrach dochodzi do maleńkiego okienka prowadzącego do Trzeciej Studni w Lodowej Litworowej (patrz opis Jaskini Lodowej Litworowej).</p>
+<p>Po kilkunastu metrach od meandra odchodzi w prawo Korytarz Speleolog&oacute;w, kt&oacute;rym możemy dostać się pod najniższą pochylnię G&oacute;rki Rozrządowej (patrz opis Jaskini Nad Dachem), a dalej wąską, otwartą od dołu szczeliną do Studni z Rękawiczką. Dno Studni z Rękawiczką najłatwiej osiągnąć od tej strony zjeżdżając z okienka położonego około 8 m nad dnem. Można też zejść klasycznie przeciskając się w d&oacute;ł bardzo wąską szczeliną (patrz opis w części 11: Jaskinia Nad Dachem),</p>
+<p>Wracamy do Meandra. Pokonując jeszcze około 10 m wąskiej szczeliny dochodzimy do progu utworzonego z zaklinowanych blok&oacute;w, po przejściu kt&oacute;rych wychodzimy na Balkon w Studni Taty&nbsp;&ndash; 22 m nad jej dnem. Dolna część Studni Taty nazywana jest Bazyliką.</p>
+<p>Z dna Studni Taty odchodzi w lewo początkowo obszerny, p&oacute;źniej silnie zważający się korytarz o mytych ścianach. Jest to Korytarz Antykońcowy. Według opisu J. Grodzickiego (1971c) kończy się on u podn&oacute;ża stromego komina, w kt&oacute;rego ścianie na wysokości kilku metr&oacute;w znajduje się okno, prowadzące do r&oacute;wnoległego komina. Po prawej tuż nad spągiem wąska szczelina wyprowadza nad 2&ndash;3 m studnię z okrągłym dnem zalanym wodą.</p>
+<p>Po przeciwnej stronie do zjazdu z Balkonu otwiera się 9 m głęboka, wąska (u g&oacute;ry 0,5 m, u dołu maksymalnie l m) długa szczelina&nbsp;&ndash; Korytarz Końcowy. Strop Korytarza Końcowego jest otwarty do g&oacute;ry i stanowi dolną część Studni Flacha (patrz opis w części 5: Studnie Flacha&ndash;Szczelina Strzygi). Idąc nim po kilkunastu metrach dochodzimy do wysokiej sali o zawaliskowym dnie. Między zawaliskiem a ścianą dno pokrywa 2 m szerokości namulisko.</p>
+<p>Od zawaliska, w centralnej części sali odchodzi w d&oacute;ł po skalnych blokach korytarzyk, kt&oacute;ry w dolnej poziomej części staje się błotnisty i kończy się Syfonem Końcowym (głębokość &ndash;248 m). Miejsce to zwane jest także "starym dnem".</p>
+<p>W lewo od wejścia do Syfonu, około 3 m nad spągiem widać nieduże okno (patrz opis w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander).</p>
+<p>Dalej w lewo znajduje się stromy, częściowo wywieszony pr&oacute;g, opadający z ciągu od Prostego Meandra (patrz opis w części 5: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander).</p>
+<div><strong>&nbsp;</strong></div>
+<div><strong>3. Studnia Palidera&nbsp;&ndash; Sala Dantego&nbsp;&ndash; Bazylika.</strong></div>
+<p>Z dna Studni Palidera, po przeciwnej stronie do zjazdu wspinamy się rysą około 7 m (trudności V) do wysokiego okna. Łatwiej można je osiągnąć wahadłem podczas zjazdu Studnią. Z okna schodzimy opadającym stromo, wysokim i wąskim&nbsp;meandrem aż do rozszerzenia, skąd po około 11 m zjazdu osiągamy najwyższą cześć Sali Dantego. Studnię Palidera z Salą Dantego łączy dodatkowo poziomy korytarz, rozwinięty wyżej na tym samym pęknięciu co wspomniany wcześniej meander.</p>
+<p>Powyżej ujścia obu korytarzy do Sali Dantego rozwinął się Komin FDJ. <em>"Oddziela się on od Sali Dantego około 5 m nad okienkiem </em>(tym wyższym&nbsp;&ndash; przyp.aut.), <em>a kończy p&oacute;łką ok. 35 m nad dnem sali. Od p&oacute;łki w g&oacute;rę wznosi się 5 m kaskada, za kt&oacute;rą korytarz biegnie jeszcze ok. 10 m i znika w zawalisku" </em>(Kulbicki, 1979).</p>
+<p>Sala Dantego jest jedną z większych w jaskiniach Tatr. Rozciąga się ku zachodowi, ma 32 m długości i około 12 m szerokości. W połowie przedzielona jest 5 m wysokości progiem, opadającym ku zachodowi. Dno w g&oacute;rnej części stanowi ogromnej miąższości zawalisko, złożone z dużych blok&oacute;w skalnych. Dolna cześć Sali Dantego r&oacute;wnież nie jest pozbawiona dużych blok&oacute;w skalnych, niemniej tu dominuje gruz niewielkich rozmiar&oacute;w.</p>
+<p>Nad dolną częścią Sali Dantego, od strony p&oacute;łnocnej ściany,&nbsp;widoczny jest wysoki komin. W części bliżej Studni Taty ma on 61 m wysokości, od strony wschodniej 40 m. Na wysokości ok. 54 m nad dnem Sali, rozbudowuje się na dwie odnogi. W kierunku zachodnim znajduje się 5 m długości wąska salka&nbsp;o wysokości około 4 m ze szczeliną nie do przejścia w stropie. W kierunku wschodnim komin kontynuuje się jeszcze 7 m&nbsp;i zamyka go zawalisko złożone z dużych blok&oacute;w skalnych. W stropie zawaliska odnajdujemy wśr&oacute;d blok&oacute;w przejście do pierwszej sali. Sala ma około 5 m średnicy. Od niej odchodzą dwa ciągi: pierwszy w g&oacute;rę, w kierunku stropu tych partii, drugi w d&oacute;ł, przez Meander Wiadomo Dokąd z powrotem do Sali Dantego.</p>
+<p>Do stropu partii droga prowadzi przez 11 m wysokości pr&oacute;g, usytuowany w p&oacute;łnocnej części pierwszej sali. Pr&oacute;g w g&oacute;rnej części ma charakter zawaliskowy, taki sam charakter ma&nbsp;salka do kt&oacute;rej prowadzi. Ponad salką o nachylonym dnie wznosi się komin o wysokości 12 m. Strop komina zamyka wiszące zawalisko.</p>
+<p>Z prawej strony pierwszej sali odchodzi szeroki, niski korytarz prowadzący do Meandra Wiadomo Dokąd. Rozwinął się on w zawalisku genetycznie związanym z powstaniem pierwszej sali. Początkowo to niska , pozioma szczelina skręcająca po paru metrach pod kątem prostym w prawo do zawaliskowej salki. We wschodniej&nbsp;części odchodzi 6 m ślepy komin, w części zachodniej&nbsp;kontynuuje się stosukowo wąską i ok. 3 m wysokości szczeliną. Urywa się ona 7 m studzienką. 1,3 m nad dnem tejże znajdujemy przejście do kolejnej sali. Ta, r&oacute;wnież zawaliskowa jest wypełniona tak dużymi blokami skalnymi, że często nie wiadomo, co jest litą skałą, a co blokiem. Klucząc między blokami odnajdujemy drogę do&nbsp;meandra, kt&oacute;ry 9,5 m niżej urywa się do Sali Dantego. Tu do dna sali jest 40 m.</p>
+<p>Wracamy do Sali Dantego, w odległości około 1 m od miejsca, gdzie kończymy zjazd z meandra do Sali Dantego, otwiera się wąskie wejście do szczeliny, kt&oacute;rą można dostać się na Kolosalną Wantę, znajdującą się między Studnią Wcześniak&oacute;w a Studnią z Mostkiem Pirat&oacute;w (patrz opis w części 1: otw&oacute;r Ptasiej Studni&ndash;Studnia Palidera). Powyżej wzmiankowanego wejścia do szczeliny ku g&oacute;rze biegnie wąska, stroma rynna, prowadząca do Studni Wcześniak&oacute;w (patrz opis w części 1: otw&oacute;r Ptasiej Studni&ndash;Studnia Palidera).</p>
+<p>Trzymając się prawej ściany po 6 m od zjazdu, odnaleźć można przejście między blokami doprowadzające do Sali pod Kolosalną Wantą (patrz opis w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander).</p>
+<p>Aby dostać się w głąb jaskini schodzimy stromym kilkumetrowym progiem do niższej części sali.</p>
+<p>Z jej lewej strony widoczna jest wysoka brama o szerokości 1,5 m, przez kt&oacute;rą, zjeżdżając obok zaklinowanych blok&oacute;w, dostajemy się na niewielką, eksponowaną pochylnię. Kończy się ona 3 m progiem, kt&oacute;ry schodzi do tzw. Rynny. Tu, na lewo (ku SW), znajduje się otw&oacute;r Studni Flacha (patrz opis w części 5: Studnie Flacha&ndash;Szczelina Strzygi).</p>
+<p>W kierunku przeciwnym Rynna po kilku metrach doprowadza nad krawędź Studni Taty (P.78). Po około 30 m zjazdu osiągamy bardzo stromą p&oacute;łkę, kt&oacute;ra po około 7 m ponownie obrywa się pionowo.</p>
+<p>Po około 47 m zjazdu (licząc od krawędzi studni) mijamy po prawej stronie wysokie Okno Romana (patrz opis w części 4: Sala Dantego&ndash;Syfon końcowy przez Prosty Meander). Nieco poniżej, po prawej stronie od zjazdu, widoczne jest szczelinowe okno z zaklinowanym niedużym głazem. Łączy ono dolną część Studni Flacha ze Studnią Taty (patrz opis w części 5: Studnie Flacha&ndash;Szczelina Strzygi).</p>
+<p>Mniej więcej na tej samej wysokości, po przeciwnej stronie studni, znajduje się Balkon utworzony przez p&oacute;łkę kończącą korytarz idący od połączenia Ptasiej z Lodową Litworową (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w). Poniżej Balkonu wypływa stały, niewielki strumień wody.</p>
+<p>W lewo od Balkonu, w załamaniu skalnym znajduje się niewidoczne z tej strony okno uchodzące z Jaskini nad Dachem(patrz opis w części 11: Jaskinia Nad Dachem).</p>
+<p>Dno Studni Taty nazywane jest Bazyliką. Tu droga do Syfonu Końcowego przez Studnię Taty łączy się z drogą odkrywc&oacute;w (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w).</p>
+<div><strong>&nbsp;</strong></div>
+<div><strong>4. Sala Dantego&nbsp;&ndash; Syfon </strong><strong>Końcowy przez Prosty Meander.</strong></div>
+<p>W g&oacute;rnej części Sali Dantego w jej wschodnim krańcu między ogromnymi blokami znajduje się przejście w d&oacute;ł (około 6 m od miejsca zjazdu). Schodząc po blokach szybko obniżamy się aż do wyraźnego rozszerzenia, kt&oacute;remu towarzyszy poprzeczne pęknięcie. Ściany są tu w większości lite. Skręcamy w lewo na prożek z zaklinowanych w szczelinie want i schodzimy po nich do Sali pod Kolosalną Wantą.</p>
+<p>Jej spąg, pokryty łatwo osypującym się rumoszem skalnym, opada nad Studnię z Mostkiem Pirat&oacute;w, uchodząc do niej około 17 m nad dnem. Nad najniższą częścią sali, około 6 m nad przełamaniem w Studnię z Mostkiem Pirat&oacute;w, zaklinowana jest Kolosalna Wanta (patrz opis w części 1: otw&oacute;r Ptasiej Studni&ndash;Studnia Palidera i opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w). W stropie, nad Kolosalną Wantą, otwiera się wylot Studni Wcześniak&oacute;w (patrz opis w części l: otw&oacute;r Ptasiej Studni&ndash;Studnia Palidera i opis w części 3: Studnia Palidera&ndash;Sala Dantego&ndash;Bazylika). W g&oacute;rnej części Sali pod Kolosalną Wantą otwiera się w prawo w d&oacute;ł, początkowo niska, potem wysoka na parę metr&oacute;w pochylnia, kt&oacute;rą po 15 m kończy płaskie namulisko nad Studnią Wścietoperzy. Powyżej namuliska na wysokości około 4 m widoczne są dwa okienka: oba doprowadzają do Sali pod Trawersem (patrz opis w części 6; Nad Studnią Wścietoperzy&ndash;Sala pod Trawersem&ndash;Studnia z Mostkiem Pirat&oacute;w).</p>
+<p>Studnia Wścietoperzy ma 30 m głębokości. Po około 3 m zjazdu na przeciwległej ścianie za skalnym załomem znajduje się niewidoczny wylot korytarzyka, idącego spod Komina Ostrowskiego (patrz opis w części 8: Komin Pustynna Burza&ndash;Partie Sądeckie). Parę metr&oacute;w niżej od wspomnianego wylotu korytarzyka w prawo widać skalną zasłonę, za kt&oacute;rą znajduje się wylot korytarzyka, kt&oacute;ry po paru metrach poziomego przebiegu wpada ponownie do Studni Wścietoperzy.</p>
+<p>Po 20 m zjazdu od krawędzi studni mijamy skalny most. Dno studni jest rozbudowane, Po lewej mamy owalne przewężenie wysokości 10 m, kt&oacute;rym z p&oacute;łki w studni spływa woda. Na wprost znajduje się niskie przejście do "Syfonu" Pasożyt&oacute;w. Na planie ma on kształt tr&oacute;jkąta, około 8 m długości, maksymalną szerokość 2,5 m, pionowe ściany. Po zlewarowaniu wody okazało się, że jest to jeziorko 4 m głębokości. Nad wodą strop stromo wznosi się w kierunku gł&oacute;wnej części studni. Nad "syfonem" stroma i śliska pochylnia zamknięta jest od g&oacute;ry blokiem skalnym.</p>
+<p>Właściwe dno studni jest nachylone w kierunku "syfonu" i w przeciwną stronę kontynuuje się pochylnią do g&oacute;ry i przechodzi w korytarz będący częścią Partii CDN (patrz opis w części 9: Komin Pustynna Burza&ndash;Partie CDN).</p>
+<p>Nieco w prawo od niskiego przełazu do "syfonu", w spągu otwiera się wąska, głęboka szczelina, kt&oacute;ra po paru metrach rozszerza się w studnię, do kt&oacute;rej wpada tu woda. Studnia ma 15 m głębokości i łączy się z Prostym Meandrem, kt&oacute;ry opada w tym miejscu stromymi kaskadami. Po kilkunastu metrach woda płynie w dnie korytarza, bardzo wąską, niedostępną dla człowieka szczeliną. Na ścianach widoczne są dobrze wykształcone listwy erozyjne. Po około 10 m w stropie meandra widoczny jest nie zbadany komin. Po następnych kilkunastu metrach meander urywa się około 7,5 m wysokości progiem, nad kt&oacute;rym odchodzi kilkumetrowy kominek. Wiedzie on do poziomych korytarzyk&oacute;w, z kt&oacute;rych jeden odchodzi pod kilkunastometrową studzienkę, znajdującą się nieopodal dna Studni Wścietoperzy (patrz opis w części 9: Komin Pustynna Burza&ndash;Partie CDN). Spod progu (R.7,5) droga prowadzi w g&oacute;rę bardzo śliską szczeliną, za kt&oacute;rą, parę metr&oacute;w dalej, meander przełamuje się i zaczyna opadać. 25 m dalej Prosty Meander dochodzi do rozdroża, na kt&oacute;rym w prawo odchodzi szczelina do Okna Romana w Studni Taty, a w d&oacute;ł droga wiedzie do Syfonu Końcowego.</p>
+<p>Do Okna Romana kierujemy się w prawo, wąskim i wysokim meandrem, kt&oacute;ry po 13 m rozszerza się w salce z zaklinowanymi wantami w spągu. Dalej korytarz kontynuuje się poziomo, w g&oacute;rnej części ma owalny kształt przekroju, w dnie&nbsp;&ndash; klasyczną rynnę denną. Parę metr&oacute;w od zawaliskowej salki w dnie korytarza otwiera się głęboka na 10 m szczelina. Cofając się jej dnem dochodzimy nad studzienkę i po 6 m zjazdu osiągamy śliską pochylnię, kt&oacute;rą idąc w d&oacute;ł dostajemy się do Sali nad Progiem (patrz opis dalej). Nie zjeżdżając na dno szczeliny, trzymając się g&oacute;rnej części korytarza po 13 m dochodzimy do ostrego zakrętu w prawo i po paru metrach osiągamy salkę z dnem</p>
+<p>pokrytym ilastym namuliskiem. W stropie tej salki można dostrzec słabo widoczne, dotychczas niezbadane okno. Po pokonaniu dw&oacute;ch po sobie następujących, dwu metrowej wysokości prog&oacute;w, wchodzimy do meandra, kt&oacute;rym dochodzimy do Studni Taty, 22 m nad jej dnem (patrz opis w części 3: Studnia Palidera&ndash;Sala Dantego&ndash;Bazylika).</p>
+<p>Wracamy do rozdroża u wylotu Prostego Meandra, gdzie między zaklinowanymi blokami czernieje otw&oacute;r kolejnej studni &ndash; P.15. Po paru metrach zjazdu do studni wpada woda pochodząca z Prostego Meandra. Po 11 m zjazdu znajdujemy stromą i rozległą p&oacute;łką. Z dna studni w lewo obniżający się korytarz schodzi do zamulonego Syfonu Piaszczystego, kt&oacute;ry nie zawsze wypełniony jest wodą. Syfon ten jest najdalej na południe wysuniętym punktem jaskini.</p>
+<p>W przeciwnym kierunku wysoki korytarz po kilkunastu metrach gwałtownie opada, kończąc się ślepo.</p>
+<p>Dalsza droga wiedzie przez około 2 m wysokości prożek (trudności III), kt&oacute;ry prowadzi do wąskiego i niskiego przełazu. Przed przełazem w lewo odchodzi stroma pochylnia, kt&oacute;ra po kilkunastu metrach zwęża się w niedostępną szczelinę.</p>
+<p>Za przełazem stromy korytarz sprowadza do Sali nad Progiem gdzie po prawej stronie widnieje pochylnia łącząca salę z ciągiem od strony Okna Romana. Po prawej stronie tuż nad progiem znajduje się okno do kr&oacute;tkiego ciągu, na kt&oacute;ry składa się kilka ciasnych korytarzyk&oacute;w. Prowadzą one między innymi do szczeliny nad Syfonem Końcowym, do okienka w sali zamykającej Korytarz Końcowy.</p>
+<p>Wracamy do Sali nad Progiem. Poniżej 4 m progu, utworzonego z zaklinowanych blok&oacute;w skalnych, znajduje się sala będąca częścią Korytarza Końcowego (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w).</p>
+<div><strong>&nbsp;</strong></div>
+<p><strong>5. Studnie Flacha&nbsp;&ndash; Szczelina Strzygi.</strong></p>
+<p>Rynna pod Salą Dantego, kt&oacute;rą dostajemy się do Studni Taty (patrz: opis w części 3: Studnia Palidera&ndash;Sala Dantego&ndash;Bazylika) kontynuuje się w przeciwną stronę wysoką i głęboką szczeliną.</p>
+<p>Idąc do g&oacute;ry przez małe okienko w stropie komina nad Studnią Flacha (12 m wyżej) dostajemy się do Salki z Jeziorkiem. Dalsza droga prowadzi 10 m kominem, powyżej kt&oacute;rego znajduje się Sala W-W. Powyżej niej zn&oacute;w szczeliną idziemy do g&oacute;ry około 10 m, a dalej kominem do salki pod następny komin, kt&oacute;ry kończy się niedostępną szczeliną. Z salki w d&oacute;ł biegnie meanderek, kt&oacute;ry urywa się studnią, wpadającą z powrotem do Sali</p>
+<div>W-W (wg Kulbickiego 1979).</div>
+<p>Wracamy do Rynny. Tu w jej dnie zaczynają się Studnie Flacha, rozwinięte na szczelinie o przebiegu WSW&ndash;ENE. Ich ciąg uchodzi do Korytarza Końcowego (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w). G&oacute;rna część Studni Flacha ma 42 m głębokości, a jej dno pokryte jest rumoszem skalnym. W prawej g&oacute;rnej części na końcu niewielkiego tarasu widnieje mała, 3 m głębokości, ślepa studzienka.</p>
+<p>W dolnej części dna studni między blokami jest wejście do 8 m studzienki, z kt&oacute;rej dna</p>
+<div>odchodzą dwa ciągi.</div>
+<p>Idąc z dna studzienki jakby z powrotem, wchodzimy w ciasny otw&oacute;r zaczynający drugą część Studni Flacha. Początkowo studnia opada stromymi progami, potem poniżej zacisku zwanego &Oacute;semką rozbudowuje się i łączy poprzez okna ze Studnią Taty (patrz opis w części 3: Studnia Palidera&ndash;Sala Dantego&ndash;Bazylika). Studnie Flacha wpadają do Korytarza Końcowego (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą</p>
+<div>odkrywc&oacute;w).</div>
+<p>Wracamy na dno 8 m studzienki. Odchodzi tu ku N wąski, wznoszący się meanderek. Na jego końcu, w d&oacute;ł urywa się ślepa, 8-metrowej długości, bardzo stroma pochylnia. W przedłużeniu meandra, na wprost, znajduje się pionowa, zaciskowa szczelina, z ładnymi listwami erozyjnymi. Jest to Zacisk Klasy Lux o długości 3 m (Z 1).</p>
+<p>Za zaciskiem, trzymając się tej samej wysokości i po przekroczeniu 2 m studzienki znajdujemy kontynuacje meandra, kt&oacute;ry kończy się po kilkunastu metrach. Natomiast schodząc 2 m studzienką w d&oacute;ł, natrafiamy na kr&oacute;tki i ciasny korytarzyk, po pokonaniu kt&oacute;rego stajemy nad bardzo stromą pochylnią. Pionowe wejście do niej jest wąską szczeliną, rozszerzającą się niżej. Przez pierwsze 14 m pochylnia opada pod kątem 80&deg;, potem jej nachylenie zmniejsza się do 60&deg;. Między początkiem i końcem pochylni deniwelacja wynosi 43 m. Przy jej końcu osiągamy poprzeczne pęknięcie. Idąc tym pęknięciem w lewo, po 8 m dochodzimy do ciągu początkowo wznoszącego się, a następnie opadającego wąską, krętą rurą.</p>
+<p>Idąc w prawo, po pokonaniu 1,5 m prożka z płynącą po listwie erozyjnej wodą, wchodzimy w wysoką, wąską szczelinę, kt&oacute;ra po 13 m przechodzi w kr&oacute;tki, myty meander nazwany Ślimakiem.</p>
+<p>Przed wejściem do Ślimaka, na prawo w g&oacute;rze, w szczelinie, widoczny jest okrągły wylot korytarzyka ze stale wypływającą wodą. Prawdopodobnie nie był sprawdzany. Na wprost znajduje się stroma pochylnia opadająca w kierunku Ślimaka. Kontynuuje się ona w prawo do g&oacute;ry, w kierunku Jaskini nad Dachem(patrz opis Jaskini Nad Dachem).</p>
+<p>Po wyjściu ze Ślimaka bardzo wąska, kilkumetrowa szczelina doprowadza nas nad studnię zwaną Mokrą Osiemnastką (P. 18). Osłaniający się nad krawędzią studni korytarz kończy się po paru metrach w stropie. Z wąskiego wejścia rozpoczynamy zjazd w szeroką przestrzeń studni, do kt&oacute;rej parę metr&oacute;w niżej wpada woda, rozpryskując się szeroko. Z dna studni wchodzimy do wysokiego na kilkanaście metr&oacute;w, stosunkowo wąskiego Kanionu, kt&oacute;rego dnem płynie woda. Idąc nim dalej po drodze mijamy otwierający się w stropie komin. Po około 50 m od Mokrej Osiemnastki, na jednym z zakręt&oacute;w Kanionu, po prawej stronie, wznosi się do g&oacute;ry rozwinięty na szczelinie korytarz, dający początek Partiom Cocktail-Baru. Idąc w ich kierunku po 12 m korytarz wchodzi do niewielkiej, acz wysokiej salki, stanowiącej podstawę 6 m kaskady, stanowiącą dolną część komina P. 25. Jego ścianami spływa woda, a g&oacute;rną część tworzą zaklinowane bloki skalne. W prawo od nich odchodzi 15 m kominek,</p>
+<p>kt&oacute;rym osiągamy wylot korytarzyka prowadzącego na płaskie, gliniaste dno kolejnego, 10 m wysokości komina (P. 10), zwane Błotną Salką.</p>
+<p>Na wysokości 5 m nad dnem Błotnej Salki, po lewej stronie znajduje się okno prowadzące do ciągu zwanego Zmorą. Parę metr&oacute;w za oknem odchodzi w g&oacute;rę ślepy, 8 m kominek. Dalej korytarz obniża się i poprzez stromy pr&oacute;g prowadzi do poprzecznej szczeliny. Tu w lewo ku SW strop szczeliny po kilkunastu metrach obniża się i dalej biegnie bardzo wąskim korytarzykiem z licznymi grzybkowymi naciekami na ścianach. W prawo wznosi się pionowym, 12 m wysokim kominem (P. 12). Jego strop można także osiągnąć stromą pochylnią, pokrytą polewami naciekowymi, otwierającą się na wprost wejścia do wspomnianej powyżej szczeliny.</p>
+<p>Powyżej komina P. 12 szczelina biegnie ku NE. W swej dolnej części tworzy meander, wznoszący się progami do zawaliska, uniemożliwiającego dalsze przejście. G&oacute;rna jej część prowadzi pochylnią do ciasnego, kruchego przełazu, za kt&oacute;rym znajduje się 4 m pr&oacute;g. Nad nim jest widoczna wąska, niedostępna dla człowieka szczelina, z kt&oacute;rej w lecie wypływa z szumem powietrze. Tu na ścianach zauważono liczne much&oacute;wki, pojedyncze pająki i ćmy. Prawdopodobnie ta część jaskini leży bardzo blisko powierzchni. Jest to końcowa część ciągu zwanego Zmorą.</p>
+<div>Szczelina ta znajduje się w piargu u&nbsp;podn&oacute;ża Ratusza Mułowego.</div>
+<p>Wracamy do Błotnej Salki. W jej stropie 10 m nad dnem wznosi się stromy, wąski i wysoki meander. Po pokonaniu dw&oacute;ch parometrowych prog&oacute;w, dochodzimy do zasypanej rumoszem, osypującej się pochylni. Po paru metrach na prawo przechodzi ona w 5 m wysoki kominek, zamknięty w stropie szczeliną nie do przejścia. Wcześniej po prawej stronie w ścianie pochylni widoczne jest na wysokości 3 m okno, za kt&oacute;rym szczelina zwęża się i staje się niedostępna.</p>
+<p>Wracamy do Kanionu. Po około 7 m od wejscia do Partii Cocktail-Baru, w lewo do g&oacute;ry odchodzi ciąg do Szczeliny Strzygi, na wprost do Studni Moczydupka. Urywa się ona w przewężeniu korytarza, parę metr&oacute;w od odejścia ciągu do Szczeliny Strzygi. Z jej dna, 11 m poniżej g&oacute;rnej krawędzi, można dojść do syfonu, zamykającego ten fragment jaskini, dwiema drogami:</p>
+<p>&ndash;&nbsp;w lewo niską początkowo pochylnią dojdziemy do salki przed syfonem,</p>
+<p>&ndash;&nbsp;w prawo, po pokonaniu 2,5 m skalnej bariery, dostajemy się do wysokiej sali, opadającej trzema prożkami (0,5, 1,0 i 1,5 m) do wspomnianej już salki przed syfonem.</p>
+<p>Wracamy do rozdroża przed Studnią Moczydupka. Niskim progiem podchodzimy pod śliską, stromą i wąską pochylnię, prowadzącą do niskiego, błotnistego korytarzyka, za kt&oacute;rym:</p>
+<p>&ndash;&nbsp;w lewo do g&oacute;ry biegnie wąska, wysoka i śliska pionowa szczelina. Na końcu wypłaszcza się i prawdopodobnie łączy się oknem z Kanionem.</p>
+<p>&ndash;&nbsp;na wprost znajduje się kontynuacja korytarza. Jest on tu znacznie wyższy, dochodząc miejscami do 3 m. Korytarz kończy się błotnistą i rozległą pochylnią z dwoma niedużymi progami. Idąc dalej w d&oacute;ł po niewielkich blokach skalnych i namulisku dochodzimy do miejsca gdzie :</p>
+<p>&ndash;&nbsp;&nbsp; na wprost mamy niska salkę z namuliskiem w dnie, na końcu kt&oacute;rej po lewej stronie odchodzi wąski, niski, myty korytarzyk (prawdopodobnie dotychczas niezbadany).</p>
+<p>&ndash;&nbsp;&nbsp; w prawo, w d&oacute;ł kaskadami kontynuuje się w wąski, niski korytarz z płynąca wodą w dnie. Po drodze mijamy zacisk 4/3 i po dw&oacute;ch ostrych zakrętach (w prawo, a następnie w lewo) wchodzimy do poprzecznej szczeliny. W prawo po 6 m szczelinę zamyka płytkie jeziorko. Natomiast idąc w lewo po 8 m stajemy nad 5 m progiem. Poniżej progu otwiera się sala z filarkiem po prawej. Za filarkiem znajduje się zamulony korytarzyk. Poniżej urywa się kolejny, 4 m pr&oacute;g. Parę metr&oacute;w dalej wąską szczeliną dochodzimy do kolejnego rozdroża.</p>
+<p>W prawo wznosi się Korytarz Pawełka. Po paru metrach skręca on ostro w lewo, na śliską, słabo urzeźbioną, o litym, skalnym dnie pochylnię. Powyżej niej znajduje się kilkumetrowy korytarzyk z progiem w d&oacute;ł, kt&oacute;ry kontynuuje się dalej w d&oacute;ł (ciasno). Wracamy do rozdroża. Meandrem schodzimy nad kolejny pr&oacute;g R.6. Poniżej progu korytarz rozszerza się. Idąc w d&oacute;ł, w kierunku spływu wody, możemy dostać się nad</p>
+<div>kolejną studnię.</div>
+<p>Idąc na wprost widoczną, niewysoką, lekko pochyloną szczeliną (Szczelina nie do Wyjścia), możemy dostać się do śliskiej, stromo opadającej pochylni. Trawersując ją przechodzimy do stromego korytarzyka biegnącego od pochyłego komina nad kolejną studnię (Mokra Jedenastka P.ll). Nieco poniżej przełamania wpada do niej sporych rozmiar&oacute;w strumień, powodujący intensywny deszcz podziemny. Od dna studni droga biegnie dalej wąską, wysoką i nachyloną szczeliną. W d&oacute;ł szczelina ma tendencje do zwężania się. Jej dnem płynie woda. Dolna część tej szczeliny została nazwana Szczeliną Strzygi. Poniżej 5 m progu znajduje się najniżej położony punkt całego systemu &ndash;352 m.</p>
+<div><strong>&nbsp;</strong></div>
+<p><strong>6. Nad Studnią Wścietoperzy &ndash; Sala pod Trawersem&nbsp;&ndash; Studnia z Mostkiem Pirat&oacute;w.</strong></p>
+<p>Nad płaskim namuliskiem powyżej Studni Wścietoperzy (patrz opis w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander), na wysokości około 4 m czernieją dwa małe okienka. Lewe jest wąskie i prawdopodobnie nie do przejścia. Prawe osiągalne jest po wspinaczce (trudności IV). Za nim ciasny korytarzyk doprowadza do Sali pod Trawersem, nazwanej tak ponieważ w otwartej od g&oacute;ry szczelinie, na wysokości 19 m biegnie trawers doprowadzający do Komina Pustynna Burza (patrz opis w części 7: Mostek Pirat&oacute;w&ndash;Komin Pustynna Burza). W prawo w skos w g&oacute;rę widoczne jest małe okienko łączące Salę pod Trawersem z Kominem Pustynna Burza. Po paru metrach Sala pod Trawersem opada do jej dolnej części, w kt&oacute;rej w ścianie na wprost, na wysokości około 10 m, znajduje się okno. Z dolnej części sali dostajemy się do wąskiego i bardzo wysokiego meandra. Trzymając się jego stropu dochodzimy do miejsca, gdzie meander skręca pod kątem prostym w lewo, a d&oacute;ł rozszerza się w wyraźną Studzienkę na Zakręcie (P.12), kt&oacute;rą możemy zjechać (mijając po drodze pokrytą namuliskiem p&oacute;łkę) do sali biwakowej "pod Mostkiem Pirat&oacute;w" (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w).</p>
+<p>Cofając się meandrem parę metr&oacute;w od g&oacute;rnej części Studzienki na Zakręcie dochodzimy do miejsca, skąd możliwe jest przejście lekko w d&oacute;ł do salki. Stąd idąc 3 m, trudnym progiem do g&oacute;ry, a następnie wąskim korytarzykiem możemy dojść do dolnego okna w Studni z Mostkiem Pirat&oacute;w (patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy drogą odkrywc&oacute;w). Natomiast idąc w lewo, bardzo stromo do g&oacute;ry, 5 m kominkiem i potem w lewo wąską szczeliną, możemy wyjść na początku meandra, odchodzącego z Sali pod Trawersem.</p>
+<div><strong>&nbsp;</strong></div>
+<div><strong>7. Mostek Pirat&oacute;w&nbsp;&ndash; Komin Pustynna Burza.</strong></div>
+<p>Poniżej p&oacute;łki&nbsp;&ndash; Mostka Pirat&oacute;w&nbsp;&ndash; po 12 m natrafiamy na sporych rozmiar&oacute;w skośne okno. Za nim w prawo do g&oacute;ry znajduje się stroma pochylnia, kt&oacute;ra po 5 m zakręca w prawo i uchodzi do Studni z Mostkiem Pirat&oacute;w 8 m poniżej krawędzi Mostka.</p>
+<p>3 m w d&oacute;ł za krawędzią okna znajduje się rozdroże. W lewo stromo opada otwarty od dołu korytarzyk z listwami erozyjnymi, kt&oacute;ry po około 4 m urywa się głęboką na 18 m studzienką. Po paru metrach zjazdu natrafiamy na p&oacute;łkę, od kt&oacute;rej odchodzi Korytarz Urojeniowy (patrz opis w części 8: Komin Pustynna Burza&ndash;Partie Sądeckie). Studzienka kończy się w korytarzu między dnem Studni z Mostkiem Pirat&oacute;w a salą biwakową "pod Mostkiem Pirat&oacute;w"(patrz opis w części 2: Studnia Palidera&ndash;Syfon Końcowy droga odkrywc&oacute;w).</p>
+<p>Wracamy do rozdroża za oknem. W prawo do g&oacute;ry odchodzi stąd meander, kt&oacute;ry po kilkunastu metrach doprowadza do kolejnego rozdroża. Idąc zwężającą się tu kontynuacją meandra, po 6 m dochodzimy do okienka, otwierającego się w ścianie Sali pod Kolosalną Wantą (patrz opis w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander).</p>
+<p>Ponownie wracamy do ostatniego rozdroża. Wspinamy się około 3 m do małego okienka pod stropem i za nim ciasną pochylnią przedostajemy się pod 4 m pr&oacute;g. Tu ciąg rozwidla się. W d&oacute;ł odchodzi stroma, kr&oacute;tka pochylnia prowadząca do Sali pod Trawersem (patrz opis w części 6: nad Studnią Wścietoperzy&ndash;Sala pod Trawersem&ndash;Studnia z Mostkiem Pirat&oacute;w). W g&oacute;rę przez wspomniany 4 m pr&oacute;g dochodzimy do początku kilkumetrowego trawersu nad Salą pod Trawersem. Przed jego początkiem, w prawo w g&oacute;rę biegnie wąska i wysoka szczelina, kt&oacute;rą można dojść do okna w Kominie Pustynna Burza (około 36 m nad jego dnem), w okolicy Meandra Wisielc&oacute;w (patrz opis w części 8: Komin Pustynna Burza&ndash;Partie Sądeckie).</p>
+<p>Wspomniany wyżej trawers kończy się w wysokim oknie w ścianie Komina Pustynna Burza. Od tego miejsca komin rozwija się 45 m do g&oacute;ry i 22 m w d&oacute;ł, mając średnio 6 m średnicy. Po paru metrach zjazdu widać po przeciwległej stronie studni p&oacute;łkę pokrytą namuliskiem, kt&oacute;ra w jej najdalszym krańcu przechodzi w bardzo wąski, niedostępny dla człowieka, kręty korytarzyk. Mniej więcej na tej samej wysokości, za skalnym załomem schowane jest okienko, łączące Komin Pustynna Burza z Salą pod Trawersem (patrz opis w części 6: nad Studnią Wścietoperzy&ndash;Sala pod Trawersem&ndash;Studnia z Mostkiem Pirat&oacute;w). Po 22 m zjazdu osiągamy dno zawalone rumoszem r&oacute;żnej wielkości, skąd wysoki korytarz prowadzi do partii CDN (patrz opis w części 9: Komin Pustynna Burza&ndash;partie CDN).</p>
+<div><strong>&nbsp;</strong></div>
+<div><strong>8. Komin Pustynna Burza&nbsp;&ndash; Partie Sądeckie.</strong></div>
+<p>Wspinając się 12 m w g&oacute;rę od okna, kt&oacute;rym z trawersu dostajemy się do Pustynnej Burzy, po prawej stronie osiągamy wylot Meandra Wisielc&oacute;w. Parę metr&oacute;w w prawo od ujścia Meandra na niewielkiej p&oacute;łeczce widać otw&oacute;r korytarza, kt&oacute;ry jest kontynuacją szczeliny mającej początek przed trawersem prowadzącym do Pustynnej Burzy. Meander Wisielc&oacute;w jest wysoką wąską szczeliną kt&oacute;ra poniżej 9 m progu, sprowadzającego do obszernej zawaliskowej sali, ponownie zwęża się i wpada do Komina Ostrowskiego na wysokości 18 m nad jego dnem. Ma on około 40 m wysokości, a jego strop jest stropem Meandra Wisielc&oacute;w. Dno o średnicy około 6 m pokryte jest namuliskiem. Pod cienką warstwą gliny występuje tu warstwa piasku składającego się z drobnych kryształk&oacute;w kalcytu, pochodzącego prawdopodobnie ze zniszczenia starych polew naciekowych. Z dna Komina Ostrowskiego odchodzi w kierunku zachodnim 8 m długości korytarzyk, kt&oacute;ry wpada na wysokości 28 m do Studni Wścietoperzy (patrz opis w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander).</p>
+<p>Wracamy do Komina Pustynna Burza. 16 m wyżej nad Meandrem Wisielc&oacute;w po przeciwnej stronie widać okno z cieknącą po ścianie wodą, prowadzące do Gorącego Meandra. Ma on ponad 80 m długości, średnio 1,5 m wysokości i 0,4 m szerokości. Jest pięknie myty i kręty. Końcowy, kilkumetrowy prosty odcinek kończy meander we Franusiowej Studni, w oknie na wysokości około 14 m nad dnem (patrz opis w dalszej części).</p>
+<p>Ponownie wracamy do Komina Pustynna Burza. 7 m wyżej (57 m nad dnem Komina) znajduje się nieduża p&oacute;lka o przewieszonych ścianach. Z p&oacute;łki w lewo do g&oacute;ry można wspiąć się około 5 m do ślepego okienka. W prawo Komin Pustynna Burza wznosi się jeszcze 10 m i uchodzi do Meandra Majowego. Ma on ponad 150 m długości, biegnie w kierunku wschodnim wznosząc się do g&oacute;ry i kontynuuje się jeszcze za przełazem zwanym Okiem Demona,</p>
+<p>Po kilku metrach od wejścia z Komina Pustynna Burza meander zdecydowanie skręca w prawo. Na zakręcie znajduje się zamulona po strop, niska salka. Dalej pod (lub nad) zaklinowanym w korytarzu blokiem skalnym przedostajemy się do niewielkiego rozszerzenia. Z niego w lewo, ponad l m prożkiem, trawersujemy niską i śliską pochylnią, po przejściu kt&oacute;rej znowu wchodzimy do typowego meandra. Jego wysokość rośnie i po kilkunastu metrach wpada do zawaliskowej sali, pod progiem dno pokryte jest gliniastym namuliskiem jest a w jego zagłębieniu stoi woda. Jest to Posterunek Wysunięty. Parę metr&oacute;w nad spągiem widoczne jest łatwo dostępne okienko, za kt&oacute;rym myty i wąski korytarzyk wznosi się łącząc się ze studzienką poniżej Salki z Listwami (opisana poniżej). Posterunek Wysunięty zamyka pr&oacute;g 10 m wysokości, na kt&oacute;ry można dostać się obejściem. Zaczyna się ono we wcześniejszej części meandra, jeszcze przed Posterunkiem. Tu wspinamy się do miejsca, gdzie po prawej stronie zobaczymy opadającą w kierunku zachodnim pochylnię. Idąc nią do g&oacute;ry dochodzimy nad pr&oacute;g Posterunku Wysuniętego. Dalej idziemy (nad Posterunkiem) meandrem, trzymając się raczej stropu i dochodzimy do sali z pięknym namuliskiem w dnie i skośnymi listwami erozyjnymi rozwiniętymi na wysokości od l do 3,5 m. Jest to Salka z Listwami.</p>
+<p>Przed wejściem do Salki z Listwami w spągu znajduje się metrowa studzienka, przechodząca w wąski opadający korytarzyk, dochodzący do okna w progu Posterunku Wysuniętego.</p>
+<p>Korzystając z listew erozyjnych, szeroką zapieraczką wchodzimy na wspomniany wcześniej, 3,5 m prożek, by po niecałych 10 m znaleźć się w kolejnym rozszerzeniu meandra i pod następnym, 2 m progiem. Powyżej kolejnego 1,5 m progu meander po kilkunastu metrach dochodzi nad Franusiową Studnię.</p>
+<p>Tu znajduje się bardzo ważne rozdroże. Idąc w g&oacute;rę Meandra nad Franusiową Studnią dochodzimy do Studni Oddziału PTTK "Beskid", Partii Rozrywkowych i Jeziora Wielki Kłamca oraz obejścia tego jeziora i Studni Romea i Julii. W d&oacute;ł przez Franusiową Studnię dostajemy się do Studni Romea i Julii, do Meandra Harleąuin, Kanał&oacute;w oraz Korytarza Urojeniowego i z powrotem do drogi odkrywc&oacute;w.</p>
+<div><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A. Droga&nbsp;przez Franusiową Studnię</strong></div>
+<p>Franusiowa Studnia jest w miarę regularną rurą o głębokości 20 m i średnicy około 3 m. Po około 6 m zjazdu, w pionowym wymyciu widoczne są dwa okienka, prowadzące do zakończenia Gorącego Meandra. Z dna studni prowadzi niska pochylnia, pełna dużych naciek&oacute;w grzybkowych. Wchodzimy nią do niskiego meandra z otwartą szczeliną w spągu. Meander po pierwszym zakręcie biegnie prosto i po 20 m urywa się Studnią Romea i Julii (P.58). Wejście do studni jest trudne i wąskie. Początkowo zjazd prowadzi ciasną, ciągnącą się w obie strony szczeliną. Po około 4 m studnia rozszerza się. Po lewej stronie, 6 m poniżej krawędzi studni znajduje się okno, za kt&oacute;rym biegnie opadający meander, nazwany Torem Bobslejowym. Po kilkunastu metrach kończy się on niedostępną, skośną szczeliną.</p>
+<p>Na wprost widzimy okno Meandra Kapuletich. Wznoszący się do g&oacute;ry meander jest ładnie wykształcony, bardzo wysoki. Ma 86 m długości i biegnie w kierunku p&oacute;łnocnym. Parę metr&oacute;w od wejścia, na zakręcie mijamy studzienkę, kt&oacute;ra wpada do studni P.58 kilka metr&oacute;w niżej. W końcowej części meander rozdziela się na 3 niskie korytarzyki. Dolny jest wypełniony namuliskiem gliniasto-żwirowym, środkowy przechodzi w ciąg skręcający w lewo i wypełniony jest pod strop namuliskiem. Najwyższy stanowi nachylona, niedostępna dla człowieka pochylnia.</p>
+<p>Kontynuujemy zjazd Studnią Romea i Julii. Po 30 m stajemy na krawędzi p&oacute;łki &ndash; Balkonu Julii, kt&oacute;ry jest początkiem Meandra Harlequin.</p>
+<p>Meander Harlequin jest wąski i bardzo wysoki, ma 130 m długości. Po l6 m od wejścia urywa się 8 m progiem, nad kt&oacute;rym w stropie znajduje się okno łączące meander z ciągiem nad p&oacute;łką Romea (patrz opis niżej). Kilkanaście metr&oacute;w dalej, po przejściu nad ślepą, płytką studzienką, stajemy w niewielkim rozszerzeniu skąd dalej prowadzą dwie drogi:</p>
+<p>&nbsp;&ndash; idąc g&oacute;rnym wymyciem meandra, po kilkunastu metrach ciąg kończy się niedostępną szczeliną.</p>
+<p>&ndash;&nbsp;idąc wąskim dnem meandra dochodzimy do rozszerzenia, w kt&oacute;rego dnie otwiera się coraz bardziej eksponowana szczelina. Tu meander urywa się 14 m studnią, zwaną Prysznicem ze wzglądu na obfity deszcz podziemny w jej dolnej części. Na dnie zwraca uwagę duży, sześcienny blok (2x2x2 m), pokrywający je prawie w całości. Stąd</p>
+<div>prowadzą trzy drogi:</div>
+<div>a&nbsp;&ndash; w d&oacute;ł pod blokiem do zakończenia Meandra Harlequin;</div>
+<p>b&nbsp;&ndash; na wprost i trawersem za wantą w lewo do Maniany i korytarzy łączących się przy Filarze i do Korytarza Urojeniowego;</p>
+<div>c&nbsp;&ndash; w lewo do g&oacute;ry, nad wantą do Kanału Lewego i Prawego.</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>a)</strong> Obchodzimy blok po prawej stronie i po paru metrach trawersu zjeżdżamy około 4 m do stromej pochylni, kt&oacute;ra po 7 m urywa się 3,5 m progiem Pod nim dalszą drogą zagradza płytkie jeziorko, z kt&oacute;rego woda wypływa dalej na p&oacute;łce w Studni Eldorado (patrz opis drogi "b"). I tu Meander Harlequin kończy się.</p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b) </strong>Obchodząc blok trawersem, po przeciwległej stronie znajdujemy wejście do niskiego i wąskiego korytarzyka, kt&oacute;ry po 3 m rozwidla się. Po lewej stronie znajduje się 3,5 m głęboka studzienka, dająca początek bardzo wąskiemu ciągowi &ndash; zwanym Ciągiem Maniana&nbsp;&ndash; prowadzącemu do Korytarza Urojeniowego. Pod nią otwiera się następna studzienka o podobnej głębokości, a z jej dna odchodzi bardzo niski, szczelinowy korytarzyk, uchodzący w ścianie odnogi Korytarza Urojeniowego, opisanego dalej. Po wyjściu z Maniany stajemy w nisko sklepionej salce, z namuliskiem na dnie, kt&oacute;ra w prawo urywa się 4 m studzienką. Jej ściana sąsiaduje bezpośrednio ze ścianą Eldorado poprzez małą "dziurkę". W lewo salka wznosi się i dochodzi do g&oacute;rnego zakrętu Korytarza Urojeniowego. Wracamy do rozwidlenia przed Ciągiem Maniana. W prawo w d&oacute;ł biegnie niski i stromy korytarz, kt&oacute;ry po paru metrach kończy się trudnym do zejścia, 3 m progiem. W salce poniżej po lewej stronie znajduje się okno i niski Filar. Mijając go z prawej strony dochodzimy nad krawędź Studni Eldorado (P.10). Idąc przez okno i mijając Filar z lewej strony, dochodzimy do r&oacute;wnoległego korytarzyka, kt&oacute;ry w g&oacute;rę prowadzi do Kanału Prawego, natomiast w d&oacute;ł wyprowadza ponownie nad krawędź Studni Eldorado. Z tej strony studni, idąc w prawo do g&oacute;ry można dojść do Kanału Lewego, zaś idąc w lewo dochodzimy do ślepej, 3 m głębokiej studzienki.</p>
+<p>Zjeżdżając z krawędzi Studni Eldorado, po 4 m mijamy po prawej małe okienko do niskiego i suchego korytarza, kt&oacute;rym możemy dojść do "dolnego zakrętu" w Korytarzu Urojeniowym (patrz opis dalej). Po dalszych 6 m zjazdu osiągamy dno Studni Eldorado. Tu, pr&oacute;cz małej kałuży wody pod ścianą i piaszczystego namuliska, występują małe otoczaki wapienne o regularnych kształtach. Stojąc twarzą do zjazdu, po prawej stronic mamy kr&oacute;tki korytarzyk z malutką, niemożliwą do przejścia dziurką, przez kt&oacute;rą Eldorado łączy się ze studzienką poniżej "g&oacute;rnego zakrętu" Korytarza Urojeniowego. Po przeciwnej stronie, około 2,5 m nad dnem widnieje spora p&oacute;łka, z kt&oacute;rej spływa woda, ta sama, kt&oacute;ra płynie w końcowej części Meandra Harlequin (patrz wyżej&nbsp;&ndash; opis drogi "a").</p>
+<p>Wracamy do opisanego wcześniej okienka 4 m poniżej krawędzi Studni Eldorado. Biegnący od niego korytarzyk po 8 m doprowadza do "dolnego zakrętu" Korytarza Urojeniowego&nbsp;&ndash; tu możemy iść na wprost lub w lewo do g&oacute;ry. Na wprost po około 9 m niewielka pochylnia sprowadza do salki. W jej stropie widoczne jest bardzo ciasne wejście do niezbadanego jeszcze korytarzyka. Za salką, idąc przez kałuże wody, dochodzimy do małego, podłużnego okienka, otwierającego się 3 m nad kaskadową studnią P.29 (patrz opis w części 2: Studnia Palidera&nbsp;&ndash; Syfon Końcowy drogą odkrywc&oacute;w).</p>
+<p>W lewo do g&oacute;ry Korytarz Urojeniowy doprowadza po 3 m do rozdroża ("g&oacute;rny zakręt"):</p>
+<p>&ndash;&nbsp;w lewo w d&oacute;ł opada nisko sklepiona salka z ilastym namuliskiem na dnie. W jej prawej ścianie znajduje się wyjście z Ciągu Maniana. Tu na wprost dno salki przechodzi w studzienkę, bezpośrednio sąsiadującą z korytarzykiem z "dziurką", odchodzącym z dna Studni Eldorado.</p>
+<p>&ndash;&nbsp;w prawo Korytarz Urojeniowy wznosi się. Wciskając się między jego strop, a znajdującą się po lewej pochylnię, po paru metrach dochodzimy do początku wysokiego, wznoszącego się meandra. Idąc pod jego stropem osiągamy p&oacute;łkę w studni P.18. Od p&oacute;łki w g&oacute;rę biegnie kontynuacja naszego meandra, doprowadzając do g&oacute;rnego okna w Studni z Mostkiem Pirat&oacute;w (patrz opis w części 2: Studnia Palidera&nbsp;&ndash; Syfon Końcowy drogą odkrywc&oacute;w i w części 7: Mostek Pirat&oacute;w&nbsp;&ndash; Komin Pustynna Burza). Od p&oacute;łki w d&oacute;ł studnia prowadzi do korytarza między dnem Studni z Mostkiem Pirat&oacute;w a salą biwakową "pod Mostkiem Pirat&oacute;w" (patrz opis w części 2: Studnia Palidera&nbsp;&ndash; Syfon Końcowy drogą odkrywc&oacute;w),</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>c)</strong> Wracamy pod Prysznic. Wchodząc na wielki blok mamy przed sobą wysoką szczelinę otwartą od dołu, kt&oacute;ra wznosi się stromo do g&oacute;ry. Po paru metrach szczelina otwiera się i 5 m studzienką możemy zjechać do Kanału Prawego. Poniżej Studzienki wypłaszcza się i za zakrętem w prawo znowu opada w d&oacute;ł. Po pokonaniu 3 m progu i niskiego korytarzyka wychodzimy po lewej stronie Filara (patrz opis drogi "b").</p>
+<p>Wracamy do wysokiej szczeliny. Trawersując pionowe wejście do Kanału Prawego po paru metrach dochodzimy nad 7 m wąski pr&oacute;g w szczelinie, kt&oacute;rym zjeżdżając osiągamy dno salki. W przeciwległym do zjazdu końcu na wysokości paru metr&oacute;w widoczny jest wylot wąskiego, niskiego korytarzyka, kt&oacute;ry po około 12 m łączy Kanał Lewy z Barem Zacisze (patrz opis dalej). Z dna salki wąskim, opadającym korytarzykiem dostajemy się nad studnię nad Eldorado.</p>
+<div>&nbsp;</div>
+<p>Wracamy na Balkon w Studni Romea i Julii. Z balkonu zjeżdżamy początkowo stromo nachyloną rynną, kt&oacute;ra po 4 m urywa się przewieszonymi ścianami 24 m nad dnem. Łącznie studnia ma 58 m głębokości. Dno studni pokryte jest r&oacute;żnej wielkości rumoszem i blokami skalnymi. W wielu miejscach występuje namulisko ilaste. Po przeciwnej stronie do zjazdu, na wysokości 14 m znajduje się krawędź P&oacute;łki Romea. Jest to rozległa, nachylona w stronę studni p&oacute;łka z zawaliskiem pod ścianą. W prawym rogu rozwija się lekko w g&oacute;rę wysoki, bez dna i stropu miejscami bardzo wąski Meander Lajkonika uchodzący oknem w Barze Zacisze około 23 m nad jego dnem. Wspinając się ścianą do g&oacute;ry z początku Meandra Lajkonika można się dostać na najwyższy poziom pęknięcia</p>
+<p>Meandra. Po kilkunastu metrach wąskiej szczeliny rozszerzanie pozwala na zjazd, kt&oacute;ry sprowadza do g&oacute;rnej części Meandra Harlequin, w okolicy 8 m progu. Najwyższe piętro szczeliny kontynuuje się dalej.</p>
+<p>Wracamy na dno studni Romea i Julii. Z dna, idąc od zjazdu w kierunku wschodnim, znajdujemy pod lewą ścianą bardzo wąskie wejście do opadającego w d&oacute;ł meandra. Kończy się on już na głębokości około 2 m.</p>
+<p>W najdalszej wschodniej części studni znajduje się 32 m komin, kt&oacute;ry prowadzi do obejścia Jeziora Wielki Kłamca (patrz opis obejścia od strony Studni Oddziałowej). Skręcając w lewo, po paru metrach napotykamy pr&oacute;g z zaklinowanych ogromnych want, poniżej kt&oacute;rego mamy salę z namuliskiem piaszczystym. Dnem płynie cienka struga wody, kt&oacute;ra wypływa spod ogromnych blok&oacute;w skalnych. Nie jest wykluczone, że woda ta pochodzi z Jeziora Wielki Kłamca, gdyż znajduje się ono w niewielkiej odległości od tego miejsca. Strop sali gwałtownie obniża się, na ścianach i okruchach skalnych występują liczne nacieki grzybkowe. Po 5 m korytarz uchodzi do Baru Zacisze. Przed Barem korytarz skręca gwałtownie i tu znajduje się ponor, w kt&oacute;rym ginie woda. Bar Zacisze jest wysoką salą o płaskim dnie, pokrytym namuliskiem piaszczysto-żwirowym, z płaskim blokiem skalnym wystającym na kilkadziesiąt centymetr&oacute;w, W stropie sali widoczna jest meandrująca szczelina. Z lewej strony Baru, na wysokości 23 m w zacięciu, znajduje się wejście do Meandra Lajkonika, zaś z prawej strony&nbsp;&ndash; wejście do kr&oacute;tkiego stromego korytarza, uchodzącego wyżej w ścianie Baru. Po przeciwnej stronie do wejścia do Baru widoczny jest niski i wąski korytarz, do kt&oacute;rego przy wysokich stanach wody prawdopodobnie wpływa potok z korytarza, kt&oacute;rym do Baru przyszliśmy. W dnie występują wyraźne wymycia namuliska i typowe formy dla przepływu turbulentnego. Po 12 m korytarz łączy się w ścianie salki z Kanałem Lewym.</p>
+<div>&nbsp;</div>
+<div><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; B) Kontynuacja Meandra Majowego,</strong></div>
+<p>Jeszcze przed Franusiową Studnią rozpoczynamy trawersowanie lewą ścianą nieco do g&oacute;ry, by m&oacute;c dostać się do dalszej części Meandra Majowego. Po paru metrach trawersu stajemy w Księżycowej Salce. Dno salki zasłane jest dużymi blokami skalnymi, pod kt&oacute;re wchodzi kończący się w zawalisku korytarzyk. Wspinamy się lewą stroną na skalne blokowisko i stajemy pod 6 m progiem. Powyżej niego meander wznosi się dalej, prowadząc do niskiego, kilkumetrowego korytarzyka pod stropem. Jego dno na długości około 4 m jest otwarte od dołu i łączy się ze stropem Sali Gwiazdeczki. Trzymając się stropu dochodzimy do rozdroża.</p>
+<p>Skręcając w prawo można dojść bardzo wąską eksponowaną szczeliną do dolnej części Kaprawej Salki. Na przedłużeniu meandra pokonując ciasny przełaz, podchodzimy pod strop, gdzie znajduje się następne rozwidlenie;</p>
+<p>&ndash;&nbsp;na wprost Meander Majowy kontynuuje się i wznosi, kończąc się prawdopodobnie w zawalisku w dolnej sali w Partiach Rozrywkowych;</p>
+<p>&ndash;&nbsp;w d&oacute;ł przechodzimy przez niski, położony przy spągu przełaz (zwany Okiem Demona)</p>
+<p>i niską pochylnią zsuwamy się do Kaprawej Salki. Stojąc tyłem do przełazu, w środkowej części Kaprawej Salki mamy trzy możliwości dalszej drogi:</p>
+<p>a&nbsp;&ndash; w lewo kilkumetrową pochylnię, kończącą się zawaliskiem;</p>
+<div>b&nbsp;&ndash; w prawo w d&oacute;ł meander do Sali Gwiazdeczki;</div>
+<p>c&nbsp;&ndash; na wprost bardzo kruchą studzienką, z kt&oacute;rej dna odchodzi w lewo korytarzyk do Partii</p>
+<p>Rozrywkowych i Studni Oddziału PTTK "Beskid" (patrz opis niżej).</p>
+<p>b) Idąc w prawo wśr&oacute;d bardzo kruchych ścian Kaprawej Salki schodzimy stromo w d&oacute;ł, otwierającym się tu meandrem. Po paru metrach skręca on w prawo, i po kilku metrach urywa się 6 m progiem do Sali Gwiazdeczki. Sala w planie ma kształt gruszki. Mniejsza i niższa jej część ma dno pokryte namuliskiem, g&oacute;rna i wyższa przykryta jest ogromnymi skalnymi blokami przypominającymi "plastry" o wymiarach około 3x4x1 m Przechodząc pod nimi dostajemy się do g&oacute;rnej części sali, gdzie w części wschodniej wznosi się do g&oacute;ry korytarz, średnio 1 m szerokości. Po około 6 m korytarz zwężą się do 60 cm. 2 m dalej odsłania się nieduża salka z kominem na przeciwległej ścianie P.7. Niski i wąski korytarz w stropie komina doprowadza po paru metrach do niedużej, stromej pochylni. Na jej końcu znajduje się niewielka, podłużna salka. Na zach&oacute;d od niej odchodzi korytarzyk do g&oacute;ry, a na wsch&oacute;d (na przedłużeniu ciągu) ciąg do Sali Słoneczka.</p>
+<p>Korytarzyk&nbsp;do g&oacute;ry rozpoczyna 2 m pr&oacute;g, kt&oacute;ry przechodzi w stromą pochylnię. Po około 4 m skręca ona w prawo i będąc nadal stromą kontynuuje się jeszcze 10 m. Na końcu zwęża się&nbsp;przechodząc w wąski, szczelinowy korytarzyk z zaciskiem prawie na starcie (Zwieracz J&oacute;zefa, Z3). Następny zacisk jest 1,5 m dalej i korytarz za nim kontynuuje się&nbsp;&ndash; partie niezbadane.</p>
+<p>Wracamy do niewielkiej, podłużnej salki. Ciąg do Sali Słoneczka wiedzie przez 1 m wysokości pr&oacute;g (jeszcze w salce) i wąskie przejście nieco dalej. Za wąskim przejściem wchodzimy do Sali Słoneczka, na jej p&oacute;łkę zawieszoną około 3 m nad pochyłym dnem sali. Krawędź p&oacute;łki osiągamy przechodząc po czasami ruchomym bloku skalnym zaklinowanym w stropie nad salką (4 m niżej) rozpoczynającą ciąg z Sali Słoneczka do Kaprawej Salki. Sala Słoneczka, kt&oacute;re ogrzało nasze kości na Kazalnicy ma&nbsp;15 m długości , do 7 m szerokości i zawaliskowe dno wznoszące się dość stromo w kierunku południowym. W części wschodniej sali znajduje się wylot szerokiej na 2&ndash;3 m i kruchej pochylni, kt&oacute;ra doprowadza do wylotu Komina z Polewami. Ma on około 12 m wysokości i kontynuuje się&nbsp;korytarzykiem 3 m długości, kt&oacute;ry zamknięty jest zawaliskiem.</p>
+<p>W najwyższej części Sali Słoneczka otwiera się bardzo stromy komin, kt&oacute;ry 29 m wyżej doprowadza do meandra otwartego od dołu. &bdquo;Idąc&rdquo; tym meandrem w kierunku wschodnim dochodzimy po kilkunastu metrach do niskiego korytarzyka, z rumoszem skalnym na dnie. Korytarz, mający dalej charakter meandra zamknięty jest zawaliskiem w stropie.</p>
+<p>W przeciwnym końcu g&oacute;rnej części sali wznosi się do g&oacute;ry korytarz, kt&oacute;ry zamyka pionowe zawalisko. Strop Sali Gwiazdeczki jest częściowo otwartą szczeliną, łączącą ją z Meandrem Majowym. Z dolnej części Sali Gwiazdeczki wznosi się wąski meanderek (Meander Strach&oacute;w), kt&oacute;ry doprowadza nad Studnię Oddziału PTTK"Beskid" zwaną w skr&oacute;cie Studnią Oddziałową (P.63). Studnia Oddziałowa jest wielką i rozbudowaną studnią, o akustyce powodującej duży pogłos. Prowadzą do niej dwie drogi: od Sali Gwiazdeczki i od strony Partii Rozrywkowych. Od strony Sali Gwiazdeczki po 11 m zjazdu stajemy na wąskim, ale grubym na 10 m moście skalnym. Dalej zjazd w d&oacute;ł kontynuujemy bez kontaktu ze ścianą, by po 48 m od mostu osiągnąć dno studni. Od tej strony ma ona 60 m głębokości. Studnię od strony Partii Rozrywkowych opisano w dalszej części tekstu pod literą "c".</p>
+<p>c) Z Kaprawej Salki po przeciwnej stronie do zejścia z Oka Demona, w bardzo kruchym terenie schodzimy na dno studzienki.</p>
+<p>W lewo przy spągu odchodzi niski, mokry korytarzyk, kt&oacute;ry po skręcie w prawo doprowadza do wanty, za kt&oacute;rą ciągnie się korytarz kończący się w stropie Studni Oddziałowej, od strony Sali Gwiazdeczki. W lewo wychodzimy do salki tuż nad Studnię Oddziałową.</p>
+<p>Na wprost kontynuuje się korytarz, do kt&oacute;rego z ciasnej pochylni (po lewej) wpływa woda. Jest to korytarz prowadzący do Partii Rozrywkowych. Początkowo jest on wysoki, po kilkunastu metrach zwęża się, następnie skręca w prawo, robi się niski, a jego dotychczasowy lity strop stanowią wiszące nad głową wanty. Po kilku metrach&nbsp;po pokonaniu zacisku w zawalisku (Z III) korytarz otwiera się progiem z want do g&oacute;ry, ale też kontynuuje się na wprost w d&oacute;ł. Stąd idąc dalej w d&oacute;ł, po przejściu kolejnego zacisku (ZIII), szczelina stopniowo wypełnia się rumoszem i blokami skalnymi, co uniemożliwia dalsze przejście. Idąc progiem z want do g&oacute;ry przedostajemy się do zawaliskowej salki. Naprzeciw wejścia poprzez 7 m pr&oacute;g dostajemy się do zawaliskowego korytarza, kt&oacute;ry doprowadza nas stromym progiem z polewami naciekowymi do sali. Na prawo lekko w g&oacute;rę znajduje się</p>
+<p>ładnie sklepiona, ozdobiona naciekami salka. Na wprost cło g&oacute;ry, 4 m wyżej widoczne jest wyjście z niskiego, ładnie mytego meanderka, całkowicie wypełnionego grubym gruzem wapiennym i granitowym. Dwa metry wyżej mamy ujście rury o średnicy około 0,8 m wypełnionej szczelnie gruzem. Nieduży przepływ powietrza występuje zar&oacute;wno w dolnym jak i g&oacute;rnym ciągu. Wracamy z Partii Rozrywkowych. Znajdujący się, tuż przed wejściem do Studni Oddziałowej pokryty gruzem korytarz kontynuuje się dalej w d&oacute;ł i łączy nieco niżej ze studnią. W prawo od tego połączenia wznosi się myty i niski korytarzyk z płynącą wodą w dnie, skręcający w prawo. Jego dno stanowi częściowo rozmyte namulisko piaszczyste. Po kilku metrach korytarz staje się niedostępny.</p>
+<p>Od strony Partii Rozrywkowych Studnia Oddziału PTTK &bdquo;Beskid&rdquo; (P.63) w g&oacute;rnej części opada w d&oacute;ł kaskadami z płynącą wodą, aż do polki, gdzie urywa się 50 m, prawie gładką ścianą, po kt&oacute;rej spływa woda. Przy wysokich stanach wody w studni formuje się wodospad. Po około 20 m, licząc od p&oacute;łki, po lewej stronie kryje się za filarkiem okienko&nbsp;&ndash; wylot kr&oacute;tkiego, zalanego polewami, wznoszącego się korytarzyka. Na dnie studni spotykamy się z ciągiem schodzącym od Sali Gwiazdeczki. Dno Studni Oddziałowej ma kształt kolisty, o średnicy około 6 m, zalane jest płytką warstwą wody o maksymalnej głębokości 0,5 m.</p>
+<p>Po lewej stronie ku g&oacute;rze, po kilku metrach stromego progu, wznosi się pochylnia doprowadzająca do obejścia Jeziora Wielki Kłamca. W d&oacute;ł biegnie szeroki i bardzo wysoki meander prowadzący do tego jeziora, kt&oacute;ry w paru miejscach oknami w stropie łączy się z jego obejściem.</p>
+<p>Idąc meandrem po kilku metrach osiągamy parometrowy pr&oacute;g sprowadzający do sali, na kt&oacute;rej dnie leżą duże wanty. Od g&oacute;ry salka ta łączy się z obejściem jeziora Wielki Kłamca. Z salki, po kilkumetrowym zjeździe osiągamy dno meandra i idąc dalej dochodzimy do wąskiej szczeliny, w kt&oacute;rej zaczyna się 20 m studnia spadająca do Jeziora Wielki Kłamca. W studni 8 m niżej znajduje się niewielka p&oacute;łka. Parę metr&oacute;w nad taflą wody jeziorka, po prawej stronie widoczne jest okienko doprowadzające do 8 m korytarzyka biegnącego wzdłuż ściany, kt&oacute;ry dalej otwiera się kolejnym okienkiem w ścianie nad jeziorem.</p>
+<p>Jezioro Wielki Kłamca jest największym podziemnym jeziorem tatrzańskim. Ma 20 m długości, gruszkowaty kształt, w najszerszym miejscu 6 m szerokości, maksymalną głębokość 3,5 m. Jezioro otaczają pionowe ściany. W przeciwległym do zjazdu krańcu widać wysoki na 5 m, szeroki na 3 metry most zwany Groblą. Na ścianach widoczne są ślady wyższych niż obecnie stan&oacute;w wody. Nad Groblą w stropie znajduje się wylot studni z obejścia jeziora. Po drugiej stronie Grobli, 5 m poniżej jej g&oacute;rnej krawędzi znajduje się pokryte namuliskiem dno bardzo wysokiego komina. Jest on rozbudowany w g&oacute;rnej części i łączy się z obejściem jeziora w dw&oacute;ch miejscach&nbsp;&ndash; na wysokości 33 m i 38 m. Z salki za mostem (dna wspomnianego komina) ciąg przechodzi w wąski i wysoki korytarz, z kolejnym kominem. Dalej strop obniża się, a korytarz wznosi się, dochodząc do wąskiej sali z 4 m progiem, nad kt&oacute;rym korytarz całkowicie wypełnia piaszczysto-żwirowy osad. W dnie całego korytarza dominuje gruboziarnisty piasek i gruz.</p>
+<p>Wracamy na dno Studni Oddziałowej i wspinamy się na zwężającą się ku g&oacute;rze pochylnię. W jej najdalszym krańcu wychodzimy na bloki skalne (5 m), by dostać się na wyższy poziom wysokiej szczeliny meandra. Początkowo prosty i wąski, otwarty od g&oacute;ry korytarz skręca w lewo i przechodzi w kręty, r&oacute;wnież wąski i otwarty od g&oacute;ry meander. Po 25 m w jego dnie otwiera się 11 m studzienka, prowadząca do Strzelistej Sali, natomiast meander biegnie dalej. Po kilku metrach między ścianami meandra tkwi zaklinowany, niewielkich rozmiar&oacute;w blok skalny. Pod nim prowadzi droga do Jeziora Wielki Kłamca, nad nim do Studni Romea i Julii. Zjeżdżamy pod wantą w d&oacute;ł 6 m na dno korytarza. Po kilku metrach korytarz urywa się 24 m powyżej Grobli nad Jeziorem Wielki Kłamca.</p>
+<p>Wspinając się na wantę, potem dalej wymyciami meandra skosem do g&oacute;ry, po 7 m osiągamy zakręt w prawo. Zaraz za nim otwiera się w d&oacute;ł studnia sprowadzająca nad Jezioro Wielki Kłamca. Trudny trawers doprowadza nas do stropu meandra i dalej nad kolejny zjazd. Około 3 m niżej znajduje się salka o pochyłym, usłanym rumoszem dnie. Tu w d&oacute;ł krucha pochylnia urywa się do komina prowadzącego w okolice Grobli nad Jeziorem Wielki Kłamca. W lewo niskim korytarzykiem dochodzimy do okienka otwierającego się w ścianie Studni Romea i Julii, 32 m nad jej dnem. Po paru metrach zjazdu z okienka, na prawo znajduje się za załomem p&oacute;łka. Po dalszych około 15 m zjazdu, także na prawo, widać nachyloną p&oacute;łkę Romea.</p>
+<div><strong>&nbsp;</strong></div>
+<div><strong>9. Komin Pustynna Burza&nbsp;&ndash; Partie CDN.</strong></div>
+<p>Partie CDN rozciągają się od dna Komina Pustynna Burza do Sali Dantego wraz z ciągiem znad Studni Wścietoperzy przez Salę pod Trawersem do Studni z Mostkiem Pirat&oacute;w (opis w części 4: Sala Dantego-Syfon Końcowy przez Prosty Meander i w części 6: Nad Studnią Wścietoperzy-Sala pod Trawersem-Studnia z Mostkiem Pirat&oacute;w).</p>
+<p>Idąc z dna Komina Pustynna Burza wysokim meandrem w d&oacute;ł, dochodzimy nad 3 m pr&oacute;g. Pod nim znajduje się ładna, stosunkowo niewysoka salka z namuliskiem w dnie. Salka zakręca w lewo i kontynuuje się wąskim, eksponowanym nad studnią balkonem, nad kt&oacute;rym w g&oacute;rze zaczyna się meander. Wspinamy się do niego przez 5 m pr&oacute;g. Wąski, niewysoki, wznoszący się meander po 11 m rozszerza się w wysoką salkę Trzech Kropek. W g&oacute;rę prowadzi stromy, śliski komin wznoszący się około 9 m, kt&oacute;ry łączy się pod stropem z innym r&oacute;wnoległym kominem.</p>
+<p>W d&oacute;ł od salki Trzech Kropek odchodzi stroma pochylnia (można iść po prawej i lewej stronie filara), kt&oacute;ra dochodzi nad kolejną pochylnię. Łączą się one okienkami w dolnej i g&oacute;rnej części. Pochylnia niższa opada stromo w d&oacute;ł i po 11 m kończy się niskim korytarzykiem z zaciskowym wejściem do studzienki (dalszy przebieg nie jest znany).</p>
+<p>Wracamy na eksponowany balkonik. Znajdująca się poniżej studnia (P.16) ma 16 m głębokości, a jej dno jest częściowo zalane płytką wodą i pokryte namuliskiem. W lewo odchodzi poziomy korytarz, w d&oacute;ł otwiera się studzienka prowadząca do dolnego meandra, natomiast w prawo biegnie korytarz wiodący do Studni Wścietoperzy. Poziomy korytarz, początkowo wąski, po 4 m rozszerza się. Po lewej stronie mijamy 10 m ślepy komin, nieco dalej korytarz urywa się stromą pochylnią, łączącą go z leżącym niżej meandrem. Idąc dalej lekko do g&oacute;ry, po około 12 m od wejścia podchodzimy pod kolejny komin.</p>
+<p>Do dolnego korytarza schodzimy studzienką, w kt&oacute;rej&nbsp;&ndash; częściowo w zwalisku&nbsp;&ndash; płynie woda. Z dna odchodzi wznoszący się po skalnym gruzie korytarz r&oacute;wnoległy do ciągu prowadzącego do Studni Wścietoperzy. W lewo, idąc trawersem po zaklinowanych blokach, dostajemy się na gliniaste dno korytarza. Po drodze mijamy w stropie wylot pochylni z wcześniej opisanego poziomego korytarza (tego z dwoma kominami). Po blisko 30 m od wejścia, meander zaczyna się stromo wznosić śliską, pochyłą szczelinę. Nieco wcześniej, parę metr&oacute;w wyżej, przebiega kr&oacute;tki, r&oacute;wnoległy korytarz. Po 6 m szczelina zestramia się coraz bardziej i na końcu rozwidla się na dwa kominki (o nieustalonym dotąd przebiegu).</p>
+<p>Wracamy na dno Studni P.16. Biegnie stąd niski korytarz o zawaliskowym dnie. Po kilku metrach w spągu otwiera się prawa część korytarza odchodzącego z dolnego meandra. Schodząc po skalnych blokach docieramy nad stromą pochylnię doprowadzającą do gł&oacute;wnego dna Studni Wścietoperzy (patrz opis w części 4: Sala Dantego&ndash;Syfon Końcowy przez Prosty Meander).</p>
+<p>Przed pochylnią w lewo odchodzi wysoki i wąski meander, kt&oacute;ry po paru metrach urywa się wąską u g&oacute;ry studnią. Poniżej niej znajdują się (przeważnie niskie) korytarze, kt&oacute;rymi można dojść do progu 7,5 m, znajdującego się w połowie Prostego Meandra. Przed pochylnią w prawo do g&oacute;ry widoczne jest wysoko położone okno.</p>
+<div>&nbsp;</div>
+<p><strong>Informacje o systemie</strong></p>
+<div><strong></strong>System Ptasiej Studni&ndash;Lodowej Litworowej&ndash;nad Dachem rozwinął się gł&oacute;wnie w wapieniach robaczkowych i dolomitach anizyku (trias środkowy) oraz wapieni malmu, w obrębie fałdu Czerwonych Wierch&oacute;w, z tym że g&oacute;rna część Studni Wlotowej należy do jednostki Ździar&oacute;w, a reszta do Jednostki Organ&oacute;w (Grodzicki 1970, Grodzicki, Kardaś, 1989, Grodzicki 1991). Obserwacje te dotyczą systemu z wyłączeniem Partii Sądeckich w Jaskini Ptasiej Studni, kt&oacute;re w swej g&oacute;rnej części utworzyły się w wapieniach malmo-neokomu (m. in. znaczna część Meandra Majowego).</div>
+<p>Warstwy, w kt&oacute;rych (w większości) utworzyła się jaskinia tworzą fałd synklinalny, wyraźnie widoczny na ścianie Progu Litworowego. Jaskinia rozwinęła się gł&oacute;wnie na kierunkach ENE&ndash;WSW, choć nie brakuje kierunk&oacute;w N&ndash;S i WNW&ndash;ESE, jak i NE&ndash;SW, NW&ndash;SE.</p>
+<p>W systemie jaskiniowym Ptasia Studnia&ndash;Lodowa Litworowa&ndash;nad Dachem&nbsp;można wyr&oacute;żnić 4 etapy rozwoju:</p>
+<p>1. Etap freatyczny, o istnieniu kt&oacute;rego świadczy kształt i przebieg m.in. korytarzyk&oacute;w nad Syfonem Końcowym, fragment Korytarza między Prostym Meandrem a Oknem Romana, Korytarz pod Lodospad.</p>
+<p>2. Etap wadyczny tworzenia się meandr&oacute;w, kiedy to woda, wykorzystując tektoniczne rozwarcie międzywarstwowe w fałdzie synklinalnym spływała w linii spadku w kierunku SW aż do odspojenia przegubowego. Tu zmieniała sw&oacute;j kierunek na SE, płynąc dalej "dolną warstwą" fałdu. Tak rozwinął się meander Lodowej Litworowej i jej dolna część oraz meander w Jaskini Nad Dachem. Przebieg obu tych jaskiń wykazuje charakterystyczny skręt, a po nim zestromienie ciągu. Na planie jaskini można zauważyć więcej tego typu miejsc m.in. między Studniami Flacha a Szczeliną Strzygi.</p>
+<p>3. Etap"zamulania" niekt&oacute;rych odcink&oacute;w o zmniejszonej dynamice przepływu, polegający na całkowitym wypełnieniu korytarzy osadami allochtonicznyrni, m.in. koniec korytarza za jeziorem Wielkiego Kłamcy, koniec korytarza biegnącego w kierunku wschodnim na przedłużeniu Meandra od połączenia Ptasiej z Lodową Litworową, g&oacute;rna część Partii Rozrywkowych, koniec korytarza w g&oacute;rnych partiach Nad Dachem. Część z tych wypełnień została wt&oacute;rnie rozmyta przez wodę, o czym świadczy rozwleczony po korytarzach materiał allochtoniczny (ten najłatwiej transportowalny, jak piasek) np. piasek kwarcowo-mikowy w gł&oacute;wnym ciągu Jaskini Nad Dachem.</p>
+<p>4.&nbsp;&nbsp;&nbsp; Etap otwierania się powierzchni nieciągłości i pionowego odpływu w&oacute;d, częściowo zazębiający się z etapem powstawania meandr&oacute;w. J. Grodzicki (1970, 1991) przypisuje genezę jaskini tensyjnemu otwieraniu się powierzchni tektonicznych nieciągłości, spowodowanym grawitacyjno-tektonicznym odprężeniem masywu, podkreślając zależność między kierunkiem otwartych szczelin, a rozwojem morfologii terenu. Świadczy to o plejstoceńskim wieku jaskini, kt&oacute;ra powstawała w ścisłej zależności od kształtowania się glacjalnej rzeźby tego obszaru. Potwierdzeniem takiej zależności jest pęknięcie, na kt&oacute;rym otworzyła się szczelina Partii Sądeckich w Jaskini Ptasiej Studni. Jej rozciągłość przekracza 130 m, a deniwelacja osiąga 100 m. W swym przebiegu (ENE&ndash;WSW) jest r&oacute;wnoległa do ściany Ratusza Mułowego.</p>
+<p>W obrębie tej szczeliny najwyżej rozwinął się Meander Majowy, rozpoczynający się gdzieś na wschodnim przedłużeniu Partii Rozrywkowych, a kończący się w Kominie Pustynna Burza (nie jest jednak wykluczone, że kontynuuje się dalej, zapełniony namuliskiem nieopodal Komina Pustynna Burza). W środkowej części szczeliny rozwinęły się: Gorący Meander, Studnia Romea i Julii, Meander Harlequin i obejście Jeziora Wielki Kłamca. W najniższej jej części usytuowane jest Jezioro Wielki Kłamca i sala Baru Zacisze. Na wszystkich tych poziomach widoczne są listwy erozyjne, świadczące o przepływie wody, a tym samym o stopniowym otwieraniu się szczeliny i przepływach wody na coraz niższym poziomie.</p>
+<p>P&oacute;źniejszym procesem w odniesieniu do powstawania meandr&oacute;w, było formowanie się pionowych studni, sprowadzających najkr&oacute;tszą drogą wody krążące w jaskini na jej najniższy poziom. Powstające wtedy studnie przecinają nieco starsze, poziome i połogie korytarze i meandry. Studnia Taty rozcina na wysokości 22 m nad dnem poziome ciągi biegnące od Jaskini nad Dachemi od połączenia Jaskini Lodowej Litworowej z Jaskinią Ptasią Studnią do Balkonu i Okna Romana. Studnia Palidera przecina meander prowadzący od okna w Czterdziestce przez Salkę Jadwigi do Sali Dantego, kt&oacute;rego kontynuację widać także w stropie Studni z Mostkiem Pirat&oacute;w ponad Kolosalną Wantą i dalej do Sali Dantego (<em>nie można wykluczyć, że wspomniane studnie istniały r&oacute;wnolegle z rozwijającymi się meandrami, kt&oacute;re tylko doprowadzały wody do pionowych "kolektor&oacute;w", zbierających wody z większych przestrzeni. Fakt kontynuacji tych ciąg&oacute;w w przeciwległych ścianach studni może świadczyć jedynie o kontynuacji otwartego pęknięcia, stanowiącego otwartą drogę dla wody&nbsp;&ndash; przyp. red. nauk</em>.). Jednocześnie z tensyjnym otwieraniem się szczelin o przebiegu zbliżonym do kierunku W&ndash;E, otwierały się pęknięcia prostopadłe do nich, o kierunku N&ndash;S. Na tym właśnie kierunku rozwinął się m.in. Meander Kapuletich i Korytarz Końcowy aż po Syfon Piaszczysty.</p>
+<p>W systemie jaskiniowym Ptasia Studnia&ndash;Jaskinia Lodowa Litworowa&ndash;Jaskinia nad Dachem występują wszystkie rodzaje osad&oacute;w jaskiniowych; klastyczne, chemiczne i organogeniczne.</p>
+<p>Osady klastyczne to zawaliska i żwirowiska. Zawaliska spotykane w systemie mają genezę związaną z wietrzeniem mrozowym lub procesami podcinania ścian i pakietowego oddzielania się warstw skalnych.</p>
+<p>Zawaliska związane z wietrzeniem mrozowym występują we wstępnych partiach Jaskini</p>
+<p>Lodowej Litworowej i Jaskini Nad Dachem. Towarzyszą im osady rumoszowe tej samej genezy oraz&nbsp;&ndash; namywane z powierzchni&nbsp;&ndash; osady humusowe.</p>
+<p>Zawaliska związane z rozwojem proces&oacute;w erozyjno-korozyjnych w klasycznej postaci występują w Sali Gwiazdeczki. Tu na częściowo pokrytym namuliskiem dnie leżą ogromne pakiety (4x3 m, miąższości do l m) warstwowanych wapieni, a płaszczyzna ich odkłucia jest r&oacute;wnoległa do powierzchni stratyfikacji. Podobne cechy wykazuje największe zawalisko w systemie, występujące w Sali Dantego. Tworzą je duże bloki, często ograniczone dwoma r&oacute;wnoległymi płaszczyznami, zgodnymi z warstwowaniem, formujące spąg sali w jej g&oacute;rnej części oraz stanowiące podrzędny składnik grubego rumoszu, wyścielającego dno w niższej części sali. Podobnej genezy jest także zawalisko w Kaprawej Salce, gdzie cienko ławicowe pakiety wapieni łatwo odspajają się od calizny.</p>
+<p>Zawaliska r&oacute;żnej genezy miały wpływ na obecny wygląd szczeliny Partii Sądeckich, np. Zawalisko w Salce Księżycowej, Sali Gwiazdeczki, sali Posterunku Wysuniętego, Kaprawej Salki oraz w Partiach Rozrywkowych. Jednak nie odegrały one istotnej roli w tworzeniu całego systemu (<em>Nie można tu jednak pominąć roli proces&oacute;w zawaliskowych w powstaniu Sali Dantego, jednej z największych w Polskich Tatrach. Ma ona niewątpliwie genezę zawaliskową, a powstanie jej ułatwiło prawie poziome&nbsp;&ndash; w tym miejscu struktury geologicznej&nbsp;&ndash; uwarstwienie wapieni triasu środkowego, umożliwiające odspojenie się masywnych blok&oacute;w wapieni od calizny.&nbsp;&ndash; przyp. red.</em>)</p>
+<p>Autochtoniczne namuliska klastyczne występują w r&oacute;żnych partiach systemu, jednak dotychczas nie były badane. Jedno z ciekawszych żwirowisk autochtonicznych występuje na dnie małej studzienki w Eldorado, gdzie zbiega się kilka ciąg&oacute;w. Tu w sąsiedztwie małego jeziorka spotyka się otoczaki wapienne, o dobrym stopniu obtoczenia. Otoczaki powstały na miejscu z lokalnego materiału wskutek długotrwałej obr&oacute;bki wodą spadającą w studzience. Bardzo interesujące namulisko występuje na dnie Komina Ostrowskiego. Tu pod cienką warstwą osadu ilastego znajduje się specyficzny, o grubej frakcji piasek kalcytowy, zalegający warstwą o miąższości rzędu kilku centymetr&oacute;w. Ziarna piasku stanowią kryształy kalcytu, o r&oacute;żnej średnicy i długości dochodzącej do 10 mm. Osad ten powstał prawdopodobnie wskutek dezintegracji starych polew kalcytowych pod przykryciem ilastego namuliska.</p>
+<p>Ilaste namuliska występują gł&oacute;wnie w Partiach Sądeckich i CDN. Największym z nich pod względem zajmowanej powierzchni jest namulisko wyścielające dno Jeziora Wielki Kłamca oraz dno komina za Groblą. Podobne namuliska występują r&oacute;wnież w dolnej części Meandra Majowego, w Sali Gwiazdeczki i w bocznych korytarzach CDN. Są to namuliska złożone gł&oacute;wnie z drobnej, ilasto-mułowej frakcji.</p>
+<p>Allochtoniczne żwirowiska i gruzowiska (do frakcji piaszczystej włącznie) występują w licznych korytarzach systemu, wypełniając je całkowicie lub częściowo. W korytarzu za Jeziorem Wielki Kłamca w Ptasiej Studni i w kominie za przekopem w Jaskini nad Dachem występują luźne, osypujące się osady tego typu. W g&oacute;rnej salce w Partiach Rozrywkowych (Ptasia Studnia) i w korytarzu biegnącym ku E z rejonu połączenia Jaskini Lodowej Litworowej i Ptasiej Studni występują żwirowiska scementowane i pokryte polewami naciekowymi. Gruzowisko o wyr&oacute;wnanej frakcji wypełnia rurę i meander w najwyższej części Partii Rozrywkowych. Osady piaszczyste&nbsp;&ndash; gruboziarniste piaski o zr&oacute;żnicowanym składzie petrograficznym&nbsp;&ndash; spotyka się w Barze Zacisze ( Ptasia Studnia), piaski kwarcowe i kwarcowo-mikowe w g&oacute;rnej części Jaskini nad Dachemi jej gł&oacute;wnym ciągu w Syfonie Piaszczystym, W g&oacute;rnych partiach Jaskini nad Dachem oraz we wstępnych partiach Jaskini Lodowej Litworowej spotyka się powszechnie duże otoczaki granitoid&oacute;w.</p>
+<p>Osady chemiczne&nbsp;&ndash; nacieki&nbsp;&ndash; są rzadkością w systemie Ptasia Studnia&ndash;Jaskinia Lodowa Litworowa&ndash;Jaskinia Nad Dachem. Najczęściej spotykane są nacieki grzybkowe, z kt&oacute;rych najpiękniej wykształcone, o długości dochodzącej do 8 cm, występują przy dnie Franusiowej Studni i w korytarzu miedzy nią a Studnią Romea i Julii. Polewy naciekowe często spajają namuliska allochtoniczne i występują m.in. w korytarzu w rejonie połączenia Ptasiej Studni i Jaskini Lodowej Litworowej. W korytarzu między Studnią Oddziałową, a Partiami Rozrywkowymi ( Ptasia Studnia) występują piękne, stare polewy naciekowe, obecnie rozmywane przez aktywny ciek wodny. Typowe nacieki w postaci stalaktyt&oacute;w można spotkać w g&oacute;rnej salce Partii Rozrywkowych.</p>
+<p>Osady organogeniczne tworzą subfosylne szczątki kostne, spotykane w dnie korytarzy gł&oacute;wnego ciągu Jaskini Nad Dachem, w dnie Studni Wlotowej i rejonie Studni Czterdziestki, Zapomnianego Meandra oraz w Meandrze Kapuletich ( Ptasia Studnia). Składają się na nie kości nietoperzy (Jaskinia nad Dachem oraz w Jaskini Ptasiej Studni &ndash; Studnia Wlotowa i rejon Studni Czterdziestki), kości kuny (rejon Studni Czterdziestki) oraz kości r&oacute;żnych drobnych ssak&oacute;w, prawdopodobnie redeponowane w Meandrze Kapuletich.</p>
+<p>Materiał kostny z dna Studni Wlotowej Wołoszyn (1970) określił jako szczątki nietoperzy <strong><em>Myotis mystacinns</em></strong> (około 90% thanatocenozy), <strong><em>Myotis myotis</em></strong>, <strong><em>Myotis bechsteinii</em></strong> oraz kuny leśnej <strong><em>Martes martes</em></strong> i ryj&oacute;wki malutkiej <strong><em>Sorex minutus</em></strong>. W 1996 r. członkowie SKTJ pobrali szczątki kostne z dna Studni z Rękawiczką, kt&oacute;re B. W. Wołoszyn określił jako szczątki nietoperzy <strong><em>Myotis myotis</em></strong> i <strong><em>Myotis mystacinus</em></strong> (inf. ustna).</p>
+<p>System Ptasia Studnia&nbsp;&ndash; Jaskinia Lodowa Litworowa&nbsp;&ndash; Jaskinia nad Dachem jest prawdopodobnie odwadniany przez Lodowe Źr&oacute;dło w Dolinie Kościeliskiej. Wprawdzie dotychczas nie przeprowadzono barwień w&oacute;d przepływających przez system pod tym kątem, jednak wydaje się logiczne przyjęcie takiego założenia przez analogię ze sposobem odwadniania położonego bardziej na wsch&oacute;d systemu jaskiniowego Wielkiej Śnieżnej. Wody występujące w systemie nie odbiegają składem chemicznym od w&oacute;d występujących w innych jaskiniach tatrzańskich (Małecka 1993) i charakteryzują się zdecydowaną przewagą jon&oacute;w wodorowęglanowych i wapniowych.</p>
+<p>W systemie występują liczne stałe zbiorniki wody, z kt&oacute;rych największe to:</p>
+<p>&ndash;&nbsp;&nbsp; Jezioro Wielki Kłamca, o długości 20 m, maksymalnej szerokości dochodzącej do 6 m i głębokości 3,5 m. Usytuowane jest na wysokości 1472 m n.p.m (160 m poniżej otworu); jego poziom ulega wahaniom w przedziale 0,5 m (w okresie lato&nbsp;&ndash; zima), a na ścianach, około 2 m nad poziomem wody, widoczny jest ślad starego, wyższego poziomu wody.</p>
+<p>&ndash;&nbsp;jeziorko pokrywające dno Studni Oddziału PTTK "Beskid", o głębokości około 0,5 m</p>
+<p>&ndash;&nbsp;jeziorko Syfonu Końcowego</p>
+<p>&ndash;&nbsp;jeziorko Syfonu Moczydupka</p>
+<div>&ndash;&nbsp;jeziorko "Syfonu" Pasożyt&oacute;w</div>
+<p>&ndash;&nbsp;niewielkie jeziorka na dnie Studni Taty i w korytarzu Antykońcowym.</p>
+<p>W wielu studniach (np. W Studni Wlotowej, w Studni Palidera, w studni z Mostkiem Pirat&oacute;w) występuje deszcz podziemny, o nasileniu ściśle zależnym od warunk&oacute;w atmosferycznych na powierzchni terenu. Deszcz podziemny zasila okresowe strugi wody, spływające do wspomnianych wyżej jeziorek, a także tworzące okresowe jeziorka, jak np. w Syfonie Piaszczystym. W przypadku dużych opad&oacute;w na powierzchni, w studniach formują się pokaźne wodospady, z kt&oacute;rych największy występuje w Studni Oddziałowej. Obecnie w systemie można zaobserwować kilka okresowych ciek&oacute;w wodnych, w kt&oacute;rych ilość przepływającej wody jest ściśle zależna od warunk&oacute;w panujących na zewnątrz.</p>
+<p>&ndash;&nbsp; ciek przepływający poniżej otworu przez Studnię Wlotową, Studnię Palidera, Korkociąg, Korytarz Antykońcowy, kt&oacute;rego przebieg potwierdziły barwienia wody (Kwiatkowski 1982),</p>
+<p>&ndash;&nbsp; ciek wypływający z boku pochylni za Luxem do poprzecznego pęknięcia,</p>
+<p>&ndash;&nbsp; ciek z małego okienka za Ślimakiem i z połowy Ciągu Rzetelnej Informacji płynący do Mokrej Osiemnastki i dalej Kanionem do Syfonu Moczydupka,</p>
+<p>&ndash;&nbsp; ciek wypływający przed Zaciskiem 4/3 oraz płytkiego jeziorka z poprzecznej szczeliny za zaciskiem i spływający do Szczeliny Strzygi,</p>
+<p>&ndash;&nbsp; ciek z g&oacute;rnej części Studni Wścietoperzy (po lewej) i z komina po prawej spływający do "Syfonu" Pasożyt&oacute;w i dalej przez Prosty Meander do Syfonu Końcowego</p>
+<p>&ndash;&nbsp; ze szczeliny z polewami do Studni Oddziału PTTK "Beskid" poprzez meander do Jeziora Wielki Kłamca. Dalej woda ta prawdopodobnie wypływa pod progiem R.7 poniżej Studni Romea i Julii i płynie do ponoru przed Barem Zacisze. Przy wyższych stanach wody jej nadmiar przepływa przez Bar Zacisze i poprzez Kanał Lewy wpada do Studni Eldorado,</p>
+<p>&ndash;&nbsp; ze stropu w końcowej części Meandra Harlequin do Studni Eldorado,</p>
+<p>&ndash;&nbsp; z Jaskini nad Dachem (od Komina z Wantką) poprzez Małą Niagarę do Bazyliki i dalej do Syfonu Końcowego,</p>
+<p>&ndash;&nbsp; z Jaskini Lodowej Litworowej (poniżej II Studni) przez Bazylikę do Syfonu Końcowego.</p>
+<p>System Ptasiej Studni&nbsp;&ndash; Jaskini Lodowej Litworowej&nbsp;&ndash; Jaskini nad Dachem reprezentuje typ jaskini o mikroklimacie dynamicznym. Tylko nieliczne fragmenty systemu wykazują brak przepływu powietrza (g&oacute;rne partie Jaskini Nad Dachem, korytarz Żyletek) i mogą znajdować się w strefie mikroklimatu statycznego. Zimą powietrze jest wciągane w głąb systemu przez otwory Jaskini Lodowej Litworowej i Jaskini Nad Dachem, a wypływa otworem Jaskini Ptasiej Studni. Powoduje to znaczne r&oacute;żnice w zasięgu temperatur ujemnych w poszczeg&oacute;lnych jaskiniach. W Jaskini Lodowej Litworowej w okresie zimowym l&oacute;d sięga do Zacisku Zakopiańczyk&oacute;w (wiosną 1988 r. sięgał aż nad Pierwszą Studnię), a znaczne ilości śniegu gromadzą się we wstępnym odcinku jaskini&nbsp;&ndash; aż do początku meandra (Siarzewski, 1993). L&oacute;d w dużych ilościach występuje na dnie przyotworowej sali (w postaci lodu dennego) oraz na końcu Korytarza Pod Lodospad, gdzie można obserwować dużej miąższości warstwowany l&oacute;d tworzący strop i ścianę zamykającą korytarz. Występuje tu bogactwo r&oacute;żnych form szaty lodowej&nbsp;&ndash; stalaktyty, stalagmity, kolumny lodowe i zasłony. W ostatnich latach obserwuje się w okresie letnim wyraźne zmniejszanie się ilości lodu w salce przyotworowej. Obserwowano w niej "wykapki" 2&ndash;3 m średnicy, sięgające aż do skalnego gruzu, formującego dno korytarza. L&oacute;d w Jaskini nad Dachem występuje jedynie w okresie zimowo-wiosennym. Sięga aż do Studni Magazyniera i wydaje się, że jego zasięg nie zmienił się po połączeniu jaskini z systemem Ptasiej Studni&nbsp;&ndash; Lodowej Litworowej. Śnieg nagromadzony w zimie sięga do salki przyotworowej. Obserwuje się wtedy liczne formy lodowe&nbsp;&ndash; l&oacute;d sublimacyjny w postaci płatk&oacute;w lodowych na ścianach i stropie, stalaktyty i stalagmity lodowe w bardzo zr&oacute;żnicowanych formach oraz l&oacute;d denny. Podczas jednodniowej odwilży w zimie 1991 roku obserwowano powstanie tu lodospadu. Od zimy 1993 r. można obserwować w salce poniżej szczeliny prowadzącej nad pierwszą studnię (P.14) jeziorko, tworzące się zimą w zawalisku wskutek zalodzenia odpływu wody. Tworzy się na nim gruba tafla lodu, a powyżej w szczelinie występują na ścianach płatki lodu sublimacyjnego. Na p&oacute;łce w studni P.14 tworzy się l&oacute;d denny, nierzadko (szczeg&oacute;lnie wiosną) dając początek kilkumetrowemu lodospadowi, spływającemu po ścianie studni w sali za przekopem w piaszczystym namulisku obserwowano wł&oacute;kna lodowe, a na jego powierzchni&nbsp;&ndash; stalagmity lodowe r&oacute;żnych kształt&oacute;w, osiągające 1,5 m wysokości.</p>
+<p>Światło sięga w głąb poszczeg&oacute;lnych jaskiń na kilka&nbsp;&ndash; kilkanaście metr&oacute;w od otwor&oacute;w. W Jaskini Ptasiej Studni sięga do p&oacute;łki w Studni Wlotowej, w Jaskini Lodowej Litworowej i Jaskini nad Dachem&nbsp;&ndash; do salki przyotworowej.</p>
+<p>Roślinność zielona nie była dotychczas badana. Mchy obserwuje się na ścianach w granicach zasięgu światła. W otworze Jaskini nad Dachem występują pojedyncze trawy, a przy otworze Ptasiej Studni&nbsp;&ndash; paprotniki.</p>
+<p>Fauna jaskini nie była badana. Zaobserwowano w niej następujące gatunki zimujących nietoperzy <strong><em>Myotis brandtii</em></strong>,<strong><em> Myotis myotis</em></strong>, <strong><em>Myotis mystacinus</em></strong>, <strong><em>Myotis bechsteinii</em></strong>, <strong><em>Myotis dasycneme</em></strong>, <strong><em>Plecotus auritus</em></strong>. Obserwowano pojedyncze egzemplarze w Partiach Sądeckich Ptasiej Studni, (m.in. w Sali Gwiazdeczki, w Kominie Ostrowskiego i w okolicy Posterunku Wysuniętego) oraz w Jaskini nad Dachem (Piksa 1998). W Jaskini Lodowej Litworowej stwierdzono występowanie <strong><em>Barbastella barbastellus</em></strong> i <strong><em>Vespertilio murinus </em></strong>(ibidem). W najwyższej części Zmory obserwowano zesp&oacute;ł naścienny złożony z much&oacute;wek, pojedynczych ciem, much i pająk&oacute;w. Pojedyncze okazy ciem obserwowano r&oacute;wnież poniżej salki przyotworowej w Jaskini Nad Dachem.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W systemie jaskiniowym Ptasia Studnia&nbsp;&ndash; Jaskinia Lodowa Litworowa&nbsp;&ndash; Jaskinia nad Dachem badania geologiczne prowadził w latach 1967&ndash;69 Grodzicki (1969, 1970). Badania objęły znane w&oacute;wczas partie systemu, tzn. Ptasią Studnią i Jaskinią Lodową Litworową. Badania fauny subfosylnej prowadził B. W. Wołoszyn (1970). W lalach 1981&ndash;87 w trakcie wypraw organizowanych przez Speleoklub Warszawski PTTK i WAKS pobierane były pr&oacute;bki wody do badań hydrochemicznych (Sygowski 1982a,b). Część z nich została opracowana przez Małecką (1993). W trakcie tych wypraw przeprowadzono barwienia okresowych strug w Studni Palidera, stwierdzając przepływ do Syfonu Końcowego (Kwiatkowski 1982). Wzmianki o mikroklimacie i formach lodowych zamieszcza w swej pracy Siarzewski (1994). Szczygieł 2013c prowadził badania geologiczne.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Ptasia Studnia została odkryta w dniu 10 lipca 1960 r. przez Janusza Flacha z STJ Zakopane. Jaskinię Lodową Litworową odkryli 11 lipca 1960 r. Marian Kruczek i Stanisław W&oacute;jcik z Zakopanego, docierając do Zacisku Zakopiańczyk&oacute;w, natomiast Jaskinia nad Dachemzostała odkryta w dniach 1&ndash;4 listopada 1962 r. przez zesp&oacute;ł z STJ Krak&oacute;w w składzie: Ryszard Rodziński, Lucjan Saduś i Jerzy Wala. Wieloletnią historię eksploracji największej jaskini systemu&nbsp;&ndash; Ptasiej Studni&nbsp;&ndash; można podzielić na 4 zasadnicze etapy, związane z określonymi środowiskami, wiodącymi w eksploracji jaskini w danym okresie. I tak etap I obejmujący lata 1960&ndash;65 to okres eksploracji jaskini przez środowisko zakopiańskie, eksploracji prowadzonej wsp&oacute;lnie przez członk&oacute;w STJ i Koła Jaskinioznawczego. W latach 1967&ndash;79 eksplorację jaskini prowadzili grotołazi z r&oacute;żnych ośrodk&oacute;w i ten etap można nazwać etapem og&oacute;lnopolskim. Trzeci etap to eksploracja prowadzona gł&oacute;wnie przez środowisko grotołaz&oacute;w warszawskich w latach 1981&ndash;87, a etap IV&nbsp;&ndash; w latach 1990&ndash;98&nbsp;&ndash; jest etapem eksploracji prowadzonej przez grotołaz&oacute;w sądeckich.<br /><br />lipiec 1960 r.&nbsp;&ndash; Janusz Flach (STJ Zakopane), Stanisław W&oacute;jcik, Roman Dąbkowski i Stefan Zwoliński (Koło Jaskinioznawcze PTTK Zakopane) dokonują przy pomocy liny pomiaru głębokości Studni Wlotowej i nadają jaskini nazwę. <br />29.08.1960 r. Janusz Flach schodzi po drabince 25 m w Studni Wlotowej. Asekurują go przy otworze Władysław Habil i Stanisław W&oacute;jcik (Zakopane) oraz Jacek Kibiński (STJ Krak&oacute;w). <br />10.09.1960 r. W czasie obozu poszukiwawczego Komisji Taternictwa Jaskiniowego Klubu Wysokog&oacute;rskiego Ryszard Rodziński (STJ Krak&oacute;w) schodzi po drabince 45 m w Studni Wlotowej. Przy otworze asekurują go Janusz Flach i Władysław Habil (Zakopane) oraz Oleg Czyżewski, Stanisław Dobrowolski, Ryszard Gradziński, Jacek Kibińsk i Stanisław Ogaza (STJ Krak&oacute;w). <br />3&ndash;4.06.1961 r. Jan Danysz, Jacek Kibiński i Zbigniew Stachura w trakcie wyprawy STJ Krak&oacute;w osiągają w 16,5 godzinnej akcji Mostek Kapitański (Mostek Pirat&oacute;w). <br />25.06.1961 r. Marian Kruczek i Marian Mitan (STJ Zakopane) w Jaskini Lodowej Litworowej przedostają się przez Zacisk Zakopiańczyk&oacute;w i osiągają krawędź Pierwszej Studni oraz odkrywają Korytarz pod Lodospad.<br />9&ndash;10.07.1961 r. wyprawa STJ Zakopane, kierowana przez J. Flacha osiąga krawędź studni (P.29) za Korkociągiem (Krzysztof Berbeka i J&oacute;zef Fraczek). <br />22&ndash;24.07.1961 r.w czasie wyprawy zorganizowanej przez STJ Zakopane dochodzi do wypadku w trzeciej studni&nbsp;&ndash; wskutek przetarcia się liny W. Palider spada na jej dno i łamie nogę co uniemożliwia dalszą działalność wyprawy, a trzecia studnia zyskuje nazwą Studni Palidcra.<br />7&ndash;9.10.1961 r. kolejna wyprawa STJ Zakopane dociera meandrem na Balkon nad Bazyliką (J&oacute;zef Fraczek i Marian Kruczek).<br />1962 r. Zakopiańczycy (Marian Kruczek i inni, skład wyprawy nie znany) w Jaskini Lodowej Litworowej osiągają krawądź Trzeciej studni. Marian Kruczek zrzuca do studni puszką po konserwach.<br />25&ndash;26.08.1962 r. wyprawa STJ Zakopane w składzie Antoni Barański, Janusz Flach (kierownik), Marian Kruczek, Apoloniusz Rajwa dociera do Syfonu Końcowego (do Bazyliki, dalej samotnie Janusz Flach). U podn&oacute;ża Studni Kaskadowej (P.29) uczestnicy wyprawy znajdują puszkę, wrzuconą wcześniej przez M. Kruczka do Trzeciej studni w Jaskini Lodowej Litworowej. W ten spos&oacute;b potwierdzone zostało połączenie obu jaskiń w jeden system.<br />1&ndash;4.11.1962 r. Po odkryciu Jaskini nad Dachemczłonkowie STJ KW Krak&oacute;w (R. Rodziński, L. Saduś, J. Wala) eksplorują ją po 10 m pr&oacute;g w tzw. g&oacute;rnych partiach (do głębokości 30 m)<br />5&ndash;7.07.1963 r. W trakcie Og&oacute;lnopolskiego Zlotu Jaskiniowego KTJ odbyła się wyprawa pod kierunkiem Janusza Flacha do Ptasiej Studni. W jej trakcie Bernard Uchmański (Speleoklub Warszawski PTTK) i Mateusz Jodłowski (AKG Wrocław) wspinają się do okna w Studni Palidera i eksplorując meander, dochodzą nad Salę Dantego, nie zjeżdżając do niej. Wraz z pozostałymi uczestnikami (m.in. Edward Chełpa i Janusz Pędzimąż z STJ Zakopane, Janusz Onyszkiewicz i Romuald Lopusiewicz ze Speleoklubu Warszawskiego PTTK) osiąga dno Bazyliki i eksploruje ciasne korytarzyki na końcu (Korytarz Antykońcowy). Po drodze spotykają Leszka Nowińskiego (STJ Krak&oacute;w) i Joachima Wachowicza (AKG Wrocław), kt&oacute;rzy zjechali Trzecią Studnią w Jaskini Lodowej Litworowej i fizycznie połączyli obie jaskinie. W akcji w Jaskini Lodowej Litworowej brali ponadto udział Andrzej Barszczewski i Andrzej Starek (Speleoklub Warszawski PTTK) oraz Bronisław W. Wołoszyn (STJ Krak&oacute;w).<br />5&ndash;6.07.1964 r. W ramach Og&oacute;lnopolskiego Zlotu Jaskiniowego KTJ odbyła się wyprawa pod kierownictwem Janusza Flacha (STJ Zakopane), w kt&oacute;rej wzięli r&oacute;wnież udział: Adam Marek (STJ Zakopane), Jerzy Masełko i Andrzej Koleśnik (AKG lub STJ Wrocław) oraz Zbigniew Adamski&nbsp;&ndash; reporter Kuriera Polskiego. Flach, Masełko i Koleśnik zjechali do Sali Dantego. Niezależnie od grupy szturmowej tej wyprawy, Bernard Uchmański i Janusz Onyszkiewicz (Speleoklub Warszawski PTTK) wspięli się w g&oacute;rnej części Studni Wlotowej do okien w przeciwległej do zjazdu ścianie.<br />24.07.1964 r. W Jaskini nad Dachemzesp&oacute;l z STJ KW Krak&oacute;w w składzie Waldemar Korcz, Janusz Śmiałek wspinając się techniką sztucznych ułatwień, pokonują 10 m pr&oacute;g oraz odkrywają korytarz do i syfonu piaszczystego na wysokości 26 m w stosunku do otworu.<br />30&ndash;07.1964 r. W Jaskini nad Dachemzesp&oacute;ł z STJ KW Krak&oacute;w w składzie Janusz Śmiałek i Kazimierz Rosiak przekopują I syfon piaszczysty i dochodzą do następnego, a Marek Marciszewski i Edward Ostapowski pr&oacute;bują pokonać zamuloną szczelinę na dnie jaskini.<br />12&ndash;13.09. 1964 r. W Jaskini nad Dachemzesp&oacute;l z STJ KW Krak&oacute;w w składzie: Janusz Śmiałek (kierownik), J. Kopacz, M. Jaglarz, M. Slachowicz, J. Woźniak kontynuowali kopanie w g&oacute;rnych partiach jaskini.<br />4&ndash;5.07.1965 r. W trakcie Og&oacute;lnopolskiego Zlotu Jaskiniowego, organizowanego przez KTJ odbyła się wyprawa kierowana przez Janusza Flacha (STJ Zakopane), w kt&oacute;rej uczestniczyli grotołazi z całej Polski oraz Słowak Pavel Pitoniak z Kieżmarku. Do Sali Dantego zjechali: Janusz Flach, Edward Chelpa i Apoloniusz Rajwa (STJ Zakopane), Jerzy Cuber (HKTJ Katowice-Wełnowiec), Bolesław Walawski (Speleoklub Częstochowa) i Pavel Pitoniak. Rozpoczęli oni czyszczenie z ruchomych blok&oacute;w i płyt wiszących nad Studnią Taty. Do Studni Taty nie zjechano, natomiast Janusz Flach i Edward Chełpa, asekurowani przez Apoloniusza Rajwę zjechali g&oacute;rną częścią Studni Flacha pod 6 m prożek.<br />13&ndash;14.07.1967 r. Zesp&oacute;ł AKG Gliwice w składzie: Paweł Gibiński, Henryk Natkaniec, Christian Parma i Czesław Wrona odkryli poniżej g&oacute;rnej części Studni Flacha odchodzące w d&oacute;ł partie, kt&oacute;rymi dotarli do Korytarza Końcowego. Jest to dolna część Studni Flacha.<br />21&ndash;26.07.1967 r. wyprawa Speleoklubu Warszawskiego PTTK&nbsp;&ndash; Jerzy Grodzicki (kierownik), Andrzej Kopeć, Andrzej Podlewski i Jan Witkowski zaatakowała Studnię Taty. Na jej dno zjechali J. Grodzicki i J. Witkowski. W trakcie tej akcji dotarto w Studni Flacha do zacisku (Zacisk Klasy Lux) oraz podjęto pr&oacute;bę eksploracji komina na końcu Korytarza Antykońcowego. W trakcie wyprawy dokonano pomiar&oacute;w ciągu od otworu do Syfonu Końcowego przez Studnię Taty i Studni Flacha.<br />Listopad 1975 r. Andrzej Ciszcwski i Czesław Dąbrowski (KKTJ) pokonują wstępną część trawersu do g&oacute;rnego<br /> okna w Studni Wlotowej<br />1976 r. Zbyszko Pawłowski (Speleoklub Warszawski PTTK) pokonuje Zacisk Klasy Lux, a za nim odkrywa kontynuację korytarza.<br />19.08.1976 r. W trakcie biwaku zorganizowanego w ramach Og&oacute;lnopolskiego Obozu Speleologicznego KTJ PZA Stefan Janota i Aleksander Tront (Speleoklub Katowice) odkrywają g&oacute;rne przedłużenie Korytarza Końcowego i docierają do Syfonu Piaszczystego.<br />15&ndash;16.10.1977 Andrzej Ciszewski, Jan Orłowski i Wiesław Wilk pokonują trawers do g&oacute;rnego okna w Studni Wlotowej i odkrywają 15 m długości meander, przechodzący w ciasną szczelinę.<br />20&ndash;21.10. 1977 Henryk Frcy i Zbigniew Rysiecki odkrywają (po wspinaczce kominem w ciągu do Syfonu Piaszczystego w g&oacute;rnym przedłużeniu Korytarza Końcowego) Prosty Meander i dochodzą pod komin z płynącą wodą.<br />18.07.1978 r. Jan Orłowski i Wojciech Wiśniewski odkrywają około 25 m meandra od okna w studni Czterdziestce. W tej samej akcji W. Wiśniewski i Ewa W&oacute;jcik pokonują w rejonie Syfonu Końcowego około 30 m korytarzyk&oacute;w.<br />15&ndash;20.04.1979 r. W trakcie warszawsko-wrocławskicj wyprawy w składzie: Piotr Kulbicki (kierownik), Krzysztof Walenta (Speleoklub Warszawski PTTK), Waldemar Mucha, Henryk Nowacki i Wojciech Skoczyłaś (Sekcja Grotołaz&oacute;w AKG Wrocław) odkrywa g&oacute;rny wariant korytarza od Studni Palidera do Sali Dantego, Komin FDJ (aż do zawaliska) oraz około 80 m komin&oacute;w nad Studnią Flacha aż do Sali W-W.<br />22.07.1979 r. zesp&oacute;ł ze Speleoklubu Katowice (Damian Lisoń, Zbigniew Rysiecki &ndash; kierownik, Ireneusz Szczygieł) odkrywa połączenie studni opadającej z meandra powyżej Sali W-W z kominem wznoszącym się z tej sali.<br />9&ndash;13.02.1981 r. zesp&oacute;ł ze Speleoklubu Warszawskiego PTTK, kierowany przez Mirosława Kwiatkowskiego (Lesław G&oacute;rniak, Jerzy Kunkel, Zbyszko Pawłowski oraz Paweł Żarski) odkrywają około 400 m nowych partii za Zaciskiem Klasy Lux.<br />22&ndash;26.04.1981 r. zesp&oacute;ł ze Speleoklubu Warszawskiego PTTK (Mirosław Kwiatkowski &ndash; kierownik, Jerzy Kunkel Andrzej Mańkowski, Zbyszko Pawłowski oraz Paweł Żarski) w partiach za Zaciskiem Klasy Lux osiąga głębokość &ndash;293 m (dno Studni Moczydupka).<br />30.05&ndash;1.06.1981 zesp&oacute;ł w składzie Piotr Kulbicki (kierownik) i Krzysztof Walenta (Speleoklub Warszawski PTTK) oraz Janina Wrzak i Bogdan Nawalany (oboje z AKG Krak&oacute;w) wspina się około 16 m nad Salę W-W.<br />30&ndash;31.10.1981 r. zesp&oacute;ł ze Speleoklubu Warszawskiego PTTK (Tomasz Łagowski, Zbyszko Pawłowski&nbsp;&ndash; kierownik, Cezary Sadowski, Paweł Żarski) odkrywa Szczelinę Strzygi oraz około 100 m boczny korytarz poniżej Zacisku 4/3 (Korytarz Pawełka?).<br />Kwiecień 1982 r. W trakcie wyprawy Speleoklubu Warszawskiego PTTK kierowanej przez Mirosława Kwiatkowskiego, Stanisław Choiński pokonuje techniką nurkowania Syfon Moczydupka, przedostając się do znanych już partii jaskini&nbsp;&ndash; prawdopodobnie do jeziorka poniżej zacisku 4/3.<br />12&ndash;13.06.1982 r. wyprawa AKG Krak&oacute;w kierowana przez Piotra Kulbickicgo (Jerzy Czcrny, Andrzej Uberna, Janina Wrzak) odkrywa dolną część Partii Coctail Baru (przez W.W. Wiśniewskiego mylnie określone jako Partie Koktailowe).<br />22&ndash;24,07.1982 zesp&oacute;ł AKG Krak&oacute;w kierowany przez Piotra Kulbickicgo (Jerzy Czerny, Ireneusz Felisiak, Janina Wrzak) osiąga Błotną Salkę w Partiach Coctail Baru.<br />21&ndash;28.08.1982 r. zesp&oacute;l Speleoklubu Warszawskiego PTTK w składzie Mirosław Kwiatkowski (kierownik) i Andrzej J. Piechowski odkrywa partie CDN poprzez obejście Mostka Pirat&oacute;w.<br />6&ndash;8 11.1982 r-zesp&oacute;ł AKG Krak&oacute;w (Piotr Kulbicki&nbsp;&ndash; kierownik, Wiesław Bujakowski, Jerzy Czerny, Andrzej Uberna, Lidia Walczak i Janina Wrzak) osiągają strop partii Coctail Baru.<br />7&ndash;11.02.1983 r. Zbyszko Pawlowski (kierownik), Artur Banaszczyk, Jerzy Kunkel,<br />Tomasz Łagowski, Mieczysław Poloński oraz Paweł Żarski (wszyscy Speleoklub Warszawski PTTK) odkrywają w Partiach za Zaciskiem Klasy Lux Pły towiec w okolicy Wielkich Kaskad oraz 60 m komin, dochodzący do Partii Coctail Baru. <br />30.12.1983 r. W czasie akcji zorganizowanej przez Speleoklub Warszawski PTTK Andrzej J. Piechowski (kierownik) oraz Michcl Bovey i J-M. Jutzet (obaj ze Szwajcarii) odkrywają około 150 m Partii Szwajcarskich w CDN. <br />18&ndash;19,06.1984 r. zesp&oacute;ł z KKTJ (Stanisław Kotarba&nbsp;&ndash; kierownik, Artur Madej, Ewa Matysiak, J. Matysiak i J. Picz&oacute;ra)podejmująpr&oacute;bę przekopania piaszczystych syfon&oacute;w w g&oacute;rnych partiach Jaskini Nad Dachem. 27&ndash;30.12.1984 r. zesp&oacute;ł Spcleoklubu Warszawskiego PTTK (Zbigniew Krośkiewicz&nbsp;&ndash; kierownik, Piotr Dąbrowski, Magdalena Kapełuś oraz Piotr Mirowski) odkrywa w Partiach CDN około 80 m nowych korytarzy i dochodzą do dna Komina Pustynna Burza. <br />20&ndash;28.06. 1985 r. kolej n ą pr&oacute;bę przekopania piaszczystych syfon&oacute;w w g&oacute;rnych partiach Jaskini nad Dachempodejmują zespoły z KKTJ:<br />20&ndash;23 czerwca Stanisław Kotarba (KKTJ) i Anna Sadowska (Speleoklub Warszawski PTTK)<br />21 czerwca Piotr Pryczek (kierownik), Tomasz Drechsler, Krzysztof Kubaty oraz Stanisław Osika<br />22 czerwca Hubert Warchał (kierownik), Krzysztof Lasoń, Stanisław Wesołowski oraz Jan Wilkosz<br />23 czerwca Andrzej Ciszewski (kierownik), Zbigniew Kowalczyk, Marek Mżyk oraz Ewa W&oacute;jcik<br />27&ndash;28 czerwca Piotr Dziadzio, Krzysztof Lasoń i Jarosław Sawicz (Speleoklub Dąbrowa G&oacute;rnicza)<br />27&ndash;30 czerwca Rafał Hechsman, Zbigniew Kowalczyk, Marek Mżyk.<br />Postęp tych prac jest nieznany. <br />2&ndash;5.04.1986 r. zesp&oacute;ł UKTJ w składzie: Tomasz Łagowski, Andrzej Mańkowski, Andrzej J. Piechowski oraz Cezary Sadowski dokonał niewielkich odkryć w Partiach za Luxemi w CDN. <br />22.06.1986 r. W trakcie akcji Speleoklubu Warszawskiego PTTK zesp&oacute;ł Tomasz Łagowski i Cezary Sadowski w Partiach Szwajcarskich znajduje nową drogę dojścia do dna Komina Pustynna Burza, a Jacek Książek i Sławomir Packo nurkują w Syfonie Pasożyt&oacute;w, stwierdzając, że stanowi on jeziorko 4 m głębokości. 20.08.1986 r. zesp&oacute;l z UKTJ i Speleoklubu Warszawskiego PTTK (Magdalena Kowalska i Piotr Mirowski) znajduje połączenie Partii CDN z Prostym Meandrem, a zesp&oacute;ł ze Speleoklubu Warszawskiego PTTK (Mirosław Kwiatkowski&nbsp;&ndash; kierownik, Krzysztof Krawiec, Krzysztof Recielski, Mariusz Stefański oraz Tomasz Żuławnik) eksploruje (brak danych o wynikach) okno w Studni Czterdziestce i CDN.<br />23.08.1986 r. Mirosław Kwiatkowski i Tomasz Żuławnik prowadzą eksplorację w CDN (brak danych o wynikach).<br />11.07.1987 r. zesp&oacute;ł Speleoklubu Warszawskiego PTTK (Tomasz Łagowski&nbsp;&ndash; kierownik, Andrzej Paterek, Artur Sabaj oraz Cezary Sadowski) odkrywają około 80 m nowych ciąg&oacute;w za oknem w Studni Czterdziestce.<br />26.07.1987 r. zesp&oacute;ł z KKTJ przeprowadza akcję kopania w piaszczystych syfonach w g&oacute;rnych partiach Jaskini nad Dachem(Andrzej Bartas, Piotr Dziadzio, Lesław Jakubowski&nbsp;&ndash; kierownik, Ryszard Marszałek oraz Artur Wr&oacute;bel).<br />19.09.1987 r. zesp&oacute;ł Speleoklubu Warszawskiego PTTK (Jacek Banaś, Tomasz Łagowski, Andrzej Paterek, Artur Sabaj oraz Cezary Sadowski) kończy eksplorację w rejonie okna w Studni Czterdziestce.<br />3.07.1988 r. zesp&oacute;ł z KKTJ (Marek Augustyn, J. Boniskowski&nbsp;&ndash; Speleoklub Jaworzno, Bogusław Kołodziej oraz Jan Wilkosz&nbsp;&ndash; kierownik) kontynuuje kopanie w piaszczystych syfonach w g&oacute;rnych partiach Jaskini Nad Dachem.<br />27.10.1990 r. Paweł Wańczyk i Paweł Rams z SKTJ PTTK rozpoczynają kopanie w najniższym punkcie Jaskini Nad Dachem.<br />3.11.1990 r. Paweł Wańczyk wraz z Markiem Lorczykiem (SKTJ PTTK) kontynuują kopanie w dnie Jaskini Nad Dachem.<br />9&ndash;13.11.1990 r. zesp&oacute;ł z SKTJ PTTK w składzie Roman Baran, Paweł Irzyk, Marek Lorczyk, Paweł Rams, Paweł Wańczyk&nbsp;&ndash; kierownik oraz Czesław Zabrzański pokonują szczelinę w najniższym punkcie Jaskini nad Dachemi dokonują połączenia jej z systemem Ptasia Studnia&ndash;Jaskinia Lodowa Litworowa w kilku punktach: poprzez okno w Studni Taty, w ciągu za Zaciskiem Klasy Lux (nad Mokrą Osiemnastką) oraz ochodzą do Meandra Speleolog&oacute;w. Odkrywają także Korytarz Żyletek.<br />16&ndash;18.11.1990 r. zesp&oacute;ł z SKTJ PTTK (Anna Antkiewicz-Hancbach&nbsp;&ndash; kierownik, Paweł Rams, Paweł Wańczyk oraz Czesław Zabrzeński) odkrywa w Jaskini nad DachemDiabelski Młyn, wspina się do stropu Komina z Wantką oraz odkrywa ciąg przez G&oacute;rkę Rozrządową.<br />1&ndash;3.03.1991 r. zesp&oacute;ł z SKTJ PTTK kierowany przez Annę Antkiewicz-Hancbach (Paweł Rams, Czesław Zabrzański) odkrywają połączenie pomiędzy Mostkiem Pirat&oacute;w a Kominem Pustynna Burza i łączą go z Partiami CDN oraz odkrywają Korytarz Urojeniowy. Negatywnie rozwiązują problem stropu Trzeciej Studni w Jaskini Lodowej Litworowej. <br />21&ndash;24.03.1991 r. zesp&oacute;ł z SKTJ PTTK (Anna Antkiewicz-Hancbach&nbsp;&ndash; kierownik, Paweł Rams, Ryszard Spirzak, Czesław Zabrzeński) wspinają się w Studni Pustynnej Burzy, odkrywają Komin Ostrowskiego i korytarzyk odchodzący z jego dna. <br />1&ndash;5.05.1991 r. Anna Antkiewicz-Hancbach&nbsp;&ndash; kierownik, Marek Lorczyk, Paweł Rams i Czesław Zabrzeński (wszyscy SKTJ PTTK) kończą wspinaczkę w Kominie Pustynna Burza, odkrywają Meander Majowy, Franusiową Studnię, Studnią Oddziału PTTK "Beskid", zatrzymują się 25 m nad jeziorem Wielki Kłamca. Ponadto odkrywają Salę Gwiazdeczki i stwierdzają, że korytarzyk biegnący od Komina Ostrowskiego uchodzi 27,5 m nad dnem Studni Wścietopcrzy w Partiach CDN.<br />5.07.1991 r. zesp&oacute;l SG KW Wrocław (Wiktor Bolek&nbsp;&ndash; kierownik, Ryszard Lempart i Oskar Orzechowski) poszerza najniższą część Szczeliny Strzygi i osiąga najniższy &ndash; głębszy o 5 m&nbsp;&ndash; punkt jaskini <br />6&ndash;10.07.1991 r. zesp&oacute;ł SKTJ PTTK (Anna Antkicwicz-Hancbach&nbsp;&ndash; kierownik, Krzysztof Hancbach, Marek Lorczyk, Czesław Zabrzeński) trawersują jezioro Wielki Kłamca, odkrywając meander za jeziorem, eksplorują ponadto Partie Rozrywkowe i ciąg przez Studnię Romea i Julii do Baru Zacisze. <br />21&ndash;24.09.1991 r, Anna Antkicwicz-Hancbach&nbsp;&ndash; kierownik, Marek Lorczyk, Ryszard Spirzak, Daniel Urbański, Paweł Wańczyk oraz Czesław Zabrzeński (wszyscy SKTJ PTTK) eksplorują Gorący Meander i łączą go z Franusiową Studnią oraz odkrywają Meander Harlequin i łączą go z Korytarzem Urojeniowym. <br />14&ndash;17.12.1991 r. Anna Antkiewicz-Hancbach&nbsp;&ndash; kierownik, Krzysztof Hancbach, Marek Lorczyk, Daniel Urbański, Czesław Zabrzeński (wszyscy SKTJ PTTK) odkrywają obejście Jeziora Wielki Kłamca, zjeżdżają na Groblę za jeziorem i dochodzą obejściem do okna w Studni Romea i Julii. <br />29.12.1991 r. Anna Antkiewicz-Hancbach i Czesław Zabrzeński osiągają dno Studni Romea i Julii przez obejście Jeziora Wielki Kłamca. <br />27.02&ndash;1.03.1992 r. zesp&oacute;ł SKTJ PTTK kierowany przez Annę Antkiewicz-Hancbach (Marek Lorczyk, Daniel Urbański, Czesław Zabrzeński) osiągają p&oacute;łkę Romea w Studni Romea i Julii i łączą ją przez Meander Lajkonika z Barem Zacisze. Odkrywają połączenie meandra nad P&oacute;łką Romea z Meandrem Harlequin, eksplorują Meander Kapuletich i Tor Bobslejowy. <br />19&ndash;22.03.1992 r. zesp&oacute;ł SKTJ PTTK (Anna Antkiewicz-Hancbach&nbsp;&ndash; kierownik, Paweł Irzyk, Barbara Koteria, Marek Lorczyk i Czesław Zabrzeński) osiąga strop Komina Ostrowskiego. <br />21&ndash;23.11.1992 r. zesp&oacute;ł SKTJ PTTK w składzie Anna Antkiewicz-Hancbach&nbsp;&ndash; kierownik, Lechosław Kawecki, Marek Lorczyk, Paweł Wańczyk oraz Czesław Zabrzeński eksplorują Kanał Prawy i Lewy oraz Ciąg Maniana. <br />29-30.01.1993 r. Czesław Zabrzeński (kierownik) i Wojciech Skoczeń z SKTJ PTTK pokonują korytarzyk odchodzący z Baru Zacisze i dochodzą nim do Kanału Lewego. <br />11-13.03.1994 r. zesp&oacute;ł z SKTJ P1TK (Anna Antkiewicz-Hancbach&nbsp;&ndash; kierownik, Marek Lorczyk, Paweł Rams i Czesław Zabrzeński) z negatywnym skutkiem eksplorują w Partiach Rozrywkowych. <br />30.12.1994 r. Anna Antkiewicz i Wojciech Skoczeń eksplorują ciąg od okna w Studni Taty, wskazanego przez Romana Kubina z Zakopanego (Okno Romana) i osiągają g&oacute;rne przedłużenie Korytarza Końcowego.<br />8.07.1995 r. zesp&oacute;ł SKTJ PTTK (Barbara Koteria, Paweł Rams i Paweł Wańczyk&nbsp;&ndash; kierownik) łączą ciąg od Okna Romana z Prostym Meandrem. <br />7&ndash;10.06.1996 r. Anna Antkiewicz&nbsp;&ndash; kierownik, Paweł Kroh, Marek Lorczyk, Paweł Rams, Tomasz Traciłowski oraz Paweł Wańczyk (wszyscy SKTJ PTTK) odkrywają Partie Zmory w g&oacute;rnej części Cocktail Baru. <br />15.11.1996 r. Paweł Wańczyk, Piotr Floryan oraz Bolesław Stanisz z SKTJ PTTK odkrywają kr&oacute;tki korytarz w ścianie Studni Wścietoperzy, zjeżdżają studzienką nad pochylnią przy dnie Studni Wścietoperzy i łączą ją (prawdopodobnie) z CDN i dalej z Prostym Meandrem. <br />10.02.1997 r. Anna Antkiewicz i Marek Lorczyk (oboje SKTJ PTTK) eksplorują Zapomniany Meander odchodzący od dolnej p&oacute;łki w Studni Wlotowej (pierwsze 30 m). <br />15.03.1997 r. zesp&oacute;ł SKTJ PTTK w składzie Paweł Dulka, Piotr Floryan, Marek Lorczyk (kierownik), Wojciech Skoczeń i Michał Szczygieł łączy Zapomniany Meander ze stropem Studni Palidera. <br />23.09.1997 r. zesp&oacute;ł SKTJ PTTK w składzie: Anna Antkiewicz (kierownik), Wojciech Skoczeń i Magdalena Tokarz eksploruje okno w Studni Palidera (24 m nad dnem) i dalej Studnię "Wcześniak&oacute;w" do Sali Dantego. 26.09.1997 r. zesp&oacute;ł SKTJ PTTK w składzie Anna Antkiewicz (kierownik), Paweł Kroh i Magdalena Tokarz eksploruje Studnię "Wcześniak&oacute;w" do Sali pod Kolosalną Wantą.<br />22.06.2000 zesp&oacute;ł z SKTJ PTTK w składzie Marek Lorczyk i Wojciech Skoczeń wspinają się pierwsze 30 m w Sali Dantego ścianą p&oacute;łnocno-wschodnią.<br />24.06.2000 zesp&oacute;ł z SKTJ PTTK w składzie Marek Lorczyk i Wojciech Skoczeń wspinają się w kierunku stropu Sali Dantego. <br />23.07.2000 zesp&oacute;ł z SKTJ PTTK w składzie Marek Lorczyk i Wojciech Skoczeń wspinają się w kierunku stropu Sali Dantego.<br />13.08.2000 zesp&oacute;ł z SKTJ PTTK w składzie: Marek Lorczyk i Wojciech Skoczeń osiągają strop Sali Dantego i salkę pod końcowym kominem<br />13.08.2000 zesp&oacute;ł z SKTJ PTTK w składzie: Anna Antkiewicz i Czesław Zabrzeński eksplorując korytarz odchodzący na wsch&oacute;d od Sali Gwiazdeczki dochodzą do Sali Słoneczka, kt&oacute;re ogrzało nasze kości na Kazalnicy i z powrotem do Kaprawej Salki. Dochodzą też do Zwieracza J&oacute;zefa i podstawy Komina z Polewą.<br />02.09.2000 zesp&oacute;ł z SKTJ PTTK w składzie: Anna Antkiewicz, Wojciech Skoczeń i Czesław Zabrzeński eksplorują Komin z Polewą i wspinają się do stropu Sali Słoneczka osiągając meander otwarty od dołu.<br />25.09.2000 zesp&oacute;ł z SKTJ PTTK w składzie: Marek Lorczyk, Czesław Zabrzeński i Ewa Pazera wspinają się w końcowym kominie w partiach nad Salą Dantego osiągając jego strop. Inne mniejsze problemy eksploracyjne rozstrzygają z wynikiem negatywnym.<br />27.09.2000 zesp&oacute;ł z SKTJ PTTK w składzie: Marek Lorczyk i J&oacute;zef Kołodziej eksplorują w partiach nad stropem Sali Dantego od pierwszej sali w d&oacute;ł Meandrem Wiadomo Dokąd i łączą go w stropie (40 m nad dnem) w innym miejscu z Salą Dantego. <br />21.10.2000 zesp&oacute;ł z SKTJ PTTK w składzie: Anna Antkiewicz (kierownik), Czesław Zabrzeński, Paweł Dutka i J&oacute;zef Kołodziej nad Salą Słoneczka eksplorują meander otwarty od dołu dochodząc do wiszącego zawaliska. Przechodzą Zwieracz J&oacute;zefa.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Pierwszy przekr&oacute;j systemu Ptasia Studnia-Jaskinia Lodowa Litworowa (autorstwa A. Rajwy) opublikował S. W&oacute;jcik (1964b). Obejmował on ciąg od otworu Jaskini Ptasia Studnia do Syfonu Końcowego drogą odkrywc&oacute;w oraz ciąg Jaskini Lodowej Litworowej do połączenia z Ptasią Studnią. Głębokość systemu oceniano w&oacute;wczas na 350 m. Kolejny przekr&oacute;j autorstwa J. Grodzickiego (Grodzicki 1971c)) pomijał ciąg drogą odkrywc&oacute;w i przedstawiał przebieg jaskini przez Salę Dantego Bazylikę i Studnie Flacha.<br />Pierwszy plan i opis dokumentacyjny Ptasiej Studni i Jaskini Lodowej Litworowej opublikował J. Grodzicki (197lc,d). Głębokość systemu określono w&oacute;wczas na 295 m.<br /> W latach p&oacute;źniejszych publikowane były plany i przekroje jedynie fragment&oacute;w systemu.<br />- w 1979 r. przekr&oacute;j aksonometryczny autorstwa P. Kulbickicgo, uwzględniający nowe odkrycia (Kronika 1979b)<br />- w 1981 r. plan partii za Zaciskiem Klasy Lux do Zacisku 4/3 oraz poglądowy przekr&oacute;j tych partii, wkomponowany w przekr&oacute;j całego systemu (Kwiatkowski 1981). Głębokość Syfonu Końcowego ustalono na -255 m w oparciu o pomiary, wykonane w 1980 r. przez R.M. Kardasia i M. Burkackicgo.<br />- w 1981 r. opublikowany zostaje plan i przekr&oacute;j Prostego Meandra i &bdquo;rur&rdquo; nad Syfonem Końcowym, autorstwa M. Napierały i Z. Rysieckiego (Napierała 1981).<br />- w 1982 r. Zostaje opublikowany plan partii poniżej Zacisku 4/3 do Szczeliny Strzygi (Pawłowski, Żarski 1982).<br />- w 1984 r. A. Ciszewski (1984) publikuje opis wraz z planem i przekrojeni (w skali 1:200) starych partii Jaskini nad Dachem(do głębokości -30 m), sporządzony przez A. Ciszewskiego, S. Kotarbę i H. W&oacute;jcik.<br />- w 1985 r. opublikowany zostaje poglądowy przekr&oacute;j systemu, na kt&oacute;rym głębokość Syfonu Końcowego wynosi -254 m (Kotarba 1985b).<br />- w 1986 r. opublikowany zostaje archiwalny przekr&oacute;j Jaskini Ptasiej Studni autorstwa J. Danysza z 1961 r. obejmujący ciąg od otworu do Mostka Pirat&oacute;w (Baryła, Kibiński 1986).<br />- w 1988 r. opublikowany został plan fragmentu partii pomiędzy Oknem w Studni Czterdziestce i Salką Jadwigi (Paterek 1988).<br />- w 1991 r. zostaje opublikowany opis, plan i przekr&oacute;j Partii Sądeckich Jaskini Nad Dachem, zestawiony z częścią planu A. Ciszewskiego i in. Z 1984 r. (Antkiewicz-Hancbach 1991)<br />- w 1998 r. opublikowany został przekr&oacute;j Zapomnianego Meandra i Studni"Wcześniak&oacute;w" (Antkiewicz 1998)<br />Przedstawiony w niniejszej dokumentacji plan i przekr&oacute;j całego systemu zestawiono w oparciu o:<br />- plan i przekr&oacute;j starej części Jaskini Nad Dachem(Ciszewski, A. 1984)<br />- plan i przekr&oacute;j systemu ( Antkiewicz, A. 1997)<br />- plan i przekr&oacute;j dolnej części Studni Flacha i dolnej części Coctail Baru (M. Lorczyk 1997)<br />- plan i przekr&oacute;j Sali Słoneczka&hellip; (Antkiewicz, A. 2003)<br />- plan i przekr&oacute;j sali Dantego (Antkiewicz, A. 2003)<br />- przekr&oacute;j ostatnich 5 metr&oacute;w Szczeliny Strzygi (materiały archiwalne W. Bolka). <br />Do przedstawienia partii nieskartowanych wykorzystano:<br />- fragmenty poglądowego przekroju systemu (Kwiatkowski 1981) obejmujące Salę W-W, Komin FDJ i Korytarz Antykońcowy<br />- plan "rur" w okolicach Syfonu Końcowego (Napierała 1981).<br />Pomiary wykonali członkowie SKTJ PTTK: A. Antkiewicz i M. Lorczyk oraz Cz. Zabrzeński, W. Skoczeń, P. Rams i P. Wańczyk. Ponadto w pracach pomiarowych uczestniczyli P. Floryan, K. Hancbach, A. Janik, L. Kawecki, B. Koteria, P. Kroh, R. Spirzak, M. Szczygieł, M. Tokarz, T. Traciłowski i D. Urbański.<br />Pomiary metodą ciągu azymutalno-taśmowego przeprowadzono przy użyciu busoli Freiberg oraz taśmy parcianej. W koniecznych przypadkach wsp&oacute;łrzędne zamkniętych ciąg&oacute;w szkieletowych wyr&oacute;wnano matematycznie. Punkt "O" wsp&oacute;łrzędnych w układzie lokalnym znajduje się w otworze Ptasiej Studni, otwory systemu powiązano ciągiem azymutalno-taśmowym. Zaktualizował M. Lorczyk (2009 r.).<br />Plan w grafice wektorowej zestawił M. Lorczyk.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, S. 1962 (wzmianka o odkryciu, opis Jaskini Lodowej Litworowej); Rodziński, R. 1963a (o odkryciu Ptasiej Studni, jaskiń Pod Dachem i Nad Dachem, zdjęcie ściany Koziego Grzbietu z zaznaczeniem drogi dojścia); Uchmański, B. 1963b (informacja o połączeniu Ptasiej Studni i Jaskini Lodowej Litworowej, opis eksploracji); Uchmański, B. 1963c (opis eksploracji i opis jaskiń Ptasiej Studni i Lodowej Litworowej); Rodziński, R, 1963d (o odkryciu Jaskini Nad Dachem); Rajwa, A. 1964 (o eksploracji Ptasiej Studni); Uchmański, B. 1964 (eksploracja Ptasiej Studni); W&#243;jcik, S. 1964 (o eksploracji, przekr&#243;j Ptasiej Studni i Lodowej Litworowej); W&#243;jcik, S. 1964a (o inwentaryzacji Ptasiej Studni); W&#243;jcik, Z, 1966a (wzmianka o osadach); Śmiałek, J. 19665 (o eksploracji Jaskini Nad Dachem); Śmiałek, J. 1966c (o odkryciach w Ptasiej Studni); Rajwa, A. 1968 (o odkryciach w Ptasiej Studni); Uchmański, B. 1968a (o odkryciach w Ptasiej Studni); Grodzicki, J. 1970 (geologia, geneza, wiek i ewolucja); Wołoszyn, B. W. 1970 (fauna); Grodzicki, J. 1971c,d (plan i opis inwentarzowy Ptasiej Studni i Lodowej Litworowej); Tront,A. 1976 (informacja o odkryciach); Bałaś, A. 1977b (informacja o eksploracji); Głazek, J., Rudnicki, J., Szynkicwicz, A. 1977:(o genezie jaskini); Wiśniewski, W.W. 1977a (o odkryciach w Ptasiej Studni); Wiśniewski, W.W. 1977d (o eksploracji w Ptasiej Studni); Ciszewski,A. 1978 (o eksploracji); W&#243;jcik, Z. 1978c (o genezie Ptasiej Studni); Kulbicki, P. 1979a (o eksploracji); Kronika 1979b (o eksploracji, przekr&#243;j Ptasiej Studni); Kwiatkowski, M. 1980 (o eksploracji); Napierała, M. 1980b (opis eksploracji); Baryła, J. 1981c (o odkryciach, fotografia z zaznaczeniem otwor&#243;w systemu); Kwiatkowski, M., (nowe odkrycia, plan i przekr&#243;j partii za Zaciskiem Klasy Lux); Napierała, M. 1981 (informacja o nowych odkryciach, plan i przekr&#243;j Prostego Meandra); Kronika 1981a (o eksploracji); Kardaś, R.M. 1982a (kr&#243;tki opis i historia eksploracji Ptasiej Studni i Lodowej Litworowej); Kardaś, R.M. 1982b (opis dojścia do otwor&#243;w); Kwiatkowski, M. 1982a (opis nurkowania); Kwiatkowski, M. 1982b (o eksploracji i badaniach hydrologicznych); Pawłowski, Z., Żarski, P. 1982 (o eksploracji, plan partii pomiędzy Zaciskiem 4/3 a Szczeliną Strzygi); Sygowski, M. 1982a,b (o pobieraniu pr&#243;b wody do badań); Pawłowski, Z. 1983 (o eksploracji, schemat techniczny drogi przez progi od otworu Ptasiej Studni); Burkacki, M. i in. 1984 (o odkryciach); Ciszewski, A. 1984 (opis, plan i przekr&#243;j Jaskini Nad Dachem); Ciszewski, A. i in. 1984a (plan Jaskini nad dachem); Ciszewski, A. i in. 1984b (przekr&#243;j Jaskini nad dachem); Kapełuś, M. 1984 (o eksploracji); Kardaś, R.M. 1984e (wzmianka o odkryciach); Kotarba, S. 1984 (opis drogi do otworu Jaskini Nad Dachem); Kardaś, R.M. 1985f (podstawowe dane, historia eksploracji Ptasiej Studni, Lodowej Litworowej i Jaskini Nad Dachem); Kotarba, S. 1985a (opis eksploracji Jaskini Nad Dachem); Kotarba, S. 1985b (opis dojścia, przekr&#243;j i szkic techniczny Ptasiej Studni i Lodowej Litworowej); Luty, L, 1985 (o eksploracji); Baryła, J., Kibiński, J. 1986 (informacja o eksploracji, przekr&#243;j Ptasiej Studni do Mostka Pirat&#243;w); Kronika 1986a (o eksploracji w Jaskini Nad Dachem); Kronika 1986c (o eksploracji w Ptasiej Studni); Kronika 1986d (o eksploracji w Jaskini Nad Dachem); Kardaś, R.M. 1986h (o eksploracji); Kronika 1987b (o eksploracji); Pawłowski, Z. 1987 (o eksploracji); Radecki, W. 1987 (o eksploracji w Jaskini Nad Dachem); Paterek, A. 1988 (o odkryciach, plan nowych partii); Radecki, W. 1988 (o eksploracji w Jaskini Nad Dachem); Grodzicki, J., Kardaś, R.M. 1989 (o budowie geologicznej); Antkiewicz-Hancbach, A. 1990 (o eksploracji w Jaskini Nad Dachem); Antkiewicz-Hancbach, A. 1991a (o odkryciach w Jaskini Nad Dachem, przekr&#243;j); Antkiewicz-Hancbach, A,, 1991b (o połączeniu Jaskini Nad Dachemz Ptasią Studnią); Antkiewicz-Hancbach, A. 1991c (opis, plan, przekr&#243;j i szkic techniczny Jaskini Nad Dachem); G&#243;ry nr l, 1991 (o eksploracji); Grodzicki, J. 1991(o genezie, wieku i ewolucji jaskini); Wiśniewski, W.W. 1991d,h,j,k,p (dane morfometryczne); Wiśniewski, W.W. 1991i (historia eksploracji); Wiśniewski, W.W. 19911 (o pogłębieniu o 5 m); Wiśniewski, W.W., I991n (o połączeniu z Nad Dachem); Wiśniewski, W.W. 1991u (o odkryciach); Antkiewicz-Hancbach, A. 1992 ( o odkryciu); Małecka, D. 1993 ( o hydrogeologii); Wiśniewski, W.W. 1993a, ( o odkryciach; Kardaś, R.M.,1994 ( o eksploracji, przekr&#243;j jaskini Nad Dachem); Siarzewski, W. 1994 ( o występowaniu lodu); Rajwa, A. 1995 ( o historii eksploracji); Rajwa, A. 1996 (o historii eksploracji); Wiśniewski, W.W. 1996c,d,f,g (dane morfometryczne); Antkiewicz, A. 1998 (o eksploracji); Piksa K. 1998 (występowanie nietoperzy); Jaskinie TPN 1999 (opis inwentarzowy, plan przekr&#243;j); Piksa K., Wołoszyn B.W 2001 (nietoperze); Piksa K., Nowak J. 2001 (szczątki kostne Barbastella barbastellus); Antkiewicz, 2002a (informacja o eksploracji Sali Słoneczka), Lorczyk, M. 2002 (informacja o eksploracji stropu Sali Dantego); Jaskinie TPN 2004 (uzupełnienia); Szczygieł J. 2011 (wstępny komunikat o badaniach geologicznych w Jaskini nad Dachem); Szczygieł J. 2013c (o geologii i genezie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                    Flach, J. 1961 (schematyczny przekr&#243;j Jaskini Ptasia Studnia); Bolek, W. 1991 (o eksploracji w Ptasiej Studni); Lorczyk, M. 1996 (plan dolnych części Studni Flacha i partii Coctail Baru); Rajwa, A. 1996 ( historia eksploracji); Grodzicki, J. i in. 1999 (zmiany antropogeniczne).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Marek Lorczyk
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(978)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(979)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainExtranet/korzystanie_z_serwisu">Państwowy Instytut Geologiczny - Państwowy Instytut Badawczy</a>
+        </div>
+    </div>
+    <script src="http://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({position:{my:"bottom",at:"center"}});
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>
