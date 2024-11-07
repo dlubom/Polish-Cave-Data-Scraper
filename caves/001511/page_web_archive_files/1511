@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="http://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-579068-10', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>             
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1511">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="http://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href="http://geoportal.pgi.gov.pl"><span class="text-strong">Portal CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="http://geoportal.pgi.gov.pl/jaskinie_polski/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1511;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565523,37".replace(',', '.') + "," + "152729,12".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = 'http://bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1511','Jaskinia Lejbusiowa'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Lejbusiowa
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                Szczelina nad Jaskinią Marmurową
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.48
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′01,49″, φ: 49&#176;14′18,82″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1813
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                95
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                49
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                49
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    83
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, w p&#243;łnocnym krańcu lewego orograficznie ograniczenia Dolinki Mułowej. 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Czerwonym szlakiem z Doliny Kościeliskiej jak do Jaskini Marmurowej T.E -11.05 i dalej na siodełko zwane przełączką 1805 w pobliżu szczytu Kazalnicy Miętusiej. Z siodełka idziemy wprost do góry około 20 m grzędą (którą szeroki stok Twardego Upłazu przełamuje się w zbocze Dolinki Mułowej), a następnie trawersem kilka metrów na lewo, do otworu położonego u podstawy skałek zwróconych w kierunku Dolinki Mułowej. Po drugiej stronie krawędzi znajduje się zapadlisko ciągnące się w kierunku Jaskini Marmurowej T.E-11.05. Dojście bez trudności, we mgle bardzo mylące i niebezpieczne. 
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r ma kształt prostokąta o wymiarach 0,55x0,8m. Poniżej otworu znajduje się płytka studzienka, kt&oacute;ra zaraz przechodzi w skalną, niską pochylnię. Po około 3 m pochylnia urywa się 1,7 m wysokości progiem, kt&oacute;ry doprowadza do niskiej (średnio 0,7m wysokości ) salki, o dnie wypełnionym gruzem skalnym. Po ponad 5 m od progu znajduje się wąskie przejście do stosunkowo wysokiej salki, gdzie ciąg rozchodzi się w dw&oacute;ch kierunkach. Pierwszy korytarzyk o długości 6 m wznosi się umiarkowanie do g&oacute;ry, między blokami skalnymi, w kierunku NE i po paru metrach kończy sw&oacute;j bieg w zawalisku.&nbsp;</p>
+<p>Drugi ciąg schodzi 3 m studzienką, wygrzebaną w gruzowisku do przewężenia między rumowiskiem, a litą skałą&nbsp;Jest to Zacisk&nbsp;FC.Z. . Poniżej zacisku przejście między blokami skalnymi nieco rozszerza się i klucząc w zawalisku możemy: zejść kilkumetrową studzienka w d&oacute;ł lub &bdquo;przecisnąć się&rdquo;&nbsp;do&nbsp;korytarza odchodzącego w kierunku p&oacute;łnocnym.</p>
+<p>Schodząc parometrową studzienka, dochodzimy do Salki z Ciurem. Ze stropu salki wypływa spora ilość wody, kt&oacute;ra zaraz ginie w spągu. Od salki odchodzi, w kierunku p&oacute;łnocnym, nachylona, wąska szczelina, kt&oacute;ra po zwęża się do zacisku (Z3). Za nim po paru metrach urywa się Studzienką Wielkich Lejbusi (P.9), do kt&oacute;rej można też dojść idąc drugim wariantem.</p>
+<p>Drugi wariant jest dostępny dla wszystkich. Poziomy korytarz utworzony z zaklinowanych w szczelinie blok&oacute;w skalnych ma 5 m długości i średnio 0,6 m szerokości i wysokości. Kończy się w miejscu wolnym od blok&oacute;w skalnych, gdzie rozpoczyna się Studzienka Wielkich Lejbusi (P.9). Rozwinęła się ona na rozszerzeniu wąskiej, stromej szczeliny. W g&oacute;rnej części studzienki dochodzi, wzmiankowaną<br />szczeliną,&nbsp;ciąg&nbsp;z&nbsp;Salki z Ciurem.</p>
+<p>Studzienka Wielkich Lejbusi kończy się w salce, w kt&oacute;rej dnie, między wantami,&nbsp;znajduje się wejście do litej, ślepej studzienki (P.4) z wodą spływająca po ścianie i ginącą w spągu. Jest to ta sama woda, z kt&oacute;rą pierwszy raz spotykamy się w Salce z Ciurem. Salka pod Studzienką&nbsp;Wielkich Lejbusi urywa się 3 m progiem do sali pod Kominem Lejbusiowej. Sala ma około 4 m średnicy, a komin około 15 m wysokości (nie był eksplorowany). Zawalisko dna tej sali ma dużą miąższość i wypełnia przejście nad koleją studzienkę. Idąc między jego blokami dostajemy się nad krawędź&nbsp;Studzienki Lejbusiątek (p.11). Dno tej studzienki opada w kierunku NW. W najniższym miejscu znajduje się 4 m głębokości studzienka, w dolnej części wypełniona namuliskiem piaszczystym.</p>
+<p>Jaskinia rozwinęła się w obrębie wapienno-dolomitycznego kompleksu triasu (kampil - anizyk) jednostki Ździar&oacute;w (seria wierchowa, fałd Czerwonych Wierch&oacute;w) i ma zawaliskowy charakter. Wanty budujące ściany i dno są zablokowane pod stropową płytą wapieni, pochyloną ku NW. Nacieki nie występują. Namulisko przy otworze i we wstępnym korytarzu tworzy gleba i rumosz wapienny, głębiej - wanty i ostrokrawędzisty gruz z domieszką gliny.Na dnie końcowej studzienki namulisko piaszczyste. W osadzie występują kości nietoperzy.</p>
+<p>Jaskinia jest wilgotna, wyczuwa silny przewiew, kt&oacute;ry zimą powoduje wytapianie śniegu w okolicy otworu. Światło sięga około 8 m w głąb.</p>
+<p>Bardzo skąpa roślinność reprezentowana przez kwiatowe, paprocie, mchy i porosty występuje przy otworze i we wstępnym korytarzu.</p>
+<p>Zauważono obecność nietoperzy, much, komar&oacute;w, kosarzy i innych owad&oacute;w. W latach siedemdziesiątych kilkakrotnie obserwowano duże ilości nietoperzy, wylatujących z jaskini.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Szczygieł (2015b) wymienia w kontekście genezy i tektonicznych uwarunkowań.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Jaskinia była prawdopodobnie znana od dawna, jednak brak o niej wzmianek w literaturze W 1975 r. Zesp&oacute;ł Inwentaryzacji Jaskiń Tatrzańskich OW PTPNoZ sporządził opis jej położenia. W latach 80-tych grotołazi z SG AKA Poznań podjęli jej eksplorację. Według ustnych informacji J. Paczki przekopali oni zawalisko końcowe, udostępniając dojście do wylotu studzienki, zablokowanej przez wielką wantę. <br />19.11.2000 zesp&oacute;ł z Sądeckiego Klubu Taternictwa Jaskiniowego PTTK w składzie Czesław Zabrzeński (kierownik), Anna Antkiewicz, Artur Janik, Ewa Pazera, Tomasz Traciłowski przechodzą Zacisk FC.Z. ( tylko Zabrzeński i Antkiewicz) i dochodzą ciągiem przez Salkę z Ciurem do Studzienki Wielkich Lejbusi.<br />28.12.2000 zesp&oacute;ł z Sądeckiego Klubu Taternictwa Jaskiniowego PTTK w składzie Czesław Zabrzeński i Anna Antkiewicz eksplorują jaskinię do dna Studzienki Lejbusiątek (-45 m).<br />08.07.2002 zesp&oacute;ł z Sądeckiego Klubu Taternictwa Jaskiniowego PTTK w składzie Czesław Zabrzeński i Zenon Tomasiak odnajduje nową drogę do stropu Studzienki Wielkich Lejbusi, omijającą zacisk w ciągu przez Salkę z Ciurem.<br />21.07.2002 zesp&oacute;ł z Sądeckiego Klubu Taternictwa Jaskiniowego PTTK w składzie: Czesław Zabrzeński (kierownik), Piotr Floryan, Grzegorz Bodziony, Krzysztof Kochan, Wojciech Skoczeń, Bolesław Stanisz podejmują pr&oacute;bę przejścia końcowego namuliska, osiągając głębokość &ndash; 46 m.<br />21.07.2003 zesp&oacute;ł z Sądeckiego Klubu Taternictwa Jaskiniowego PTTK w składzie Czesław Zabrzeński (kierownik), Damian Borkowski, Paweł Tischner podejmują kolejną pr&oacute;bę przejścia końcowego namuliska, osiągając głębokość &ndash; 49 m.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W trakcie inwentaryzacji jaskiń tatrzańskich PTPNoZ w dniu 15 sierpnia 1994 r. I. Luty przy wsp&oacute;łpracy R. Cygana sporządziła dokumentację jaskini oraz wykonała pomiar położenia otworu. W czasie tej akcji wydobyto kilka głaz&oacute;w, blokujących dojście do w&oacute;wczas znanego dna. Pomiary wykonano przy pomocy busoli geologicznej Meridian i taśmy parcianej. Pierwszą dokumentacja opublikowana została w 1996 r. <br />Aktualne pomiary jaskini wykonali w 2003 r. Anna Antkiewicz, Zenon Tomasiak i Grzegorz Bodziony metodą ciągu azymutalno-taśmowego przeprowadzono przy użyciu busoli Freiberg oraz taśmy mierniczej. Uzupełniona dokumentacja została opublikowana w 2004 r.<br />Zaktualizował M. Lorczyk (2009 r.).</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinie TPN 1996 ( opis inwentarzowy, plan i przekr&#243;j); Antkiewicz, A. 2003a (wzmianka o eksploracji); Antkiewicz, A. 2003b (wzmianka o eksploracji); Jaskinie TPN 2004 (uaktualniony opis inwentarzowy, plan i przekr&#243;j); Szczygieł J. 2015b (wymienia w kontekście badań tektonicznych i o genezie).
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Marek Lorczyk
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2010
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1033)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1034)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainExtranet/korzystanie_z_serwisu">Państwowy Instytut Geologiczny - Państwowy Instytut Badawczy</a>
+        </div>
+    </div>
+    <script src="http://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({position:{my:"bottom",at:"center"}});
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>
