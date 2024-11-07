@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Jaskinie Polski</title>
+    <link href="/Content/jquery-ui-1.8.20.custom.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="/Scripts/jquery-ui-1.8.20.custom.min.js" type="text/javascript"></script>
+    <link href="/Content/Site.css" rel="stylesheet" type="text/css" />
+    <script src="/Scripts/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <link href="/Content/telerik.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/telerik.office2010silver.min.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/mapstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/Content/esri.css" rel="stylesheet" type="text/css" />
+    <link href="http://bazadata.pgi.gov.pl/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="/Scripts/site.js" type="text/javascript"></script>
+    <script src="/Scripts/grid.locale-pl.js" type="text/javascript"></script>
+    <link href="/Content/ui.jqgrid.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) { $("#footer").show(); });
+    </script>
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-579068-10', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</head>
+<body>
+    <div style="position: relative">
+        <div id="headerCBDG">
+            <h1><a href="http://www.pgi.gov.pl">Państwowy Instytut Geologiczny</a></h1>
+            <h1 class="min"><a href="http://www.pgi.gov.pl">Państwowy Instytut Badawczy</a></h1>
+            <h2><a href="http://jaskinie.pgi.gov.pl/"><strong>Jaskinie Polski</strong></a></h2>             
+            <div id="login" style="float: right; margin-top: 5px; padding-right: 10px; font-weight: bold;">
+                        <a href="/Account/LogOn?returnUrl=%2FDetails%2FInformation%2F1495">Zaloguj</a>
+            </div>
+        </div>
+        <div id="transparent">
+            <ul>
+                <li class="elementListyLeft"><a href="http://www.pgi.gov.pl"> Strona gł&#243;wna PIG</a></li>
+                <li class="elementListy"><a href="http://geoportal.pgi.gov.pl"><span class="text-strong">Portal CBDG</span></a></li>
+                <li class="elementListy"><a href="http://jaskinie.pgi.gov.pl/">Jaskinie</a></li>
+                <li class="elementListyRight"><a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainIntranet"> Intranet</a></li>
+                <li class="elementListy2"><a href="http://geoportal.pgi.gov.pl/jaskinie_polski/kontakt"> Kontakt</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <script type="text/javascript">
+    function redirectToDetails (url) {
+        var caveId = 1495;
+        url = url.replace("-1", caveId);
+        return window.location.href = url;
+    }
+    function showImageInfo(id) {
+        $.ajax({
+            url: '/Details/ImageInformation',
+            type: "post",
+            data: { id: id },
+            dataType: "json",
+            success: function (data) {
+                $("#imageName").text(data.grafika_nazwa);
+                $("#imageAuthor").text(data.autor_nazwa);
+                $("#imageDate").text(data.dataWykonaniaString);
+                $("#maxWidth").val(data.maxWidth);
+                $("#maxHeight").val(data.maxHeight);
+                var actionUrl = '/Details/RenderImage' + '?id=' + id + '&zoom=0' + '&ifGet=true';
+                $("#imgCave").attr("src", actionUrl);
+
+            }
+        });
+        $("#dialogImageInfo").dialog("open");
+        $("#imageId").val(id);
+
+    }
+    var gbZoom = 0;
+    function loadImage() {
+        $("#zoomUp").removeAttr('disabled');
+        $("#zoomDown").removeAttr('disabled');
+    }
+    function zoom(zoomValue, ifUp) {
+        if ((ifUp == false && $("#imgCave").width() <= 200 && $("#imgCave").height() <= 200) || (ifUp == true && $("#imgCave").width() >= $("#maxWidth").val() && $("#imgCave").height() <= $("#maxHeight").val())) {
+        }
+        else {
+            $("#zoomUp").attr('disabled', 'disabled');
+            $("#zoomDown").attr('disabled', 'disabled');
+            gbZoom += zoomValue;
+            var actionUrl = '/Details/RenderImage' + '?id=' + $("#imageId").val() + '&zoom=' + gbZoom + '&ifGet=false' + '&date=' + new Date().getTime();
+            $("#imgCave").attr("src", actionUrl);
+        }
+
+    }
+    $(function () {
+        $("#btnBackToSearch").buttonBackToSearch();
+        $("#subRedirectToIndex").buttonBack();
+        $("#btnBibliography").buttonBibliography();
+        $("#btnComments").buttonComments();
+        $("#btnEdit").buttonEdit();        
+        $("#btnGraphic").buttonGraphic();                
+        $("#btnCreate").buttonCreate();
+
+        $(".scroll").each(function (index) {
+            if ($(this).prop('scrollHeight')>100) {
+                $(this).prop('title', 'Kliknij aby rozwinąć lub zwinąć tekst');
+            }
+        });
+        $(".scroll").click(function () {
+            if ($(this).attr('class') == 'scroll') {
+                $(this).removeClass('scroll');
+            }
+            else {
+                $(this).addClass('scroll');
+            }
+        });
+        $("#dialogImageInfo").dialog({
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: 800,
+            height: 600,
+            buttons: {
+                Ok: function () {
+                    $(this).dialog("close");
+
+                }
+            },
+            close: function (ev, ui) {
+
+                $("#imageName").text("");
+                $("#imageAuthor").text("");
+                $("#imageDate").text("");
+                $("#imgCave").attr("src", "");
+                $("#maxWidth").val("");
+                $("#maxHeight").val("");
+                gbZoom = 0;
+            }
+        });
+        $(".tableStyle tr:even").addClass("tableRow");
+        $(".tableStyle tr:odd").addClass("tableAlternatingRow");
+        $(".tableStyle tr td:first-child").addClass("tableFirstTD");
+//        var url = "http://ikar3.pgi.gov.pl/arcgis/rest/services/coordinates_transformation/GPServer/puwg92toWGS84/execute"
+//        var coordinates = "565578,77".replace(',', '.') + "," + "152677,97".replace(',', '.')
+//        $.ajax({
+//            url: url,
+//            type: "post",
+//            data: {
+//                coordinatesSet: coordinates,
+//                f: "json"
+//            },
+//            dataType: 'jsonp',
+//            success: function (data) {
+//                var xy = data.results[0].value.replace('|', '').split(';');
+//                $("#wgs84x").text(xy[1]);
+//                $("#wgs84y").text(xy[0]);
+//            }
+//        });
+    });
+    function redirect2AddNote(id, name) {
+        var url = 'http://bazadata.pgi.gov.pl/app/contactform/index.php?SrcType=JASKINIE&id=' + id + '&name=' + name;
+        window.open(url, "Formularz zgłoszeniowy", "left=200,top=100,width=500,height=750");
+    }
+</script>
+<form action="/Details/RedirectAndSetSession" method="post">    <button id="btnBackToSearch" onclick="window.location.href='/'; return false;">Powr&#243;t do wyszukiwania</button>
+    <button id="subRedirectToIndex">Powr&#243;t do wynik&#243;w</button>
+    <button id="btnBibliography" onclick="window.location.href='/Search/Bibliography'; return false;">Literatura</button>
+    <button id="btnComments" onclick="redirect2AddNote('1495','Jaskinia Mała w Mułowej'); return false;">Dodaj uwagi</button>
+</form><br />
+<div style="padding: 0px 2px;">
+    <h3>Dane szczeg&#243;łowe jaskini</h3>
+    <hr style="width: 100%" />
+    <table class="tableStyle" id="tableDetails1">
+        <tr>
+            <td>
+                Nazwa
+            </td>
+            <td>
+                Jaskinia Mała w Mułowej
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Inne nazwy
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Nr inwentarzowy
+            </td>
+            <td>
+                T.E-11.18
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Region
+            </td>
+            <td>
+                Tatry
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wsp&#243;łrzędne WGS84
+            </td>
+            <td>
+                     λ: 19&#176;54′04,20″, φ: 49&#176;14′17,14″
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Gmina
+            </td>
+            <td>
+                Kościelisko (gm. wiejska)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Powiat
+            </td>
+            <td>
+                tatrzański
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wojew&#243;dztwo
+            </td>
+            <td>
+                małopolskie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Właściciel terenu
+            </td>
+            <td>
+                Skarb Państwa
+|                Tatrzański Park Narodowy
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Podstawa ochrony
+            </td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Ekspozycja otworu
+            </td>
+            <td>
+                NE
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Pozostałe otwory
+            </td>
+            <td>
+                 
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość bezwzględna [m n.p.m.]
+            </td>
+            <td>
+                1757
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Wysokość względna [m]
+            </td>
+            <td>
+                410
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Głębokość [m]
+            </td>
+            <td>
+                555
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Przewyższenie [m]
+            </td>
+            <td>
+                0
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Deniwelacja [m]
+            </td>
+            <td>
+                555
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    Długość [m]
+                </div>
+                <div>
+                    w tym szacowane [m]
+                </div>
+            </td>
+            <td>
+                <div style="min-height: 15px;">
+                    3863
+                </div>
+                <div style="min-height: 15px;">
+                    
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Rozciągłość horyzontalna [m]
+            </td>
+            <td>
+                860
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Położenie geograficzne
+            </td>
+            <td>
+                Dolina Miętusia, w lewej orograficznie ściance płaśni pod moreną w Dolinie Mułowej.
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis drogi dojścia do otworu
+            </td>
+            <td>
+                <div class="scroll">
+                    Jaskinia znajduje się na terenie Tatrzańskiego Parku Narodowego – dojście i zwiedzanie jest możliwe tylko po uzyskaniu zezwolenia Dyrekcji Parku. Czerwonym szlakiem podchodzimy z Doliny Kościeliskiej do Chudej Turni i z Przełączki pod Chudą Turnią schodzimy wzdłuż grani oddzielającej połogie wschodnie zbocze Gładkiego Upłaziańskiego do punktu wysokościowego 1805 m n.p.m. (szczyt Kazalnicy Miętusiej) w miejscu, gdzie wspomniane zbocze obrywa się ścianą Kazalnicy Miętusiej do Wielkiej Świstówki. Stąd schodzimy starą owczą percią wzdłuż ściany skalnej w kierunku płaśni pod moreną. W miejscu, gdzie ściana załamuje się i ucieka w prawo pod katem prostym, w zacięciu u jej podnóża znajduje się szukany otwór.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Opis jaskini
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Otw&oacute;r jaskini ma średnicę około 0,8 m i ekspozycję &bdquo;ku g&oacute;rze&rdquo;. Poniżej otworu znajduje się 6,5 m studzienka, kt&oacute;ra w swojej g&oacute;rnej części zachowuje rozmiary otworu,&nbsp;by po około 3 m przejść w przyotworową salkę. Salka poniżej otworu ma płaskie dno i odbiegające od niej trzy ciągi:</p>
+<p><span><span><span>&ndash; </span></span></span>w kierunku WSW biegnie lekko wznoszący się korytarzyk, kt&oacute;ry kończy się okrągłą kom&oacute;rką o średnicy około 1,3m,</p>
+<p>&ndash; w kierunku ENE odchodzi w d&oacute;ł stroma i ciasna pochylnie o długości około 4 m,</p>
+<p><span><span><span>&ndash; </span></span></span>w kierunku SSW biegnie korytarz, kt&oacute;ry po 4 m zwęża się w wąską szczelinę, za kt&oacute;rą poniżej 1,7 m progu znajduje się dno podłużnej salki. W jej przeciwległym końcu napotykamy na Zacisk Sietniak&oacute;w (Z II), po pokonaniu kt&oacute;rego wypadamy nad 1,7 m pr&oacute;g. Zaraz za nim następuje kolejny, nieco wyższy pr&oacute;g (2 m). Tym wąskim i stromym korytarzykiem dochodzimy do salki nad 10 m studzienką.</p>
+<p>Na dnie studzienki (P.10) rozpoczyna się Świstakowa Paryja.&nbsp;Po lewej stronie widoczne jest strome zejście do przewężenia widniejącego w głębi. Za nim, nieopodal natrafiamy na kolejne przewężenie. Za nim strop korytarza wznosi się, by po paru metrach przejść w skośną i stromą szczelinę. Ta doprowadza do wysokiej, wąskiej, pionowej szczeliny i częściowo wiszącego zawaliska na jej dnie. Na jego końcu znajduje się 10 m (ciasna w g&oacute;rnej części) studzienka (P.10), kt&oacute;ra kończy Świstakową Paryję. Parę metr&oacute;w przed początkiem studzienki odchodzi do g&oacute;ry Komin Niedouczonych Wspinaczy.</p>
+<p>Tuż przed studnią wspinamy się w g&oacute;rę zapieraczką, po kilkunastu metrach powyżej zaklinowanej wanty wchodzimy w prawie pionową szczelinę nią w g&oacute;rę aż do niewielkiej salki. Stąd odchodzą dwie drogi jedna dalej w g&oacute;rę do kolejnej salki z zaklinowanymi wantami. Dalej w g&oacute;rę bardzo wąską szczeliną aż do miejsca gdzie wyraźnie robi się pozioma, i jest już nie do przejścia. Szczelina dochodzi prawie na wysokość otworu.</p>
+<p>Wracamy do salki, stąd trawersujemy szczeliną nad Świstakową Paryją do kilkumetrowej studzienki. W dnie korytarz ze ścianami pokrytymi odspojonymi płytami r&oacute;znej wielkości, Bardzo krucho. Sam korytarz kontynuuje się w dwie strony. W jedną lekko w d&oacute;ł w kierunku stropu studni kończącej Świstakową Paryję, sądząc po podobieństwie namuliska i cieku wodnym zbliżonym rozmiarem do tego nad studnią Anki. W druga nieco w g&oacute;rę, na końcu pionowa szczelina rozwija się ku g&oacute;rze, po kilku metrach dochodzi do niego poprzeczna rura, słychać też cieknacą wodę, jest jednak zbyt wąsko by udało się tam wejść.</p>
+<p>Wracamy do Swistakowej Paryi. Zjeżdżamy na dno studni.</p>
+<p>Dno studzienki pokrywa gruz o miąższości ponad 0,5 m. Pod wschodnią ścianą odnajdujemy niski korytarzyk &ndash; tzw. Cielęcy Przełaz, na kt&oacute;rego końcu, po prawej stronie (ze skośnej szczeliny na wysokości 0,5 m) bardzo często wylewa się woda. Wpada ona do Studni Anki (P.33), gdzie podczas przybor&oacute;w wody tworzy się całkiem spory wodospad.</p>
+<p>Studnia zaczyna się wąskim wejściem&nbsp;(ok. 0,8x0,6), by zaraz poniżej rozszerzyć się do paru metr&oacute;w. 3 m poniżej początku Studni Anki odchodzi w bok ciąg prowadzący w kierunku Studni Czesanki. W związku z rozległością obu ciąg&oacute;w dalszy opis jaskini zostanie rozdzielony na trzy rozdziały:</p>
+<p>&ndash; Studnia Anki &ndash; Sala Fakro &ndash; Łubinka&nbsp;</p>
+<p>&ndash; Studnia Anki &ndash; Studnia Czesanka &ndash;Nil &ndash; Syfon Sądeczok&oacute;w</p>
+<p>&ndash; Obejście Syfonu Sądeczok&oacute;w &ndash;Meander Telo Pikny Kielo Cud &ndash; Stary Przodek<strong><span><br /></span></strong></p>
+<p><strong><span>Studnia Anki &ndash; Sala Fakro &ndash; Łubinka</span></strong></p>
+<p>Studnia Anki ma 33 m głębokości. Po 13 m zjazdu stroma p&oacute;łka znajdująca się w g&oacute;rnej części studni urywa się, a studnia przybiera ładny, w miarę regularny kształt. Dno studni o średnicy ok. 3 m&nbsp;jest lite, okrągłe, usłane blokami skalnymi, nawet do 1 m długości. Pod jedną ze ścian znajduje się małe, stałe, płytkie jeziorko.</p>
+<p>Dno Studni Anki urywa się 2 m, wąskim progiem. Poniżej jego spływająca z g&oacute;ry woda wpada w niedostępne szczeliny, by potem opaść w postaci deszczu podziemnego w Studnię Geriawit&oacute;w.</p>
+<p>Poniżej wspomnianego 2 m progu jaskinia kontynuuje się w kierunku SW wysoką, wąską szczeliną. W niej rozpoczyna się Studnia Geriawit&oacute;w (P.110). Po przejściu eksponowanego, erozyjnego &bdquo;cypla&rdquo; (tzw. smoka) zjeżdżamy nieopodal jego krawędzi. W odległości około 10 m, w zachodniej części ściany studni widoczna jest zawaliskowa p&oacute;łka, gdzie odchodzi ciąg do stropu Sali Fakro.&nbsp;Wspomniana p&oacute;łka jest r&oacute;wnież eksponowana&nbsp;z drugiej strony. Pr&oacute;g 6 m wysokości kończy się w małej salce, kt&oacute;ra po paru metrach urywa się 77 m głębokości studnią. Studnia ta wpada do Sali Fakro i stanowi jej część. Sam, widoczny w g&oacute;rnej części zjazdu strop sali znajduje się około 90 m nad dnem.</p>
+<p>Wracamy do Studni Geriawit&oacute;w. 30 m od krawędzi studni znajduje się duża zawaliskowa p&oacute;łka (7 m długości i około 4 m szerokości) . Większość blok&oacute;w skalnych na niej jest dużych rozmiar&oacute;w, o objętości ponad 0,5 m<sup>3</sup>. W ścianach&nbsp;widoczne są mocno sfałdowane warstwy wapieni. W zachodniej części p&oacute;łki znajduje się wejście pod część tego zawaliska. Strop nad p&oacute;łką jak i nad dalszą częścią studni znajduje się około 30 m wyżej.</p>
+<p>Z krawędzi p&oacute;łki dostrzec możemy, w przeciwległej ścianie (wschodniej) niewielkie okno, przez kt&oacute;re Studnia Geriawit&oacute;w łączy się ze Studniami Urodzinowymi (patrz: Studnia Anki &ndash; Studnia Czesanka &ndash; Nil).</p>
+<p>Poniżej p&oacute;łki, od strony wschodniej, Studnia Geriawit&oacute;w&nbsp;kontynuuje się przez około&nbsp;40 m prawie pionową rurą o średnicy około 5 m. Niżej szerokość studni rośnie i coraz cieńsza ściana oddziela ją od Sali Fakro, z kt&oacute;rą łączy się na wysokości ok.25 m przez malowniczą bramę.</p>
+<p>Sala Fakro jest największą podziemną salą w Tatrach. Ma ona 85 m długości, maksymalnie 35 m szerokości i 90 m wysokości. R&oacute;żnica poziom&oacute;w między najwyższym punktem należącym do sali w części zachodniej i najniższym (pod Studnią Geriawit&oacute;w) wynosi ok. 25 m. Dno jej jest pokryte blokami skalnymi r&oacute;żnej wielkości, od bardzo dużych &ndash; kilka m<sup>3</sup> do całkiem małych. Między blokami często występuje piasek kwarcowy z domieszką miki. Zdarzają się też otoczaki skał krystalicznych. W trzech miejscach występuje deszcz podziemny, a płytka stojąca w zimie i płynąca latem woda znajduje się w NE części sali.</p>
+<p>W N części Sali Fakro w dolnych partiach ściany ograniczającej salę, znajduje się wejście do pionowej studni &ndash; Dziury w Kieszeni. Ma ona 22 m głębokości. W części SE znajduje się wąska, niedostępna szczelina, za kt&oacute;rą słychać płynącą wodę. W przeciwległym końcu opada w d&oacute;ł kr&oacute;tki, zawaliskowy korytarzyk. Dolna część Dziury w Kieszeni nie została skartowana.</p>
+<p>W zachodniej części sali wznosi się pr&oacute;g, na kt&oacute;rego SW krańcu otwiera się okno od znajdującego się za nim niezbadanego komina.</p>
+<p>Na wschodnim końcu sali odnajdujemy niewielką komorę, w dnie kt&oacute;rej znajduje się wąskie przejście do Partii Sąsiad&oacute;w. Wzmiankowana komora ma około 3 m średnicy. W przeciwległym końcu między blokami skalnymi znajduje się wąskie przejście, kt&oacute;re prowadzi do początku ciasnej szczeliny będącej początkiem studni P.19. W połowie studni widoczny jest, po przeciwnej stronie, r&oacute;wnoległy komin, kt&oacute;rego dno sąsiaduje z dnem naszej studni. W przeciwległym krańcu dna studni r&oacute;wnoległej, w wąskiej szczelinie znajduje się wejście do kolejnej studni, kt&oacute;ra opada do Salki Pływającego Błota ( P.19), w ciągu&nbsp;Sala Fakro &ndash; Łubinka przez Studnię Kopernika ze Stańkowej. Wracamy do dna studni r&oacute;wnoległej w Partiach Sąsiad&oacute;w. 5 m nad dnem znajduje się p&oacute;łka. Od niej w kierunku NE odchodzi wąski i stromy meanderek, kończący się po paru metrach. W kierunku południowym odchodzi parometrowa szczelina, kt&oacute;ra doprowadza do dna kolejnego komina (P.10). Ponad nim, idąc stromą i eksponowaną, parometrową szczeliną dostajemy się na dno kolejnego komina (około 4 m wysokości). Eksploracja w tym ciągu nie jest zakończona.&nbsp;&nbsp;</p>
+<p>W południowej ścianie Sali Fakro znajduje się wejście do Studni Kopernika ze Stańkowej (P.34). Po 4 m od początku studni natrafiamy na kr&oacute;tkie przewężenie, po kt&oacute;rym studnia kontynuuje się w szczelinie o kierunku W&ndash;E, a potem 17 m owalną, pionową rurą biegnie do dna. Dno studni jest zawaliskowe, podobnie jak strop bezpośrednio nad dnem. Przejście dalej odsłania się w p&oacute;łnocnej części tego fragmentu jaskini. Przez 4. m pr&oacute;g szczelina kontynuuje się w kierunku wschodnim. Wchodząc w zawalisko poniżej progu przedostajemy się do Salki Pływającego Błota, w stropie kt&oacute;rej otwiera się szczelinowy komin łączący go przez Partie Sąsiad&oacute;w z Salą Fakro (patrz wyżej).</p>
+<p>Na ścianach Salki Pływającego Błota występuje naciek grzybkowy, spąg pokrywają r&oacute;żnej wielkości bloki i gruz skalny &bdquo;zatopiony&rdquo; w namulisku ilastym.</p>
+<p>Na przedłużeniu salki, za zakrętem meandra, urywa się kolejna studzienka (P.15). Na jej dnie znajdują się duże bloki skalne i trzy szczeliny nie do przejścia. Za jednym z dużych blok&oacute;w korytarz prowadzi stromo w d&oacute;ł ciasnym przejściem, dając początek Meandrowi Regionalnemu. Mniej więcej w połowie meander rozdziela się na dwa ciągi. Pierwszy, na wprost&nbsp;&ndash; wygodny, schodzący stromo, ale kończący się, niemożliwym do przejścia, okienkiem łączącym go w tym miejscu ze Studnią Bryjowiak&oacute;w. Drugi, wąski i niewygodny doprowadza nad krawędź wspomnianej studni.</p>
+<p>Studnia Bryjowiak&oacute;w (P.36) kontynuuje się r&oacute;wnież do g&oacute;ry, skąd bierze początek ciek wodny nazwany Łubinką. Studnia ta nie jest typową formacją pionową. Poniżej wyjścia z Meandra Regionalnego opada bardzo stromą (75&lt;span &gt;&deg;&ndash;80&lt;span &gt;&deg;) pochylnią, po kt&oacute;rej płynie woda. Woda w tej studni występuje też w postaci deszczu podziemnego. Dno jest zawaliskowe. Największe bloki skalne o objętości kilku m&lt;span &gt;&sup3;znajdują się w N części sali. W części południowej znajduje się niewielki kominek z wodą płynącą ze stropu.</p>
+<p>W części NW, w zawalisku znajduje się wąskie wejście do Studzienki Strachy na Lachy (P.4), kt&oacute;ra doprowadza do pochylni, o częściowo litym dnie. W jej najniższym końcu znowu mamy zawalisko, między blokami kt&oacute;rego znajduje się zjazd do kolejnej studzienki (P.10). Po lekko położonej ścianie tej studzienki płynie woda.</p>
+<p>Poniżej, schodzące w d&oacute;ł pochylnie, mają dno pokryte rumoszem skalnym, między kt&oacute;rymi płynie Łubinka. Po około 50 m dotychczas wygodny korytarz zwęża się i obniża, a woda wpada w zawalisko. Za ciasnym przełazem, usytuowanym obok wpływającej w zawalisko wody, znajdują się partie &bdquo;Ale Cyry&rdquo;. Za przełazem, początkowy niski korytarzyk wznosi się i po 8 m osiąga zakręt. Tu idąc dalej korytarzykiem dochodzimy do Salki HTS, idąc w d&oacute;ł osiągniemy Syfon Krasnala. Do Salki HTS prowadzi wąski kręty korytarzyk, kt&oacute;ry po 4&ndash;5 m dochodzi do rozszerzenia. W jego dnie znajduje się bardzo wąskie, pionowe wejście (Z II) do Salki HTS. Salka ma 3 m długości i tyleż wysokości. Dno i strop ma zawaliskowe. Na przedłużeniu widoczny jest niski zagruzowany korytarzyk. Dalej partie niezbadane. Wracamy do zakrętu. Wchodząc w bardzo wąski pionowy przełaz (Z II) dostajemy się do wysokiej (5 m) i wąskiej szczeliny. W najniższym jej miejscu znajduje się wąskie i niskie przejście do poprzecznej szczeliny, w kt&oacute;rej rozwinął się meander, dnem, kt&oacute;rego płynie Łubinka. W prawo meander podchodzi prawie pod przełaz zaczynający partie &bdquo;Ale Cyry&rdquo;, w lewo opada stromo w d&oacute;ł i po kr&oacute;tkim wypłaszczeniu kończy się w małym Syfonie Krasnala.</p>
+<div><strong><span>Studnia Anki &ndash; Studnia Czesanka &ndash; Nil &ndash; Syfon Sądeczok&oacute;w</span></strong></div>
+<p>Na wysokości 30 m nad dnem Studni Anki, czyli 3 m poniżej jej początku, po stronie wschodniej odchodzi Korytarz Pyknięty. Aby się do niego dostać trzeba wykonać 3 m eksponowany trawers w stosunkowo wąskiej szczelinie. Doprowadza ona do małej p&oacute;łeczki&nbsp;otwartej w kierunku studni. 1,2 m nad nią znajduje się wąskie przejście do Korytarza Pykniętego. Po ponad 5 m ciasny do tej pory korytarz rozszerza się w salkę, w stropie kt&oacute;rej odchodzi wąski kominek (niezbadany).</p>
+<p>Z salki korytarzyk kontynuuje się początkowo niskim przełazem dochodząc pod 4 m pr&oacute;g z zaklinowanymi blokami skalnymi w stropie. Powyżej progu Korytarz Pyknięty kończy się. W lewo do g&oacute;ry odchodzi 8 m pochylnia, kt&oacute;ra kończy się niedostępną szczeliną, w prawo 1 m wysokości pr&oacute;g oddziela salkę od wejścia do dalszych partii. Za wzmiankowanym progiem stromo opada pochylnia, kt&oacute;ra po paru metrach osiąga dno poprzecznego korytarza, kt&oacute;ry urywa się do Studni Urodzinowych. Do g&oacute;ry kontynuuje się Korytarz Samych Zb&oacute;jc&oacute;w.</p>
+<p>Korytarz Samych Zb&oacute;jc&oacute;w ma 56 m długości i biegnie w kierunku p&oacute;łnocno-wschodnim. Początkowo jest szeroki i wygodny. Po 10 m przechodzi w wąską i wysoką szczelinę, 7 m dalej obniża się i już będąc niskim kontynuuje się do końca. Dno korytarza jest zawaliskowe, złożone z r&oacute;żnej wielkości blok&oacute;w skalnych. Krucho.</p>
+<p>Wracamy do rozdroża. Korytarz Samych Zb&oacute;jc&oacute;w urywa się tu 50 m głębokości pierwszą Studnią Urodzinową (P.50). Ma ona w miarę regularny kształt, ok. 5 m średnicy. 31 m od g&oacute;rnej krawędzi znajduje się p&oacute;łka, z kt&oacute;rej odchodzi w d&oacute;ł niezbadany ciąg. W najniższej części dna urywa się kolejna, 20 m głębokości druga Studnia Urodzinowa (P.20). Z jej dna, w kierunku zachodnim odchodzi wznosząca się pochylnia zakończona małym okienkiem, kt&oacute;re wypada nieopodal p&oacute;łki w Studni Geriawit&oacute;w (patrz: Studnia Anki &ndash; Sala Fakro &ndash; Łubinka).</p>
+<p>Wracamy nad Studnie Urodzinowe. Trawersując nad nimi dostajemy się do okna, za kt&oacute;rym zaczyna się 37 m długości Korytarz Pokuty. Za oknem 2 m pr&oacute;g sprowadza do niedużej salki. W jej przeciwległym końcu, po prawej stronie znajduje się wąskie, szczelinowe przejście (Z2) do dalszej wąskiej, niskiej i uciążliwej części korytarza. Korytarz Pokuty urywa się do salki 6m bardzo stromą pochylnią.&nbsp;W stropie salki, w sąsiedztwie końca Korytarza Pokuty znajduje się wylot niezbadanego, wznoszącego się korytarzyka, z kt&oacute;rego wypływa okresowy, niewielki ciek wodny.</p>
+<p>Wspomniana salka przez wysokie przewężenie łączy się z następną, w dnie kt&oacute;rej zaczyna&nbsp;się Studnia Gaździnki (P.22). 4 m poniżej wąskiego wejścia w studni znajduje się szeroka p&oacute;łka, z kt&oacute;rej w najodleglejszym miejscu odchodzi w d&oacute;ł ślepy stromy korytarzyk. Poniżej p&oacute;łki studnia kontynuuje się do kolejnej, poniżej kt&oacute;rej Studnia Gaździnki przybiera ładny, regularny kształt rury o średnicy około 3 m . Z litego dna studni, na wysokości około 2 m odchodzi wąska, skośna szczelina, kt&oacute;ra doprowadza nad kolejną, niewielką studzienkę (P.6). Poniżej niej znajduje się Salka w Stropie. Ma ona zawaliskowe dno. W p&oacute;łnocnej części znajduje się wylot studni, łączącej się z Salą Fakro. Z tego miejsca do południowej krawędzi sali (ok. 10 m od Studni Kopernika idąc wzdłuż ściany w g&oacute;rę) jest 90 m głębokości.</p>
+<p>Z Salki w Stropie, w kierunku SW, przechodząc między blokami skalnymi dostajemy się do wysokiego, szerokiego na 2 m meandra, do kt&oacute;rego, z lewej strony, z niskiego korytarzyka dopływa stały ciek wodny &ndash; Kozia Woda. Na dnie meandra leżą duże bloki skalne. W stropie widoczny jest wylot niezbadanego komina. Po parunastu metrach w stropie odsłania się wylot kolejnego niezbadanego komina. Na ścianach meandra występują liczne, duże grzybki naciekowe. Po 15 m, licząc od początku,&nbsp;meander zwęża się, obniża i po 3 metrach urywa&nbsp;śliską, 2 m pochylnią, po kt&oacute;rej spływa woda. Pochylnia doprowadza do Sali &Oacute;semki. Ma ona około 15 m długości i 5&ndash;9 m szerokości. W tej części, w stropie znajduje się wylot wysokiego komina. W części południowej odchodzi na zach&oacute;d meander.</p>
+<p>Między dużymi głazami wchodzimy do korytarza. Na początku jest niezbyt wąski i suchy. Po kilkunastu metrach dochodzimy do studzienki z zaciskiem na wejściu ( Z I) Poniżej niej jest korytarz doprowadzający nad kolejną kilkumetrową studnię, na ścianach wymyte brzytwy, oraz cieknąca woda. To Studnia Rozdartych. Dalej znowu kilkumetrowej długości szczelina, z progiem pośrodku w dnie kt&oacute;rej otwiera się kolejna kilkunastometrowa Studnia AgMilki. W jej dnie wąska szczelina nie do przejścia</p>
+<div>Wracamy do &Oacute;semki.</div>
+<p>W najniższej części sali, idąc za wodą, odnajdujemy, między ścianą a zawaliskiem, wejście do studzienki (P.9). Rozwinęła się ona na szczelinie o przebiegu N&ndash;S. Na tej samej szczelinie rozwinęła się g&oacute;rna część Studni Czesanki (P.130), do kt&oacute;rej wąskie wejście znajduje się poniżej wspomnianej studzienki. G&oacute;rną część studni stanowi wąska (0,6 &ndash; 1,0m) pionowa szczelina, dnem kt&oacute;rej początkowo płynie Kozia Woda. 7 m niżej, licząc od początku studni dno szczeliny urywa się i woda opada pionowo w d&oacute;ł, a studnia rozszerza się.</p>
+<p>My, odchodząc od wody, dalszą drogę kontynuujemy wąską szczeliną. Około 1,5 m od miejsca, gdzie dno szczeliny urywa się, przechodzimy na ogromny blok skalny w niej zaklinowany ( ok. 5 m długości) i wiszący nad dalszą częścią studni.</p>
+<p>Na jej dno można dostać się dwiema drogami albo kontynuacją przez Zakamarek, Albo przez Studnię Nic-Po-Niej.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a. Dno Czesanki przez Zakamarek</p>
+<p>Trawersujemy lekko w d&oacute;ł szczeliną i dochodzimy nad 8 m zjazd, kt&oacute;ry sprowadza nas do Zakamarka &ndash; salki &bdquo;zawieszonej&rdquo; w Czesance. W zachodniej części Zakamarka odchodzi Stracony Meander. Ma on 18 m długości, jest stromy i wąski, kończy się długą niedostępną dla człowieka szczeliną. W g&oacute;rnej części Zakamarka, około 10 m nad dnem, na przedłużeniu szczeliny NS znajduje się wlot do studni o średnicy ok. 1,5 m. Wracamy do Zakamarka. Do dolnej części Czesanki prowadzą 3 drogi: w części p&oacute;łnocno-zachodniej przez 3&ndash;4 m, wąską pionową szczelinę otwierającą się na końcu (105 m do dna); w części wschodniej przez 2&ndash;3 m pionową szczelinę otwierającą się na końcu (107m do dna); w części p&oacute;łnocnej przez niewielką przegrodę skalną. Studnia Czesanka poniżej Zakamarka ma podłużny kształt . W jej p&oacute;łnocnej, g&oacute;rnej części widoczny jest wlot do r&oacute;wnoległej studni Nic-Po-Niej, do kt&oacute;rej wpada większość Koziej Wody, Dno studni stanowi dużej miąższości zawalisko, przez kt&oacute;re prowadzi droga do dalszej części tego ciągu.</p>
+<div><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>b. Dno Czesanki przez Studnię Nic-Po-Niej</div>
+<p>Pod wspomnianym wyżej blokiem skalnym nad zakamarkiem zjeżdżamy najpierw niezbyt szeroką szczeliną, kt&oacute;ra po 2 m rozszerza się. Po kilkunastu metrach trawersujemy w poprzek ściany przez ciek wodny. Poniżej znajduje się wąska bariera skalna rozdzielająca ją od dolnej części Czesanki. Poniżej bariery studnia przechodzi w rurę kilkumetrowej średnicy. Jej środkiem leje się woda. Po kilkudziesięciu metrach zjeżdżamy na p&oacute;łkę poniżej Gilotyny. Stąd odchodzą dwie odnogi łączące się kilka metr&oacute;w poniżej. Dalej po kilkunastu metrach trawersujemy na druga stronę studni i wzdłuż niej zjeżdżamy na dno Czesanki. W dolnej części studni&nbsp;krucho.</p>
+<p>Zawalisko na dnie Studni Czesanki ma ponad 14 m miąższości. Wejście do niego znajduje się w najniższej części dna studni. Parę metr&oacute;w poniżej znajduje się mała salka z niedużymi kominkami po lewej. Po prawej wchodzimy między zaklinowane bloki skalne i przeciskając się między nimi schodzimy w d&oacute;ł: po prawej mamy litą ścianę, po lewej zawalisko. Po około 14 m w pionie wychodzimy z zawaliska do korytarza, kt&oacute;ry zaczyna Czarny Ląd &ndash; partie jaskini, kt&oacute;re rozwinęły się na kontakcie wapieni (od strony południowej) i czarnych łupk&oacute;w (od strony p&oacute;łnocnej). Czarny Ląd biegnie generalnie w kierunku zachodnim i kończy się na Sali na Luzie.</p>
+<p>Korytarz rozpoczynający Czarny Ląd opada stromo w d&oacute;ł. Jest wysoki. Po częściowo zawaliskowym progu (R.6) spływa Kozia Woda. Dno poniżej usłane płytami z łupk&oacute;w po paru metrach zwęża się i obniża, a płyty blokują dalsze przejście. Obejście znajduje się przez niewielka salkę wymytą w wapieniu. Za przewężeniem korytarz ponownie rozszerza się i robi się wysoki (5&ndash;6 m). Po około 15 m, po przejściu stromej, śliskiej pochylni, korytarz urywa się 20 m Wodospadem Wiktorii, gdzie Kozia Woda wąską strugą opada w d&oacute;ł. Wodospad Wiktorii zajmuje wschodnią część dużej sali o pochyłym, zawaliskowym dnie. Sala ma 25 m długości i 16&ndash;20 m szerokości w części wschodniej oraz 8 m szerokości w części zachodniej. Ze stropu sali odchodzą dwa kominy: jeden rozwinięty na kontakcie wapieni i łupk&oacute;w z wylotem ponad 20 m nad dnem salki; drugi w południowej części salki, początkowo dużej średnicy z widoczną wąską szczeliną w stropie (oba kominy niezbadane).</p>
+<p>W najniższej części sali z Wodospadem Wiktorii znajduje się wąskie przejście do kolejnej dużej sali o długości 18m i szerokości do 9 m. Po paru metrach od wejścia, po p&oacute;łnocnej stronie, spod ściany wypływa Kozia Woda, kt&oacute;ra dostaje się tu przez zawalisko z sali z Wodospadem Wiktorii i nieco dalej wpada do Nilu (patrz dalej). We wschodnim krańcu sali z niskiego korytarzyka wypływa duża ilość wody, tworząc podziemny potok &ndash; Nil. Miejsce wypływu zostało nazwane Źr&oacute;dłem Nilu. Nil po paru metrach wpada w zawalisko. W najniższej części sali, za dużym blokiem skalnym odchodzi niski (do 0,7 m), ale szeroki (do paru m) Korytarz Ludożerc&oacute;w. Po jego lewej stronie widoczne jest koryto po wysokich stanach wody. Korytarz ten po ok. 15 m łączy się z Korytarzem Słoni (patrz dalej).</p>
+<p>Wracamy do sali z Wodospadem Wiktorii. W jej najdalszym zachodnim krańcu znajduje się wejście do niskiego, częściowo zagruzowanego meandra, opadającego lekko w d&oacute;ł. Po 9 m w dnie odsłania się częściowo zagruzowane wejście do studzienki, kt&oacute;ra wpada do Korytarza Słoni. Za studzienką meander wznosi się i po paru metrach urywa się studzienką P.9, kt&oacute;ra też wpada do Korytarza Słoni. Korytarz ten ma 73 m długości, 4&ndash;8 m szerokości i średnio 6 m wysokości. Po 33 m licząc od zjazdu z&nbsp;zagruzowanego meanderka korytarz skręca w lewo. Tu, na zakręcie widoczny jest w stropie wylot dużego komina z niedużym ciekiem wodnym. 12 m dalej, po lewej stronie odchodzi w d&oacute;ł zawaliskowa pochylnia, kt&oacute;ra doprowadza do Nilu. Spada on niewielką kaskadą i po paru metrach ginie w wąskim, niskim&nbsp;korytarzyku.</p>
+<p>Wracamy do Korytarza Słoni. Parę metr&oacute;w dalej w zawalisku, poniżej 2 m progu odsłania się nieduże wejście do niezbadanego korytarza . Znajdujący się lekko na&nbsp;lewo korytarz kończy się po parunastu metrach w zawalisku. Tu kończy się Korytarz Słoni. Jaskinia kontynuuje się w kierunku zachodnim, gdzie odchodzi niski, ale szeroki &bdquo;stary&rdquo; meander, z głęboką szczeliną erozyjną w dnie i wt&oacute;rnie rozmytymi naciekami. Po 18 m dochodzimy do wielkiego bloku skalnego, za kt&oacute;rym znajduje się niska (do 1,2 m) i rozległa Salka z Tamtamem. Idąc przez nią lub przed wspomnianym dużym blokiem skalnym odnajdujemy niewielki pr&oacute;g (1,5m), kt&oacute;ry prowadzi do niedużego zawaliska oddzielającego meander od Sali na Wielkim Luzie. Do sali dostajemy się przez 2,5 m pr&oacute;g. Sala na Wielkim Luzie jak większość Czarnego Lądu utworzyła się na kontakcie wapieni i łupk&oacute;w. Dno jej jest strome, o upadzie w kierunku południowym, zbudowane z łupk&oacute;w lub rumoszu z ich przewagą. W stropie p&oacute;łnocnej części sali widoczny jest wylot niezbadanego komina ze stałym ciekiem wodnym. Idąc najniższą częścią sali (częściowo za ciekiem z komina) dochodzimy do stosunkowo niskiego ( 1&ndash;3m), wt&oacute;rnie rozmytego korytarza o łącznej długości 15 m. Na jego końcu, w niewielkiej odległości od siebie znajdują się dwie wąskie studzienki, na dnie kt&oacute;rych wyraźnie słychać przepływ wody.&nbsp;&nbsp;</p>
+<p>Wracamy do g&oacute;rnej części Sali na Wielkim Luzie. Trawersując po ruchomych blokach skalnych dochodzimy do niskiego korytarzyka, za kt&oacute;rym znajduje się g&oacute;rna część Sali na Luzie. Z dużych blok&oacute;w skalnych, kt&oacute;re dominują w tej części zjeżdżamy parę metr&oacute;w na skośne dno dolnej części tej sali. Ma ono blisko 20 m długości. Spod progu, kt&oacute;rym dostaliśmy się do dolnej części, możemy przejść trawersem z powrotem do dolnej części poprzedniej sali (trudno).</p>
+<p>W najniższej, zachodniej części Sali na Luzie między dużymi blokami skalnymi znajduje się wejście do Meandra Ebola. Początkowo meander jest niski. Po 10 m, poniżej 1,5 m progu staje się wąski (do 2 m) i wysoki (do 8 m), często z zaklinowanymi, w połowie wysokości,&nbsp;blokami skalnymi. Przy niekt&oacute;rych zakrętach meandra odchodzą do g&oacute;ry wąskie pochylnie, kt&oacute;re często łączą się ze sobą (nieskartowane). Po 40 m (licząc od początku meandra) ten wyraźnie skręca na NNE i zmienia swoją szerokość do 0,6 m, przy wysokości 5&ndash;6 m. Po 20 m meander wpada do salki z 1,5 m progiem. Z dna salki odchodzą dwa ciągi: jeden do Nilu, drugi w kierunku Syfonu Sądeczok&oacute;w. Z dna salki, w kierunku SW odchodzi niski, myty korytarzyk. Po 18 m dochodzi do aktywnego ciągu z płynącym Nilem. Tworzy on tu ładną 2 m kaskadę, poniżej kt&oacute;rej sw&oacute;j przepływ ogranicza do dna wąskiej, niskiej szczeliny. Idąc za wodą (niebezpiecznie w przypadku nagłego przyboru wody) dochodzimy w okolice dna salki, do kt&oacute;rej możemy dostać od g&oacute;ry przez 3 m przewieszony pr&oacute;g (patrz dalej).</p>
+<p>Wracamy do dna salki z 1,5 m progiem. Idąc lekko do g&oacute;ry meandrem dochodzimy po paru metrach do przewężenia, za kt&oacute;rym dno urywa się 3 m progiem. Poniżej znajduje się salka, do kt&oacute;rej ze wschodniej strony dopływa niewielki ciek wodny. W dolnej części, po lewej stronie z niskiego korytarzyka (patrz wyżej) wypływa Nil. Po ponad 5 m, idąc za wodą, natrafiamy na zawalisko. Nil płynie dnem meandra, a dalsza droga przebiega między skalnymi blokami. Po przejściu zawaliska znowu dochodzimy do podziemnego potoku. Meander ma do 1 m szerokości i 3&ndash;4 wysokości. 8 m dalej napotykamy przewężenie i głęboką wodę niewielkiego rozlewiska, kt&oacute;re uniemożliwiają przejście dnem. Powyżej 2,5 m progu znajduje się obejście potoku. Tu też znajduje się wejście do dwupoziomych partii znajdujących się powyżej ciągu do Syfonu Sądeczok&oacute;w. Z obejścia schodzimy stromą, kr&oacute;tką pochylnią do wody. Na prawo, w wymyciu meandra utworzyła się niewielka sucha salka. Na przedłużeniu woda spada 2 m kaskadą (I Katarakta) do niewielkiej salki i stamtąd 9 m stromą pochylnią (II Katarakta) do poziomego, wysokiego korytarza. Około 7 m dalej korytarz nagle obniża się, a woda wpada do niewielkiego syfonu. Syfon w linii prostej ma około 5 m długości, tyle samo co r&oacute;wnoległy do niego korytarzyk o średnicy około 1 m. Dochodzimy do wypływu Nilu z syfonu, kt&oacute;ry tu sw&oacute;j przebieg ogranicza do wąskiego, głębokiego koryta. Po paru metrach po lewej stronie odnajdujemy wygodną p&oacute;łkę, z kt&oacute;rej zjeżdżamy do salki pod III Kataraktą. Sama Katarakta ma 4 m wysokości, towarzysząca jej studzienka 7m. Parę metr&oacute;w dalej woda wpada, w niemożliwe do przejścia zawalisko. Wspinamy się lewą stroną do dużej, zawaliskowej sali (12 m długości, 7 m szerokości). W jej stropie znajduje się niezbadany komin. Po przeciwległej stronie sali, poniżej 3,5 m progu, znowu wracamy do Nilu. Po 23 m i dw&oacute;ch zakrętach dochodzimy meandrem do rozdroża. W prawo, do g&oacute;ry odchodzi stroma pochylnia, kt&oacute;ra po paru metrach przekształca się w niską, pochyłą szczelinę. Kilkanaście metr&oacute;w dalej dalszą drogę w tym ciągu zamykają polewy naciekowe.</p>
+<p>Wracamy do rozdroża. W lewo, na zach&oacute;d, w odległości 5 m znajduje się Syfon Sądeczok&oacute;w (tafla wody ok. 2x2 m, głębokość trudna do określenia). Syfon ten położony jest na głębokości &ndash;444 m.</p>
+<p><strong>Obejście Syfonu Sądeczok&oacute;w &ndash; Meader Telo Pikny Kielo Cud &ndash; Stary Przodek &ndash; Syfon A.M.P.I.</strong></p>
+<p><span>Kilkanaście metr&oacute;w przed I Kataraktą przy zejściu z 2,5 m obejścia rozlewiska widać w stropie korytarza szczelinę. Wspinamy się w jej kierunku i po 6 m dostajemy się do suchego ciągu znajdującego się nad korytarzem biegnącym w stronę syfonu. Miejsce to nosi nazwę Kościeliska 3 Godziny. Stąd udajemy się poziomym korytarzem w kierunku NW, dno i nieliczne wanty pokryte są dość suchym błotem, w dnie, co parę metr&oacute;w otwiera się szczelina prawdopodobnie łącząca się z ciągiem do Syfonu Sądeczok&oacute;w. Korytarz ma w tym miejscu od 3 do 5 m szerokości, a jego wysokość od 2 do 4m. Po przejściu około 40m stajemy nad 1m&nbsp;prożkiem, a po jego pokonaniu znajdujemy się nad około 6m studzienką. Studzienkę tą trawersujemy po jej prawej ( p&oacute;łnocnej) stronie po p&oacute;łce pokrytej namuliskiem gliniastym (ostrożnie&nbsp;&ndash; ślisko). Po paru metrach idąc wzdłuż szczeliny dochodzimy do małego progu, o wysokości 1 m, przed nami nieco po prawej na wysokości około 2m znajduje się wejście do g&oacute;rnego piętra, doprowadzającego m.in. do stropu Studni z Węglarka (fragment nieskartowany). Schodzimy wspomniany 1m prożek, zaraz za nim strop nieco się obniża.</span></p>
+<p>Wkr&oacute;tce na spągu coraz mniej jest namuliska gliniastego, a coraz więcej piasku kwarcowego, korytarz w tym miejscu ma przebieg w kierunku NE. Dno przechodzi w nieco nachyloną pochylnie, a strop jest na wysokości 0,7&ndash;1,5m. Po paru metrach korytarz skręca w kierunku NW, a pochylnia opada w d&oacute;ł. Po kolejnych 5 m stajemy na zaklinowanym bloku skalnym na krawędzi Studni z Węglarką. Sama studnia jest zakończona na głębokości około 20m zawaliskiem złożonym z występujących w niej łupk&oacute;w. Kolor łupk&oacute;w jak i ich wygląd przypomina do złudzenia węgiel kamienny, stąd nazwa studni.</p>
+<p>Dalsza droga prowadząca w stronę dna prowadzi eksponowanym trawersem na wysokości zaklinowanego przy wejściu do studni bloku. Po dostaniu się na drugą stronę studni zjeżdżamy 4m pr&oacute;g i stajemy na dnie niezbyt dużej wysokiej na kilka metr&oacute;w salki.</p>
+<p>Do salki możemy r&oacute;wnież dostać się zjeżdżając około 5 m poniżej zaklinowanego bloku i trawersując na p&oacute;łkę w studni. Po znajdujących się na niej blokach skalnych podchodzimy około 3 m w g&oacute;rę by p&oacute;źniej zejść po dość stromej pochylni na dno wspomnianej wcześniej salki.</p>
+<p>W p&oacute;łnocnej ścianie salki widać dwa okna jedno na wysokości około 4m, drugie około 8m nad dnem. Obydwa okna łączą się powyżej progu. Zdecydowanie łatwiej wspiąć się do niższego okna (niezbyt trudno), skąd niezbyt obszerną rurą z namuliskiem piaszczysto gliniastym po 3&ndash;4m stajemy w korytarzu powyżej progu. Do korytarza możemy r&oacute;wnież się dostać wspiąwszy się do g&oacute;rnego okna ( dość trudno, ślisko, wariant wygodniejszy do powrotu).</p>
+<p>Korytarzem o szerokości około 1,5m dochodzimy po paru metrach do Salki z Trawersem na Palcach z 2,5 m studzienką w dnie. Na jej drugą stronę dostajemy się trawersując po lewej (czyli zachodniej) ścianie wykorzystując szczelinę między nią a odpękniętą płytą. Po stronie wschodniej do salki dochodzi pochylnia z płynąca wodą. Po przejściu trawersu udajemy się korytarzem znajdującym się na przedłużeniu wejścia do sali, by po przejściu paru metr&oacute;w korytarzem, kt&oacute;rego dno zalega rumosz skalny, stanąć w Sali z Trawersem Baletnicy. Sala ta ma około 5m średnicy. Przed nami znajduje się zaklinowany dość dużych rozmiar&oacute;w blok skalny. Po drugiej stronie sali widać kontynuujący się korytarz. Dostajemy się do niego najpierw idąc po około 0,5m szerokości krawędzi bloku, a p&oacute;źniej wykonując dość duży krok (trudno) przechodzimy w prawo na ścianę i trawersujemy do widocznego cieku wodnego spływającego po niej. Za nim stajemy w niezbyt dużej salce. W d&oacute;ł otwiera się szczelina łącząca się ze szczeliną znajdującą się we wcześniejszej sali, my pokonujemy 1m pr&oacute;g utworzony przez podcięty blok skalny. Z p&oacute;łeczki, na kt&oacute;rej jest nieco r&oacute;żnych rozmiar&oacute;w gruzu skalnego, po gładkiej płycie pokonujemy kolejny 2m pr&oacute;g. Po kolejnych kilku metrach stajemy nad niewysokim ( ok.2m) progiem w d&oacute;ł, po jego pokonaniu znajdujemy się w niewielkim rozszerzeniu korytarza. Na wprost nas na wysokości 3m znajduje się wejście do niewielkiego korytarza, ze szczeliną w dnie, prowadzącego w głąb jaskini. Wspinamy się do niego, uważając na odpękniętą płytę po prawej.</p>
+<p>Po paru metrach dochodzimy nad niewielki pr&oacute;g w d&oacute;ł, za nim znajduje się salka o&nbsp;średnicy około 5 m. Jej dno stanowią r&oacute;żnych rozmiar&oacute;w bloki skalne. Po prawej stronie poniżej 2 m progu znajduje się salka o dnie pokrytym rumoszem składającym się w przeważającej ilości z łupk&oacute;w. Wracamy do większej sali, kt&oacute;ra jest pierwszą z Sal Strzelistych. W stropie widać otwierający się wysoki komin. Takie same kominy otwierają się w stropie drugiej i trzeciej z Sal Strzelistych. Do kolejnej, czyli drugiej sali dostajemy się po pokonaniu 9m progu w d&oacute;ł. Znowu stajemy w dość dużej sali o wym. 5x8m o dnie pokrytym gruzowiskiem. Do kolejnej trzeciej sali dostajemy się zjeżdżając szczeliną otwierającą się po lewej stronie 7m progu. W dnie sali po lewej stronie otwiera się studzienka o gł. około 1,5 m i wymiarach 2x3 m. Zar&oacute;wno dno sali jak i wspomnianej studzienki pokryte jest rumowiskiem skalnym o dość dużej miąższości. W stropie jak już wspomniano znajduje się komin o znacznej wysokości. Z sali poprzez 3m pr&oacute;g dostajemy się do korytarza doprowadzającego nad kolejny 7m pr&oacute;g. Po zjechaniu wspomnianego progu znajdujemy się w sali o rozmiarach 5x8m z dnem zasłanym dużymi blokami skalnymi. Z sali odchodzą trzy ciągi w kierunkach N, E i SE.&nbsp;Ciąg w kierunku SE to pochylnia w g&oacute;rę z cieknąca niewielką wodą , dość stroma (niesprawdzona). Z kierunku E dochodzi znaczny ciek wodny tworzący w tym miejscu Wodospad Łez mający około 3 m wysokości i 2&ndash;3 m szerokości. Woda spływająca wodospadem przepływa między blokami zalegającymi dno sali i wpływa w korytarz odchodzący w kierunku N. Udajemy się wspomnianym korytarzem i po zejściu pierwszego zbudowanego z blok&oacute;w skalnych ok.2 m progu wchodzimy do zrazu suchego korytarza. Woda przepływa gdzieś poniżej. W tym miejscu jej nie słychać. Po około 8 m dochodzimy do kolejnego progu w d&oacute;ł mającego około 1,5 m. Za progiem znowu słychać płynącą wodę. Przed nami&nbsp;prawie 100 m Meander Telo Pikny Kielo Cud. Meander ma szerokość miedzy 2 a 5 m, wysokość od 2 do 4 m. W dnie otwiera się rynna denna o szer. od 0,5 do 0,2 m, na całej długości niedostępna dla człowieka ze względu na kształt. Dnem cały czas płynie woda z Wodospadu Łez. Sam meander jest utworzony w litej skale wapiennej, posiada pięknie wymyte zakola jak r&oacute;wnież kolejne poziomy erozyjne. Dopiero na jego końcu pojawiają się śladowe ilości namuliska, jak i pojedyncze bloki skalne niezbyt dużych rozmiar&oacute;w. Około 25 m przed jego końcem po prawej stronie znajduje się 2 m pr&oacute;g prowadzący do g&oacute;rnego piętra meandra. Natomiast tuż przed jego końcem po prawej stronie na wysokości spągu widać wymyte zakole, pokryte całkowicie gliną.</p>
+<p>Meander Telo Pikny Kielo Cud kończy się ewidentnym uskokiem, woda nim płynąca niknie gdzieś w niedostępnej szczelinie. Dalsza droga prowadzi w g&oacute;rę przez 4 m pr&oacute;g.</p>
+<p>Po jego pokonaniu przeciskamy się przez niski przełaz utworzony przez strop oraz zaklinowany niżej blok skalny. Za przełazem rozmiary korytarza znacznie się zwiększają.</p>
+<p>Po około 20 m stajemy nad 6 m studzienką, kt&oacute;rą dostajemy się do salki z kt&oacute;rej dna wchodzimy do wąskiego korytarza o wysokości 1,5m. Korytarzem dochodzimy do około 4 m progu w g&oacute;rę zbudowanego z blok&oacute;w skalnych, a po paru metrach dostajemy się na krawędź prawie 14m studni. Po jej pokonaniu stajemy na dnie Sali 481. Jej dno tak jak większości dotychczasowych sal jest pokryte gruzowiskiem. Sala ma wymiary 13x 7 m, jej wysokość to około 25 m. Z sali prowadzi 2 m szerokości łagodnie opadający korytarz doprowadzający nad dwa kolejne progi pierwszy 5 m i drugi 3 m. Oba progi sprowadzają nas na dno długiej i wąskiej sali. Po kilku metrach sala przechodzi w korytarz, kt&oacute;ry najpierw ostro skręca w kierunku NW by po około 5 m znowu skręcić w kierunku SW. Tu korytarz wyraźnie zmienia sw&oacute;j charakter. Jest szerokości około 0,8m i wysokości 3&ndash;5 m. Po około 30 m doprowadza do kaskady mającej 5 m wysokości. Znowu pojawia się ciek wodny, a korytarz zwiększa swoje&nbsp;rozmiary. Po paru metrach korytarz zn&oacute;w się zwęża do około 0,8 m i po kolejnych 8 m doprowadza nas do dw&oacute;ch kolejnych kaskad. Pierwszej 4 i drugiej 6-metrowej. Dno obu kaskad jest częściowo zalane wodą, kt&oacute;ra przelewa się poniżej. Poniżej drugiej kaskady wchodzimy do wąskiego wysokiego meandra, kt&oacute;ry po 15 m ostro skręca w kierunku W. Korytarz robi się szerszy jego dnem płynie woda. Po paru metrach napotykamy rozszerzenie, by go pokonać najpierw schodzimy około 1,5m prożek i lewa stroną, przechodzimy na jego drugą stronę gdzie z kolei pokonujemy tej samej wysokości pr&oacute;g w g&oacute;rę. W rozszerzeniu dość intensywnie ze stropu kapie woda. Po kolejnych kilkunastu metrach dochodzimy nad kolejne progi. Pierwszy 2 m, drugi 5 m. Po ich pokonaniu znajdujemy się w Sali z Progiem z Łopatą. Na jej dno ze stropu dość intensywnie kapie woda, a z około 4 m progu po lewej stronie spływa piękna łopata naciekowa, poniżej niej kolejny naciek w kształcie grzyba o wysokości około 0,8 m.</p>
+<p>Dno salki i ścianę poniżej Łopaty r&oacute;wnież pokrywają polewy naciekowe. Na lewo od niej znajduje się dość znacznej miąższości namulisko gliniaste z wypreparowanymi przez wodę wykapkami. Z sali w kierunku W, opada 6 m pr&oacute;g sprowadzający nas do początku Meandra Czechu Wracajcie!. Poniżej progu znajdują się dwa jeziorka rozdzielone około 1m progiem.Z dolnego jeziorka woda przelewa się do meandra i płynie cały czas jego dnem.</p>
+<p>Meander początkowo niezbyt szeroki, przechodzi w Salę Jęzora z Błotem. Sala ta ma dość ciekawy wygląd. Powstała w zakolu meandra, pozostawiając warstwę w kształcie jęzora o wys. 1m, kt&oacute;rego powierzchnia pokryta jest pięknymi naciekami z błota. P&oacute;łkolisty jęzor ma prawie 5 m długości. W połowie jego obwodu na dnie znajduje się dość dużo niewielkich otoczak&oacute;w. Za salą meander skręca w kierunku NNE. Idziemy jego g&oacute;rnym poziomem by po kilkunastu metrach zejść szczeliną otwierającą się po lewej prawie do poziomu wody. Stąd 4 m pochylnią zn&oacute;w wchodzimy na wyższy poziom. Potem najpierw korytarzem a p&oacute;źniej miedzy blokami skalnymi dochodzimy do 1m progu sprowadzającego do poprzecznej sali o wymiarach 4x15 m. Dnem sali płynie Zambezi. Wpływa ona do sali w jej krańcu SE, w Źr&oacute;dłach Zambezi. Z dość wąskiej szczeliny około 1m wodospad wpada do pierwszego jeziorka o wym.1,5x4 m. Przelewająca się woda wypływa w niżej położonym jeziorku o podobnych wymiarach, częściowo nakrytym blokami skalnymi, stąd woda płynie przez salę tworząc malowniczy potok i znika na jej końcu w 1 m kaskadce. Po prawej stronie Zambezi znajduje się dość stroma pochylnia w przeważającej większości zbudowana z łupk&oacute;w.</p>
+<p>Z sali wchodzimy w wąski ( ok.0,8m), lecz wielopoziomowy Meander Poszukujących Dna. Idąc meandrem na r&oacute;żnej wysokości, wykorzystując zaklinowane w wielu miejscach bloki skalne, dochodzimy do Krzyż&oacute;wki. Dnem meandra płynie woda z Zambezi. W kilku miejscach można zejść do jej poziomu.</p>
+<p>Po pokonaniu 1 m progu na końcu meandra wchodzimy do tr&oacute;jkątnej sali, czyli Krzyż&oacute;wki.</p>
+<p>Stąd odchodzą dwa korytarze. Jeden w kierunku zachodnim, i tu wpływa woda płynąca Meandrem Poszukujących Dna, drugi w kierunku południowym doprowadzający do Rzeki Pamięci. Ten drugi korytarz prowadzi w stronę ciągu, kt&oacute;ry jeszcze nie został pomierzony.</p>
+<p>Pierwszy korytarz, a właściwie meander przechodzi nad 2,5 m kaskadą, do kt&oacute;rej wpływa woda i najpierw wprowadza na jego wyższe piętro by po kilku metrach po zejściu 2 m progu&nbsp;znaleźć się około 3 m nad wodą. Meander po paru metrach obniża się, a w g&oacute;rę odchodzi stroma pochylnia pokryta blokami, prawdopodobnie łącząca się z ciągiem do Rzeki Pamięci.</p>
+<p>Po kolejnych paru metrach meander zwęża się uniemożliwiając przejście. Znajdujemy się na Starym Przodku. Głębokość tego miejsca to &ndash;538 m.</p>
+<p><span>Wracamy do Krzyż&oacute;wki, stromą pochylnią wchodzimy do sali gdzie znajdują się wielkie wanty pokryte błotem. Ten fragment ciągu jest dość trudny orientacyjnie, a ze względu na to dość trudny do szczeg&oacute;łowego opisania. Po wielkich wantach wspinamy się kilka metr&oacute;w w g&oacute;rę i trawersujemy po nich do początkowo obszernego korytarza. Korytarz przechodzi w raczej wąski, wysoki meander, w kt&oacute;rym posuwamy się trochę w g&oacute;rę, trochę w d&oacute;ł szukając najszerszych miejsc. Dnem meandra cały czas płynie aktywny ciek wodny. Właśnie ta woda często wymusza szukania obejścia g&oacute;rnymi poziomami meandra. Po kilkudziesięciu metrach dochodzimy do trawersu w szczelinie. Nie dochodząc do końca trawersu zjeżdżamy w d&oacute;ł kilka metr&oacute;w. Ze stropu leje się w dość dużych ilościach woda. Po kolejnych kilkudziesięciu metrach szczeliny stajemy przed progiem pokrytym polewami naciekowymi. To Bajkowy Pr&oacute;g. Ponieważ polewy zwężają korytarz nie do przejścia, najpierw wspinamy się progiem w g&oacute;rę, by na g&oacute;rze ponownie zjechać w d&oacute;ł. W okolicach progu występuje dość intensywny deszcz podziemny. Dalej wąski meander doprowadza nas do znacznie szerszego korytarza, kt&oacute;rego dnem płynie woda, nazwana Rzeką Pamięci, tworząc jeziorka i kaskady, co często zmusza do szukania ich obejścia na g&oacute;rnych poziomach. Po kolejnych kilkudziesięciu metrach idąc wzdłuż Rzeki Pamięci dochodzimy do kaskady o głębokości&nbsp;2&ndash;3 m. Nie schodzimy w d&oacute;ł, gdyż znajdujące się po kilku metrach jeziorko skutecznie zamyka dalsza drogę lecz trawersujemy na drugą stronę nad kaskadą i po starych mocno rozmytych naciekach trawersujemy najpierw w g&oacute;ry, by po paru metrach trawersu zn&oacute;w zejść do poziomu wody. Przed sobą mamy rozszerzenie korytarza zalane dość głęboką wodą.</span></p>
+<p>Można stąd pr&oacute;bować trawersować do wystającej z wody płyty o kształcie dziobu okrętu podwodnego, ale z uwagi na śliskie ściany i brak jakichkolwiek stopni jest to ryzykowne.</p>
+<p>Lepiej nieco wcześniej wejść na wyższy poziom i po przetrawersowaniu rozszerzenia g&oacute;rą zejść bezpośrednio na płytę. Stojąc tutaj mamy przed sobą salkę z dnem całkowicie pokrytym wodą, z boku widoczny jest odchodzący korytarz, r&oacute;wnież zalany&nbsp;wodą, ze stropem na wysokości 60&ndash;70 cm nad lustrem wody. Woda w tym miejscu ma około 1&ndash;1,2 m głębokości.</p>
+<p>Po pokonaniu jeziorka wchodzimy do wąskiego korytarza, kt&oacute;ry wznosi się, przechodząc w wąską szczelinę z płynącą w dnie wodą. Za przewężeniem korytarza jest około metrowy pr&oacute;g sprowadzający do salki z dnem zalanym wodą. Stąd prowadzi dalej kilkumetrowy korytarz z wodą w dnie, jego strop schodzi do lustra wody i kończy się Syfonem A.M.P.I. na głębokości 555 m.</p>
+<p>Jaskinia&nbsp;Mała w Mułowej powstała w mezozoicznych skałach osadowych serii wierchowej fałdu Czerwonych Wierch&oacute;w. Znaczna część jaskini powstała na kontakcie utwor&oacute;w kredy (czarne łupki cenomanu i margle albu &ndash; Grodzicki 2008) i węglanowymi osadami triasu środkowego, co najlepiej jest widoczne na Czarnym Lądzie, kt&oacute;rego nazwa wzięła się od czarnego koloru łupk&oacute;w.</p>
+<p><em>Obserwacje geologiczne w jaskini prowadził w 2005 r K. Recielski. Pobrane przez niego pr&oacute;by zostały opracowane przez J. Grodzickiego w oparciu o analizę mikropaleontologiczną (sporządzoną przez prof. dr hab. A. Pszcz&oacute;łkowskiego) płytek cienkich wykonanych z pobranych w jaskini pr&oacute;bek.</em></p>
+<p><em>W najniższych partiach ciągu do Łubinki w okolicy Salki HTS występują zielone i wiśniowe łupki dolnego kampilu 144/52&deg;N. Wyżej&nbsp;kontaktują one z wapieniami triasu środkowego, a w Studni Bryjowiak&oacute;w (najprawdopodobniej rozwiniętej na pionowym uskoku tektonicznym o biegu 146&deg;) NE ścianę budują wapienie malmo-neokomu(?), podczas gdy ściana SW jest utworzona z wapieni ciemnych, prawdopodobnie triasu środkowego. Wyżej, w dnie studzienki Pływającego Błota występują ciemne wapienie prawdopodobnie środkowego triasu o biegu i upadzie 12&deg;/48&deg;E, a na p&oacute;łce w Studni Geriawit&oacute;w występują&nbsp;wapienie o biegu i upadzie 100&deg;/42&deg;S, być może wieku triasowego lub dolnokredowego &ndash; neokom(?)&nbsp;&ndash; przyp. Red.</em></p>
+<p>W Studni Geriawit&oacute;w jak i w&nbsp;Sali Fakro wyraźnie widoczny jest skręt synklinalny.W okolicy p&oacute;łki w Studni Geriawit&oacute;w, i częściowo w Sali Fakro widoczne są listwy erozyjne, kt&oacute;re powstały z wypreparowanych, zażelazionych przewarstwień ilastych.</p>
+<p>W Studni Gaździnki oraz w Meandrze Telo Pikny Kielo Cud wyrażnie widoczny jest kilkucentymetrowy uskok tektoniczny.</p>
+<p>Większa część jaskini rozwinięta jest na kierunku SE &ndash; NW, jednak część korytarzy ma przebieg NE &ndash; SW ( Korytarz Samych Zb&oacute;jc&oacute;w, Korytarz Pokuty).</p>
+<p>W jaskini znajduje się ogromna Sala Fakro o wymiarach 85x 30m, powstała prawdopodobnie na skutek obrywu ścian rozdzielających r&oacute;wnoległe duże studnie, oraz obrywu mas skalnych ze stropu.</p>
+<p><span>Zaskakująco odmienny wygląd ma Meander Telo Pikny Kielo Cud, kt&oacute;ry powstał w litym wapieniu, na jego ścianach można wyr&oacute;żnić wiele poziom&oacute;w erozyjnych. Jest całkowicie pozbawiony osad&oacute;w, a rynną denną w większości niedostępną dla człowieka, na całej długości płynie aktywny ciek wodny.</span></p>
+<p>W jaskini występują zar&oacute;wno osady klastyczne jak i chemiczne, nie stwierdzono jedynie osad&oacute;w organogenicznych. Osady klastyczne to gł&oacute;wnie autochtoniczne zawaliska i gruzowiska. Zawaliska znajdujące się&nbsp;w dnie Sali Fakro i w dnie Studni Czesanka powstały prawdopodobnie na&nbsp;skutek proces&oacute;w zawaliskowych, mniejszy wpływ na ich powstanie miała erozja skał.</p>
+<p>Natomiast gruzowiska znajdujące się w obrębie fragment&oacute;w jaskini powstałych na kontakcie wapieni i łupk&oacute;w mają gł&oacute;wnie charakter erozyjno-korozyjny, w większości składają się z odspojonych ze ścian łupk&oacute;w, z reguły tworząc stożki usypowe po stronie ścian zbudowanych z nich, stąd też występuje znaczne nachylenie spągu korytarzy, co doskonale widać w salach Czarnego Lądu, Sali na Luzie i Sali na Wielkim Luzie.</p>
+<p>Znaczne powierzchnie spągu pokryte są osadami ilastymi, np. Obejście Syfonu, czy okolice Sali Jęzora z Błotem, występują r&oacute;wnież w okolicy Źr&oacute;deł Nilu. W wielu miejscach w osadach tych występują formy erozyjne, w większości są to wykapki. Najliczniejsze są w okolicach Źr&oacute;deł Nilu.</p>
+<p>Osady piaszczyste występują w niewielkiej części Sali Fakro w pobliżu Dziury w Kieszeni, są to piaski kwarcowo-mikowe. Znaczne ilości osad&oacute;w piaszczystych znajdują się w korytarzu przed Studnią z Węglarką, całkowicie tworząc tam namulisko.</p>
+<p>Osady chemiczne występują na znacznej głębokości. W wyższych partiach jaskini występują jedynie w postaci grzybk&oacute;w naciekowych. W okolicy Syfonu Sądeczok&oacute;w występują dość nieliczne za to ładnie wykształcone heliktyty, natomiast w szczelinie nad pochylnią obok syfonu znajdują się piękne polewy naciekowe o dużej miąższości.</p>
+<p>Najładniejsze nacieki znajdują się w okolicy Sali z Progiem z Łopatą i w&nbsp;Meandrze Czechu Wracajcie!. We wspomnianej sali z 4 m progu opada dość duża łopata naciekowa poniżej niej jest duży stalagmit w kształcie grzyba a spąg zalany jest polewą. Powierzchnia grzyba pokryta jest igiełkami o długości do 3 mm.</p>
+<p>Jaskinia Mała w Mułowej prawdopodobnie odwadniana jest przez Lodowe Źr&oacute;dło, jednak by to potwierdzić konieczne będzie wykonanie badań z wykorzystaniem barwienia wody.</p>
+<p>W jaskini występuje dość duża ilość wody, zar&oacute;wno w postaci ciek&oacute;w okresowych, związanych ściśle z ilością w&oacute;d powierzchniowych (opady, topniejący śnieg) jak r&oacute;wnież ciek&oacute;w stałych.</p>
+<div>Wśr&oacute;d ciek&oacute;w okresowych można wyr&oacute;żnić:</div>
+<p>&ndash; ciek płynący dnem korytarzyka dochodzącego od strony okrągłej salki do studzienki&nbsp;wejściowej,</p>
+<p><span>&ndash; ciek występujący za Zaciskiem Sietniak&oacute;w niknący w dnie pierwszej studni w Świstakowej Paryji</span></p>
+<p>&ndash; ciek pojawiający się w stropie korytarza tuż przed Studnia Anki do Studni Geriawit&oacute;w</p>
+<p>&ndash; ciek ze stropu Sali Fakro w pobliżu Dziury w Kieszeni</p>
+<p>Cieki drugi i trzeci są ze sobą powiązane, prawdopodobnie przepływa nimi ta sama woda. Występowanie ich jest ściśle powiązane z występowaniem opad&oacute;w, lub topnieniem śniegu.</p>
+<p>Przy intensywnym opadzie deszczu już po kilkunastu minutach za Zaciskiem pojawia się dość mocny wypływ wody.</p>
+<p>Do stałych ciek&oacute;w wodnych można zaliczyć:</p>
+<p><span><span><span>&ndash; </span></span></span>ciek pojawiający się w stropie Studni Bryjowiak&oacute;w, i poprzez Strachy na Lachy , Łubinkę&nbsp;płynący do Syfonu Krasnala,</p>
+<p>&ndash; Kozia Woda płynąca przez Salę &Oacute;semkę, Czesankę i niknący w jej dnie,</p>
+<p>&ndash; ciek pojawiający się za Zawaliskiem poniżej Czesanki, spływający Wodospadem Wiktorii i dalej do Nilu,</p>
+<p>&ndash; Nil wypływający ze Źr&oacute;deł Nilu, przez Korytarz Ludożerc&oacute;w, Meander Ebola, Katarakty&nbsp;wpadający do Syfonu Sądeczok&oacute;w,</p>
+<p>&ndash; ciek w Sali na Luzie, przepływający przez nią , zasilający Nil,</p>
+<p>&ndash; ciek dopływający z w salce poniżej 3,5 m progu w Meandrze Ebola , zasilający Nil,</p>
+<p>&ndash; ciek płynący w Salce z Trawersem na Palcach, z dopływającym do niego ciekiem w Sali z Trawersem Baletnicy,</p>
+<p>&ndash; ciek od Wodospadu Łez przez Meander Telo Pikny Kielo Cud</p>
+<p>&ndash; ciek wpływający do Meandra Dwudziestolecia i przez Meander Czechu Wracajcie! dopływający do&nbsp;Zambezi,</p>
+<p>&ndash; Źr&oacute;dła Zambezi płynąca od jeziorka przez Meander Poszukujących Dna aż do Starego Przodka.</p>
+<p>Do największych ciek&oacute;w zapewne należy Nil, woda z Wodospadu Łez i&nbsp;Zambezi, istnieją przypuszczenia, że jest to ten sam ciek wodny. Jednak, aby to z całą pewnością stwierdzić należałoby przeprowadzić barwienie wody.</p>
+<p>W jaskini nie ma większych zbiornik&oacute;w wody, w większości są to małe rozlewiska i jeziorka, znajdujące się w obrębie przepływu wody. Wyjątkiem są tu Źr&oacute;dła Nilu, gdzie rozlewisko zajmuje kilkanaście metr&oacute;w kwadratowych, oraz jeziorka przepływowe przy Źr&oacute;dłach Zambezi.</p>
+<p>W okresie zimy studzienka wejściowa ze względu na jej usytuowanie jest całkowicie zasypywana śniegiem, kt&oacute;ry całkowicie uniemożliwia dostęp do jaskini. Zaobserwowano, że śnieg zamyka otw&oacute;r nawet do końca czerwca (2004). L&oacute;d w jaskini pojawia się tylko w okresie zimy, i nie sięga poniżej pierwszej studzienki za Zaciskiem Sietniak&oacute;w.</p>
+<p>Jaskinia charakteryzuje się&nbsp;niezbyt dużym dynamizmem przepływ&oacute;w powietrza, bliżej otworu podlegającym wpływowi zewnętrznych warunk&oacute;w atmosferycznych. Dotychczas nie wyr&oacute;żniono jakichś generalnych kierunk&oacute;w przepływu powietrza. Jak na tak duże gabaryty jaskini, w przewężeniach korytarzy nie jest wyczuwalny wzrost prędkości przepływu, co z pewnością spowodowane jest znacznym rozbudowaniem jaskini.</p>
+<p>Światło sięga jedynie do dna studzienki wejściowej. W okolicy otworu jaskini występuje roślinność zielona, a w samym otworze paprotniki i mchy.</p>
+<p>Badań fauny dotychczas nie prowadzono, w studzience wejściowej obserwowano motyle i much&oacute;wki z zespołu trogloksen&oacute;w naściennych, nie były one jednak oznaczane.</p>
+<p>W 2003 roku w okolicach Zacisku Sietniak&oacute;w zaobserwowano pojedyncze nietoperze, nie były one jednak oznaczane.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia badań
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Interpretacię wstępnych badań&nbsp; geologicznych przedstawił Grodzicki (2008,) w 2013 wyniki badań geologicznych (tektonicznych) i przekroj geologiczny przedstawił Sczygieł (2013). W lata 2014 i 2015 przedstawił wyniki kolejnych badań nt. budowy geologicznej i tektoniki&nbsp; przeprowadzonych w tej jaskini</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia eksploracji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>Data odkrycia nie jest znana. Ze względu na położenie przy perci mogła być zauważona już dawno. O istnieniu "niewielkich grotek" w wapieniach na zachodnim zboczu Kotła Mułowego pod czapką krystaliczną Twardego Upłazu wspomina Wrzosek (1933). Znana już była niewątpliwie w pierwszej połowie lat 60-tych. W latach 1965-1966 otw&oacute;r (pod nazwą Jaskinia w Progu) zlokalizowany został podczas prac terenowych nad topograficzną Mapą Zastępczą Tatr Polskich (1:10000), przez zesp&oacute;ł pomiarowy prowadzony przez B. Koisara. Pierwszą pozycją bibliograficzną zawierającą dane dotyczące najprawdopodobniej opisywanej jaskini jest publikacja W&oacute;jcika (1966a), w kt&oacute;rej występuje ona w tekście i tabeli pod nazwą "W Mułowej", natomiast w objaśnieniach do ilustracji pojawia się nazwą "Mała w Mułowej" (z błędną lokalizacją), dotyczącą zapewne tego samego obiektu. Pod tą nazwą jaskinia wymieniana jest w następnych publikacjach (Kozik 1972a, Borowiec i in. 1977, 1978).<br /><br />Członkowie Sądeckiego Klubu Taternictwa Jaskiniowego PTTK zainteresowali się eksploracją Jaskini Małej w Mułowej już w 1995 roku, ale dopiero 2002 rok przyni&oacute;sł oczekiwane efekty działań na rzecz zbadania tej jaskini. Jaskinia poniżej głębokości 9 m była i jest (jak do tej pory) eksplorowana tylko przez członk&oacute;w Sądeckiego Klubu Taternictwa Jaskiniowego PTTK. Inicjatorem tej eksploracji był Marek Lorczyk.<br />21.07.2002 Paweł Wańczyk (kier.), J&oacute;zef Kołodziej, Czesław Zabrzeński (jako pierwszy) przechodzą Zacisk Sietniak&oacute;w na głębokości 9 m.<br />23.07.2002 P. Wańczyk i Cz. Zabrzeński eksplorują do Cielęcego Przełazu (-60 m)<br />24.07.2002 P. Wańczyk i Cz. Zabrzeński eksplorują okolice Cielęcego Przełazu (-60 m)<br />26.07.2002 P. Wańczyk i Cz. Zabrzeński przechodzą Cielęcy Przełaz i dochodzą nad Studnię Anki (- 62 m).<br />01.08.2002 Marek Lorczyk (kier.), Cz. Zabrzeński, P. Wańczyk i Anna Antkiewicz eksplorują Studnię Anki i g&oacute;rną cześć Studni Geriawit&oacute;w (- 125 m)<br />16.08.2002 M. Lorczyk (kier.), A. Antkiewicz, J&oacute;zef Kołodziej, Paweł Rams, P. Wańczyk eksplorują Studnię Geriawit&oacute;w, odkrywają Salę Fakro, zjeżdżają Dziurę w Kieszeni, Studnię Kopernika ze Stańkowej i dochodzą do Salki Pływającego Błota (- 251 m)<br />25.08.2002 M. Lorczyk (kier.), A. Antkiewicz, P. Rams, P. Wańczyk, Cz. Zabrzeński eksplorują do ponoru Łubinki na głębokości 364 m.<br />22.09.2002 J. Kołodziej i Bolesław Stanisz łączą Salę Fakro przez Partie Sąsiad&oacute;w z Salką Pływającego Błota.<br />28.12.2002 Cz. Zabrzeński (kier.), Grzegorz Bodziony, Paweł Tischner przechodzą obok ponoru Łubinki (- 364 m) i dochodzą do Salki HTS w partiach &bdquo;Ale Cyry&rdquo;.<br />28.12.2002 P. Wańczyk i J. Kołodziej wspinają się do zachodniego okna w Sali Fakro, odkrywając za nim komin; wspinają się pod komin P.10 w Partiach Sąsiad&oacute;w (ok. 8 m w pionie)<br />02.01.2003 P. Wańczyk i J. Kołodziej zjeżdżają ze stropu Studni Fakro ( w ciągu od g&oacute;rnej części Studni Geriawit&oacute;w); schodzą około 3 m niżej w Dziurze w Kieszeni; eksplorują dolną część Studni Anki, łącząc jej ciasne szczeliny z g&oacute;rną częścią Studni Geriawit&oacute;w.<br />02.01.2003 Cz. Zabrzeński (kier.), Bogusław Wypych, Paweł Tischner w partiach &bdquo;Ale Cyry&rdquo;<br />dochodzą do Syfonu Krasnala ( głębokość około &ndash; 372m).<br />12.07.2003 A. Antkiewicz (kier.), P. Rams, P. Wańczyk eksplorują okno w g&oacute;rnej części Studni Anki (na głębokości 65 m) i odkrywają Korytarz Pyknięty (pod 4 m pr&oacute;g).<br />20.07.2003 J. Kołodziej i Wojciech Skoczeń wspinają się w kominach w Partiach Sąsiad&oacute;w <br />do wysokości &ndash; 205 m licząc od otworu. Eksplorują korytarz poniżej Dziury w kieszeni.<br />21.07.2003 M. Lorczyk i J. Kołodziej kontynuują eksplorację korytarza poniżej Dziury w Kieszeni oraz Korytarz Pyknięty nad Studnie Urodzinowe.<br />23.07.2003 M. Lorczyk i J. Kołodziej eksplorują Studnie Urodzinowe (całość), Korytarz Samych Zb&oacute;jc&oacute;w i Meander Pokuty.<br />25.07.2003 A. Antkiewicz, Cz. Zabrzeński i J. Kołodziej eksplorują Studnię Gaździnki, salkę nad Stropem i początek Studni Czesanki (pierwsze 15 m w pionie).<br />26.07.2003 W. Skoczeń i Zenon Tomasiak negatywnie rozwiązują problem okna nad Studnia Geriawit&oacute;w, w połowie tzw. smoka.<br />27.07.2003 A. Antkiewicz, M. Lorczyk, Cz. Zabrzeński i W. Skoczeń eksplorują Studnię Czesankę (P.130) i zawalisko na jej dnie.<br />01.08.2003 A. Antkiewicz, P. Wańczyk, Cz. Zabrzeński eksplorują początek Straconego Meandra, wspinają się ok. 10 m nad Zakamarek (w Studni Czesanka) i odkrywają tam wejście do r&oacute;wnoległej do Czesanki studni; zjeżdżają pierwsze 30 m ze stropu Sali Fakro od strony Salki w Stropie.<br />11.08.2003 A. Antkiewicz, M. Lorczyk, P. Wańczyk kończą eksplorację Straconego Meandra i pr&oacute;bują przedostać się przez zawalisko pod Studnią Czesanką.<br />13.08.2003 A. Antkiewicz, M. Lorczyk, W. Skoczeń, P. Wańczyk przechodzą zawalisko na dnie Studni Czesanki, odkrywają Czarny Ląd dochodząc przez Korytarz Ludożerc&oacute;w nad 2,5 m pr&oacute;g w Sali na Wielkim Luzie.<br />15.08.2003 A. Antkiewicz, M. Lorczyk, W. Skoczeń, P. Wańczyk, Cz. Zabrzeński eksplorują, idąc przez suche obejście Korytarza Ludożerc&oacute;w, Salę na Wielkim Luzie (- 407 m) i dochodzą Meandrem Ebola do Nilu na głębokości 403 m.<br />22.09.3003 A. Antkiewicz, M. Lorczyk, Cz. Zabrzeński, Piotr Floryan, Paweł Dutka eksplorują idąc za Nilem do III Katarakty.<br />25.09.2003 A. Antkiewicz, M. Lorczyk, Cz. Zabrzeński, P. Floryan eksplorują od III Katarakty do Syfonu Sądeczok&oacute;w na &ndash; 444 m. Przed I Kataraktą odkrywają, w g&oacute;rnej części meandra, r&oacute;wnoległe do Nilu, suche, dwupoziomowe ciągi z Studnią z Węglarką (około 20 m głębokości ).<br />18.10.2003 A. Antkiewicz i P. Wańczyk zjeżdżają z Salki w Stropie do Sali Fakro (90m). <br />29.11.2003 Cz. Zabrzeński, P. Wańczyk, P. Floryan idąc suchym ciągiem przetrawersowali nad Studnią z Węglarką i odkryli obejście Syfonu Sądeczok&oacute;w., dochodząc do Sali 481 na głębokość ok. 480 m<br />2-5.01.2004 A. Antkiewicz, Cz. Zabrzeński, W. Skoczeń, P. Floryan, P. Wańczyk kontynuują eksplorację ciągu od Sali 481 do Starego Przodka.<br />3-5.09.2004 M. Lorczyk, W. Skoczeń, D.Kaczorek, P. Wańczyk, P. Floryan odkrywają ciąg od Krzyż&oacute;wki do Rzeki Pamięci schodzący poniżej Starego Przodka <br />14-16.10. 2004 M. Lorczyk, B. Wypych, W. Skoczeń, D. Kaczorek, pr&oacute;by znalezienia obejścia jeziorka na dnie<br />6.11.2004 M. Lorczyk, Agnieszka Gajewska(SW), pokonanie jeziorka końcowego.<br />9-12.10.2006 M. Lorczyk, A. Nieciąg, D.Urbański, Kroh, B. Wypych, eksploracja od jeziorka do Syfonu A.M.P.I.<br />29.12.2006 M. Lorczyk, J. Kołodziej, A. Nieciąg, P. Rams, E. Borkowska, Eksploracja Korytarza J&oacute;zefa od Studni Rozdartych nad Studnię AgMilki.<br />1.09.2007 B. Wypych, N. Tabak, B. Pawłowska Eksploracja Komina Niedouczonych Wspinaczy<br />24.09.2007 M. Lorczyk, B. Pawłowska, N. Tabak, eksploracja początku studni Nic-Po-Niej, do p&oacute;łki pod Gilotyną.<br />29.09.2007 M. Lorczyk, B. Pawłowska, N. Tabak, T. Ćwikła, eksploracja studni Nic-Po-Niej od p&oacute;lki pod Gilotyną do dna Czesanki<br />30.12.2007. M. Lorczyk, B.Pawłowska, B. Wypych, T.Ćwikła, D. Kaczorek, sprawdzono okno w Studni Nic-Po-Niej &ndash; okazało się ślepe,ponownie wspinano się Kominem Niedouczonych Wspinaczy<br />29.06.2008 M. Lorczyk, B. Pawłowska, B. Wypych, T. Ćwikła, M. Kiercz, odkrywają ciągi nad Kominem Niedouczonych Wspinaczy, dochodząc w najwyższym miejscu do wysokości otworu.<br />05.07.2008 W. Skoczeń, A. Nieciąg, B. Wypych, zjeżdżają Studnię AgMilki, do niedostępnej szczeliny.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Historia dokumentacji
+            </td>
+            <td>
+                <div class="scroll">
+                    <p>W ramach prac inwentaryzacyjnych OW PTPNoZ dokumentację jaskini do głębokości 9 m (na tej głębokości jaskinia była zablokowana piaszczysto-gruzowym namuliskiem) opracował zesp&oacute;ł kierowany przez J. Grodzickiego 28 sierpnia 1977 r. Plan sporządzono przy pomocy taśmy parcianej i busoli geologicznej Meridian. Zdjęcia otworu wykonał w sierpniu 1995 r. J. Grodzicki. Lokalizację podano na podstawie mapy Tatry Polskie (1976). Dokumentacja i plan jaskini zostały opublikowane w 1996 r.<br />Pierwszy plan i opis dokumentacyjny Jaskini Małej w Mułowej poniżej głębokości 9 m do ponoru Łubinki opublikowała A. Antkiewicz (2003b). Przekr&oacute;j jaskini do Syfonu Sądeczok&oacute;w opublikowała A. Antkiewicz (2003e). Przekr&oacute;j obejścia syfonu opublikował M. Lorczyk, W. Skoczeń i Cz. Zabrzeński (2004). W pozostałych publikacjach występują poglądowe przekroje jaskini. <br />Pomiary wykonali członkowie Sądeckiego Klubu Taternictwa Jaskiniowego PTTK: Anna Antkiewicz, Marek Lorczyk, Czesław Zabrzeński, Zenon Tomasiak, Paweł Wańczyk, Wojciech Skoczeń, Piotr Floryan, J&oacute;zef Kołodziej, Magdalena Jarosz, Bogusław Wypych, Emilia Borkowska, Dominik Kaczorek.<br />Pomiary metodą ciągu azymutalno-taśmowego przeprowadzono przy użyciu busoli Frieberg oraz taśmy mierniczej. Zaktualizował M. Lorczyk (2009 r.). Wsp&oacute;łrzędne geograficzne otworu w oparciu o mapę topograficzną Tatr wydawana przez Gł&oacute;wnego Geodetę Kraju (<a href="http://maps.geoportal.gov.pl/">http://maps.geoportal.gov.pl</a>) zweryfikował J. Grodzicki (2013).<br />Plan i przekr&oacute;j opracowali A. Antkiewicz i M. Lorczyk.</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Zniszczona, niedostępna lub nieodnaleziona
+            </td>
+            <td>
+                Nie
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Literatura
+            </td>
+            <td>
+                <div class="scroll">
+                    W&#243;jcik, Z. 1966a (dane morfometryczne - pod nazwami &quot;W Mułowej&quot; i &quot;Mała w Mułowej&quot;); Kozik, A. 1972a (wymienia, podaje długość); Tatry Polskie 1976 (lokalizacja pod nazwą Jaskinia w Progu); TATRY POLSKIE 1984 (lokalizacja - bez nazwy); Gradziński i in.1985a (dane morfometryczne, lokalizacja); Jaskinie TPN 1996 (plan i opis znanych w&#243;wczas partii); Antkiewicz, A. 2002b ( wzmianka o odkryciach ciągu do ponoru Łubinki), Wiśniewski,W.W. 2003a (relacja z eksploracji latem 2002, przekr&#243;j poglądowy, zdjęcia); Rajwa,A. 2003 (opis jaskini i odkryć, przekr&#243;j poglądowy, zdjęcie), Wiśniewski,W.W. 2003b (opis jaskini),Wiśniewski,W.W. 2003c (opis jaskini i odkryć, przekr&#243;j poglądowy, zdjęcia i lokalizacja na zdjęciu), Wiśniewski,W.W. 2003 d (wymieniona w zestawieniu, przekr&#243;j poglądowy na przekroju Czerwonych Wierch&#243;w), Antkiewicz,A. 2003 a (opis jaskini i odkryć, przekr&#243;j poglądowy), Antkiewicz,A. 2003b ( opis odkryć, dokładny opis jaskini, plan i przekr&#243;j, zdjęcia), Wiśniewski,W.W. 2003e ( opis jaskini, przekr&#243;j poglądowy), Wiśniewski W.W. 2003f (echa odkryć w środkach masowego przekazu), Antkiewicz, A. 2003c ( opis jaskini i odkryć, przekr&#243;j poglądowy, zdjęcia), Wiśniewski,W.W. 2003g ( zmiany na liście najgłębszych jaskiń Polski), Wiśniewski,W.W. 2003h ( relacja z eksploracji latem 2003),Wiśniewski,W.W. 2003i (relacja z eksploracji latem 2003, przekr&#243;j poglądowy do –400, lokalizacja na mapie), Wiśniewski,W.W. 2003j (relacja z eksploracji latem 2003), Wiśniewski,W.W. 2003k (relacja z odkryć we wrześniu 2003), Wiśniewski,W.W. 2003l (wymieniona w zestawieniach), Wiśniewski,W.W., Morawska-Nowak, B. 2003 (opis jaskini).
+Antkiewicz. A, 2003d (relacja z eksploracji latem 2003, poglądowy przekr&#243;j do Syfonu Sądeczok&#243;w), Antkiewicz A. 2003e ( opis eksploracji w roku 2003 do Sali 481, przekr&#243;j jaskini do Syfonu Sądeczok&#243;w), Antkiewicz A. 2004 (opis eksploracji jaskini w latach 2002-2003, przekr&#243;j poglądowy do –481m), Lorczyk M. 2004a (opis eksploracji z biwaku w 2004r, przekr&#243;j pogladowy), Lorczyk M. 2004b (opis eksploracji w 2003r), Lorczyk M. 2004c (opis eksploracji jaskini w latach 2002-2003), Skoczeń W., Zabrzeński Cz. 2004 (opis jaskini od obejścia syfonu do Starego Przodka, przekr&#243;j obejścia Syfonu Sądeczok&#243;w do Sali 481); Grodzicki J. 2008 (obserwacje geologiczne w jaskini); Szczygieł J. 2013c (o geologii i genezie  Sali Fakro i Studni Czesanki); Szczygieł J., Borowska U., Jaglarz P. 2014 (uaktualniony o nowe dane przekr&#243;j geologiczny Grodzickiego 2008); Szczygieł J. 2015a ( o uskokach); Szczygieł J. 2015b (o geologicznych uwarunkowaniach).
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Materialy archiwalne
+            </td>
+            <td>
+                <div class="scroll">
+                     
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Autorzy opracowania
+            </td>
+            <td>
+                Marek Lorczyk, Anna Antkiewicz
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Redakcja
+            </td>
+            <td>
+                Jerzy Grodzicki
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Stan na rok
+            </td>
+            <td>
+                2013
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Grafika, zdjęcia
+            </td>
+            <td>
+                    <a onclick="showImageInfo(1000)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        plan
+                    </a>
+                    <a onclick="showImageInfo(1001)" class="btn">
+                        <img src="/Images/View.gif" title="Podgląd grafiki" alt="Podgląd grafiki" />
+                        przekr&#243;j
+                    </a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialogImageInfo" title="Informacje o zdjęciu">
+<input id="imageId" type="hidden" />
+<input id="maxWidth" type="hidden" />
+<input id="maxHeight" type="hidden" />
+<div id="informationDiv" style="padding-bottom: 5px;">
+    <strong>Nazwa: </strong><span id="imageName" style="padding-right: 10px;">
+    </span><strong>Autor: </strong><span id="imageAuthor" style="padding-right: 10px;">
+    </span><strong>Data wprowadzenia: </strong><span id="imageDate"
+        style="padding-right: 10px;"></span>
+</div>
+<div>
+    <input id="zoomUp" class="zoomIn" type="button" value="" title="Powiększ" onclick="return zoom(1,true);"  />
+    <input id="zoomDown" class="zoomOut" type="button" value="" title="Pomniejsz" onclick="return zoom(-1,false);"/>
+</div>
+<div id="image" style="padding-top: 10px;">
+    <img id="imgCave" src="" onload="loadImage()" alt="Zdjęcie" />
+</div>
+</div>
+
+        </div>
+        <div id="footer">
+            <a href="http://geoportal.pgi.gov.pl/portal/page/portal/PIGMainExtranet/korzystanie_z_serwisu">Państwowy Instytut Geologiczny - Państwowy Instytut Badawczy</a>
+        </div>
+    </div>
+    <script src="http://bazadata.pgi.gov.pl/libs/isp/pig.isp.jqueryui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            pig.isp.jqueryui.init({position:{my:"bottom",at:"center"}});
+            $("#ispmodal").parent().find(".ui-button").buttonAccept();
+        });
+    </script>
+</body>
+</html>
