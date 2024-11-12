@@ -237,7 +237,7 @@ def extract_coordinates(df):
     df = df.withColumn("longitude", F.col("lon_deg") + F.col("lon_min") / 60 + F.col("lon_sec") / 3600)
 
     # Drop intermediate columns
-    intermediate_cols = ["lon_dms", "lat_dms", "lon_deg", "lon_min", "lon_sec", "lat_deg", "lat_min", "lat_sec"]
+    intermediate_cols = ["lon_dms", "lat_dms", "lon_deg", "lon_min", "lon_sec", "lat_deg", "lat_min", "lat_sec", "coordinates_wgs84"]
     return df.drop(*intermediate_cols)
 
 
@@ -305,6 +305,11 @@ def main():
 
     # Process coordinates
     df = extract_coordinates(df)
+
+    # Filter out test data
+    df = df.filter(~F.col("cave_id").isin(["010569", "011054"]))
+
+    df = df.cache()
 
     # Validate data
     validation_result = validate_data(spark, df)
