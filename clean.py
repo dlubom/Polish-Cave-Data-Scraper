@@ -125,8 +125,9 @@ def create_cave_schema() -> T.StructType:
 
 
 def get_column_mappings() -> Dict[str, str]:
-    """Define column name mappings"""
+    """Define column name mappings for both main cave data and image metadata"""
     return {
+        # Main cave data mappings
         "Nazwa": "name",
         "Inne nazwy": "other_names",
         "Nr inwentarzowy": "inventory_number",
@@ -161,7 +162,44 @@ def get_column_mappings() -> Dict[str, str]:
         "Stan na rok": "state_in_year",
         "Grafika, zdjęcia": "graphics_photos",
         "Obiekt w serwisie Geostanowiska": "object_in_geostanowiska_service",
+        # Image metadata mappings
+        "grafika_id": "graphics_id",
+        "grafika": "graphics",
+        "data_wykonania": "creation_date",
+        "dataWykonaniaString": "creation_date_string",
+        "grafika_nazwa": "graphics_name",
+        "wielkosc": "size",
+        "autor_nazwa": "author_name",
+        "jaskinia_id": "cave_id",
+        "jaskinia_nazwa": "cave_name",
+        "typ_grafiki_id": "graphics_type_id",
+        "typ_grafiki_nazwa": "graphics_type_name",
+        "nr_inwent": "inventory_number",
     }
+
+
+def rename_image_metadata_columns(df, col_mappings: Dict[str, str]):
+    """Rename columns in the nested image metadata structure"""
+
+    # Get the field names of the metadata struct
+    metadata_fields = df.schema["images"].dataType.elementType["metadata"].dataType.fieldNames()
+
+    # Build the transformation
+    df = df.withColumn(
+        "images",
+        F.transform(
+            "images",
+            lambda x: F.struct(
+                F.struct(
+                    *[x.metadata[old_name].alias(col_mappings.get(old_name, old_name)) for old_name in metadata_fields]
+                ).alias("metadata"),
+                x.image_path.alias("image_path"),
+                x.description.alias("description"),
+            ),
+        ),
+    )
+
+    return df
 
 
 def process_numeric_columns(df, numeric_cols: List[str]):
@@ -228,7 +266,7 @@ def validate_data(spark: SparkSession, df):
 
 def save_data(df, output_prefix: str = "caves_transformed"):
     """Save processed data in multiple formats"""
-    df.toPandas().to_json(f"{output_prefix}.jsonl", orient="records", lines=True, force_ascii=False)
+    df.repartition(1).write.mode("overwrite").json(f"{output_prefix}.jsonl")
     df.repartition(1).write.mode("overwrite").parquet(f"{output_prefix}.parquet")
 
 
@@ -241,10 +279,16 @@ def main():
     schema = create_cave_schema()
     df = spark.read.json("caves.jsonl", schema=schema)
 
-    # Rename columns
+    # Get column mappings
     col_mappings = get_column_mappings()
+
+    # Rename main columns
     for old_col, new_col in col_mappings.items():
-        df = df.withColumnRenamed(old_col, new_col)
+        if old_col in df.columns:  # Only rename if column exists in main structure
+            df = df.withColumnRenamed(old_col, new_col)
+
+    # Rename nested image metadata columns
+    df = rename_image_metadata_columns(df, col_mappings)
 
     # Process numeric columns
     numeric_cols = [
