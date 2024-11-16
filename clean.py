@@ -8,10 +8,6 @@ from dataclasses import dataclass
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 from pyspark.sql import SparkSession
-import pydeequ
-from pydeequ.analyzers import *
-from pydeequ.checks import *
-from pydeequ.verification import *
 
 
 @dataclass
@@ -21,8 +17,6 @@ class SparkConfig:
 
     def get_default_configs(self) -> Dict[str, str]:
         return {
-            "spark.jars.packages": pydeequ.deequ_maven_coord,
-            "spark.jars.excludes": pydeequ.f2j_maven_coord,
             "spark.some.config.option": "some-value",
         }
 
@@ -211,6 +205,13 @@ def process_numeric_columns(df, numeric_cols: List[str]):
     return df
 
 
+def process_string_columns(df, string_cols: List[str]):
+    """Trim and replace empty strings with None"""
+    for col in string_cols:
+        df = df.withColumn(col, F.when(F.trim(F.col(col)) == "", None).otherwise(F.trim(F.col(col))))
+    return df
+
+
 def extract_coordinates(df):
     """Extract and convert coordinates from DMS to decimal degrees"""
     # Extract DMS strings
@@ -237,31 +238,18 @@ def extract_coordinates(df):
     df = df.withColumn("longitude", F.col("lon_deg") + F.col("lon_min") / 60 + F.col("lon_sec") / 3600)
 
     # Drop intermediate columns
-    intermediate_cols = ["lon_dms", "lat_dms", "lon_deg", "lon_min", "lon_sec", "lat_deg", "lat_min", "lat_sec", "coordinates_wgs84"]
+    intermediate_cols = [
+        "lon_dms",
+        "lat_dms",
+        "lon_deg",
+        "lon_min",
+        "lon_sec",
+        "lat_deg",
+        "lat_min",
+        "lat_sec",
+        "coordinates_wgs84",
+    ]
     return df.drop(*intermediate_cols)
-
-
-def validate_data(spark: SparkSession, df):
-    """Validate data using pydeequ"""
-    check = Check(spark, CheckLevel.Warning, "Data Validation")
-
-    checkResult = (
-        VerificationSuite(spark)
-        .onData(df)
-        .addCheck(
-            check.isComplete("cave_id")
-            .isUnique("cave_id")
-            .isComplete("name")
-            .isComplete("latitude")
-            .isComplete("longitude")
-        )
-        .run()
-    )
-
-    verificationResult = VerificationResult.checkResultsAsDataFrame(spark, checkResult)
-    verificationResult.toPandas().to_json("logs/verification_result.jsonl", orient="records", lines=True)
-
-    return verificationResult
 
 
 def save_data(df, output_prefix: str = "caves_transformed"):
@@ -303,6 +291,10 @@ def main():
     ]
     df = process_numeric_columns(df, numeric_cols)
 
+    # Get all string columns
+    string_cols = [field.name for field in df.schema.fields if isinstance(field.dataType, T.StringType)]
+    df = process_string_columns(df, string_cols)
+
     # Process coordinates
     df = extract_coordinates(df)
 
@@ -310,10 +302,6 @@ def main():
     df = df.filter(~F.col("cave_id").isin(["010569", "011054"]))
 
     df = df.cache()
-
-    # Validate data
-    validation_result = validate_data(spark, df)
-    print(validation_result.toPandas())
 
     # Save results
     save_data(df)
