@@ -8,6 +8,8 @@ from dataclasses import dataclass
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 from pyspark.sql import SparkSession
+import re
+import html
 
 
 @dataclass
@@ -212,6 +214,28 @@ def process_string_columns(df, string_cols: List[str]):
     return df
 
 
+def clean_text_fields(df, text_cols: List[str]):
+    """Clean text fields by removing HTML tags, fixing spaces, and decoding entities"""
+
+    # Define a UDF to clean text
+    def clean_text(text):
+        if text is None:
+            return None
+        # Remove HTML tags
+        text = re.sub(r"<[^>]+>", "", text)
+        # Decode HTML entities
+        text = html.unescape(text)
+        # Replace multiple spaces with single space
+        text = re.sub(r"\s+", " ", text)
+        return text
+
+    clean_text_udf = F.udf(clean_text, T.StringType())
+
+    for col in text_cols:
+        df = df.withColumn(col, clean_text_udf(F.col(col)))
+    return df
+
+
 def extract_coordinates(df):
     """Extract and convert coordinates from DMS to decimal degrees"""
     # Extract DMS strings
@@ -254,8 +278,23 @@ def extract_coordinates(df):
 
 def save_data(df, output_prefix: str = "caves_transformed"):
     """Save processed data in multiple formats"""
-    df.repartition(1).write.mode("overwrite").json(f"{output_prefix}.jsonl")
-    df.repartition(1).write.mode("overwrite").parquet(f"{output_prefix}.parquet")
+    import shutil
+    import glob
+    import os
+
+    # JSONL
+    temp_dir_json = f"{output_prefix}_jsonl_temp"
+    df.coalesce(1).write.mode("overwrite").json(temp_dir_json)
+    temp_file_json = glob.glob(os.path.join(temp_dir_json, "part-*"))[0]
+    shutil.move(temp_file_json, f"{output_prefix}.jsonl")
+    shutil.rmtree(temp_dir_json)
+
+    # Parquet
+    temp_dir_parquet = f"{output_prefix}_parquet_temp"
+    df.coalesce(1).write.mode("overwrite").parquet(temp_dir_parquet)
+    temp_file_parquet = glob.glob(os.path.join(temp_dir_parquet, "part-*"))[0]
+    shutil.move(temp_file_parquet, f"{output_prefix}.parquet")
+    shutil.rmtree(temp_dir_parquet)
 
 
 def main():
@@ -291,12 +330,15 @@ def main():
     ]
     df = process_numeric_columns(df, numeric_cols)
 
+    # Process coordinates
+    df = extract_coordinates(df)
+
     # Get all string columns
     string_cols = [field.name for field in df.schema.fields if isinstance(field.dataType, T.StringType)]
     df = process_string_columns(df, string_cols)
 
-    # Process coordinates
-    df = extract_coordinates(df)
+    # Clean text fields
+    # df = clean_text_fields(df, string_cols)
 
     # Filter out test data
     df = df.filter(~F.col("cave_id").isin(["010569", "011054"]))
