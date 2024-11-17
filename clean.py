@@ -338,7 +338,7 @@ def main():
     df = process_string_columns(df, string_cols)
 
     # Clean text fields
-    # df = clean_text_fields(df, string_cols)
+    df = clean_text_fields(df, string_cols)
 
     # Filter out test data
     df = df.filter(~F.col("cave_id").isin(["010569", "011054"]))
