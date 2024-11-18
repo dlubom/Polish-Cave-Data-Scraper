@@ -48,23 +48,31 @@ def create_cave_schema() -> T.StructType:
         [
             T.StructField("grafika_id", T.LongType(), True),
             T.StructField("mime", T.StringType(), True),
-            T.StructField("grafika", T.ArrayType(T.StringType()), True),
+            # Commented out: 'grafika' field (graphics)
+            # T.StructField("grafika", T.ArrayType(T.StringType()), True),
             T.StructField("data_wykonania", T.StringType(), True),
             T.StructField("dataWykonaniaString", T.StringType(), True),
             T.StructField("grafika_nazwa", T.StringType(), True),
-            T.StructField("wielkosc", T.LongType(), True),
+            # Commented out: 'wielkosc' field (size)
+            # T.StructField("wielkosc", T.LongType(), True),
             T.StructField("autor_nazwa", T.StringType(), True),
-            T.StructField("jaskinia_id", T.LongType(), True),
-            T.StructField("jaskinia_nazwa", T.StringType(), True),
+            # Commented out: 'jaskinia_id' field (image_cave_id)
+            # T.StructField("jaskinia_id", T.LongType(), True),
+            # Commented out: 'jaskinia_nazwa' field (image_cave_name)
+            # T.StructField("jaskinia_nazwa", T.StringType(), True),
             T.StructField("typ_grafiki_id", T.LongType(), True),
             T.StructField("typ_grafiki_nazwa", T.StringType(), True),
             T.StructField("nr_inwent", T.StringType(), True),
-            T.StructField("region", T.StringType(), True),
+            # Commented out: 'region' field (image_region)
+            # T.StructField("region", T.StringType(), True),
             T.StructField("maxWidth", T.LongType(), True),
             T.StructField("maxHeight", T.LongType(), True),
-            T.StructField("fileUpload", T.StringType(), True),
-            T.StructField("Authors", T.StringType(), True),
-            T.StructField("GraphicsTypes", T.StringType(), True),
+            # Commented out: 'fileUpload' field (file_upload)
+            # T.StructField("fileUpload", T.StringType(), True),
+            # Commented out: 'Authors' field (image_authors)
+            # T.StructField("Authors", T.StringType(), True),
+            # Commented out: 'GraphicsTypes' field (graphics_types)
+            # T.StructField("GraphicsTypes", T.StringType(), True),
         ]
     )
 
@@ -160,23 +168,28 @@ def get_column_mappings() -> Dict[str, str]:
         "Obiekt w serwisie Geostanowiska": "object_in_geostanowiska_service",
         # Image metadata mappings
         "grafika_id": "graphics_id",
-        "grafika": "graphics",
+        "mime": "mime_type",
         "data_wykonania": "creation_date",
         "dataWykonaniaString": "creation_date_string",
         "grafika_nazwa": "graphics_name",
-        "wielkosc": "size",
         "autor_nazwa": "author_name",
-        "jaskinia_id": "cave_id",
-        "jaskinia_nazwa": "cave_name",
         "typ_grafiki_id": "graphics_type_id",
         "typ_grafiki_nazwa": "graphics_type_name",
         "nr_inwent": "inventory_number",
+        # Commented out mappings for removed columns, all are empty
+        # "grafika": "graphics",
+        # "wielkosc": "size",
+        # "jaskinia_id": "cave_id",
+        # "jaskinia_nazwa": "cave_name",
+        # "region": "region",
+        # "fileUpload": "file_upload",
+        # "Authors": "authors",
+        # "GraphicsTypes": "graphics_types",
     }
 
 
 def rename_image_metadata_columns(df, col_mappings: Dict[str, str]):
     """Rename columns in the nested image metadata structure"""
-
     # Get the field names of the metadata struct
     metadata_fields = df.schema["images"].dataType.elementType["metadata"].dataType.fieldNames()
 
@@ -202,7 +215,11 @@ def process_numeric_columns(df, numeric_cols: List[str]):
     """Convert string columns to numeric values"""
     for col in numeric_cols:
         df = df.withColumn(
-            col, F.when(F.trim(F.col(col)) != "", F.regexp_replace(F.col(col), ",", ".").cast("float")).otherwise(None)
+            col,
+            F.when(
+                F.trim(F.col(col)) != "",
+                F.regexp_replace(F.col(col), ",", ".").cast("float"),
+            ).otherwise(None),
         )
     return df
 
@@ -258,8 +275,14 @@ def extract_coordinates(df):
         df = df.withColumn(f"{coord}_sec", F.regexp_extract(f"{coord}_dms", dms_pattern, 3).cast("float"))
 
     # Calculate decimal degrees
-    df = df.withColumn("latitude", F.col("lat_deg") + F.col("lat_min") / 60 + F.col("lat_sec") / 3600)
-    df = df.withColumn("longitude", F.col("lon_deg") + F.col("lon_min") / 60 + F.col("lon_sec") / 3600)
+    df = df.withColumn(
+        "latitude",
+        F.col("lat_deg") + F.col("lat_min") / 60 + F.col("lat_sec") / 3600,
+    )
+    df = df.withColumn(
+        "longitude",
+        F.col("lon_deg") + F.col("lon_min") / 60 + F.col("lon_sec") / 3600,
+    )
 
     # Drop intermediate columns
     intermediate_cols = [
