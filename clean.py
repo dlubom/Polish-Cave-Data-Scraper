@@ -50,7 +50,8 @@ def create_cave_schema() -> T.StructType:
             T.StructField("mime", T.StringType(), True),
             # Commented out: 'grafika' field (graphics)
             # T.StructField("grafika", T.ArrayType(T.StringType()), True),
-            T.StructField("data_wykonania", T.StringType(), True),
+            # Commented out: 'data_wykonania' field (creation_date)
+            # T.StructField("data_wykonania", T.StringType(), True),
             T.StructField("dataWykonaniaString", T.StringType(), True),
             T.StructField("grafika_nazwa", T.StringType(), True),
             # Commented out: 'wielkosc' field (size)
@@ -169,14 +170,13 @@ def get_column_mappings() -> Dict[str, str]:
         # Image metadata mappings
         "grafika_id": "graphics_id",
         "mime": "mime_type",
-        "data_wykonania": "creation_date",
         "dataWykonaniaString": "creation_date_string",
         "grafika_nazwa": "graphics_name",
         "autor_nazwa": "author_name",
         "typ_grafiki_id": "graphics_type_id",
         "typ_grafiki_nazwa": "graphics_type_name",
         "nr_inwent": "inventory_number",
-        # Commented out mappings for removed columns, all are empty
+        # Commented out mappings for removed columns, all are empty or not useful
         # "grafika": "graphics",
         # "wielkosc": "size",
         # "jaskinia_id": "cave_id",
@@ -185,6 +185,7 @@ def get_column_mappings() -> Dict[str, str]:
         # "fileUpload": "file_upload",
         # "Authors": "authors",
         # "GraphicsTypes": "graphics_types",
+        # "data_wykonania": "creation_date",
     }
 
 
