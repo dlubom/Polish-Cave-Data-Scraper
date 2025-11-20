@@ -21,8 +21,12 @@ The original data was downloaded from the official Polish Geological Institute d
   - Other supporting files (.sbn, .sbx, .shx, .CPG)
 
 ### Processed Files
-- **`jaskinie_wspolrzedne_wgs84.csv`** - Extracted cave coordinates in WGS84 format with attributes (converted from shapefile using Python scripts)
-- **`jaskinie_wgs84.gpx`** - GPS Exchange Format for use in navigation applications (converted from CSV)
+- **`jaskinie_wspolrzedne_wgs84.csv`** - Extracted cave coordinates in WGS84 format with attributes (converted from shapefile using `caves_to_csv.py`)
+- **`jaskinie_wgs84.gpx`** - GPS Exchange Format for use in navigation applications (converted from shapefile using `caves_to_gpx.py`)
+
+### Processing Scripts
+- **`caves_to_csv.py`** - Converts the shapefile from ZIP to CSV with WGS84 coordinates
+- **`caves_to_gpx.py`** - Converts the shapefile from ZIP to GPX format with waypoints
 
 ## Data Quality Notes
 
@@ -39,11 +43,31 @@ Both data sources (scraped HTML and PGI shapefile) suffer from similar quality p
 ### Recommendation
 When working with cave locations, especially for popular or well-known caves, consider cross-referencing with alternative mapping sources (e.g., mapy.cz, OpenStreetMap) to verify coordinate accuracy before using them for navigation or scientific purposes.
 
+## Processing the Data
+
+To regenerate the CSV and GPX files from the original shapefile:
+
+```bash
+# Generate CSV with WGS84 coordinates
+poetry run python locations/caves_to_csv.py \
+    --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
+    --output locations/jaskinie_wspolrzedne_wgs84.csv
+
+# Generate GPX file with waypoints
+poetry run python locations/caves_to_gpx.py \
+    --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
+    --output locations/jaskinie_wgs84.gpx
+```
+
+Both scripts assume the source coordinate system is **EPSG:2180 (Poland CS92)** and reproject to **EPSG:4326 (WGS84)**.
+
 ## File Structure
 
 ```
 locations/
 ├── README.md                                           # This file
+├── caves_to_csv.py                                    # Script: Shapefile → CSV converter
+├── caves_to_gpx.py                                    # Script: Shapefile → GPX converter
 ├── cbdg_srodowisko_jaskinie_2025_11_20.zip            # Original ZIP archive
 ├── cbdg_srodowisko_jaskinie_2025_11_20/               # Extracted shapefile
 │   ├── cbdg_srodowisko_jaskinie_2025_11_20.shp        # Geometry
