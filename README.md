@@ -64,3 +64,22 @@ The scraper consists of two main scripts that should be run in sequence:
    poetry run python parse.py
    ```
    This script processes the collected data into a structured format.
+
+3. Finally, run the cleaning script:
+   ```bash
+   poetry run python clean.py
+   ```
+   This script transforms and cleans the data using PySpark.
+
+## Image Upscaling
+
+Cave images (plans, sections, and diagrams) can be upscaled and denoised using waifu2x-ncnn-vulkan:
+
+1. Download waifu2x-ncnn-vulkan from [releases](https://github.com/nihui/waifu2x-ncnn-vulkan/releases) and extract to project directory
+
+2. Run the upscaling script:
+   ```bash
+   poetry run python upscale_images.py
+   ```
+
+This processes all images in `caves/` directory, applying 2x upscaling and level-2 denoising. Upscaled images are saved to `caves_upscaled/` with the same directory structure.
