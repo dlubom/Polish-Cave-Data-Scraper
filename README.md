@@ -6,7 +6,7 @@
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - Poetry (Python package manager)
 
 ## Installation
@@ -83,3 +83,50 @@ Cave images (plans, sections, and diagrams) can be upscaled and denoised using w
    ```
 
 This processes all images in `caves/` directory, applying 2x upscaling and level-2 denoising. Upscaled images are saved to `caves_upscaled/` with the same directory structure.
+
+## Development
+
+### Code Quality Tools
+
+The project uses modern Python code quality tools to maintain high standards:
+
+- **black** - Automatic code formatting (line length: 100)
+- **ruff** - Fast linting, import sorting, and code modernization
+- **mypy** - Static type checking (gradual typing)
+- **pre-commit** - Git hooks for automated quality checks
+
+### Running Quality Checks
+
+```bash
+# Format code with black
+poetry run black .
+
+# Run linter and auto-fix issues
+poetry run ruff check --fix .
+
+# Check types with mypy
+poetry run mypy .
+
+# Run all checks at once
+poetry run black . && poetry run ruff check . && poetry run mypy .
+```
+
+### Pre-commit Hooks
+
+Install pre-commit hooks to automatically run quality checks before each commit:
+
+```bash
+# One-time setup
+poetry run pre-commit install
+
+# Run manually on all files
+poetry run pre-commit run --all-files
+```
+
+**Note**: First run requires internet access to download hook repositories from GitHub.
+
+### Running Tests
+
+```bash
+poetry run pytest
+```

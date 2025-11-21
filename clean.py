@@ -2,22 +2,22 @@ import os
 
 os.environ["SPARK_VERSION"] = "3.5"
 
-from typing import Dict, List
 from dataclasses import dataclass
-
-import pyspark.sql.functions as F
-import pyspark.sql.types as T
-from pyspark.sql import SparkSession
-import re
 import html
+import re
+from typing import Optional
+
+from pyspark.sql import SparkSession
+import pyspark.sql.functions as F  # noqa: N812
+import pyspark.sql.types as T  # noqa: N812
 
 
 @dataclass
 class SparkConfig:
     app_name: str = "Caves Data Processing"
-    config_options: Dict[str, str] = None
+    config_options: Optional[dict[str, str]] = None
 
-    def get_default_configs(self) -> Dict[str, str]:
+    def get_default_configs(self) -> dict[str, str]:
         return {
             "spark.some.config.option": "some-value",
         }
@@ -129,7 +129,7 @@ def create_cave_schema() -> T.StructType:
     )
 
 
-def get_column_mappings() -> Dict[str, str]:
+def get_column_mappings() -> dict[str, str]:
     """Define column name mappings for both main cave data and image metadata"""
     return {
         # Main cave data mappings
@@ -189,7 +189,7 @@ def get_column_mappings() -> Dict[str, str]:
     }
 
 
-def rename_image_metadata_columns(df, col_mappings: Dict[str, str]):
+def rename_image_metadata_columns(df, col_mappings: dict[str, str]):
     """Rename columns in the nested image metadata structure"""
     # Get the field names of the metadata struct
     metadata_fields = df.schema["images"].dataType.elementType["metadata"].dataType.fieldNames()
@@ -201,7 +201,10 @@ def rename_image_metadata_columns(df, col_mappings: Dict[str, str]):
             "images",
             lambda x: F.struct(
                 F.struct(
-                    *[x.metadata[old_name].alias(col_mappings.get(old_name, old_name)) for old_name in metadata_fields]
+                    *[
+                        x.metadata[old_name].alias(col_mappings.get(old_name, old_name))
+                        for old_name in metadata_fields
+                    ]
                 ).alias("metadata"),
                 x.image_path.alias("image_path"),
                 x.description.alias("description"),
@@ -212,7 +215,7 @@ def rename_image_metadata_columns(df, col_mappings: Dict[str, str]):
     return df
 
 
-def process_numeric_columns(df, numeric_cols: List[str]):
+def process_numeric_columns(df, numeric_cols: list[str]):
     """Convert string columns to numeric values"""
     for col in numeric_cols:
         df = df.withColumn(
@@ -225,14 +228,16 @@ def process_numeric_columns(df, numeric_cols: List[str]):
     return df
 
 
-def process_string_columns(df, string_cols: List[str]):
+def process_string_columns(df, string_cols: list[str]):
     """Trim and replace empty strings with None"""
     for col in string_cols:
-        df = df.withColumn(col, F.when(F.trim(F.col(col)) == "", None).otherwise(F.trim(F.col(col))))
+        df = df.withColumn(
+            col, F.when(F.trim(F.col(col)) == "", None).otherwise(F.trim(F.col(col)))
+        )
     return df
 
 
-def clean_text_fields(df, text_cols: List[str]):
+def clean_text_fields(df, text_cols: list[str]):
     """Clean text fields by removing HTML tags, fixing spaces, and decoding entities"""
 
     # Define a UDF to clean text
@@ -257,9 +262,9 @@ def clean_text_fields(df, text_cols: List[str]):
 def extract_coordinates(df):
     """Extract and convert coordinates from DMS to decimal degrees"""
     # Extract DMS strings
-    lon_pattern = r"λ:\s*([\d°′″,\.\s]+)"
-    lat_pattern = r"φ:\s*([\d°′″,\.\s]+)"
-    dms_pattern = r"(\d+)°\s*(\d+)′\s*([\d\.]+)″"
+    lon_pattern = r"λ:\s*([\d°′″,\.\s]+)"  # noqa: RUF001
+    lat_pattern = r"φ:\s*([\d°′″,\.\s]+)"  # noqa: RUF001
+    dms_pattern = r"(\d+)°\s*(\d+)′\s*([\d\.]+)″"  # noqa: RUF001
 
     # Extract DMS components
     df = df.withColumn("lon_dms", F.regexp_extract(F.col("coordinates_wgs84"), lon_pattern, 1))
@@ -271,9 +276,15 @@ def extract_coordinates(df):
 
     # Extract components
     for coord in ["lon", "lat"]:
-        df = df.withColumn(f"{coord}_deg", F.regexp_extract(f"{coord}_dms", dms_pattern, 1).cast("float"))
-        df = df.withColumn(f"{coord}_min", F.regexp_extract(f"{coord}_dms", dms_pattern, 2).cast("float"))
-        df = df.withColumn(f"{coord}_sec", F.regexp_extract(f"{coord}_dms", dms_pattern, 3).cast("float"))
+        df = df.withColumn(
+            f"{coord}_deg", F.regexp_extract(f"{coord}_dms", dms_pattern, 1).cast("float")
+        )
+        df = df.withColumn(
+            f"{coord}_min", F.regexp_extract(f"{coord}_dms", dms_pattern, 2).cast("float")
+        )
+        df = df.withColumn(
+            f"{coord}_sec", F.regexp_extract(f"{coord}_dms", dms_pattern, 3).cast("float")
+        )
 
     # Calculate decimal degrees
     df = df.withColumn(
@@ -302,9 +313,9 @@ def extract_coordinates(df):
 
 def save_data(df, output_prefix: str = "caves_transformed"):
     """Save processed data in multiple formats"""
-    import shutil
     import glob
     import os
+    import shutil
 
     # JSONL
     temp_dir_json = f"{output_prefix}_jsonl_temp"
@@ -358,7 +369,9 @@ def main():
     df = extract_coordinates(df)
 
     # Get all string columns
-    string_cols = [field.name for field in df.schema.fields if isinstance(field.dataType, T.StringType)]
+    string_cols = [
+        field.name for field in df.schema.fields if isinstance(field.dataType, T.StringType)
+    ]
     df = process_string_columns(df, string_cols)
 
     # Clean text fields

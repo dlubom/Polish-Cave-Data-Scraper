@@ -15,10 +15,10 @@ Usage:
 """
 
 import argparse
-import sys
 from pathlib import Path
-import zipfile
+import sys
 import tempfile
+import zipfile
 
 import geopandas as gpd
 

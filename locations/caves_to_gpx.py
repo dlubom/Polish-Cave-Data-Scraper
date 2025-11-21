@@ -20,11 +20,11 @@ Usage:
 
 import argparse
 import math
-import sys
 from pathlib import Path
-import zipfile
+import sys
 import tempfile
 from xml.sax.saxutils import escape
+import zipfile
 
 import geopandas as gpd
 

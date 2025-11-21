@@ -1,11 +1,12 @@
-import os
-import re
+from datetime import datetime
 import json
 import logging
+import os
 import random
+import re
 import time
+
 import requests
-from datetime import datetime
 from requests.exceptions import RequestException, Timeout
 
 # Configuration parameters
@@ -99,7 +100,7 @@ def fetch_html(url, cave_dir):
         logging.error(f"Timeout while fetching {url}")
         return None
     except RequestException as e:
-        logging.error(f"Error while fetching {url}: {str(e)}", exc_info=True)
+        logging.error(f"Error while fetching {url}: {e!s}", exc_info=True)
         return None
 
 
@@ -118,7 +119,9 @@ def fetch_images(html_content, cave_dir):
         # Fetch image metadata
         metadata_url = "https://jaskiniepolski.pgi.gov.pl/Details/ImageInformation"
         try:
-            response = requests.post(metadata_url, data={"id": image_id}, headers=headers, timeout=10)
+            response = requests.post(
+                metadata_url, data={"id": image_id}, headers=headers, timeout=10
+            )
             if response.status_code == 200:
                 metadata = response.json()
                 metadata_path = os.path.join(cave_dir, f"metadata_{image_id}.json")
@@ -126,10 +129,12 @@ def fetch_images(html_content, cave_dir):
                     json.dump(metadata, f, ensure_ascii=False, indent=4)
                 logging.info(f"Saved metadata for image {image_id}")
             else:
-                logging.warning(f"Failed to fetch metadata for image {image_id}. Status: {response.status_code}")
+                logging.warning(
+                    f"Failed to fetch metadata for image {image_id}. Status: {response.status_code}"
+                )
                 continue
         except Exception as e:
-            logging.error(f"Error fetching metadata for image {image_id}: {str(e)}", exc_info=True)
+            logging.error(f"Error fetching metadata for image {image_id}: {e!s}", exc_info=True)
             continue
 
         # Fetch image at zoom level 10
@@ -145,11 +150,13 @@ def fetch_images(html_content, cave_dir):
                     f.write(image_content)
                 logging.info(f"Saved image {image_id} with zoom level {zoom}")
             else:
-                logging.warning(f"Failed to fetch image {image_id} at zoom {zoom}. Status: {response.status_code}")
+                logging.warning(
+                    f"Failed to fetch image {image_id} at zoom {zoom}. Status: {response.status_code}"
+                )
         except Timeout:
             logging.error(f"Timeout while fetching image {image_id} at zoom {zoom}")
         except RequestException as e:
-            logging.error(f"Error fetching image {image_id} at zoom {zoom}: {str(e)}", exc_info=True)
+            logging.error(f"Error fetching image {image_id} at zoom {zoom}: {e!s}", exc_info=True)
 
         time.sleep(SLEEP_TIME)
 
@@ -182,7 +189,7 @@ def main():
         try:
             process_cave(url, cave_dir, cave_id)
         except Exception as e:
-            logging.error(f"Error processing cave {cave_id}: {str(e)}", exc_info=True)
+            logging.error(f"Error processing cave {cave_id}: {e!s}", exc_info=True)
 
         time.sleep(SLEEP_TIME)
 
@@ -198,4 +205,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logging.info("Script terminated by user")
     except Exception as e:
-        logging.error(f"Fatal error in main script: {str(e)}", exc_info=True)
+        logging.error(f"Fatal error in main script: {e!s}", exc_info=True)
