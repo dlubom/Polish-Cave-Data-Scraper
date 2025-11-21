@@ -1,9 +1,10 @@
-import os
-import json
-import re
-import logging
-from bs4 import BeautifulSoup
 from datetime import datetime
+import json
+import logging
+import os
+import re
+
+from bs4 import BeautifulSoup
 
 # Configuration
 LOG_LEVEL = logging.INFO
@@ -40,7 +41,7 @@ def parse_cave_directory(cave_path):
             return None
 
     try:
-        with open(page_html_path, "r", encoding="utf-8") as f:
+        with open(page_html_path, encoding="utf-8") as f:
             html_content = f.read()
     except Exception as e:
         logging.error(f"Error reading HTML file in {cave_path}: {e}")
@@ -57,7 +58,7 @@ def parse_cave_directory(cave_path):
         tds = tr.find_all("td")
         if len(tds) == 2:
             field_name = tds[0].get_text(strip=True)
-            field_value = tds[1].get_text(' ', strip=True)
+            field_value = tds[1].get_text(" ", strip=True)
             # Handle special case for 'Długość [m]' and 'w tym szacowane [m]'
             if field_name == "Długość [m]w tym szacowane [m]":
                 # Extract values from the nested divs
@@ -87,7 +88,7 @@ def parse_cave_directory(cave_path):
             # Load metadata file if it exists
             if os.path.exists(metadata_file):
                 try:
-                    with open(metadata_file, "r", encoding="utf-8") as mf:
+                    with open(metadata_file, encoding="utf-8") as mf:
                         metadata = json.load(mf)
                     image_data["metadata"] = metadata
                 except Exception as e:
@@ -137,7 +138,9 @@ def main():
                 else:
                     logging.warning(f"Skipping cave {cave_dir} due to missing or invalid data.")
                     caves_skipped += 1
-        logging.info(f"Processing complete. Caves processed: {caves_processed}, Caves skipped: {caves_skipped}")
+        logging.info(
+            f"Processing complete. Caves processed: {caves_processed}, Caves skipped: {caves_skipped}"
+        )
 
 
 if __name__ == "__main__":

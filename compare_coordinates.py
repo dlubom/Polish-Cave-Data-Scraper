@@ -10,9 +10,8 @@ This script:
 5. Generates a detailed comparison report
 """
 
-import pandas as pd
 import numpy as np
-from pathlib import Path
+import pandas as pd
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -26,7 +25,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     # Haversine formula
     dlat = lat2 - lat1
     dlon = lon2 - lon1
-    a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
     c = 2 * np.arcsin(np.sqrt(a))
     r = 6371000  # Radius of earth in meters
     return c * r
@@ -38,8 +37,8 @@ def load_scraped_data(file_path):
     df = pd.read_json(file_path, lines=True)
 
     # Select relevant columns
-    df_clean = df[['cave_id', 'name', 'inventory_number', 'latitude', 'longitude']].copy()
-    df_clean = df_clean.dropna(subset=['latitude', 'longitude'])
+    df_clean = df[["cave_id", "name", "inventory_number", "latitude", "longitude"]].copy()
+    df_clean = df_clean.dropna(subset=["latitude", "longitude"])
 
     print(f"  Loaded {len(df_clean)} caves with coordinates")
     return df_clean
@@ -51,9 +50,9 @@ def load_pgi_data(file_path):
     df = pd.read_csv(file_path)
 
     # Select relevant columns and rename for consistency
-    df_clean = df[['ID', 'NAZWA', 'NR_INWENT', 'lat', 'lon']].copy()
-    df_clean.columns = ['pgi_id', 'pgi_name', 'inventory_number', 'pgi_latitude', 'pgi_longitude']
-    df_clean = df_clean.dropna(subset=['pgi_latitude', 'pgi_longitude'])
+    df_clean = df[["ID", "NAZWA", "NR_INWENT", "lat", "lon"]].copy()
+    df_clean.columns = ["pgi_id", "pgi_name", "inventory_number", "pgi_latitude", "pgi_longitude"]  # type: ignore[assignment]
+    df_clean = df_clean.dropna(subset=["pgi_latitude", "pgi_longitude"])
 
     print(f"  Loaded {len(df_clean)} caves with coordinates")
     return df_clean
@@ -64,39 +63,32 @@ def match_and_compare(scraped_df, pgi_df):
     print("\nMatching caves by inventory number...")
 
     # Merge on inventory number
-    merged = scraped_df.merge(
-        pgi_df,
-        on='inventory_number',
-        how='inner'
-    )
+    merged = scraped_df.merge(pgi_df, on="inventory_number", how="inner")
 
     print(f"  Found {len(merged)} matching caves")
 
     # Calculate differences
     print("\nCalculating coordinate differences...")
-    merged['lat_diff'] = merged['latitude'] - merged['pgi_latitude']
-    merged['lon_diff'] = merged['longitude'] - merged['pgi_longitude']
+    merged["lat_diff"] = merged["latitude"] - merged["pgi_latitude"]
+    merged["lon_diff"] = merged["longitude"] - merged["pgi_longitude"]
 
     # Calculate distance in meters using Haversine formula
-    merged['distance_m'] = haversine_distance(
-        merged['latitude'],
-        merged['longitude'],
-        merged['pgi_latitude'],
-        merged['pgi_longitude']
+    merged["distance_m"] = haversine_distance(
+        merged["latitude"], merged["longitude"], merged["pgi_latitude"], merged["pgi_longitude"]
     )
 
     # Calculate absolute differences in decimal degrees
-    merged['lat_abs_diff'] = merged['lat_diff'].abs()
-    merged['lon_abs_diff'] = merged['lon_diff'].abs()
+    merged["lat_abs_diff"] = merged["lat_diff"].abs()
+    merged["lon_abs_diff"] = merged["lon_diff"].abs()
 
     return merged
 
 
 def generate_report(comparison_df):
     """Generate detailed comparison report."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("COORDINATE COMPARISON REPORT")
-    print("="*80)
+    print("=" * 80)
 
     print(f"\nTotal matching caves: {len(comparison_df)}")
 
@@ -109,14 +101,16 @@ def generate_report(comparison_df):
     print(f"Std deviation:   {comparison_df['distance_m'].std():.2f} m")
 
     # Count caves with identical coordinates
-    identical = (comparison_df['distance_m'] < 0.01).sum()  # Less than 1cm difference
-    print(f"\nCaves with identical coordinates (< 1cm): {identical} ({identical/len(comparison_df)*100:.1f}%)")
+    identical = (comparison_df["distance_m"] < 0.01).sum()  # Less than 1cm difference
+    print(
+        f"\nCaves with identical coordinates (< 1cm): {identical} ({identical/len(comparison_df)*100:.1f}%)"
+    )
 
     # Count caves within certain distance thresholds
     thresholds = [1, 5, 10, 50, 100, 500]
     print("\n--- Distance Distribution ---")
     for threshold in thresholds:
-        count = (comparison_df['distance_m'] <= threshold).sum()
+        count = (comparison_df["distance_m"] <= threshold).sum()
         pct = count / len(comparison_df) * 100
         print(f"Within {threshold:4d}m: {count:5d} caves ({pct:5.1f}%)")
 
@@ -129,23 +123,31 @@ def generate_report(comparison_df):
 
     # Show top 10 caves with largest differences
     print("\n--- Top 10 Caves with Largest Coordinate Differences ---")
-    top_10 = comparison_df.nlargest(10, 'distance_m')[
-        ['inventory_number', 'name', 'distance_m', 'latitude', 'longitude', 'pgi_latitude', 'pgi_longitude']
+    top_10 = comparison_df.nlargest(10, "distance_m")[
+        [
+            "inventory_number",
+            "name",
+            "distance_m",
+            "latitude",
+            "longitude",
+            "pgi_latitude",
+            "pgi_longitude",
+        ]
     ]
     print(top_10.to_string(index=False))
 
     # Show sample of caves with identical coordinates
     print("\n--- Sample of 10 Caves with Identical Coordinates ---")
-    identical_caves = comparison_df[comparison_df['distance_m'] < 0.01]
+    identical_caves = comparison_df[comparison_df["distance_m"] < 0.01]
     if len(identical_caves) > 0:
         sample = identical_caves.head(10)[
-            ['inventory_number', 'name', 'latitude', 'longitude', 'distance_m']
+            ["inventory_number", "name", "latitude", "longitude", "distance_m"]
         ]
         print(sample.to_string(index=False))
     else:
         print("No caves with identical coordinates found!")
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
 
     # Save detailed results to CSV
     output_file = "locations/coordinate_comparison.csv"

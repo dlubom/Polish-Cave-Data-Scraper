@@ -6,11 +6,11 @@ This script processes all JPG images in the caves/ directory,
 upscaling them 2x and applying denoising using waifu2x-ncnn-vulkan.
 """
 
-import subprocess
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime
 import logging
 from pathlib import Path
-from datetime import datetime
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import subprocess
 import sys
 
 # Configuration
@@ -33,10 +33,7 @@ log_file = LOG_DIR / f"upscale_{timestamp}.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler(sys.stdout)
-    ]
+    handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)],
 )
 
 logger = logging.getLogger(__name__)
@@ -76,12 +73,18 @@ def process_single_image(image_path):
         # Build waifu2x command
         cmd = [
             str(WAIFU2X_EXECUTABLE),
-            "-i", str(image_path),
-            "-o", str(output_path),
-            "-n", str(DENOISE_LEVEL),
-            "-s", str(SCALE),
-            "-m", str(MODELS_DIR),
-            "-f", "jpg"  # Output format
+            "-i",
+            str(image_path),
+            "-o",
+            str(output_path),
+            "-n",
+            str(DENOISE_LEVEL),
+            "-s",
+            str(SCALE),
+            "-m",
+            str(MODELS_DIR),
+            "-f",
+            "jpg",  # Output format
         ]
 
         # Run waifu2x
@@ -89,7 +92,7 @@ def process_single_image(image_path):
             cmd,
             capture_output=True,
             text=True,
-            timeout=300  # 5 minute timeout per image
+            timeout=300,  # 5 minute timeout per image
         )
 
         if result.returncode != 0:
@@ -161,8 +164,10 @@ def main():
 
             # Progress update
             if i % 10 == 0 or i == total:
-                logger.info(f"Progress: {i}/{total} ({i*100//total}%) - "
-                          f"Success: {successful}, Failed: {failed}, Skipped: {skipped}")
+                logger.info(
+                    f"Progress: {i}/{total} ({i*100//total}%) - "
+                    f"Success: {successful}, Failed: {failed}, Skipped: {skipped}"
+                )
 
     # Final summary
     logger.info("=" * 60)
