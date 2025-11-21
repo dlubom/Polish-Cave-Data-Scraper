@@ -57,7 +57,7 @@ def parse_cave_directory(cave_path):
         tds = tr.find_all("td")
         if len(tds) == 2:
             field_name = tds[0].get_text(strip=True)
-            field_value = tds[1].get_text(strip=True)
+            field_value = tds[1].get_text(' ', strip=True)
             # Handle special case for 'Długość [m]' and 'w tym szacowane [m]'
             if field_name == "Długość [m]w tym szacowane [m]":
                 # Extract values from the nested divs
