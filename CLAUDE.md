@@ -80,7 +80,34 @@ poetry run python clean.py
 
 # 4. (Optional) Upscale and denoise cave images
 poetry run python upscale_images.py
+
+# 5. (Optional) Download bibliography data
+poetry run python download_bibliography.py
 ```
+
+## Bibliography Download
+
+The `download_bibliography.py` script downloads bibliography records from the CBDG database using the JSON endpoint at `/Search/SearchBibliography`.
+
+### Features
+- Fetches all bibliography records via paginated API requests
+- Uses `requests.Session` to handle authentication cookies automatically
+- Converts raw JSON responses to structured `BibliographyRecord` dataclass objects
+- Exports data to `bibliography.csv` in UTF-8 encoding using pandas
+
+### Configuration
+The script can be customized via variables in the `main()` function:
+- `name_filter`: Search term for author, year, or title (default: "" for all records)
+- `region_filter`: Cave region identifier (default: "" for all regions)
+- `rows_per_page`: Number of records per API request (default: 100)
+- `output_file`: Output CSV path (default: "bibliography.csv")
+
+### Implementation Details
+- Uses dataclasses for type-safe data structures
+- Implements proper type hints with modern Python conventions (e.g., `dict[str, Any]` instead of `Dict[str, Any]`)
+- Handles both "cell" array format and named field format from jqGrid responses
+- Converts boolean representations ("on", "Yes", "1") to proper Python booleans
+- Includes verbose logging of download progress and page counts
 
 ## Key Implementation Details
 
