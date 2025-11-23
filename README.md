@@ -71,6 +71,25 @@ The scraper consists of two main scripts that should be run in sequence:
    ```
    This script transforms and cleans the data using PySpark.
 
+## Bibliography Download
+
+The project includes a separate script for downloading bibliography data from the CBDG database:
+
+```bash
+poetry run python download_bibliography.py
+```
+
+This script fetches all bibliography records from the Polish Geological Institute's cave database using the JSON endpoint. The bibliography includes citations for publications related to Polish caves, organized by region.
+
+Features:
+- Downloads complete bibliography dataset via paginated API
+- Filters by author, year, title, or cave region
+- Saves data to `bibliography.jsonl` in JSON Lines format (matching project conventions)
+- Automatically trims whitespace from all string fields
+- Handles session cookies and request headers automatically
+
+The script can be customized by editing configuration variables in the `main()` function for specific search criteria.
+
 ## Image Upscaling
 
 Cave images (plans, sections, and diagrams) can be upscaled and denoised using waifu2x-ncnn-vulkan:
