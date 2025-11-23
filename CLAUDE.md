@@ -80,7 +80,37 @@ poetry run python clean.py
 
 # 4. (Optional) Upscale and denoise cave images
 poetry run python upscale_images.py
+
+# 5. (Optional) Download bibliography data
+poetry run python download_bibliography.py
 ```
+
+## Bibliography Download
+
+The `download_bibliography.py` script downloads bibliography records from the CBDG database using the JSON endpoint at `/Search/SearchBibliography`.
+
+### Features
+- Fetches all bibliography records via paginated API requests
+- Uses `requests.Session` to handle authentication cookies automatically
+- Converts raw JSON responses to structured `BibliographyRecord` dataclass objects
+- Exports data to `bibliography.jsonl` in JSON Lines format (matching project conventions)
+- Automatically trims whitespace from all string fields using `_trim_str()` helper
+
+### Configuration
+The script can be customized via variables in the `main()` function:
+- `name_filter`: Search term for author, year, or title (default: "" for all records)
+- `region_filter`: Cave region identifier (default: "" for all regions)
+- `rows_per_page`: Number of records per API request (default: 100)
+- `output_file`: Output file path (default: "bibliography.jsonl")
+
+### Implementation Details
+- Uses dataclasses for type-safe data structures
+- Implements proper type hints with modern Python conventions (e.g., `dict[str, Any]` instead of `Dict[str, Any]`)
+- Handles both "cell" array format and named field format from jqGrid responses
+- Converts boolean representations ("on", "Yes", "1") to proper Python booleans
+- Trims all string fields to avoid whitespace issues (empty strings after trimming become None for optional fields)
+- Uses `asdict()` and `json.dump()` to write JSONL format (one JSON object per line)
+- Includes verbose logging of download progress and page counts
 
 ## Key Implementation Details
 
