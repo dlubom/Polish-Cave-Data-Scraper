@@ -28,13 +28,17 @@ The response is a JSON document with the following keys:
   unique identifier (``id``) and a dictionary of fields.
 
 Using the information above we can iterate over all pages and accumulate
-results into a single ``pandas.DataFrame``.  The script below demonstrates
-this process.  By default it fetches all bibliography entries and writes
-them out to a CSV file.  You can adjust the ``name_filter`` and
-``region_filter`` variables to narrow the query, and you can change the
-``rows_per_page`` variable to control how many records are requested per
-request (larger values will reduce the number of round trips but could
-increase server load).
+results into a list of ``BibliographyRecord`` objects.  The script below
+demonstrates this process.  By default it fetches all bibliography entries and
+writes them out to a JSONL file with one JSON object per line.  You can adjust
+the ``name_filter`` and ``region_filter`` variables to narrow the query, and you
+can change the ``rows_per_page`` variable to control how many records are
+requested per request (larger values will reduce the number of round trips but
+could increase server load).
+
+The script also fetches human-readable region names from the ``/Search/GetRegions``
+endpoint and adds them to the output as ``region_name`` field. All string fields
+are automatically trimmed of leading and trailing whitespace.
 
 Note: the server sets a session cookie on the first request to
 ``/Search/Bibliography``.  You must perform this initial GET to obtain the
@@ -60,10 +64,22 @@ def _trim_str(value: Any) -> str:
 
 
 def _to_bool(value: Any) -> Optional[bool]:
-    """Convert various representations of a checkbox into True/False/None."""
-    if value in ("on", "Yes", "1", 1, True):
+    """Convert various representations of a checkbox into a boolean.
+
+    The jqGrid endpoint returns checkbox values in a few different
+    representations depending on configuration. This helper normalizes
+    common patterns like "true"/"false", "1"/"0", "on"/"off", "yes"/"no",
+    and boolean literals to Python True/False. Unknown values return None.
+    """
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return None
+    # Normalize to lower-case string for easy comparison
+    s = str(value).strip().lower()
+    if s in {"on", "yes", "1", "true", "t"}:
         return True
-    if value in ("off", "No", "0", 0, False):
+    if s in {"off", "no", "0", "false", "f"}:
         return False
     return None
 
@@ -132,7 +148,7 @@ def fetch_bibliography(
         Identifier of the cave region to filter by.  Pass an empty string to
         include all regions.  Region identifiers can be discovered by
         inspecting the ``Region`` dropdown on the search page or by
-        calling ``/Search/GetRegions`` (not shown here).
+        calling ``fetch_regions()``.
     rows_per_page : int, optional
         Number of records to request per page.  The server accepts 10, 20,
         50 or 100 as used by the web application, but larger values are
@@ -206,15 +222,65 @@ def fetch_bibliography(
     return records
 
 
-def save_to_jsonl(records: Iterable[BibliographyRecord], path: Path) -> None:
+def fetch_regions(verbose: bool = False) -> dict[str, str]:
+    """Fetch the list of cave regions from the API.
+
+    Returns
+    -------
+    dict[str, str]
+        A mapping from region identifiers to region names.
+
+    Notes
+    -----
+    The ``/Search/GetRegions`` endpoint returns JSON containing a list of
+    objects with ``region_id`` and ``region_nazwa`` keys. We must first
+    request ``/Search/Bibliography`` to obtain a session cookie; otherwise
+    the server will reject the request.
+    """
+    session = requests.Session()
+    # Bootstrap to get cookies
+    session.get("https://jaskiniepolski.pgi.gov.pl/Search/Bibliography").raise_for_status()
+    resp = session.get("https://jaskiniepolski.pgi.gov.pl/Search/GetRegions")
+    resp.raise_for_status()
+    regions_data = resp.json()
+    regions = {}
+    for item in regions_data:
+        rid = _trim_str(item.get("region_id"))
+        name = _trim_str(item.get("region_nazwa", ""))
+        if rid:
+            regions[rid] = name
+    if verbose:
+        print(f"Fetched {len(regions)} regions")
+    return regions
+
+
+def save_to_jsonl(
+    records: Iterable[BibliographyRecord],
+    path: Path,
+    region_lookup: Optional[dict[str, str]] = None,
+) -> None:
     """Save records to a JSONL (JSON Lines) file using UTF-8 encoding.
 
     Each record is written as a single line of JSON, matching the format
     used by other scripts in this project (caves.jsonl, caves_transformed.jsonl).
+
+    Parameters
+    ----------
+    records : Iterable[BibliographyRecord]
+        The records to save.
+    path : Path
+        Output file path.
+    region_lookup : Optional[dict[str, str]]
+        Optional mapping from cave_region_id to human-readable region names.
+        If provided, a "region_name" field will be added to each record.
     """
     with open(path, "w", encoding="utf-8") as f:
         for record in records:
-            json.dump(asdict(record), f, ensure_ascii=False)
+            record_dict = asdict(record)
+            # Add human-readable region name if lookup provided
+            if region_lookup is not None and record.cave_region_id:
+                record_dict["region_name"] = region_lookup.get(record.cave_region_id, "")
+            json.dump(record_dict, f, ensure_ascii=False)
             f.write("\n")
 
 
@@ -232,7 +298,15 @@ def main() -> None:
         verbose=True,
     )
     print(f"Downloaded {len(records)} records")
-    save_to_jsonl(records, output_file)
+
+    # Fetch region names to add human-readable region information
+    try:
+        regions = fetch_regions(verbose=True)
+    except Exception as e:
+        print(f"Warning: Failed to fetch regions: {e}")
+        regions = None
+
+    save_to_jsonl(records, output_file, region_lookup=regions)
     print(f"Saved to {output_file.resolve()}")
 
 
