@@ -262,26 +262,69 @@ class InteractiveGeoreferencer:
                 raise SystemExit("Operation cancelled by user.")
 
     def mark_line_and_get_scale(self) -> float:
-        """Interactively mark two points for scale and ask for real distance."""
+        """
+        Interactively mark two points for scale bar (horizontal only).
+
+        Scale bars on cave plans are always horizontal, so the second point
+        is constrained to the same Y coordinate as the first point.
+        """
         print("\n--- MARK SCALE BAR ---")
         print("Click Start point, then click End point of the scale bar.")
+        print("NOTE: Scale bar is constrained to horizontal line (same Y coordinate).")
 
         points: list[tuple[int, int]] = []
+        img_width = self.display_image.shape[1] if self.display_image is not None else 0
 
         def mouse_callback(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN and len(points) < 2:
-                points.append((x, y))
+                if len(points) == 0:
+                    # First point - accept as is
+                    points.append((x, y))
+                else:
+                    # Second point - force same Y as first point (horizontal line)
+                    points.append((x, points[0][1]))
+
                 self.reset_display()
 
-                # Draw first point
+                # Draw first point and horizontal guide line
                 if len(points) >= 1:
                     cv2.circle(self.display_image, points[0], 5, (0, 255, 0), -1)
+                    # Draw horizontal guide line across entire width
+                    cv2.line(
+                        self.display_image,
+                        (0, points[0][1]),
+                        (img_width, points[0][1]),
+                        (100, 100, 100),
+                        1,
+                    )
 
                 # Draw line and second point
                 if len(points) == 2:
                     cv2.circle(self.display_image, points[1], 5, (0, 255, 0), -1)
                     cv2.line(self.display_image, points[0], points[1], (0, 255, 0), 2)
 
+                self.show()
+
+            # Show live preview of horizontal line while moving mouse (after first point)
+            elif event == cv2.EVENT_MOUSEMOVE and len(points) == 1:
+                self.reset_display()
+                cv2.circle(self.display_image, points[0], 5, (0, 255, 0), -1)
+                # Draw horizontal guide line
+                cv2.line(
+                    self.display_image,
+                    (0, points[0][1]),
+                    (img_width, points[0][1]),
+                    (100, 100, 100),
+                    1,
+                )
+                # Draw preview line to current mouse position (constrained to horizontal)
+                cv2.line(
+                    self.display_image,
+                    points[0],
+                    (x, points[0][1]),
+                    (0, 200, 0),
+                    1,
+                )
                 self.show()
 
         cv2.setMouseCallback(self.window_name, mouse_callback)
@@ -295,10 +338,10 @@ class InteractiveGeoreferencer:
 
         cv2.setMouseCallback(self.window_name, lambda *args: None)
 
-        # Calculate pixel distance
+        # Calculate pixel distance (horizontal only, so just X difference)
         p1, p2 = points
-        pixel_dist = np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
-        logger.info(f"Scale bar length in pixels: {pixel_dist:.2f}")
+        pixel_dist = float(abs(p2[0] - p1[0]))
+        logger.info(f"Scale bar length in pixels: {pixel_dist:.2f} (horizontal)")
 
         if pixel_dist == 0:
             raise ValueError("Scale points cannot be the same.")
