@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """
-Cave Plan Georeferencing Tool (Fixed Mathematics Implementation)
+Cave Plan Georeferencing Tool (Fixed Mathematics Implementation + Meridian Convergence)
 
 This tool allows interactive georeferencing of cave plans.
 Key features:
 - Correct sequential affine transformation math (ensures anchor point stays fixed).
 - Interactive marking of entrance, scale bar, and north direction.
 - Console prompts for real-world distances and magnetic declination.
+- Automatic meridian (grid) convergence computation for PL-1992 based on entrance coordinates.
 - Outputs CS92 GeoTIFF and WGS84 KML.
 """
 
 from dataclasses import dataclass
 import json
 import logging
+import math
 from pathlib import Path
 import sys
 from typing import Any, Optional
@@ -69,12 +71,63 @@ class CaveData:
 
 @dataclass
 class GeoreferenceParams:
-    """Parameters collected from user interaction needed for transformation."""
+    """
+    Parameters collected from user interaction needed for transformation.
+
+    north_angle_degrees:
+        Angle from image TOP to the North arrow on the plan, clockwise.
+        If the plan is already oriented to geographic (true) north, this is
+        usually 0 when the arrow points straight up.
+
+    magnetic_declination:
+        Additional manual correction to add to the north_angle_degrees.
+        For plans already corrected to geographic north (like Czarna), this
+        should normally be 0.0.
+
+    use_meridian_convergence:
+        If True, the code will automatically compute the meridian (grid)
+        convergence for the entrance point (for PL-1992) and add it as an
+        extra rotation component so that the plan aligns with grid north.
+    """
 
     entrance_pixel: tuple[int, int]  # (x, y) pixel coordinates of entrance on plan
     scale_pixels_per_meter: float  # Number of pixels corresponding to 1 meter
     north_angle_degrees: float  # Angle from image TOP to North (clockwise)
-    magnetic_declination: float = 0.0  # Correction to add to north_angle
+    magnetic_declination: float = 0.0  # Extra correction to add to north_angle
+    use_meridian_convergence: bool = True  # Automatically account for grid convergence
+
+    @staticmethod
+    def _compute_meridian_convergence_deg(
+        latitude_deg: float,
+        longitude_deg: float,
+        target_crs: str,
+    ) -> float:
+        """
+        Approximate meridian (grid) convergence at given location, in degrees.
+
+        Currently implemented for:
+            - EPSG:2180 (PL-1992), central meridian lambda0 = 19 degrees.
+
+        Formula (approximate, as suggested):
+            convergence ≈ (lambda0 - lambda) * sin(phi)
+
+        where:
+            lambda0  - central meridian (deg),
+            lambda   - geographic longitude of the point (deg),
+            phi      - geographic latitude of the point (deg).
+
+        Returned value is in degrees and is intended to be ADDED to the
+        clockwise angle from image TOP.
+        """
+        if target_crs != "EPSG:2180":
+            return 0.0
+
+        central_meridian_deg = 19.0  # PL-1992 central meridian
+        # Convert latitude to radians for sine; longitude stays in degrees.
+        convergence_deg = (central_meridian_deg - longitude_deg) * math.sin(
+            math.radians(latitude_deg)
+        )
+        return convergence_deg
 
     def calculate_transform(
         self,
@@ -94,6 +147,21 @@ class GeoreferenceParams:
         world_x, world_y = transformer.transform(entrance_lon_wgs84, entrance_lat_wgs84)
         logger.info(f"Entrance projected coordinates: X={world_x:.2f}, Y={world_y:.2f}")
 
+        # 1a. Compute meridian (grid) convergence if enabled
+        meridian_conv_deg = 0.0
+        if self.use_meridian_convergence:
+            meridian_conv_deg = self._compute_meridian_convergence_deg(
+                entrance_lat_wgs84,
+                entrance_lon_wgs84,
+                target_crs,
+            )
+            logger.info(
+                "Meridian convergence at entrance: %.4f degrees " "(lat=%.6f, lon=%.6f)",
+                meridian_conv_deg,
+                entrance_lat_wgs84,
+                entrance_lon_wgs84,
+            )
+
         # 2. Calculate scale factor (meters per pixel)
         if self.scale_pixels_per_meter <= 0:
             raise ValueError("Scale pixels per meter must be positive.")
@@ -102,8 +170,20 @@ class GeoreferenceParams:
         # 3. Calculate total rotation angle
         # Input is angle from image TOP clockwise.
         # Affine rotation expects degrees counter-clockwise.
-        total_angle_clockwise = self.north_angle_degrees + self.magnetic_declination
+        total_angle_clockwise = (
+            self.north_angle_degrees + self.magnetic_declination + meridian_conv_deg
+        )
+
         rotation_angle_ccw = -total_angle_clockwise
+
+        logger.info(
+            "Total rotation (clockwise from image top): %.4f deg "
+            "(north_angle=%.4f, declination=%.4f, meridian_conv=%.4f)",
+            total_angle_clockwise,
+            self.north_angle_degrees,
+            self.magnetic_declination,
+            meridian_conv_deg,
+        )
 
         # --- Build transformation sequentially (read from bottom to top) ---
 
@@ -360,7 +440,11 @@ class CavePlanGeoreferencerApp:
         return image_bgr
 
     def save_geotiff(
-        self, image_rgb: np.ndarray, transform: Affine, output_path: Path, crs_wkt: str
+        self,
+        image_rgb: np.ndarray,
+        transform: Affine,
+        output_path: Path,
+        crs_wkt: str,
     ):
         """Write the georeferenced image to a GeoTIFF."""
         height, width, bands = image_rgb.shape
@@ -456,9 +540,11 @@ class CavePlanGeoreferencerApp:
             north_angle = self.gui.mark_north_arrow()
 
             # D) Magnetic Declination (Console only)
-            print("\n--- MAGNETIC DECLINATION ---")
+            print("\n--- MAGNETIC / MANUAL DECLINATION CORRECTION ---")
             declination_str = input(
-                "Enter magnetic declination correction in degrees (e.g., '5.5' for Poland, '0' to skip): "
+                "Enter additional declination correction in degrees "
+                "(usually 0 for plans already in geographic north; "
+                "positive if the arrow is still magnetic): "
             ).strip()
             try:
                 declination = float(declination_str) if declination_str else 0.0
@@ -467,7 +553,7 @@ class CavePlanGeoreferencerApp:
                     f"Invalid declination input: '{declination_str}'. Defaulting to 0.0."
                 )
                 declination = 0.0
-            logger.info(f"Magnetic declination used: {declination}")
+            logger.info(f"Additional (manual) declination used: {declination}")
 
             self.gui.close()
 
@@ -477,6 +563,7 @@ class CavePlanGeoreferencerApp:
                 scale_pixels_per_meter=scale_ppm,
                 north_angle_degrees=north_angle,
                 magnetic_declination=declination,
+                # use_meridian_convergence left as default=True
             )
 
             # Target CRS: EPSG:2180 (PL-1992) - Good for Poland metric calculations
