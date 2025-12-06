@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cave Plan Georeferencer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+            --bg-dark: #1e293b;
+            --bg-sidebar: #f8fafc;
+            --border: #e2e8f0;
+            --text: #334155;
+            --text-light: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            display: flex;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text);
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 320px;
+            min-width: 280px;
+            background: var(--bg-sidebar);
+            padding: 12px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--bg-dark);
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .logo span { font-size: 1.4rem; }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--bg-dark);
+            color: white;
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-body {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Form elements */
+        label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 0.85rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        input[type="number"] { font-variant-numeric: tabular-nums; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Search */
+        #searchInput {
+            padding-left: 36px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E") no-repeat 10px center;
+            background-size: 18px;
+        }
+
+        #caveSelect {
+            max-height: 120px;
+        }
+
+        .cave-count {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-align: right;
+        }
+
+        /* Buttons */
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover { background: #15803d; }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover { background: #f1f5f9; }
+
+        .btn-small {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+
+        /* Instructions panel */
+        #instructionPanel {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        #instructionPanel .step-indicator {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-bottom: 2px;
+        }
+
+        #instructionPanel .instruction-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        #instructionPanel.complete {
+            background: linear-gradient(135deg, var(--success) 0%, #15803d 100%);
+        }
+
+        /* Progress steps */
+        .progress-steps {
+            display: flex;
+            gap: 3px;
+            margin-top: 8px;
+        }
+
+        .progress-step {
+            flex: 1;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            transition: background 0.3s;
+        }
+
+        .progress-step.done { background: white; }
+        .progress-step.current { background: rgba(255,255,255,0.7); }
+
+        /* Results panel */
+        #resultsPanel {
+            display: none;
+        }
+
+        #resultsPanel.visible { display: block; }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .result-item {
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .result-item .value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--bg-dark);
+        }
+
+        .result-item .label {
+            font-size: 0.65rem;
+            color: var(--text-light);
+            margin-top: 1px;
+        }
+
+        /* Main canvas area */
+        #main {
+            flex-grow: 1;
+            position: relative;
+            background: var(--bg-dark);
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        #canvas-container {
+            transform-origin: 0 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        canvas {
+            display: block;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+
+        /* Toolbar */
+        #toolbar {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .toolbar-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.95);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .toolbar-btn:hover { transform: scale(1.1); }
+
+        /* Zoom indicator */
+        #zoomIndicator {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Empty state */
+        #emptyState {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        #emptyState .icon { font-size: 4rem; margin-bottom: 16px; }
+        #emptyState h2 { font-size: 1.5rem; margin-bottom: 8px; color: #cbd5e1; }
+        #emptyState p { font-size: 0.95rem; }
+
+        /* Loading overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 41, 59, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+        }
+
+        #loadingOverlay.hidden { display: none; }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Checkbox */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper span {
+            font-size: 0.85rem;
+        }
+
+        /* Image select */
+        #imageSelect {
+            font-size: 0.8rem;
+        }
+
+        /* File input */
+        input[type="file"] {
+            font-size: 0.75rem;
+            padding: 6px;
+        }
+
+        /* Help tooltip */
+        .help-text {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            line-height: 1.3;
+            padding: 6px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div>Ładowanie danych jaskiń...</div>
+</div>
+
+<div id="sidebar">
+    <div class="logo">
+        <span>🦇</span>
+        <div>Cave Georeferencer</div>
+    </div>
+
+    <!-- Cave Search Section -->
+    <div class="section">
+        <div class="section-header">
+            <span>📍</span> Wybór Jaskini
+        </div>
+        <div class="section-body">
+            <div class="input-group">
+                <input type="text" id="searchInput" placeholder="Szukaj po nazwie lub ID...">
+            </div>
+            <div class="input-group">
+                <select id="caveSelect" size="6">
+                    <option value="">-- Wybierz jaskinię --</option>
+                </select>
+                <div class="cave-count" id="caveCount">Ładowanie...</div>
+            </div>
+            <div class="input-group">
+                <label>Plan do georeferencji</label>
+                <select id="imageSelect" disabled>
+                    <option value="">-- Najpierw wybierz jaskinię --</option>
+                </select>
+            </div>
+            <button id="loadCaveBtn" class="btn-primary" disabled>
+                <span>📂</span> Załaduj Plan z GitHub
+            </button>
+            <div style="text-align: center; font-size: 0.75rem; color: var(--text-light);">— lub —</div>
+            <div class="input-group">
+                <label>Wgraj plan z dysku</label>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Section -->
+    <div class="section">
+        <div class="section-header">
+            <span>⚙️</span> Konfiguracja
+        </div>
+        <div class="section-body">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Szerokość (Lat)</label>
+                    <input type="number" id="lat" step="0.000001" placeholder="np. 49.2435">
+                </div>
+                <div class="input-group">
+                    <label>Długość (Lon)</label>
+                    <input type="number" id="lon" step="0.000001" placeholder="np. 19.9023">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Długość skali (m)</label>
+                    <input type="number" id="realScale" value="10" min="0.1" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Deklinacja (°)</label>
+                    <input type="number" id="declination" value="0" step="0.1">
+                </div>
+            </div>
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="skipNorth">
+                <span>Pomiń strzałkę północy (domyślnie 0°)</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Instructions Panel -->
+    <div id="instructionPanel">
+        <div class="step-indicator">Krok <span id="currentStep">0</span>/<span id="totalSteps">5</span></div>
+        <div class="instruction-text" id="instructionText">Wybierz jaskinię aby rozpocząć</div>
+        <div class="progress-steps" id="progressSteps">
+            <div class="progress-step"></div>
+            <div class="progress-step"></div>
+            <div class="progress-step"></div>
+            <div class="progress-step"></div>
+            <div class="progress-step"></div>
+        </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div id="resultsPanel" class="section">
+        <div class="section-header">
+            <span>📊</span> Wyniki
+        </div>
+        <div class="section-body">
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="value" id="resultScale">-</div>
+                    <div class="label">Skala (px/m)</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resultNorth">-</div>
+                    <div class="label">Kąt północy</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resultConvergence">-</div>
+                    <div class="label">Konwergencja</div>
+                </div>
+                <div class="result-item">
+                    <div class="value" id="resultTotal">-</div>
+                    <div class="label">Całkowity obrót</div>
+                </div>
+            </div>
+            <button id="downloadTfwBtn" class="btn-success">
+                <span>⬇️</span> Pobierz World File (.tfw)
+            </button>
+            <button id="downloadKmlBtn" class="btn-outline">
+                <span>🌍</span> Pobierz KML
+            </button>
+            <button id="resetBtn" class="btn-outline btn-small">
+                <span>🔄</span> Zacznij od nowa
+            </button>
+        </div>
+    </div>
+
+    <div class="help-text">
+        <strong>Sterowanie:</strong><br>
+        🖱️ Scroll = Zoom | Shift + Przeciągnij = Pan<br>
+        Kliknij aby zaznaczyć punkty kalibracyjne
+    </div>
+</div>
+
+<div id="main">
+    <div id="emptyState">
+        <div class="icon">🗺️</div>
+        <h2>Brak załadowanego planu</h2>
+        <p>Wybierz jaskinię z listy po lewej stronie</p>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div id="toolbar">
+        <button class="toolbar-btn" id="zoomInBtn" title="Przybliż">➕</button>
+        <button class="toolbar-btn" id="zoomOutBtn" title="Oddal">➖</button>
+        <button class="toolbar-btn" id="resetViewBtn" title="Resetuj widok">🏠</button>
+        <button class="toolbar-btn" id="undoBtn" title="Cofnij ostatni punkt">↩️</button>
+    </div>
+
+    <div id="zoomIndicator">100%</div>
+</div>
+
+<script>
+    // ===========================================
+    // 1. CONFIGURATION & STATE
+    // ===========================================
+
+    // GitHub raw URL base
+    const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/dlubom/Polish-Cave-Data-Scraper/refs/heads/main/';
+
+    // PL-1992 (EPSG:2180) definition
+    proj4.defs("EPSG:2180", "+proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+
+    const state = {
+        step: 0,
+        points: [],
+        img: null,
+        transform: null,
+        scaleFactor: 1,
+        panX: 0,
+        panY: 0,
+        isDragging: false,
+        lastMouseX: 0,
+        lastMouseY: 0,
+        caves: [],
+        selectedCave: null,
+        skipNorth: false
+    };
+
+    // DOM elements
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+    const mainArea = document.getElementById('main');
+
+    // ===========================================
+    // 2. DATA LOADING
+    // ===========================================
+
+    async function loadCavesData() {
+        try {
+            const response = await fetch(GITHUB_RAW_BASE + 'caves_transformed.jsonl');
+            const text = await response.text();
+            const lines = text.trim().split('\n');
+
+            state.caves = [];
+
+            for (const line of lines) {
+                try {
+                    const data = JSON.parse(line);
+
+                    // Filter for plan images
+                    const planImages = (data.images || []).filter(img =>
+                        img.metadata?.graphics_type_name === 'plan' ||
+                        img.metadata?.graphics_type_name === 'plan i przekrój'
+                    );
+
+                    // Only include caves with valid coordinates and plan images
+                    if (planImages.length > 0 && data.latitude && data.longitude) {
+                        state.caves.push({
+                            cave_id: data.cave_id,
+                            name: data.name,
+                            inventory_number: data.inventory_number || '',
+                            region: data.region || '',
+                            latitude: data.latitude,
+                            longitude: data.longitude,
+                            plan_images: planImages.map(img => ({
+                                image_id: img.metadata?.graphics_id,
+                                image_path: (img.image_path || '').replace('caves/', 'caves_upscaled/'),
+                                description: img.description || 'plan',
+                                author: img.metadata?.author_name || ''
+                            }))
+                        });
+                    }
+                } catch (e) {
+                    // Skip malformed lines
+                }
+            }
+
+            populateCaveSelect(state.caves);
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('caveCount').textContent = `${state.caves.length} jaskiń z planami`;
+
+        } catch (error) {
+            console.error('Failed to load caves data:', error);
+            document.getElementById('loadingOverlay').innerHTML = `
+                <div style="text-align:center; color: #f87171;">
+                    <div style="font-size: 3rem; margin-bottom: 16px;">❌</div>
+                    <div>Błąd ładowania danych</div>
+                    <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 8px;">${error.message}</div>
+                    <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; cursor: pointer;">Spróbuj ponownie</button>
+                </div>
+            `;
+        }
+    }
+
+    function populateCaveSelect(caves) {
+        const select = document.getElementById('caveSelect');
+        select.innerHTML = '<option value="">-- Wybierz jaskinię --</option>';
+
+        caves.forEach(cave => {
+            const option = document.createElement('option');
+            option.value = cave.cave_id;
+            option.textContent = `${cave.cave_id} - ${cave.name}`;
+            if (cave.inventory_number) {
+                option.textContent += ` (${cave.inventory_number})`;
+            }
+            select.appendChild(option);
+        });
+    }
+
+    // ===========================================
+    // 3. SEARCH & FILTERING
+    // ===========================================
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+
+        if (!query) {
+            populateCaveSelect(state.caves);
+            return;
+        }
+
+        const filtered = state.caves.filter(cave =>
+            cave.cave_id.toLowerCase().includes(query) ||
+            cave.name.toLowerCase().includes(query) ||
+            cave.inventory_number.toLowerCase().includes(query)
+        );
+
+        populateCaveSelect(filtered);
+        document.getElementById('caveCount').textContent = `${filtered.length} z ${state.caves.length} jaskiń`;
+    });
+
+    // ===========================================
+    // 4. CAVE SELECTION
+    // ===========================================
+
+    document.getElementById('caveSelect').addEventListener('change', (e) => {
+        const caveId = e.target.value;
+        if (!caveId) {
+            state.selectedCave = null;
+            document.getElementById('imageSelect').disabled = true;
+            document.getElementById('imageSelect').innerHTML = '<option value="">-- Najpierw wybierz jaskinię --</option>';
+            document.getElementById('loadCaveBtn').disabled = true;
+            return;
+        }
+
+        state.selectedCave = state.caves.find(c => c.cave_id === caveId);
+
+        if (state.selectedCave) {
+            // Populate image select
+            const imageSelect = document.getElementById('imageSelect');
+            imageSelect.innerHTML = '';
+            imageSelect.disabled = false;
+
+            state.selectedCave.plan_images.forEach((img, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${img.description}${img.author ? ' - ' + img.author : ''}`;
+                imageSelect.appendChild(option);
+            });
+
+            // Fill coordinates
+            document.getElementById('lat').value = state.selectedCave.latitude.toFixed(6);
+            document.getElementById('lon').value = state.selectedCave.longitude.toFixed(6);
+
+            document.getElementById('loadCaveBtn').disabled = false;
+        }
+    });
+
+    // ===========================================
+    // 5. IMAGE LOADING
+    // ===========================================
+
+    document.getElementById('loadCaveBtn').addEventListener('click', () => {
+        if (!state.selectedCave) return;
+
+        const imageIdx = parseInt(document.getElementById('imageSelect').value) || 0;
+        const imagePath = state.selectedCave.plan_images[imageIdx]?.image_path;
+
+        if (!imagePath) {
+            alert('Brak ścieżki do obrazka');
+            return;
+        }
+
+        loadImage(GITHUB_RAW_BASE + imagePath);
+    });
+
+    // Local file upload
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            loadImage(event.target.result);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function loadImage(url) {
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        document.getElementById('loadingOverlay').innerHTML = `
+            <div class="spinner"></div>
+            <div>Ładowanie planu jaskini...</div>
+        `;
+
+        state.img = new Image();
+        state.img.crossOrigin = 'anonymous';
+
+        state.img.onload = () => {
+            canvas.width = state.img.width;
+            canvas.height = state.img.height;
+
+            // Reset state
+            state.step = 1;
+            state.points = [];
+            state.transform = null;
+            state.scaleFactor = 1;
+            state.panX = 0;
+            state.panY = 0;
+
+            // Fit image to view
+            fitImageToView();
+
+            // Update UI
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('resultsPanel').classList.remove('visible');
+            updateInstructions();
+            updateProgressSteps();
+            draw();
+
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        };
+
+        state.img.onerror = () => {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            alert('Nie udało się załadować obrazka. Sprawdź czy plik istnieje na GitHub.');
+        };
+
+        state.img.src = url;
+    }
+
+    function fitImageToView() {
+        const padding = 40;
+        const maxW = mainArea.clientWidth - padding * 2;
+        const maxH = mainArea.clientHeight - padding * 2;
+
+        const scaleX = maxW / state.img.width;
+        const scaleY = maxH / state.img.height;
+        state.scaleFactor = Math.min(scaleX, scaleY, 1);
+
+        // Center the image
+        state.panX = (mainArea.clientWidth - state.img.width * state.scaleFactor) / 2;
+        state.panY = (mainArea.clientHeight - state.img.height * state.scaleFactor) / 2;
+
+        updateTransform();
+    }
+
+    // ===========================================
+    // 6. CANVAS INTERACTION
+    // ===========================================
+
+    // Zoom
+    mainArea.addEventListener('wheel', (e) => {
+        e.preventDefault();
+
+        const rect = mainArea.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const zoomSpeed = 0.1;
+        const direction = e.deltaY > 0 ? -1 : 1;
+        const newScale = state.scaleFactor * (1 + direction * zoomSpeed);
+
+        if (newScale > 0.05 && newScale < 20) {
+            // Zoom towards mouse position
+            const scaleChange = newScale / state.scaleFactor;
+            state.panX = mouseX - (mouseX - state.panX) * scaleChange;
+            state.panY = mouseY - (mouseY - state.panY) * scaleChange;
+            state.scaleFactor = newScale;
+            updateTransform();
+        }
+    });
+
+    // Pan (Shift + drag)
+    mainArea.addEventListener('mousedown', (e) => {
+        if (e.shiftKey || e.button === 1) {
+            state.isDragging = true;
+            state.lastMouseX = e.clientX;
+            state.lastMouseY = e.clientY;
+            mainArea.style.cursor = 'grabbing';
+            e.preventDefault();
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        state.isDragging = false;
+        mainArea.style.cursor = 'crosshair';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (state.isDragging) {
+            state.panX += e.clientX - state.lastMouseX;
+            state.panY += e.clientY - state.lastMouseY;
+            state.lastMouseX = e.clientX;
+            state.lastMouseY = e.clientY;
+            updateTransform();
+        }
+    });
+
+    function updateTransform() {
+        container.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.scaleFactor})`;
+        document.getElementById('zoomIndicator').textContent = `${Math.round(state.scaleFactor * 100)}%`;
+    }
+
+    // Point clicking
+    canvas.addEventListener('mousedown', (e) => {
+        if (e.button !== 0 || e.shiftKey) return;
+
+        const maxSteps = state.skipNorth ? 3 : 5;
+        if (state.step === 0 || state.step > maxSteps) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+
+        state.points.push({ x, y });
+        nextStep();
+        draw();
+    });
+
+    // ===========================================
+    // 7. WORKFLOW LOGIC
+    // ===========================================
+
+    document.getElementById('skipNorth').addEventListener('change', (e) => {
+        state.skipNorth = e.target.checked;
+        updateProgressSteps();
+
+        // Reset if already started
+        if (state.step > 0) {
+            state.step = 1;
+            state.points = [];
+            updateInstructions();
+            draw();
+        }
+    });
+
+    function nextStep() {
+        state.step++;
+        const maxSteps = state.skipNorth ? 3 : 5;
+
+        if (state.step <= maxSteps) {
+            updateInstructions();
+            updateProgressSteps();
+        } else {
+            calculate();
+        }
+    }
+
+    function updateInstructions() {
+        const instructions = state.skipNorth ? [
+            "Wybierz jaskinię aby rozpocząć",
+            "Kliknij OTWÓR WEJŚCIOWY",
+            "Kliknij POCZĄTEK SKALI",
+            "Kliknij KONIEC SKALI",
+            "Gotowe!"
+        ] : [
+            "Wybierz jaskinię aby rozpocząć",
+            "Kliknij OTWÓR WEJŚCIOWY",
+            "Kliknij POCZĄTEK SKALI",
+            "Kliknij KONIEC SKALI",
+            "Kliknij BAZĘ STRZAŁKI PÓŁNOCY",
+            "Kliknij GROT STRZAŁKI PÓŁNOCY",
+            "Gotowe!"
+        ];
+
+        const maxSteps = state.skipNorth ? 3 : 5;
+        const panel = document.getElementById('instructionPanel');
+
+        document.getElementById('currentStep').textContent = Math.min(state.step, maxSteps);
+        document.getElementById('totalSteps').textContent = maxSteps;
+        document.getElementById('instructionText').textContent = instructions[state.step] || instructions[0];
+
+        if (state.step > maxSteps) {
+            panel.classList.add('complete');
+        } else {
+            panel.classList.remove('complete');
+        }
+    }
+
+    function updateProgressSteps() {
+        const container = document.getElementById('progressSteps');
+        const maxSteps = state.skipNorth ? 3 : 5;
+
+        container.innerHTML = '';
+        for (let i = 1; i <= maxSteps; i++) {
+            const step = document.createElement('div');
+            step.className = 'progress-step';
+            if (i < state.step) step.classList.add('done');
+            if (i === state.step) step.classList.add('current');
+            container.appendChild(step);
+        }
+    }
+
+    // ===========================================
+    // 8. DRAWING
+    // ===========================================
+
+    function draw() {
+        if (!state.img) return;
+
+        ctx.drawImage(state.img, 0, 0);
+
+        // Draw points
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
+        const labels = state.skipNorth
+            ? ['Wejście', 'Skala 1', 'Skala 2']
+            : ['Wejście', 'Skala 1', 'Skala 2', 'Północ 1', 'Północ 2'];
+
+        state.points.forEach((p, idx) => {
+            // Circle
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = colors[idx] || '#fff';
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(idx + 1, p.x, p.y + 5);
+
+            // Label text
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px sans-serif';
+            ctx.fillText(labels[idx], p.x, p.y - 20);
+        });
+
+        // Draw scale line
+        if (state.points.length >= 3) {
+            ctx.beginPath();
+            ctx.moveTo(state.points[1].x, state.points[1].y);
+            ctx.lineTo(state.points[2].x, state.points[2].y);
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+
+        // Draw north arrow line
+        if (!state.skipNorth && state.points.length >= 5) {
+            ctx.beginPath();
+            ctx.moveTo(state.points[3].x, state.points[3].y);
+            ctx.lineTo(state.points[4].x, state.points[4].y);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Arrow head
+            const dx = state.points[4].x - state.points[3].x;
+            const dy = state.points[4].y - state.points[3].y;
+            const angle = Math.atan2(dy, dx);
+            const headLen = 20;
+
+            ctx.beginPath();
+            ctx.moveTo(state.points[4].x, state.points[4].y);
+            ctx.lineTo(
+                state.points[4].x - headLen * Math.cos(angle - Math.PI / 6),
+                state.points[4].y - headLen * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.moveTo(state.points[4].x, state.points[4].y);
+            ctx.lineTo(
+                state.points[4].x - headLen * Math.cos(angle + Math.PI / 6),
+                state.points[4].y - headLen * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+    }
+
+    // ===========================================
+    // 9. CALCULATIONS
+    // ===========================================
+
+    // Reactive recalculation on input changes
+    ['lat', 'lon', 'realScale', 'declination'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            if (state.transform) {
+                recalculate();
+            }
+        });
+    });
+
+    function recalculate() {
+        const maxSteps = state.skipNorth ? 3 : 5;
+        if (state.points.length < maxSteps) return;
+        calculate();
+    }
+
+    function calculate() {
+        const lat = parseFloat(document.getElementById('lat').value);
+        const lon = parseFloat(document.getElementById('lon').value);
+        const realScale = parseFloat(document.getElementById('realScale').value);
+        const declination = parseFloat(document.getElementById('declination').value) || 0;
+
+        if (!lat || !lon || !realScale) {
+            alert('Uzupełnij współrzędne i długość skali');
+            return;
+        }
+
+        // Project WGS84 -> PL-1992
+        const [worldX, worldY] = proj4("EPSG:4326", "EPSG:2180", [lon, lat]);
+
+        // Scale calculation
+        const pScale1 = state.points[1];
+        const pScale2 = state.points[2];
+        const pixelDist = Math.sqrt(Math.pow(pScale2.x - pScale1.x, 2) + Math.pow(pScale2.y - pScale1.y, 2));
+        const pixelsPerMeter = pixelDist / realScale;
+        const metersPerPixel = 1.0 / pixelsPerMeter;
+
+        // Meridian convergence for PL-1992
+        const lambda0 = 19.0;
+        const convergenceDeg = (lambda0 - lon) * Math.sin(lat * (Math.PI / 180));
+
+        // North angle calculation
+        let northDeg = 0;
+        if (!state.skipNorth && state.points.length >= 5) {
+            const pN1 = state.points[3];
+            const pN2 = state.points[4];
+            const dx = pN2.x - pN1.x;
+            const dy = pN2.y - pN1.y;
+            const angleRad = Math.atan2(dx, -dy);
+            northDeg = angleRad * (180 / Math.PI);
+        }
+
+        // Total rotation
+        const totalAngleClockwise = northDeg + declination + convergenceDeg;
+        const rotRadCCW = -totalAngleClockwise * (Math.PI / 180);
+
+        // World File parameters
+        const cosA = Math.cos(rotRadCCW);
+        const sinA = Math.sin(rotRadCCW);
+
+        const wf_A = metersPerPixel * cosA;
+        const wf_D = metersPerPixel * sinA;
+        const wf_B = metersPerPixel * sinA;
+        const wf_E = -metersPerPixel * cosA;
+
+        // Calculate C and F (top-left pixel coordinates)
+        const pEnt = state.points[0];
+        const wf_C = worldX - (wf_A * pEnt.x + wf_B * pEnt.y);
+        const wf_F = worldY - (wf_D * pEnt.x + wf_E * pEnt.y);
+
+        state.transform = { A: wf_A, D: wf_D, B: wf_B, E: wf_E, C: wf_C, F: wf_F };
+
+        // Update UI
+        document.getElementById('resultScale').textContent = pixelsPerMeter.toFixed(2);
+        document.getElementById('resultNorth').textContent = northDeg.toFixed(2) + '°';
+        document.getElementById('resultConvergence').textContent = convergenceDeg.toFixed(4) + '°';
+        document.getElementById('resultTotal').textContent = totalAngleClockwise.toFixed(2) + '°';
+
+        document.getElementById('resultsPanel').classList.add('visible');
+        updateInstructions();
+    }
+
+    // ===========================================
+    // 10. FILE EXPORT
+    // ===========================================
+
+    document.getElementById('downloadTfwBtn').addEventListener('click', downloadWorldFile);
+    document.getElementById('downloadKmlBtn').addEventListener('click', downloadKML);
+
+    function downloadWorldFile() {
+        if (!state.transform) return;
+        const t = state.transform;
+        const content = `${t.A.toFixed(10)}\n${t.D.toFixed(10)}\n${t.B.toFixed(10)}\n${t.E.toFixed(10)}\n${t.C.toFixed(6)}\n${t.F.toFixed(6)}`;
+
+        const filename = state.selectedCave
+            ? `${state.selectedCave.inventory_number || state.selectedCave.cave_id}.tfw`
+            : 'plan.tfw';
+
+        downloadFile(content, filename, 'text/plain');
+    }
+
+    function downloadKML() {
+        if (!state.transform || !state.img) return;
+
+        const t = state.transform;
+        const w = state.img.width;
+        const h = state.img.height;
+
+        // Calculate corners in PL-1992
+        const tl_x = t.C;
+        const tl_y = t.F;
+        const br_x = t.A * w + t.B * h + t.C;
+        const br_y = t.D * w + t.E * h + t.F;
+
+        // Convert to WGS84
+        const tl_wgs = proj4("EPSG:2180", "EPSG:4326", [tl_x, tl_y]);
+        const br_wgs = proj4("EPSG:2180", "EPSG:4326", [br_x, br_y]);
+
+        const north = Math.max(tl_wgs[1], br_wgs[1]);
+        const south = Math.min(tl_wgs[1], br_wgs[1]);
+        const east = Math.max(tl_wgs[0], br_wgs[0]);
+        const west = Math.min(tl_wgs[0], br_wgs[0]);
+
+        const caveName = state.selectedCave?.name || 'Cave Plan';
+        const imageFile = state.selectedCave
+            ? `${state.selectedCave.inventory_number || state.selectedCave.cave_id}.jpg`
+            : 'plan.jpg';
+
+        const kml = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${caveName}</name>
+    <GroundOverlay>
+      <name>${caveName} - Plan</name>
+      <Icon>
+        <href>${imageFile}</href>
+      </Icon>
+      <LatLonBox>
+        <north>${north}</north>
+        <south>${south}</south>
+        <east>${east}</east>
+        <west>${west}</west>
+      </LatLonBox>
+    </GroundOverlay>
+  </Document>
+</kml>`;
+
+        const filename = state.selectedCave
+            ? `${state.selectedCave.inventory_number || state.selectedCave.cave_id}.kml`
+            : 'plan.kml';
+
+        downloadFile(kml, filename, 'application/vnd.google-earth.kml+xml');
+    }
+
+    function downloadFile(content, fileName, mimeType) {
+        const a = document.createElement('a');
+        const file = new Blob([content], { type: mimeType });
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    // ===========================================
+    // 11. TOOLBAR BUTTONS
+    // ===========================================
+
+    document.getElementById('zoomInBtn').addEventListener('click', () => {
+        state.scaleFactor *= 1.25;
+        updateTransform();
+    });
+
+    document.getElementById('zoomOutBtn').addEventListener('click', () => {
+        state.scaleFactor *= 0.8;
+        updateTransform();
+    });
+
+    document.getElementById('resetViewBtn').addEventListener('click', () => {
+        if (state.img) fitImageToView();
+    });
+
+    document.getElementById('undoBtn').addEventListener('click', () => {
+        if (state.points.length > 0) {
+            state.points.pop();
+            state.step = Math.max(1, state.step - 1);
+            state.transform = null;
+            document.getElementById('resultsPanel').classList.remove('visible');
+            updateInstructions();
+            updateProgressSteps();
+            draw();
+        }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        state.step = 1;
+        state.points = [];
+        state.transform = null;
+        document.getElementById('resultsPanel').classList.remove('visible');
+        updateInstructions();
+        updateProgressSteps();
+        draw();
+    });
+
+    // ===========================================
+    // 12. INITIALIZATION
+    // ===========================================
+
+    // Initial setup
+    updateProgressSteps();
+    loadCavesData();
+</script>
+
+</body>
+</html>
