@@ -450,7 +450,7 @@
 
 <div id="cmdModal">
     <div class="modal-content">
-        <h3>📋 Obraz za duży dla przeglądarki</h3>
+        <h3 id="cmdModalTitle">📋 Komenda GDAL</h3>
         <p id="cmdModalInfo"></p>
         <div class="cmd-box" id="cmdBox"></div>
         <div class="modal-buttons">
@@ -581,11 +581,16 @@
                     <div class="label">Całkowity obrót</div>
                 </div>
             </div>
-            <button id="downloadTfwBtn" class="btn-success">
-                <span>⬇️</span> Pobierz TFW
-            </button>
-            <button id="downloadKmlBtn" class="btn-outline">
-                <span>🌍</span> Pobierz KML
+            <div class="btn-group" style="display: flex; gap: 6px;">
+                <button id="downloadImageBtn" class="btn-outline" style="flex: 1;" disabled>
+                    <span>🖼️</span> Obraz
+                </button>
+                <button id="downloadTfwBtn" class="btn-success" style="flex: 1;">
+                    <span>⬇️</span> TFW
+                </button>
+            </div>
+            <button id="showGdalCmd" class="btn-primary">
+                <span>🚀</span> Pokaż komendę GDAL
             </button>
             <button id="resetBtn" class="btn-outline btn-small">
                 <span>🔄</span> Zacznij od nowa
@@ -651,7 +656,9 @@
         lastMouseY: 0,
         caves: [],
         selectedCave: null,
-        skipNorth: true
+        skipNorth: true,
+        currentImagePath: null,
+        isFromGitHub: false
     };
 
     // DOM elements
@@ -817,6 +824,7 @@
 
         // Store the image path for later use in commands
         state.currentImagePath = imagePath;
+        state.isFromGitHub = true;
 
         loadImage(GITHUB_RAW_BASE + imagePath);
     });
@@ -828,6 +836,7 @@
 
         // Store the local file path
         state.currentImagePath = file.name;
+        state.isFromGitHub = false;
 
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -1249,6 +1258,8 @@
         document.getElementById('resultTotal').textContent = totalAngleClockwise.toFixed(2) + '°';
 
         document.getElementById('resultsPanel').classList.add('visible');
+        // Enable image download button only for GitHub images
+        document.getElementById('downloadImageBtn').disabled = !state.isFromGitHub;
         updateInstructions();
     }
 
@@ -1256,92 +1267,85 @@
     // 10. FILE EXPORT
     // ===========================================
 
-    document.getElementById('downloadTfwBtn').addEventListener('click', downloadWorldFileAndImage);
-    document.getElementById('downloadKmlBtn').addEventListener('click', downloadKML);
+    document.getElementById('downloadTfwBtn').addEventListener('click', downloadWorldFile);
+    document.getElementById('downloadImageBtn').addEventListener('click', downloadOriginalImage);
+    document.getElementById('showGdalCmd').addEventListener('click', showGdalCommand);
 
-    function downloadWorldFileAndImage() {
-        if (!state.transform || !state.img) return;
-        const t = state.transform;
-        const baseName = state.selectedCave
-            ? (state.selectedCave.inventory_number || state.selectedCave.cave_id)
-            : 'plan';
-
-        // Download TFW (calculated for ORIGINAL image size, not canvas)
-        const tfwContent = `${t.A.toFixed(10)}\n${t.D.toFixed(10)}\n${t.B.toFixed(10)}\n${t.E.toFixed(10)}\n${t.C.toFixed(6)}\n${t.F.toFixed(6)}`;
-        downloadFile(tfwContent, `${baseName}.tfw`, 'text/plain');
-
-        // Build command with actual image path
-        const origW = state.originalWidth || state.img.width;
-        const origH = state.originalHeight || state.img.height;
-
-        let imagePath;
-        if (state.currentImagePath && state.currentImagePath.startsWith('caves')) {
-            // Image from caves_upscaled or caves directory
-            imagePath = state.currentImagePath;
-        } else {
-            // Local file upload - user needs to provide path
-            imagePath = `~/Downloads/${baseName}.jpg`;
+    function getBaseFileName() {
+        if (state.selectedCave) {
+            return (state.selectedCave.inventory_number || state.selectedCave.cave_id).replace(/\//g, '_');
         }
-
-        const cmd = `cd ~/projects/Polish-Cave-Data-Scraper && poetry run python apply_worldfile.py ${imagePath} ~/Downloads/${baseName}.tfw`;
-
-        showCmdModal(
-            `TFW zapisany (${origW}x${origH}px). Uruchom komendę aby wygenerować GeoTIFF:`,
-            cmd
-        );
+        return 'plan';
     }
 
-    function downloadKML() {
-        if (!state.transform || !state.img) return;
-
+    function downloadWorldFile() {
+        if (!state.transform) return;
         const t = state.transform;
-        const w = state.originalWidth || state.img.width;
-        const h = state.originalHeight || state.img.height;
+        const baseName = getBaseFileName();
 
-        // Calculate corners in PL-1992
-        const tl_x = t.C;
-        const tl_y = t.F;
-        const br_x = t.A * w + t.B * h + t.C;
-        const br_y = t.D * w + t.E * h + t.F;
+        const tfwContent = `${t.A.toFixed(10)}\n${t.D.toFixed(10)}\n${t.B.toFixed(10)}\n${t.E.toFixed(10)}\n${t.C.toFixed(6)}\n${t.F.toFixed(6)}`;
+        downloadFile(tfwContent, `${baseName}.tfw`, 'text/plain');
+    }
 
-        // Convert to WGS84
-        const tl_wgs = proj4("EPSG:2180", "EPSG:4326", [tl_x, tl_y]);
-        const br_wgs = proj4("EPSG:2180", "EPSG:4326", [br_x, br_y]);
+    async function downloadOriginalImage() {
+        if (!state.currentImagePath || !state.isFromGitHub) return;
 
-        const north = Math.max(tl_wgs[1], br_wgs[1]);
-        const south = Math.min(tl_wgs[1], br_wgs[1]);
-        const east = Math.max(tl_wgs[0], br_wgs[0]);
-        const west = Math.min(tl_wgs[0], br_wgs[0]);
+        const baseName = getBaseFileName();
+        const btn = document.getElementById('downloadImageBtn');
+        const originalText = btn.innerHTML;
 
-        const caveName = state.selectedCave?.name || 'Cave Plan';
-        const imageFile = state.selectedCave
-            ? `${state.selectedCave.inventory_number || state.selectedCave.cave_id}.jpg`
-            : 'plan.jpg';
+        try {
+            btn.innerHTML = '<span>⏳</span> Pobieranie...';
+            btn.disabled = true;
 
-        const kml = `<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-  <Document>
-    <name>${caveName}</name>
-    <GroundOverlay>
-      <name>${caveName} - Plan</name>
-      <Icon>
-        <href>${imageFile}</href>
-      </Icon>
-      <LatLonBox>
-        <north>${north}</north>
-        <south>${south}</south>
-        <east>${east}</east>
-        <west>${west}</west>
-      </LatLonBox>
-    </GroundOverlay>
-  </Document>
-</kml>`;
+            const imageUrl = GITHUB_RAW_BASE + state.currentImagePath;
+            const response = await fetch(imageUrl);
+            if (!response.ok) throw new Error('Nie można pobrać obrazu');
 
-        const filename = state.selectedCave
-            ? `${state.selectedCave.inventory_number || state.selectedCave.cave_id}.kml`
-            : 'plan.kml';
+            const blob = await response.blob();
+            const ext = state.currentImagePath.split('.').pop() || 'jpg';
+            const fileName = `${baseName}.${ext}`;
 
-        downloadFile(kml, filename, 'application/vnd.google-earth.kml+xml');
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            btn.innerHTML = '<span>✅</span> Pobrano!';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        } catch (error) {
+            alert('Błąd pobierania: ' + error.message);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    function showGdalCommand() {
+        if (!state.transform) return;
+
+        const baseName = getBaseFileName();
+        const ext = state.currentImagePath ? state.currentImagePath.split('.').pop() : 'jpg';
+        const inputFile = `${baseName}.${ext}`;
+        const outputFile = `${baseName}_georef.tif`;
+
+        // GDAL command that uses TFW (auto-detected when in same folder)
+        // Optimized for scans: grayscale, deflate compression, tiled
+        const cmd = `gdal_translate -of GTiff -a_srs EPSG:2180 -co COMPRESS=DEFLATE -co PREDICTOR=2 -co TILED=YES "${inputFile}" "${outputFile}"`;
+
+        document.getElementById('cmdModalTitle').textContent = '🚀 Komenda GDAL';
+        document.getElementById('cmdModalInfo').innerHTML = `
+            Pobierz <b>${inputFile}</b> i <b>${baseName}.tfw</b> do tego samego folderu, a następnie uruchom komendę.<br>
+            <small style="color: var(--text-light);">GDAL automatycznie użyje pliku .tfw do georeferencji.</small>
+        `;
+        document.getElementById('cmdBox').textContent = cmd;
+        document.getElementById('cmdModal').classList.add('visible');
+    }
+
+    function downloadWorldFileAndImage() {
+        // Legacy function - now just downloads TFW
+        downloadWorldFile();
     }
 
     function downloadFile(content, fileName, mimeType) {
@@ -1356,12 +1360,6 @@
     // ===========================================
     // 11. COMMAND MODAL
     // ===========================================
-
-    function showCmdModal(info, cmd) {
-        document.getElementById('cmdModalInfo').textContent = info;
-        document.getElementById('cmdBox').textContent = cmd;
-        document.getElementById('cmdModal').classList.add('visible');
-    }
 
     document.getElementById('copyCmd').addEventListener('click', () => {
         const cmd = document.getElementById('cmdBox').textContent;
