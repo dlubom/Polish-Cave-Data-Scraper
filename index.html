@@ -536,6 +536,10 @@
                 <input type="checkbox" id="skipNorth" checked>
                 <span>Pomiń strzałkę północy (domyślnie 0°)</span>
             </label>
+            <div class="input-group">
+                <label>Definicja projekcji (PROJ4)</label>
+                <input type="text" id="proj4Def" value="+proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" style="font-size: 0.7rem; font-family: monospace;">
+            </div>
         </div>
     </div>
 
@@ -624,8 +628,14 @@
     // GitHub raw URL base
     const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/dlubom/Polish-Cave-Data-Scraper/refs/heads/main/';
 
-    // PL-1992 (EPSG:2180) definition
-    proj4.defs("EPSG:2180", "+proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+    // PL-1992 (EPSG:2180) definition - will be updated from input field
+    const DEFAULT_PROJ4_DEF = "+proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+    proj4.defs("EPSG:2180", DEFAULT_PROJ4_DEF);
+
+    function updateProj4Definition() {
+        const def = document.getElementById('proj4Def').value.trim() || DEFAULT_PROJ4_DEF;
+        proj4.defs("EPSG:2180", def);
+    }
 
     const state = {
         step: 0,
@@ -1151,8 +1161,11 @@
     // ===========================================
 
     // Reactive recalculation on input changes
-    ['lat', 'lon', 'realScale', 'declination'].forEach(id => {
+    ['lat', 'lon', 'realScale', 'declination', 'proj4Def'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
+            if (id === 'proj4Def') {
+                updateProj4Definition();
+            }
             if (state.transform) {
                 recalculate();
             }
@@ -1166,6 +1179,9 @@
     }
 
     function calculate() {
+        // Update projection definition from input field
+        updateProj4Definition();
+
         const lat = parseFloat(document.getElementById('lat').value);
         const lon = parseFloat(document.getElementById('lon').value);
         const realScale = parseFloat(document.getElementById('realScale').value);
