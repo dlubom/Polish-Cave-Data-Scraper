@@ -1278,13 +1278,35 @@
         return 'plan';
     }
 
+    function getImageExtension() {
+        if (state.currentImagePath) {
+            return state.currentImagePath.split('.').pop().toLowerCase() || 'jpg';
+        }
+        return 'jpg';
+    }
+
+    function getWorldFileExtension(imageExt) {
+        // World file extensions: first and last letter of image extension + 'w'
+        // .jpg -> .jgw, .jpeg -> .jgw, .tif -> .tfw, .png -> .pgw, .gif -> .gfw
+        const ext = imageExt.toLowerCase();
+        if (ext === 'jpeg' || ext === 'jpg') return 'jgw';
+        if (ext === 'tif' || ext === 'tiff') return 'tfw';
+        if (ext === 'png') return 'pgw';
+        if (ext === 'gif') return 'gfw';
+        if (ext === 'bmp') return 'bpw';
+        // Default: first char + last char + 'w'
+        return ext.charAt(0) + ext.charAt(ext.length - 1) + 'w';
+    }
+
     function downloadWorldFile() {
         if (!state.transform) return;
         const t = state.transform;
         const baseName = getBaseFileName();
+        const imgExt = getImageExtension();
+        const wfExt = getWorldFileExtension(imgExt);
 
-        const tfwContent = `${t.A.toFixed(10)}\n${t.D.toFixed(10)}\n${t.B.toFixed(10)}\n${t.E.toFixed(10)}\n${t.C.toFixed(6)}\n${t.F.toFixed(6)}`;
-        downloadFile(tfwContent, `${baseName}.tfw`, 'text/plain');
+        const wfContent = `${t.A.toFixed(10)}\n${t.D.toFixed(10)}\n${t.B.toFixed(10)}\n${t.E.toFixed(10)}\n${t.C.toFixed(6)}\n${t.F.toFixed(6)}`;
+        downloadFile(wfContent, `${baseName}.${wfExt}`, 'text/plain');
     }
 
     async function downloadOriginalImage() {
@@ -1326,18 +1348,19 @@
         if (!state.transform) return;
 
         const baseName = getBaseFileName();
-        const ext = state.currentImagePath ? state.currentImagePath.split('.').pop() : 'jpg';
-        const inputFile = `${baseName}.${ext}`;
+        const imgExt = getImageExtension();
+        const wfExt = getWorldFileExtension(imgExt);
+        const inputFile = `${baseName}.${imgExt}`;
         const outputFile = `${baseName}_georef.tif`;
 
-        // GDAL command that uses TFW (auto-detected when in same folder)
-        // Optimized for scans: grayscale, deflate compression, tiled
+        // GDAL command that uses World File (auto-detected when in same folder)
+        // Optimized for scans: deflate compression, tiled
         const cmd = `gdal_translate -of GTiff -a_srs EPSG:2180 -co COMPRESS=DEFLATE -co PREDICTOR=2 -co TILED=YES "${inputFile}" "${outputFile}"`;
 
         document.getElementById('cmdModalTitle').textContent = '🚀 Komenda GDAL';
         document.getElementById('cmdModalInfo').innerHTML = `
-            Pobierz <b>${inputFile}</b> i <b>${baseName}.tfw</b> do tego samego folderu, a następnie uruchom komendę.<br>
-            <small style="color: var(--text-light);">GDAL automatycznie użyje pliku .tfw do georeferencji.</small>
+            Pobierz <b>${inputFile}</b> i <b>${baseName}.${wfExt}</b> do tego samego folderu, a następnie uruchom komendę.<br>
+            <small style="color: var(--text-light);">GDAL automatycznie użyje pliku .${wfExt} do georeferencji.</small>
         `;
         document.getElementById('cmdBox').textContent = cmd;
         document.getElementById('cmdModal').classList.add('visible');
