@@ -42,9 +42,9 @@ Dokładność georeferencji zależy od:
 
 Dla typowych planów można oczekiwać dokładności rzędu kilku-kilkunastu metrów.
 
-## Co to jest plik TFW (World File)?
+## Co to jest World File?
 
-Plik `.tfw` (TIFF World File) to plik tekstowy zawierający 6 liczb opisujących transformację afiniczną obrazu:
+World File to plik tekstowy zawierający 6 liczb opisujących transformację afiniczną obrazu:
 
 ```
 0.1234567890    <- A: rozmiar piksela w osi X (metry) × cos(obrót)
@@ -55,7 +55,14 @@ Plik `.tfw` (TIFF World File) to plik tekstowy zawierający 6 liczb opisujących
 234567.890123   <- F: współrzędna Y lewego górnego rogu
 ```
 
-GDAL i inne programy GIS automatycznie wykrywają plik `.tfw` jeśli ma taką samą nazwę jak obraz (np. `plan.jpg` + `plan.tfw`).
+**Ważne:** Rozszerzenie World File zależy od formatu obrazu:
+- `.jgw` → dla `.jpg` / `.jpeg`
+- `.pgw` → dla `.png`
+- `.tfw` → dla `.tif` / `.tiff`
+- `.gfw` → dla `.gif`
+- `.bpw` → dla `.bmp`
+
+GDAL automatycznie wykrywa World File jeśli ma taką samą nazwę jak obraz i prawidłowe rozszerzenie (np. `plan.jpg` + `plan.jgw`).
 
 ## Instalacja GDAL
 
@@ -113,7 +120,7 @@ Współrzędne wejścia są automatycznie pobierane z bazy danych. Możesz je r�
 
 Po kalibracji kliknij:
 - **Obraz** - pobiera oryginalny obraz z GitHub (np. `J.Olk.12.03.jpg`)
-- **TFW** - pobiera plik World File (np. `J.Olk.12.03.tfw`)
+- **World File** - pobiera plik World File (np. `J.Olk.12.03.jgw` dla JPG)
 
 **Oba pliki muszą być w tym samym folderze i mieć tę samą nazwę** (różne rozszerzenia). GDAL automatycznie je połączy.
 
@@ -179,12 +186,21 @@ Niektóre przeglądarki blokują pobieranie z innych domen. Rozwiązania:
 - Użyj Chrome/Firefox
 - Pobierz obraz ręcznie z GitHub: https://github.com/dlubom/Polish-Cave-Data-Scraper/tree/main/caves_upscaled
 
-### GDAL nie widzi pliku TFW
+### GDAL nie widzi pliku World File / obraz nie ma georeferencji
 
 Upewnij się, że:
 - Oba pliki są w tym samym folderze
 - Mają identyczne nazwy (wielkość liter ma znaczenie)
-- Rozszerzenie TFW odpowiada formatowi obrazu (.tfw dla .tif/.jpg)
+- **Rozszerzenie World File odpowiada formatowi obrazu:**
+  - `.jpg` wymaga `.jgw` (nie `.tfw`!)
+  - `.png` wymaga `.pgw`
+  - `.tif` wymaga `.tfw`
+
+Sprawdź czy GDAL widzi georeferencję:
+```bash
+gdalinfo twoj_obraz.jpg
+```
+Jeśli widzisz `GeoTransform =` z liczbami - działa. Jeśli widzisz `Corner Coordinates: Upper Left (0.0, 0.0)` - World File nie został wykryty.
 
 ### Plan jest obrócony/przesunięty w GIS
 
