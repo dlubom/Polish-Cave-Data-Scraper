@@ -107,6 +107,12 @@ Plany jaskiń są hostowane w tym repozytorium:
 
 Możesz też wgrać własny skan z dysku (przycisk "Wgraj plan z dysku").
 
+**Obsługiwane formaty:**
+- JPG, PNG - wszystkie przeglądarki
+- TIFF - tylko Safari (w innych przeglądarkach najpierw przekonwertuj: `convert plan.tif plan.jpg`)
+
+Aplikacja obsługuje duże pliki (testowane do 50 MB / 160 megapikseli). Bardzo duże obrazy są automatycznie skalowane na podglądzie, ale obliczenia World File używają oryginalnych wymiarów.
+
 ### 2. Kliknij punkty kalibracyjne
 
 1. **Otwór wejściowy** - punkt o znanych współrzędnych GPS

@@ -524,7 +524,7 @@
             </button>
             <div style="text-align: center; font-size: 0.65rem; color: var(--text-light);">— lub —</div>
             <div class="input-group">
-                <label>Wgraj plan z dysku</label>
+                <label>Wgraj plan z dysku <span style="font-weight: normal;">(JPG, PNG; TIFF tylko Safari)</span></label>
                 <input type="file" id="fileInput" accept="image/*">
             </div>
         </div>
@@ -881,14 +881,20 @@
         state.currentImagePath = file.name;
         state.isFromGitHub = false;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            loadImage(event.target.result);
-        };
-        reader.readAsDataURL(file);
+        // Show loading overlay
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        document.getElementById('loadingOverlay').innerHTML = `
+            <div class="spinner"></div>
+            <div>Ładowanie planu z dysku...</div>
+            <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 8px;">${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)</div>
+        `;
+
+        // Use createObjectURL instead of base64 - more efficient for large files
+        const objectUrl = URL.createObjectURL(file);
+        loadImage(objectUrl, true);  // true = revoke URL after load
     });
 
-    function loadImage(url) {
+    function loadImage(url, revokeAfterLoad = false) {
         document.getElementById('loadingOverlay').classList.remove('hidden');
         document.getElementById('loadingOverlay').innerHTML = `
             <div class="spinner"></div>
@@ -899,6 +905,11 @@
         state.img.crossOrigin = 'anonymous';
 
         state.img.onload = () => {
+            // Revoke object URL if needed (for local files)
+            if (revokeAfterLoad) {
+                URL.revokeObjectURL(url);
+            }
+
             // Check if image is too large for canvas
             // Most browsers limit canvas to ~16384px or ~268MP
             const MAX_DIMENSION = 6000;  // Safe limit
@@ -956,8 +967,16 @@
         };
 
         state.img.onerror = () => {
+            // Revoke object URL if needed
+            if (revokeAfterLoad) {
+                URL.revokeObjectURL(url);
+            }
             document.getElementById('loadingOverlay').classList.add('hidden');
-            alert('Nie udało się załadować obrazka. Sprawdź czy plik istnieje na GitHub.');
+            if (state.isFromGitHub) {
+                alert('Nie udało się załadować obrazka. Sprawdź czy plik istnieje na GitHub.');
+            } else {
+                alert('Nie udało się załadować obrazka. Sprawdź format pliku (obsługiwane: JPG, PNG; TIFF tylko w Safari).');
+            }
         };
 
         state.img.src = url;
