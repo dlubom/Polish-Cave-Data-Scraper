@@ -19,7 +19,7 @@ Plany jaskiń w bazach danych (np. CBDG) są zwykłymi obrazkami - nie zawieraj�
    - Przesunięcie (współrzędne wejścia)
 
 3. **Generujesz pliki** do utworzenia GeoTIFF:
-   - Plik `.tfw` (World File) z parametrami transformacji
+   - World File (`.jgw`, `.pgw`, `.tfw` - zależnie od formatu obrazu) z parametrami transformacji
    - Komendę GDAL do konwersji
 
 ## Ograniczenia
@@ -170,7 +170,7 @@ Dla Jaskini Mylnej (J.Tat.K-01.03):
 2. Wybierz plan, załaduj
 3. Kliknij otwór wejściowy (przy napisie "wejście")
 4. Kliknij początek i koniec podziałki "50 m"
-5. Pobierz `J.Tat.K-01.03.jpg` i `J.Tat.K-01.03.tfw`
+5. Pobierz `J.Tat.K-01.03.jpg` i `J.Tat.K-01.03.jgw`
 6. Uruchom:
    ```bash
    cd ~/Downloads
