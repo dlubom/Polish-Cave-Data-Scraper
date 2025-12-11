@@ -602,7 +602,10 @@
                 </button>
             </div>
             <button id="showGdalCmd" class="btn-primary">
-                <span>🚀</span> Pokaż komendę GDAL
+                <span>🚀</span> GDAL
+            </button>
+            <button id="showGdalMonoCmd" class="btn-outline">
+                <span>🔲</span> GDAL mono
             </button>
             <button id="resetBtn" class="btn-outline btn-small">
                 <span>🔄</span> Zacznij od nowa
@@ -1341,6 +1344,7 @@
     document.getElementById('downloadTfwBtn').addEventListener('click', downloadWorldFile);
     document.getElementById('downloadImageBtn').addEventListener('click', downloadOriginalImage);
     document.getElementById('showGdalCmd').addEventListener('click', showGdalCommand);
+    document.getElementById('showGdalMonoCmd').addEventListener('click', showGdalMonoCommand);
 
     function getBaseFileName() {
         // For local files, use the original filename
@@ -1446,6 +1450,35 @@
         document.getElementById('cmdModalInfo').innerHTML = `
             Pobierz <b>${inputFile}</b> i <b>${baseName}.${wfExt}</b> do tego samego folderu, a następnie uruchom komendę.<br>
             <small style="color: var(--text-light);">GDAL automatycznie użyje pliku .${wfExt} do georeferencji.</small>
+        `;
+        document.getElementById('cmdBox').textContent = cmd;
+        document.getElementById('cmdModal').classList.add('visible');
+    }
+
+    function showGdalMonoCommand() {
+        if (!state.transform) return;
+
+        const baseName = getBaseFileName();
+        const imgExt = getImageExtension();
+        const wfExt = getWorldFileExtension(imgExt);
+        const inputFile = `${baseName}.${imgExt}`;
+        const tempFile = `${baseName}_mono_raw.tif`;
+        const outputFile = `${baseName}_mono_georef.tif`;
+
+        // Three commands: 1) ImageMagick: grayscale + dithering + mono, 2) copy World File, 3) GDAL: add georef
+        const cmd = `magick "${inputFile}" -colorspace Gray -dither FloydSteinberg -monochrome -compress Group4 "${tempFile}" && cp "${baseName}.${wfExt}" "${baseName}_mono_raw.tfw" && gdal_translate -of GTiff -a_srs EPSG:2180 -co COMPRESS=CCITTFAX4 "${tempFile}" "${outputFile}"`;
+
+        document.getElementById('cmdModalTitle').textContent = '🔲 Komenda GDAL (mono dla WMSA)';
+        document.getElementById('cmdModalInfo').innerHTML = `
+            Pobierz <b>${inputFile}</b> i <b>${baseName}.${wfExt}</b> do tego samego folderu, a następnie uruchom komendę.<br>
+            <small style="color: var(--text-light);">
+                Wymaga: GDAL + ImageMagick (<code>brew install imagemagick</code>)<br>
+                Krok 1: Grayscale + Floyd-Steinberg dithering → mono TIFF<br>
+                Krok 2: Kopiowanie World File dla pliku tymczasowego<br>
+                Krok 3: Georeferencja z World File → ${outputFile}<br>
+                Po zakończeniu możesz usunąć ${tempFile} i ${baseName}_mono_raw.tfw.<br><br>
+                <b>QGIS:</b> Jeśli obraz ma dziwne kolory, kliknij prawym → Properties → Symbology → Render type: Singleband gray → Apply
+            </small>
         `;
         document.getElementById('cmdBox').textContent = cmd;
         document.getElementById('cmdModal').classList.add('visible');
