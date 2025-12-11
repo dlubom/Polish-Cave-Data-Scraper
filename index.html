@@ -701,7 +701,9 @@
         selectedCave: null,
         skipNorth: true,
         currentImagePath: null,
-        isFromGitHub: false
+        isFromGitHub: false,
+        localFileName: null,  // Name of locally uploaded file (without extension)
+        localFileBlob: null   // Blob of locally uploaded file for re-download
     };
 
     // DOM elements
@@ -877,9 +879,16 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        // Store the local file path
+        // Store the local file info
         state.currentImagePath = file.name;
         state.isFromGitHub = false;
+
+        // Extract filename without extension for downloads
+        const lastDot = file.name.lastIndexOf('.');
+        state.localFileName = lastDot > 0 ? file.name.substring(0, lastDot) : file.name;
+
+        // Store blob for re-download with correct name
+        state.localFileBlob = file;
 
         // Show loading overlay
         document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -1320,8 +1329,8 @@
         document.getElementById('resultTotal').textContent = totalAngleClockwise.toFixed(2) + '°';
 
         document.getElementById('resultsPanel').classList.add('visible');
-        // Enable image download button only for GitHub images
-        document.getElementById('downloadImageBtn').disabled = !state.isFromGitHub;
+        // Enable image download button for both GitHub and local files
+        document.getElementById('downloadImageBtn').disabled = false;
         updateInstructions();
     }
 
@@ -1334,6 +1343,11 @@
     document.getElementById('showGdalCmd').addEventListener('click', showGdalCommand);
 
     function getBaseFileName() {
+        // For local files, use the original filename
+        if (!state.isFromGitHub && state.localFileName) {
+            return state.localFileName;
+        }
+        // For GitHub files, use cave inventory number or ID
         if (state.selectedCave) {
             return (state.selectedCave.inventory_number || state.selectedCave.cave_id).replace(/\//g, '_');
         }
@@ -1372,23 +1386,32 @@
     }
 
     async function downloadOriginalImage() {
-        if (!state.currentImagePath || !state.isFromGitHub) return;
+        if (!state.currentImagePath) return;
 
         const baseName = getBaseFileName();
         const btn = document.getElementById('downloadImageBtn');
         const originalText = btn.innerHTML;
+        const ext = state.currentImagePath.split('.').pop() || 'jpg';
+        const fileName = `${baseName}.${ext}`;
 
         try {
             btn.innerHTML = '<span>⏳</span> Pobieranie...';
             btn.disabled = true;
 
-            const imageUrl = GITHUB_RAW_BASE + state.currentImagePath;
-            const response = await fetch(imageUrl);
-            if (!response.ok) throw new Error('Nie można pobrać obrazu');
+            let blob;
 
-            const blob = await response.blob();
-            const ext = state.currentImagePath.split('.').pop() || 'jpg';
-            const fileName = `${baseName}.${ext}`;
+            if (state.isFromGitHub) {
+                // Fetch from GitHub
+                const imageUrl = GITHUB_RAW_BASE + state.currentImagePath;
+                const response = await fetch(imageUrl);
+                if (!response.ok) throw new Error('Nie można pobrać obrazu');
+                blob = await response.blob();
+            } else if (state.localFileBlob) {
+                // Use stored local file blob
+                blob = state.localFileBlob;
+            } else {
+                throw new Error('Brak pliku do pobrania');
+            }
 
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');

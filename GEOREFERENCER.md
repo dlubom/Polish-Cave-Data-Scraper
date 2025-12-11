@@ -125,12 +125,12 @@ Współrzędne wejścia są automatycznie pobierane z bazy danych. Możesz je r�
 ### 3. Pobierz pliki do jednego folderu
 
 Po kalibracji kliknij:
-- **Obraz** - pobiera oryginalny obraz z GitHub (np. `J.Olk.12.03.jpg`)
+- **Obraz** - pobiera oryginalny obraz (dla plików z GitHub: z repozytorium, dla lokalnych: kopia z prawidłową nazwą)
 - **World File** - pobiera plik World File (np. `J.Olk.12.03.jgw` dla JPG)
 
 **Oba pliki muszą być w tym samym folderze i mieć tę samą nazwę** (różne rozszerzenia). GDAL automatycznie je połączy.
 
-Dla plików wgranych z dysku przycisk "Obraz" jest nieaktywny - masz już plik na dysku.
+Dla plików wgranych z dysku nazwa World File i obrazu będzie taka sama jak oryginalna nazwa pliku (np. `moj_plan.jpg` → `moj_plan.jgw`).
 
 ### 4. Uruchom komendę GDAL
 
