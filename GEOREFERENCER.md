@@ -97,6 +97,49 @@ gdal_translate --version
 # GDAL 3.x.x, released ...
 ```
 
+## Instalacja ImageMagick (dla GDAL mono)
+
+ImageMagick jest wymagany tylko dla komendy "GDAL mono" (konwersja do monochromatycznego GeoTIFF).
+
+### macOS (Homebrew)
+
+```bash
+brew install imagemagick
+```
+
+### Ubuntu/Debian
+
+```bash
+sudo apt-get install imagemagick
+```
+
+### Windows
+
+1. Pobierz instalator: https://imagemagick.org/script/download.php#windows
+2. Wybierz wersję "Win64 dynamic at 16 bits-per-pixel component"
+3. Podczas instalacji zaznacz "Add application directory to your system path"
+4. Uruchom ponownie terminal
+
+Alternatywnie przez Chocolatey:
+```powershell
+choco install imagemagick
+```
+
+### Conda
+
+```bash
+conda install -c conda-forge imagemagick
+```
+
+### Weryfikacja instalacji
+
+```bash
+magick --version
+# Version: ImageMagick 7.x.x ...
+```
+
+**Uwaga:** W starszych wersjach ImageMagick (6.x) zamiast `magick` używa się `convert`. Komenda "GDAL mono" używa `magick` (ImageMagick 7+).
+
 ## Workflow
 
 ### 1. Wybierz jaskinię i załaduj plan
@@ -134,7 +177,11 @@ Dla plików wgranych z dysku nazwa World File i obrazu będzie taka sama jak ory
 
 ### 4. Uruchom komendę GDAL
 
-Kliknij "Pokaż komendę GDAL" i skopiuj wygenerowaną komendę:
+Dostępne są dwa warianty komend:
+
+#### Standardowy GeoTIFF (przycisk "GDAL")
+
+Kliknij "GDAL" i skopiuj wygenerowaną komendę:
 
 ```bash
 gdal_translate -of GTiff -a_srs EPSG:2180 -co COMPRESS=DEFLATE -co PREDICTOR=2 -co TILED=YES "J.Olk.12.03.jpg" "J.Olk.12.03_georef.tif"
@@ -145,6 +192,33 @@ Opcje:
 - `-co COMPRESS=DEFLATE` - kompresja bezstratna (mały rozmiar pliku)
 - `-co PREDICTOR=2` - lepsza kompresja dla obrazów
 - `-co TILED=YES` - kafelkowanie (szybsze wyświetlanie w GIS)
+
+#### Monochromatyczny GeoTIFF dla WMSA (przycisk "GDAL mono")
+
+Dla systemów WMSA wymagany jest obraz monochromatyczny (1-bit), który pozwala ustawić biały kolor jako przezroczysty bez artefaktów.
+
+**Wymagania:**
+- GDAL
+- ImageMagick 7+ (`brew install imagemagick` na macOS)
+
+Kliknij "GDAL mono" i skopiuj wygenerowaną komendę:
+
+```bash
+magick "J.Olk.12.03.jpg" -colorspace Gray -dither FloydSteinberg -monochrome -compress Group4 "J.Olk.12.03_mono_raw.tif" && cp "J.Olk.12.03.jgw" "J.Olk.12.03_mono_raw.tfw" && gdal_translate -of GTiff -a_srs EPSG:2180 -co COMPRESS=CCITTFAX4 "J.Olk.12.03_mono_raw.tif" "J.Olk.12.03_mono_georef.tif"
+```
+
+Komenda wykonuje trzy kroki:
+1. **ImageMagick**: Konwersja do grayscale + Floyd-Steinberg dithering → mono TIFF
+2. **cp**: Kopiowanie World File dla pliku tymczasowego
+3. **GDAL**: Georeferencja z World File + kompresja CCITTFAX4
+
+**Uwaga QGIS:** Obraz mono używa palety kolorów. Jeśli QGIS wyświetla dziwne kolory (zielono-czerwone):
+1. Kliknij prawym na warstwę
+2. Properties → Symbology
+3. Render type: **Singleband gray**
+4. Apply
+
+Po zakończeniu możesz usunąć pliki pośrednie (`*_mono_raw.tif`, `*_mono_raw.tfw`).
 
 ### 5. Użyj w programie GIS
 
