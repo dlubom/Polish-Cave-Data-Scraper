@@ -324,6 +324,17 @@ Lista planowanych funkcjonalności i ulepszeń:
   - Weryfikacja poprawności georeferencji w QGIS/WMSA
   - Zebranie feedbacku o UX i brakujących funkcjach
 
+- [ ] **Obsługa TIFF w przeglądarce** - Doinstalowanie biblioteki JavaScript (np. UTIF.js) do obsługi plików TIFF:
+  - Użytkownicy mogą wgrywać pliki TIFF bezpośrednio
+  - Eliminacja potrzeby konwersji przez użytkownika (`convert plan.tif plan.jpg`)
+  - Wsparcie dla wszystkich przeglądarek (nie tylko Safari)
+
+- [ ] **Rozważyć wstępne przetworzenie grafik i wsparcie formatów** - Analiza opcji uniwersalnego wsparcia:
+  - Wstępne przetworzenie wszystkich planów jaskiń jako mono TIFF dla WMSA
+  - Pełne wsparcie dla dowolnych formatów plików w interfejsie
+  - Upewnienie się, że komendy GDAL obsługują wszystkie formaty (.jpg, .png, .tiff, .bmp, .gif)
+  - Automatyczne wykrywanie i dostosowanie parametrów kompresji
+
 ### Zrobione
 
 - [x] **Zwijane sekcje** - Sekcje w sidebarze można zwijać/rozwijać klikając nagłówek, stan zapisywany w localStorage
