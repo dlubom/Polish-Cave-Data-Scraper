@@ -289,6 +289,52 @@ Sprawdź:
 - Czy wartość skali jest poprawna (metry, nie centymetry)
 - Czy układ współrzędnych w GDAL odpowiada definicji PROJ4
 
+## TODO
+
+Lista planowanych funkcjonalności i ulepszeń:
+
+### Do zrobienia
+
+- [ ] **Skala po siatce** - Alternatywna metoda definiowania skali dla planów z siatką metryczną:
+  - Użytkownik klika dwa punkty na przecięciach siatki
+  - Podaje liczbę oczek siatki w pionie i poziomie między punktami
+  - Aplikacja oblicza odległość z tw. Pitagorasa i dzieli przez liczbę oczek
+  - Lepsza dokładność przy dłuższych odcinkach niż przy krótkiej podziałce
+  - Zachować obecną opcję z podziałką (nie wszystkie plany mają siatkę, np. Mroźna Jama)
+
+- [ ] **Doklikanie punktów północy bez resetu** - Gdy użytkownik odznacza "Pomiń strzałkę północy" po już sklikanych punktach (otwór, skala), umożliwić doklikanie punktów strzałki zamiast resetowania całego procesu
+
+- [ ] **Backend GDAL** - Uruchamianie komendy GDAL z poziomu przeglądarki (użytkownik otrzymuje gotowy GeoTIFF bez instalacji narzędzi). Możliwa tania implementacja przez Google Cloud Functions (odpowiednik AWS Lambda)
+
+- [ ] **Określenie użytkownika końcowego** - Zbadać grupę docelową:
+  - Kim są użytkownicy?
+  - Jaki poziom techniczny? (czy znają terminal, GDAL, GIS?)
+  - Na jakim sprzęcie pracują? (RAM, system operacyjny)
+  - To wpłynie na decyzję o backendzie GDAL i poziomie skomplikowania UI
+
+- [ ] **Testy automatyczne i jednostkowe** - Pokrycie testami kluczowych funkcji:
+  - Obliczenia transformacji (World File parameters)
+  - Konwersja współrzędnych WGS84 → PL-1992
+  - Obliczenie konwergencji południkowej
+  - Obliczenie kąta północy
+  - Generowanie nazw plików i rozszerzeń
+
+- [ ] **Testy akceptacyjne przez zamawiających** - Sesja testowa z użytkownikami docelowymi:
+  - Przetestowanie na rzeczywistych planach jaskiń
+  - Weryfikacja poprawności georeferencji w QGIS/WMSA
+  - Zebranie feedbacku o UX i brakujących funkcjach
+
+### Zrobione
+
+- [x] **Zwijane sekcje** - Sekcje w sidebarze można zwijać/rozwijać klikając nagłówek, stan zapisywany w localStorage
+- [x] **Zmiana nazwy TFW → World File** - Przycisk pokazuje "World File", dokumentacja wyjaśnia rozszerzenia (.jgw, .pgw, .tfw)
+- [x] **Obsługa dużych plików lokalnych** - Użycie createObjectURL() zamiast base64, działa z plikami 50MB+
+- [x] **Poprawiony komunikat błędu** - Dla plików lokalnych nie wspomina o GitHub
+- [x] **Nazewnictwo plików lokalnych** - World File i obraz mają tę samą nazwę co wgrany plik
+- [x] **GDAL mono** - Komenda łącząca ImageMagick (Floyd-Steinberg dithering) i GDAL dla eksportu 1-bit GeoTIFF
+- [x] **Poprawka kierunku obrotu** - Naprawiono znak w obliczeniu rotacji dla strzałki północy (Jaskinia Mroźna działa poprawnie)
+- [x] **Logi debugowania** - Szczegółowe logi obliczeń w konsoli przeglądarki (F12 → Console)
+
 ## Licencja
 
 Plany jaskiń pochodzą z Centralnej Bazy Danych Geologicznych (CBDG) i są udostępniane na zasadach określonych przez Państwowy Instytut Geologiczny.
