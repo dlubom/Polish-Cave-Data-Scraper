@@ -1271,7 +1271,17 @@
         const realScale = parseFloat(document.getElementById('realScale').value);
         const declination = parseFloat(document.getElementById('declination').value) || 0;
 
+        console.group('🧮 Georeferencer Calculation Debug');
+        console.log('=== INPUT PARAMETERS ===');
+        console.log('Latitude (WGS84):', lat);
+        console.log('Longitude (WGS84):', lon);
+        console.log('Scale bar length (m):', realScale);
+        console.log('Declination (°):', declination);
+        console.log('Skip north arrow:', state.skipNorth);
+
         if (!lat || !lon || !realScale) {
+            console.warn('Missing required inputs!');
+            console.groupEnd();
             alert('Uzupełnij współrzędne i długość skali');
             return;
         }
@@ -1280,8 +1290,34 @@
         const ds = state.displayScale || 1;
         const toOrig = (p) => ({ x: p.x / ds, y: p.y / ds });
 
+        console.log('\n=== IMAGE SCALING ===');
+        console.log('Display scale factor:', ds);
+        console.log('Original image size:', state.originalWidth, 'x', state.originalHeight, 'px');
+        console.log('Canvas size:', canvas.width, 'x', canvas.height, 'px');
+
+        console.log('\n=== CLICKED POINTS (canvas coords) ===');
+        state.points.forEach((p, i) => {
+            const labels = state.skipNorth
+                ? ['Entrance', 'Scale Start', 'Scale End']
+                : ['Entrance', 'Scale Start', 'Scale End', 'North Base', 'North Tip'];
+            console.log(`Point ${i + 1} (${labels[i]}): x=${p.x.toFixed(2)}, y=${p.y.toFixed(2)}`);
+        });
+
+        console.log('\n=== CLICKED POINTS (original image coords) ===');
+        state.points.forEach((p, i) => {
+            const orig = toOrig(p);
+            const labels = state.skipNorth
+                ? ['Entrance', 'Scale Start', 'Scale End']
+                : ['Entrance', 'Scale Start', 'Scale End', 'North Base', 'North Tip'];
+            console.log(`Point ${i + 1} (${labels[i]}): x=${orig.x.toFixed(2)}, y=${orig.y.toFixed(2)}`);
+        });
+
         // Project WGS84 -> PL-1992
         const [worldX, worldY] = proj4("EPSG:4326", "EPSG:2180", [lon, lat]);
+
+        console.log('\n=== COORDINATE PROJECTION ===');
+        console.log('WGS84 input: lat=', lat, ', lon=', lon);
+        console.log('PL-1992 (EPSG:2180) output: X=', worldX.toFixed(3), ', Y=', worldY.toFixed(3));
 
         // Scale calculation (in original image pixels)
         const pScale1 = toOrig(state.points[1]);
@@ -1290,9 +1326,23 @@
         const pixelsPerMeter = pixelDist / realScale;
         const metersPerPixel = 1.0 / pixelsPerMeter;
 
+        console.log('\n=== SCALE CALCULATION ===');
+        console.log('Scale point 1 (orig):', pScale1.x.toFixed(2), pScale1.y.toFixed(2));
+        console.log('Scale point 2 (orig):', pScale2.x.toFixed(2), pScale2.y.toFixed(2));
+        console.log('Pixel distance:', pixelDist.toFixed(2), 'px');
+        console.log('Real distance:', realScale, 'm');
+        console.log('Pixels per meter:', pixelsPerMeter.toFixed(4), 'px/m');
+        console.log('Meters per pixel:', metersPerPixel.toFixed(6), 'm/px');
+
         // Meridian convergence for PL-1992
         const lambda0 = 19.0;
         const convergenceDeg = (lambda0 - lon) * Math.sin(lat * (Math.PI / 180));
+
+        console.log('\n=== MERIDIAN CONVERGENCE ===');
+        console.log('Central meridian (λ₀):', lambda0, '°');
+        console.log('Longitude difference (λ₀ - λ):', (lambda0 - lon).toFixed(6), '°');
+        console.log('sin(latitude):', Math.sin(lat * (Math.PI / 180)).toFixed(6));
+        console.log('Convergence:', convergenceDeg.toFixed(4), '°');
 
         // North angle calculation
         let northDeg = 0;
@@ -1303,11 +1353,28 @@
             const dy = pN2.y - pN1.y;
             const angleRad = Math.atan2(dx, -dy);
             northDeg = angleRad * (180 / Math.PI);
+
+            console.log('\n=== NORTH ARROW CALCULATION ===');
+            console.log('North base (orig):', pN1.x.toFixed(2), pN1.y.toFixed(2));
+            console.log('North tip (orig):', pN2.x.toFixed(2), pN2.y.toFixed(2));
+            console.log('dx:', dx.toFixed(2), ', dy:', dy.toFixed(2));
+            console.log('atan2(dx, -dy):', angleRad.toFixed(6), 'rad');
+            console.log('North angle:', northDeg.toFixed(2), '°');
+        } else {
+            console.log('\n=== NORTH ARROW ===');
+            console.log('Skipped (assuming 0°)');
         }
 
         // Total rotation
         const totalAngleClockwise = northDeg + declination + convergenceDeg;
         const rotRadCCW = -totalAngleClockwise * (Math.PI / 180);
+
+        console.log('\n=== TOTAL ROTATION ===');
+        console.log('North angle:', northDeg.toFixed(4), '°');
+        console.log('Declination:', declination.toFixed(4), '°');
+        console.log('Convergence:', convergenceDeg.toFixed(4), '°');
+        console.log('Total clockwise:', totalAngleClockwise.toFixed(4), '°');
+        console.log('Rotation CCW (for transform):', rotRadCCW.toFixed(6), 'rad');
 
         // World File parameters
         const cosA = Math.cos(rotRadCCW);
@@ -1322,6 +1389,21 @@
         const pEnt = toOrig(state.points[0]);
         const wf_C = worldX - (wf_A * pEnt.x + wf_B * pEnt.y);
         const wf_F = worldY - (wf_D * pEnt.x + wf_E * pEnt.y);
+
+        console.log('\n=== WORLD FILE PARAMETERS ===');
+        console.log('cos(rotation):', cosA.toFixed(10));
+        console.log('sin(rotation):', sinA.toFixed(10));
+        console.log('Entrance point (orig):', pEnt.x.toFixed(2), pEnt.y.toFixed(2));
+        console.log('A (x scale * cos):', wf_A.toFixed(10));
+        console.log('D (y rotation):', wf_D.toFixed(10));
+        console.log('B (x rotation):', wf_B.toFixed(10));
+        console.log('E (y scale * -cos):', wf_E.toFixed(10));
+        console.log('C (x origin):', wf_C.toFixed(6));
+        console.log('F (y origin):', wf_F.toFixed(6));
+
+        console.log('\n=== WORLD FILE CONTENT ===');
+        console.log(`${wf_A.toFixed(10)}\n${wf_D.toFixed(10)}\n${wf_B.toFixed(10)}\n${wf_E.toFixed(10)}\n${wf_C.toFixed(6)}\n${wf_F.toFixed(6)}`);
+        console.groupEnd();
 
         state.transform = { A: wf_A, D: wf_D, B: wf_B, E: wf_E, C: wf_C, F: wf_F };
 
