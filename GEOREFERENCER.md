@@ -151,8 +151,7 @@ Plany jaskiń są hostowane w tym repozytorium:
 Możesz też wgrać własny skan z dysku (przycisk "Wgraj plan z dysku").
 
 **Obsługiwane formaty:**
-- JPG, PNG - wszystkie przeglądarki
-- TIFF - tylko Safari (w innych przeglądarkach najpierw przekonwertuj: `convert plan.tif plan.jpg`)
+- JPG, PNG, TIFF - wszystkie przeglądarki (TIFF dekodowany przez UTIF.js)
 
 Aplikacja obsługuje duże pliki (testowane do 50 MB / 160 megapikseli). Bardzo duże obrazy są automatycznie skalowane na podglądzie, ale obliczenia World File używają oryginalnych wymiarów.
 
@@ -324,11 +323,6 @@ Lista planowanych funkcjonalności i ulepszeń:
   - Weryfikacja poprawności georeferencji w QGIS/WMSA
   - Zebranie feedbacku o UX i brakujących funkcjach
 
-- [ ] **Obsługa TIFF w przeglądarce** - Doinstalowanie biblioteki JavaScript (np. UTIF.js) do obsługi plików TIFF:
-  - Użytkownicy mogą wgrywać pliki TIFF bezpośrednio
-  - Eliminacja potrzeby konwersji przez użytkownika (`convert plan.tif plan.jpg`)
-  - Wsparcie dla wszystkich przeglądarek (nie tylko Safari)
-
 - [ ] **Rozważyć wstępne przetworzenie grafik i wsparcie formatów** - Analiza opcji uniwersalnego wsparcia:
   - Wstępne przetworzenie wszystkich planów jaskiń jako mono TIFF dla WMSA
   - Pełne wsparcie dla dowolnych formatów plików w interfejsie
@@ -337,6 +331,7 @@ Lista planowanych funkcjonalności i ulepszeń:
 
 ### Zrobione
 
+- [x] **Obsługa TIFF w przeglądarce** - Dodanie biblioteki UTIF.js do dekodowania plików TIFF we wszystkich przeglądarkach (nie tylko Safari)
 - [x] **Zwijane sekcje** - Sekcje w sidebarze można zwijać/rozwijać klikając nagłówek, stan zapisywany w localStorage
 - [x] **Zmiana nazwy TFW → World File** - Przycisk pokazuje "World File", dokumentacja wyjaśnia rozszerzenia (.jgw, .pgw, .tfw)
 - [x] **Obsługa dużych plików lokalnych** - Użycie createObjectURL() zamiast base64, działa z plikami 50MB+
