@@ -301,8 +301,6 @@ Lista planowanych funkcjonalności i ulepszeń:
   - Lepsza dokładność przy dłuższych odcinkach niż przy krótkiej podziałce
   - Zachować obecną opcję z podziałką (nie wszystkie plany mają siatkę, np. Mroźna Jama)
 
-- [ ] **Doklikanie punktów północy bez resetu** - Gdy użytkownik odznacza "Pomiń strzałkę północy" po już sklikanych punktach (otwór, skala), umożliwić doklikanie punktów strzałki zamiast resetowania całego procesu
-
 - [ ] **Backend GDAL** - Uruchamianie komendy GDAL z poziomu przeglądarki (użytkownik otrzymuje gotowy GeoTIFF bez instalacji narzędzi). Możliwa tania implementacja przez Google Cloud Functions (odpowiednik AWS Lambda)
 
 - [ ] **Określenie użytkownika końcowego** - Zbadać grupę docelową:
@@ -331,6 +329,7 @@ Lista planowanych funkcjonalności i ulepszeń:
 
 ### Zrobione
 
+- [x] **Doklikanie punktów północy bez resetu** - Gdy użytkownik odznacza "Pomiń strzałkę północy" po już sklikanych punktach (otwór, skala), można doklikać punkty strzałki zamiast resetowania. Działa też odwrotnie - zaznaczenie opcji usuwa punkty północy i przelicza.
 - [x] **Obsługa TIFF w przeglądarce** - Dodanie biblioteki UTIF.js do dekodowania plików TIFF we wszystkich przeglądarkach (nie tylko Safari)
 - [x] **Zwijane sekcje** - Sekcje w sidebarze można zwijać/rozwijać klikając nagłówek, stan zapisywany w localStorage
 - [x] **Zmiana nazwy TFW → World File** - Przycisk pokazuje "World File", dokumentacja wyjaśnia rozszerzenia (.jgw, .pgw, .tfw)

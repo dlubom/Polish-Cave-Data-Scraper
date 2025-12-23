@@ -1157,13 +1157,34 @@
     // ===========================================
 
     document.getElementById('skipNorth').addEventListener('change', (e) => {
+        const wasSkipping = state.skipNorth;
         state.skipNorth = e.target.checked;
         updateProgressSteps();
 
-        // Reset if already started
-        if (state.step > 0) {
-            state.step = 1;
-            state.points = [];
+        // Handle state changes if image is loaded and we've started clicking
+        if (state.step > 0 && state.img) {
+            if (wasSkipping && !state.skipNorth) {
+                // Unchecked "skip north" - user wants to ADD north arrow points
+                // Keep existing points, allow clicking north arrow
+                if (state.points.length >= 3) {
+                    // Already have entrance + scale, continue to north arrow (step 4)
+                    state.step = 4;
+                    state.transform = null;
+                    document.getElementById('resultsPanel').classList.remove('visible');
+                }
+                // If fewer than 3 points, continue from current step (no change needed)
+            } else if (!wasSkipping && state.skipNorth) {
+                // Checked "skip north" - user wants to SKIP north arrow
+                if (state.points.length > 3) {
+                    // Remove any north arrow points (keep only entrance + scale)
+                    state.points = state.points.slice(0, 3);
+                }
+                if (state.points.length >= 3) {
+                    // Have all required points, recalculate without north
+                    calculate();
+                }
+                // If fewer than 3 points, continue from current step (no change needed)
+            }
             updateInstructions();
             draw();
         }
