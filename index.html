@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cave Plan Georeferencer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -524,8 +525,8 @@
             </button>
             <div style="text-align: center; font-size: 0.65rem; color: var(--text-light);">— lub —</div>
             <div class="input-group">
-                <label>Wgraj plan z dysku <span style="font-weight: normal;">(JPG, PNG; TIFF tylko Safari)</span></label>
-                <input type="file" id="fileInput" accept="image/*">
+                <label>Wgraj plan z dysku <span style="font-weight: normal;">(JPG, PNG, TIFF)</span></label>
+                <input type="file" id="fileInput" accept="image/*,.tif,.tiff">
             </div>
         </div>
     </div>
@@ -901,10 +902,75 @@
             <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 8px;">${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)</div>
         `;
 
-        // Use createObjectURL instead of base64 - more efficient for large files
-        const objectUrl = URL.createObjectURL(file);
-        loadImage(objectUrl, true);  // true = revoke URL after load
+        // Check if file is TIFF
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === 'tif' || ext === 'tiff') {
+            // Use UTIF.js to decode TIFF
+            loadTiffFile(file);
+        } else {
+            // Use createObjectURL instead of base64 - more efficient for large files
+            const objectUrl = URL.createObjectURL(file);
+            loadImage(objectUrl, true);  // true = revoke URL after load
+        }
     });
+
+    // TIFF file loading using UTIF.js
+    function loadTiffFile(file) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                const arrayBuffer = e.target.result;
+
+                // Decode TIFF
+                const ifds = UTIF.decode(arrayBuffer);
+                if (!ifds || ifds.length === 0) {
+                    throw new Error('Nie można odczytać pliku TIFF');
+                }
+
+                // Use first page
+                const page = ifds[0];
+                UTIF.decodeImage(arrayBuffer, page);
+
+                const width = page.width;
+                const height = page.height;
+                const rgba = UTIF.toRGBA8(page);
+
+                // Create canvas with decoded image data
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = width;
+                tempCanvas.height = height;
+                const tempCtx = tempCanvas.getContext('2d');
+                const imageData = tempCtx.createImageData(width, height);
+                imageData.data.set(new Uint8ClampedArray(rgba));
+                tempCtx.putImageData(imageData, 0, 0);
+
+                // Convert canvas to blob and then to object URL
+                tempCanvas.toBlob((blob) => {
+                    if (!blob) {
+                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        alert('Błąd konwersji pliku TIFF');
+                        return;
+                    }
+
+                    const objectUrl = URL.createObjectURL(blob);
+                    loadImage(objectUrl, true);
+                }, 'image/png');
+
+            } catch (error) {
+                console.error('TIFF decode error:', error);
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                alert('Błąd dekodowania TIFF: ' + error.message);
+            }
+        };
+
+        reader.onerror = function() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            alert('Błąd odczytu pliku');
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
 
     function loadImage(url, revokeAfterLoad = false) {
         document.getElementById('loadingOverlay').classList.remove('hidden');
