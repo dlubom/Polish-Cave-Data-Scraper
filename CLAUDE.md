@@ -81,7 +81,10 @@ poetry run python clean.py
 # 4. (Optional) Upscale and denoise cave images
 poetry run python upscale_images.py
 
-# 5. (Optional) Download bibliography data
+# 5. (Optional) Convert to mono TIFF for WMSA
+poetry run python convert_to_mono.py
+
+# 6. (Optional) Download bibliography data
 poetry run python download_bibliography.py
 ```
 
@@ -153,13 +156,18 @@ caves_upscaled/                 # Upscaled and denoised images (2x scale, denois
   ├── 000390/
   │   └── image_19_zoom_10.jpg
   └── ...
+caves_mono/                     # Monochrome TIFF images for WMSA (1-bit, Group4 compression)
+  ├── 000390/
+  │   └── image_19_zoom_10.tif
+  └── ...
 caves.jsonl                     # Parsed data from HTML
 caves_transformed.jsonl         # Cleaned, transformed data
 caves_transformed.parquet       # Parquet format for analytics
 logs/                           # Timestamped log files
   ├── cave_scraper_{timestamp}.log
   ├── parse_{timestamp}.log
-  └── upscale_{timestamp}.log
+  ├── upscale_{timestamp}.log
+  └── convert_mono_{timestamp}.log
 waifu2x-ncnn-vulkan-20250915-macos/  # Image upscaling tool
   ├── waifu2x-ncnn-vulkan
   └── models-cunet/
@@ -315,6 +323,36 @@ poetry run python upscale_images.py
 - Automatically skips already processed images
 - Detailed progress logging every 10 images
 - 5-minute timeout per image
+- Preserves directory structure
+
+## Mono TIFF Conversion
+
+The `convert_to_mono.py` script converts cave images to monochrome (1-bit) TIFF format, optimized for WMSA overlay systems.
+
+### Requirements
+- **ImageMagick 7+**: Install with `brew install imagemagick` (macOS) or `apt-get install imagemagick` (Linux)
+
+### Running
+```bash
+# Default: converts caves_upscaled/ → caves_mono/
+poetry run python convert_to_mono.py
+
+# Custom directories
+poetry run python convert_to_mono.py --input caves --output caves_mono
+```
+
+### Configuration
+- **Conversion method**: Grayscale + Floyd-Steinberg dithering → monochrome
+- **Compression**: CCITTFAX4 (Group4) - optimal for 1-bit images
+- **Parallelization**: 4 workers (configurable via `--workers`)
+- **Input**: `caves_upscaled/*/image_*_zoom_10.jpg`
+- **Output**: `caves_mono/` (same directory structure, `.tif` extension)
+- **Logs**: `logs/convert_mono_{timestamp}.log`
+
+### Features
+- Parallel processing with configurable workers
+- Automatically skips already processed images
+- 2-minute timeout per image
 - Preserves directory structure
 
 ## Troubleshooting
