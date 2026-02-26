@@ -42,6 +42,7 @@ The pipeline follows a three-stage ETL process that must be executed in sequence
 
 ### 2. Data Parsing (`parse.py`)
 - Parses HTML files from the `caves/` directory
+- **File priority**: Tries `page_web_archive.html` first, falls back to `page.html` (see [Web Archive Restore](#web-archive-restore) below)
 - Extracts structured data from the `tableDetails1` table using BeautifulSoup
 - Uses `get_text(' ', strip=True)` to preserve spacing between inline HTML elements (e.g., `<em>`, `<strong>`)
   - This ensures proper spacing in Latin species names and formatted text
@@ -151,6 +152,10 @@ caves/                          # Raw scraped data (one subdirectory per cave)
   │   ├── page.html
   │   ├── image_19_zoom_10.jpg
   │   └── metadata_19.json
+  ├── 001473/
+  │   ├── page.html                    # Original (TPN-blocked)
+  │   ├── page_web_archive.html        # Restored from Web Archive (parser uses this)
+  │   └── _page_web_archive_files/     # Web Archive assets
   └── ...
 caves_upscaled/                 # Upscaled and denoised images (2x scale, denoise level 2)
   ├── 000390/
@@ -354,6 +359,57 @@ poetry run python convert_to_mono.py --input caves --output caves_mono
 - Automatically skips already processed images
 - 2-minute timeout per image
 - Preserves directory structure
+
+## Web Archive Restore
+
+### Background
+
+Since July 30, 2021, the CBDG website blocked access to descriptive data and graphics for 7 Tatra caves (all part of the Ptasia Studnia system) due to reasons independent of the Institute and TPN (Tatra National Park). When `fetch.py` scraped these caves, it downloaded `page.html` files containing only a TPN restriction notice instead of actual cave descriptions.
+
+### Affected Caves
+
+| Cave ID | Name | Inventory Nr | Restored from |
+|---------|------|-------------|---------------|
+| 001473 | Ptasia Studnia | T.E-11.06 | Web Archive (Wayback Machine) |
+| 001474 | Jaskinia nad Dachem | T.E-11.09 | Offline archive (`japo/Tatry/misc/`) |
+| 001475 | Jaskinia Lodowa Litworowa | T.E-11.10 | Offline archive (`japo/Tatry/misc/`) |
+| 001495 | Jaskinia Mała w Mułowej | T.E-12.01 | Web Archive (Wayback Machine) |
+| 001511 | Jaskinia Lejbusiowa | T.E-14.01 | Web Archive (Wayback Machine) |
+| 001522 | Jaskinia Turoniowa | T.E-15.03 | Web Archive (Wayback Machine) |
+| 001539 | Jaskinia nad Lodową Litworową | T.E-16.01 | Web Archive (Wayback Machine) |
+
+### How the Restore Works
+
+1. **Original `page.html` files are preserved** — they remain untouched with the TPN restriction notice
+2. **Restored data is saved as `page_web_archive.html`** in the same cave directory
+3. **The parser (`parse.py`) checks for `page_web_archive.html` first** (line 36), falling back to `page.html` only if the archive version doesn't exist
+4. After re-running `parse.py` and `clean.py`, the restored descriptions appear in `caves.jsonl` and `caves_transformed.jsonl`
+
+### HTML Format Differences
+
+The `page_web_archive.html` files come from two different sources with different HTML formats:
+
+**Source 1: Wayback Machine saves** (caves 001473, 001495, 001511, 001522, 001539)
+- Full CBDG page wrapped in Web Archive scripts (`wombat.js`, `athena.js`, banner CSS)
+- Same `tableDetails1` table structure as the original — parser reads them natively
+- Accompanying files stored in `_page_web_archive_files/` subdirectory
+
+**Source 2: Offline archive copies** (caves 001474, 001475)
+- Simplified HTML format with `<h2>` section headers and `<div class="info/par">` content
+- **Not compatible with the parser** — no `tableDetails1` table
+- These were **converted** to CBDG format: the original `page.html` was used as a template, and the TPN-blocked fields (`Opis jaskini`, `Opis drogi dojścia do otworu`, `Grafika, zdjęcia`) were replaced with data extracted from the offline archive
+
+### Adding New Restored Caves
+
+If more cave data becomes available (e.g., from Web Archive or other sources):
+
+1. If the source is a **Wayback Machine save** with full CBDG structure — save directly as `caves/{id}/page_web_archive.html`
+2. If the source is a **different HTML format** — convert it by:
+   - Using the existing `page.html` as a template (preserves all metadata fields)
+   - Replacing the TPN-blocked fields with actual content from the source
+   - Saving as `page_web_archive.html`
+3. Ensure image metadata files (`metadata_{id}.json`) and image files (`image_{id}_zoom_10.jpg`) are present
+4. Re-run `poetry run python parse.py` then `poetry run python clean.py`
 
 ## Troubleshooting
 
