@@ -78,6 +78,16 @@ def get_current_timestamp():
     return int(time.time() * 1000)
 
 
+def normalize_html(html_content):
+    """Remove dynamic anti-bot script snippets to keep snapshots deterministic."""
+    return re.sub(
+        r'<script[^>]*src="/_Incapsula_Resource\?[^"]*"[^>]*></script>',
+        "",
+        html_content,
+        flags=re.IGNORECASE,
+    )
+
+
 def fetch_html(url, cave_dir):
     """Fetch HTML content from the given URL."""
     headers = get_random_headers()
@@ -87,7 +97,7 @@ def fetch_html(url, cave_dir):
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
             logging.info(f"Successfully fetched HTML from {url}")
-            html_content = response.text
+            html_content = normalize_html(response.text)
             html_path = os.path.join(cave_dir, "page.html")
             with open(html_path, "w", encoding="utf-8") as f:
                 f.write(html_content)
@@ -170,9 +180,14 @@ def process_cave(url, cave_dir, cave_id):
         logging.info(f"Successfully processed cave ID {cave_id}")
         fetch_images(html_content, cave_dir)
     else:
-        # Remove directory if page doesn't exist
-        os.rmdir(cave_dir)
-        logging.warning(f"Cave ID {cave_id} does not exist - removed directory")
+        # Remove directory only when it is still empty (fresh run).
+        try:
+            os.rmdir(cave_dir)
+            logging.warning(f"Cave ID {cave_id} does not exist - removed directory")
+        except OSError:
+            logging.warning(
+                f"Cave ID {cave_id} did not return HTML, leaving existing files in {cave_dir}"
+            )
 
 
 def main():
