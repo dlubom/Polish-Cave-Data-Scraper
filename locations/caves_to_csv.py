@@ -9,7 +9,7 @@ Convert CBDG caves shapefile (packed in a ZIP) to CSV with WGS84 coordinates.
 - Exports all attributes + lon/lat to CSV.
 
 Usage:
-    poetry run python locations/caves_to_csv.py \
+    uv run python locations/caves_to_csv.py \
         --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
         --output locations/jaskinie_wspolrzedne_wgs84.csv
 """

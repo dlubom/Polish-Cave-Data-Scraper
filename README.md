@@ -7,14 +7,14 @@
 ## Requirements
 
 - Python 3.9 or higher
-- Poetry (Python package manager)
+- uv (Python package and environment manager)
 
 ## Installation
 
-1. First, ensure you have Poetry installed on your system. If not, install it using:
+1. First, ensure you have uv installed on your system. For example:
 
    ```bash
-   curl -sSL https://install.python-poetry.org | python3 -
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. Clone the repository:
@@ -24,50 +24,40 @@
    cd polish-cave-data-scraper
    ```
 
-3. Install project dependencies using Poetry:
+3. Install project dependencies using uv:
 
    ```bash
-   poetry install
+   uv sync
    ```
 
 ## Creating a Clean Environment
 
 To ensure a clean environment for the project:
 
-1. Remove any existing virtual environment (if present):
+1. Reinstall the locked environment:
    ```bash
-   poetry env remove python
-   ```
-
-2. Clear Poetry's cache (optional):
-   ```bash
-   poetry cache clear . --all
-   ```
-
-3. Create a new virtual environment and install dependencies:
-   ```bash
-   poetry install
+   uv sync --reinstall
    ```
 
 ## Usage
 
-The scraper consists of two main scripts that should be run in sequence:
+The scraper consists of three main scripts that should be run in sequence:
 
 1. First, run the data fetching script:
    ```bash
-   poetry run python fetch.py
+   uv run python fetch.py
    ```
    This script collects raw data from the CBDG database.
 
 2. Then, run the parsing script:
    ```bash
-   poetry run python parse.py
+   uv run python parse.py
    ```
    This script processes the collected data into a structured format.
 
 3. Finally, run the cleaning script:
    ```bash
-   poetry run python clean.py
+   uv run python clean.py
    ```
    This script transforms and cleans the data using PySpark.
 
@@ -76,7 +66,7 @@ The scraper consists of two main scripts that should be run in sequence:
 The project includes a separate script for downloading bibliography data from the CBDG database:
 
 ```bash
-poetry run python download_bibliography.py
+uv run python download_bibliography.py
 ```
 
 This script fetches all bibliography records from the Polish Geological Institute's cave database using the JSON endpoint. The bibliography includes citations for publications related to Polish caves, organized by region.
@@ -98,7 +88,7 @@ Cave images (plans, sections, and diagrams) can be upscaled and denoised using w
 
 2. Run the upscaling script:
    ```bash
-   poetry run python upscale_images.py
+   uv run python upscale_images.py
    ```
 
 This processes all images in `caves/` directory, applying 2x upscaling and level-2 denoising. Upscaled images are saved to `caves_upscaled/` with the same directory structure.
@@ -109,25 +99,28 @@ This processes all images in `caves/` directory, applying 2x upscaling and level
 
 The project uses modern Python code quality tools to maintain high standards:
 
-- **black** - Automatic code formatting (line length: 100)
-- **ruff** - Fast linting, import sorting, and code modernization
-- **mypy** - Static type checking (gradual typing)
+- **ruff** - Fast linting, import sorting, code modernization, and formatting
+- **ty** - Fast static type checking
+- **pytest** - Test runner
 - **pre-commit** - Git hooks for automated quality checks
 
 ### Running Quality Checks
 
 ```bash
-# Format code with black
-poetry run black .
-
 # Run linter and auto-fix issues
-poetry run ruff check --fix .
+uv run ruff check . --fix
 
-# Check types with mypy
-poetry run mypy .
+# Format code
+uv run ruff format .
+
+# Check types
+uv run ty check
+
+# Run tests
+uv run pytest
 
 # Run all checks at once
-poetry run black . && poetry run ruff check . && poetry run mypy .
+uv run pre-commit run --all-files
 ```
 
 ### Pre-commit Hooks
@@ -136,16 +129,16 @@ Install pre-commit hooks to automatically run quality checks before each commit:
 
 ```bash
 # One-time setup
-poetry run pre-commit install
+uv run pre-commit install
 
 # Run manually on all files
-poetry run pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
-**Note**: First run requires internet access to download hook repositories from GitHub.
+The hooks are local and run through `uv run`, so they use the same locked project environment as normal development commands.
 
 ### Running Tests
 
 ```bash
-poetry run pytest
+uv run pytest
 ```

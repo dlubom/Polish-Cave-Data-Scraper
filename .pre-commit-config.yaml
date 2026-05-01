@@ -1,45 +1,86 @@
-# Pre-commit hooks for code quality
-# Install: poetry run pre-commit install
-# Run manually: poetry run pre-commit run --all-files
+# Pre-commit hooks for code quality.
+# Install: uv run pre-commit install
+# Run manually: uv run pre-commit run --all-files
+
+exclude: |
+  (?x)^(
+    caves/|
+    caves_mono/|
+    caves_upscaled/|
+    logs/|
+    waifu2x-ncnn-vulkan-[^/]+/|
+    .*\.jsonl$|
+    .*\.parquet/|
+    .*\.jpg$|
+    .*\.tif$|
+    .*\.zip$
+  )
 
 repos:
-  # Black - code formatting
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
+  - repo: local
     hooks:
-      - id: black
-        language_version: python3.9
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
 
-  # Ruff - linting and import sorting
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
-    hooks:
-      # Run the linter
-      - id: ruff
-        args: [--fix]
-      # Run the formatter
       - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]
 
-  # Mypy - type checking
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          - types-requests
-          - pandas-stubs
-        exclude: ^(caves|caves_upscaled|logs|waifu2x-ncnn-vulkan-20250915-macos)/
+      - id: ty-check
+        name: ty check
+        entry: uv run ty check
+        language: system
+        pass_filenames: false
 
-  # General pre-commit hooks
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
-    hooks:
+      - id: pytest
+        name: pytest
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+
       - id: trailing-whitespace
-        exclude: ^(caves|caves_upscaled|logs)/
+        name: trim trailing whitespace
+        entry: uv run trailing-whitespace-fixer
+        language: system
+        types: [text]
+
       - id: end-of-file-fixer
-        exclude: ^(caves|caves_upscaled|logs)/
+        name: fix end of files
+        entry: uv run end-of-file-fixer
+        language: system
+        types: [text]
+
       - id: check-yaml
-      - id: check-merge-conflict
+        name: check yaml
+        entry: uv run check-yaml
+        language: system
+        types: [yaml]
+
       - id: check-json
+        name: check json
+        entry: uv run check-json
+        language: system
+        types: [json]
+
       - id: check-toml
-      - id: debug-statements  # Check for debugger imports and breakpoints
+        name: check toml
+        entry: uv run check-toml
+        language: system
+        types: [toml]
+
+      - id: check-merge-conflict
+        name: check merge conflict markers
+        entry: uv run check-merge-conflict
+        language: system
+        types: [text]
+
+      - id: debug-statements
+        name: check debug statements
+        entry: uv run debug-statement-hook
+        language: system
+        types: [python]

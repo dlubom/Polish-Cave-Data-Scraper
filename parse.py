@@ -77,7 +77,10 @@ def parse_cave_directory(cave_path):
     images = []
     image_links = soup.find_all("a", onclick=re.compile(r"showImageInfo\(\d+\)"))
     for a_tag in image_links:
-        onclick_attr = a_tag["onclick"]
+        onclick_attr = a_tag.get("onclick", "")
+        if not isinstance(onclick_attr, str):
+            continue
+
         match = re.search(r"showImageInfo\((\d+)\)", onclick_attr)
         if match:
             image_id = match.group(1)

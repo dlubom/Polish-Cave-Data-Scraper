@@ -66,12 +66,12 @@ To regenerate the CSV and GPX files from the original shapefile:
 
 ```bash
 # Generate CSV with WGS84 coordinates
-poetry run python locations/caves_to_csv.py \
+uv run python locations/caves_to_csv.py \
     --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
     --output locations/jaskinie_wspolrzedne_wgs84.csv
 
 # Generate GPX file with waypoints
-poetry run python locations/caves_to_gpx.py \
+uv run python locations/caves_to_gpx.py \
     --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
     --output locations/jaskinie_wgs84.gpx
 ```

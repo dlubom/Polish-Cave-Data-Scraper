@@ -103,7 +103,7 @@ def generate_report(comparison_df):
     # Count caves with identical coordinates
     identical = (comparison_df["distance_m"] < 0.01).sum()  # Less than 1cm difference
     print(
-        f"\nCaves with identical coordinates (< 1cm): {identical} ({identical/len(comparison_df)*100:.1f}%)"
+        f"\nCaves with identical coordinates (< 1cm): {identical} ({identical / len(comparison_df) * 100:.1f}%)"
     )
 
     # Count caves within certain distance thresholds

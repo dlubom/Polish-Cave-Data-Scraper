@@ -8,21 +8,22 @@ Polish-Cave-Data-Scraper is a Python-based data scraping and processing pipeline
 
 ## Package Management
 
-This project uses **Poetry** for dependency management. All Python commands should be run through Poetry:
+This project uses **uv** for dependency management. All Python commands should be run through uv:
 
 ```bash
 # Install dependencies
-poetry install
+uv sync
 
 # Run any Python script
-poetry run python <script_name>.py
+uv run python <script_name>.py
 ```
 
-### Poetry Configuration Notes
+### uv Configuration Notes
 
-- **Python version**: Requires Python ^3.9 (due to geopandas dependency)
-- **Package mode**: Set to `false` as this is a script-based project, not a distributable package
-- **Dev dependencies**: Uses `[tool.poetry.group.dev.dependencies]` (modern Poetry syntax)
+- **Python version**: Requires Python >=3.9 (due to geopandas dependency)
+- **Package mode**: `[tool.uv] package = false` because this is a script-based project, not a distributable package
+- **Lockfile**: `uv.lock` is the source of reproducible dependency versions
+- **Dev dependencies**: Uses `[dependency-groups].dev` for `ruff`, `ty`, `pytest`, `pre-commit`, and hook helpers
 - **Required domains for sandbox**: When running inside Claude Code or sandboxed environments, ensure `pypi.org` and `files.pythonhosted.org` are allowlisted
 
 ## Data Pipeline Architecture
@@ -71,22 +72,22 @@ Execute scripts in this exact order:
 
 ```bash
 # 1. Fetch raw data from the website
-poetry run python fetch.py
+uv run python fetch.py
 
 # 2. Parse HTML and extract structured data
-poetry run python parse.py
+uv run python parse.py
 
 # 3. Transform and clean the data
-poetry run python clean.py
+uv run python clean.py
 
 # 4. (Optional) Upscale and denoise cave images
-poetry run python upscale_images.py
+uv run python upscale_images.py
 
 # 5. (Optional) Convert to mono TIFF for WMSA
-poetry run python convert_to_mono.py
+uv run python convert_to_mono.py
 
 # 6. (Optional) Download bibliography data
-poetry run python download_bibliography.py
+uv run python download_bibliography.py
 ```
 
 ## Bibliography Download
@@ -183,7 +184,7 @@ waifu2x-ncnn-vulkan-20250915-macos/  # Image upscaling tool
 The project includes pytest as a dev dependency. Run tests with:
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 ## Code Quality Tools
@@ -192,25 +193,28 @@ The project uses modern Python code quality tools to maintain high standards:
 
 ### Available Tools
 
-- **black**: Automatic code formatting (line length: 100)
-- **ruff**: Fast linting, import sorting, and code modernization
-- **mypy**: Static type checking (gradual typing enabled)
+- **ruff**: Fast linting, import sorting, code modernization, and formatting
+- **ty**: Fast static type checking
+- **pytest**: Test runner
 - **pre-commit**: Automated hooks that run before each commit
 
 ### Running Code Quality Checks
 
 ```bash
-# Format code with black
-poetry run black .
+# Format code
+uv run ruff format .
 
 # Run linter and auto-fix issues
-poetry run ruff check --fix .
+uv run ruff check . --fix
 
-# Check types with mypy
-poetry run mypy .
+# Check types
+uv run ty check
+
+# Run tests
+uv run pytest
 
 # Run all checks at once
-poetry run black . && poetry run ruff check . && poetry run mypy .
+uv run pre-commit run --all-files
 ```
 
 ### Pre-commit Hooks
@@ -219,21 +223,18 @@ Pre-commit hooks are configured to automatically run all quality checks before e
 
 ```bash
 # Install hooks (one-time setup)
-poetry run pre-commit install
+uv run pre-commit install
 
 # Run manually on all files
-poetry run pre-commit run --all-files
-
-# Note: First run requires internet access to download hook repositories
-# In sandboxed environments, you may need to allowlist github.com
+uv run pre-commit run --all-files
 ```
 
 The pre-commit configuration includes:
-- **black**: Code formatting
-- **ruff**: Linting and import sorting
-- **mypy**: Type checking
+- **ruff**: Linting, import sorting, and formatting
+- **ty**: Type checking
+- **pytest**: Tests
 - **Standard hooks**: trailing whitespace, end-of-file fixer, YAML/JSON/TOML validation
-- **Note**: Data directories (`caves/`, `caves_upscaled/`, `logs/`) are excluded from hooks to allow large commits
+- **Note**: Data directories (`caves/`, `caves_upscaled/`, `caves_mono/`, `logs/`) and large generated files are excluded from hooks to allow large commits
 
 ### Configuration Details
 
@@ -241,9 +242,9 @@ All tools are configured in `pyproject.toml`:
 
 - **Line length**: 100 characters (consistent across all tools)
 - **Target Python version**: 3.9+
-- **Excluded directories**: `caves/`, `caves_upscaled/`, `logs/`, `waifu2x-ncnn-vulkan-*`, `*.ipynb`
+- **Excluded directories**: `caves/`, `caves_upscaled/`, `caves_mono/`, `logs/`, `waifu2x-ncnn-vulkan-*`, `*.ipynb`
 - **Ruff rules enabled**: pycodestyle, Pyflakes, isort, pep8-naming, pyupgrade, flake8-bugbear, flake8-comprehensions, flake8-simplify
-- **Mypy mode**: Gradual typing (doesn't require type hints everywhere)
+- **ty scope**: Root scripts, `locations/*.py`, and `tests/`
 
 ### Code Style Notes
 
@@ -254,9 +255,8 @@ All tools are configured in `pyproject.toml`:
 ## Development Dependencies
 
 - **pytest**: Testing framework
-- **black**: Code formatting
-- **ruff**: Linting and import sorting
-- **mypy**: Type checking
+- **ruff**: Linting, import sorting, and formatting
+- **ty**: Type checking
 - **pre-commit**: Git hooks for automated quality checks
 
 ## Location Data Processing
@@ -267,12 +267,12 @@ The `locations/` directory contains alternative coordinate data from the Polish 
 
 ```bash
 # Convert shapefile to CSV with WGS84 coordinates
-poetry run python locations/caves_to_csv.py \
+uv run python locations/caves_to_csv.py \
     --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
     --output locations/jaskinie_wspolrzedne_wgs84.csv
 
 # Convert shapefile to GPX for GPS devices
-poetry run python locations/caves_to_gpx.py \
+uv run python locations/caves_to_gpx.py \
     --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
     --output locations/jaskinie_wgs84.gpx
 ```
@@ -289,7 +289,7 @@ poetry run python locations/caves_to_gpx.py \
 The `compare_coordinates.py` script compares coordinates between scraped data and PGI shapefile data:
 
 ```bash
-poetry run python compare_coordinates.py
+uv run python compare_coordinates.py
 ```
 
 This generates:
@@ -311,7 +311,7 @@ The `upscale_images.py` script uses **waifu2x-ncnn-vulkan** to upscale and denoi
 
 ### Running
 ```bash
-poetry run python upscale_images.py
+uv run python upscale_images.py
 ```
 
 ### Configuration
@@ -340,10 +340,10 @@ The `convert_to_mono.py` script converts cave images to monochrome (1-bit) TIFF 
 ### Running
 ```bash
 # Default: converts caves_upscaled/ → caves_mono/
-poetry run python convert_to_mono.py
+uv run python convert_to_mono.py
 
 # Custom directories
-poetry run python convert_to_mono.py --input caves --output caves_mono
+uv run python convert_to_mono.py --input caves --output caves_mono
 ```
 
 ### Configuration
@@ -409,13 +409,13 @@ If more cave data becomes available (e.g., from Web Archive or other sources):
    - Replacing the TPN-blocked fields with actual content from the source
    - Saving as `page_web_archive.html`
 3. Ensure image metadata files (`metadata_{id}.json`) and image files (`image_{id}_zoom_10.jpg`) are present
-4. Re-run `poetry run python parse.py` then `poetry run python clean.py`
+4. Re-run `uv run python parse.py` then `uv run python clean.py`
 
 ## Troubleshooting
 
-### Poetry Installation Issues
+### uv Installation Issues
 
-If `poetry install` fails with network errors:
+If `uv sync` fails with network errors:
 1. Ensure `pypi.org` and `files.pythonhosted.org` are accessible
 2. If behind a proxy or in a sandboxed environment, add these domains to allowlist
 3. Check Python version compatibility (requires Python 3.9+)
@@ -436,7 +436,7 @@ When running `clean.py`, PySpark needs to bind to local ports for the Java gatew
 3. **Alternative**: Run from a regular terminal:
    ```bash
    cd /path/to/Polish-Cave-Data-Scraper
-   poetry run python clean.py
+   uv run python clean.py
    ```
 
 ### HTML Parsing Issues
