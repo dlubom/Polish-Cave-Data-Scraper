@@ -13,7 +13,8 @@ from requests.exceptions import RequestException, Timeout
 START_ID = 380  # 380
 END_ID = 13000  # 13000
 LOG_LEVEL = logging.INFO
-SLEEP_TIME = 0.1
+SLEEP_TIME = 3.0
+SLEEP_JITTER = 2.0
 
 # List of common user agents
 USER_AGENTS = [
@@ -78,14 +79,29 @@ def get_current_timestamp():
     return int(time.time() * 1000)
 
 
+def sleep_between_requests():
+    """Sleep between requests, adding jitter to avoid a fixed request cadence."""
+    time.sleep(SLEEP_TIME + random.uniform(0, SLEEP_JITTER))
+
+
 def normalize_html(html_content):
     """Remove dynamic anti-bot script snippets to keep snapshots deterministic."""
     return re.sub(
-        r'<script[^>]*src="/_Incapsula_Resource\?[^"]*"[^>]*></script>',
+        r"<script\b(?=[^>]*\bsrc=[\"']/_Incapsula_Resource\?)[^>]*>\s*</script>",
         "",
         html_content,
         flags=re.IGNORECASE,
     )
+
+
+def is_incapsula_challenge(html_content):
+    """Detect anti-bot challenge pages that are returned with HTTP 200."""
+    return "_Incapsula_Resource" in html_content and "tableDetails1" not in html_content
+
+
+def is_jpeg_response(response):
+    """Validate that an image endpoint returned a JPEG instead of an HTML challenge."""
+    return response.content.startswith(b"\xff\xd8")
 
 
 def fetch_html(url, cave_dir):
@@ -97,6 +113,10 @@ def fetch_html(url, cave_dir):
         response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
             logging.info(f"Successfully fetched HTML from {url}")
+            if is_incapsula_challenge(response.text):
+                logging.warning(f"Incapsula challenge returned from {url}; not saving HTML")
+                return None
+
             html_content = normalize_html(response.text)
             html_path = os.path.join(cave_dir, "page.html")
             with open(html_path, "w", encoding="utf-8") as f:
@@ -154,6 +174,12 @@ def fetch_images(html_content, cave_dir):
         try:
             response = requests.get(image_url, headers=headers, timeout=10)
             if response.status_code == 200:
+                if not is_jpeg_response(response):
+                    logging.warning(
+                        f"Image endpoint for {image_id} returned non-JPEG content; not saving image"
+                    )
+                    continue
+
                 image_content = response.content
                 image_path = os.path.join(cave_dir, f"image_{image_id}_zoom_{zoom}.jpg")
                 with open(image_path, "wb") as f:
@@ -168,7 +194,7 @@ def fetch_images(html_content, cave_dir):
         except RequestException as e:
             logging.error(f"Error fetching image {image_id} at zoom {zoom}: {e!s}", exc_info=True)
 
-        time.sleep(SLEEP_TIME)
+        sleep_between_requests()
 
 
 def process_cave(url, cave_dir, cave_id):
@@ -206,7 +232,7 @@ def main():
         except Exception as e:
             logging.error(f"Error processing cave {cave_id}: {e!s}", exc_info=True)
 
-        time.sleep(SLEEP_TIME)
+        sleep_between_requests()
 
 
 if __name__ == "__main__":
