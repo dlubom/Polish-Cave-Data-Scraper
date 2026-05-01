@@ -15,6 +15,7 @@ END_ID = 13000  # 13000
 LOG_LEVEL = logging.INFO
 SLEEP_TIME = 3.0
 SLEEP_JITTER = 2.0
+MAX_CONSECUTIVE_CHALLENGES = 3
 
 # List of common user agents
 USER_AGENTS = [
@@ -50,6 +51,14 @@ def get_random_headers():
         "Sec-Fetch-User": "?1",
         "Cache-Control": "max-age=0",
     }
+
+
+def create_session():
+    """Create one HTTP session for the whole run so cookies and headers stay stable."""
+    session = requests.Session()
+    session.headers.update(get_random_headers())
+    logging.debug(f"Using session headers: {session.headers}")
+    return session
 
 
 def setup_logging():
@@ -104,44 +113,39 @@ def is_jpeg_response(response):
     return response.content.startswith(b"\xff\xd8")
 
 
-def fetch_html(url, cave_dir):
+def fetch_html(session, url, cave_dir):
     """Fetch HTML content from the given URL."""
-    headers = get_random_headers()
-    logging.debug(f"Using headers: {headers}")
-
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = session.get(url, timeout=10)
         if response.status_code == 200:
             logging.info(f"Successfully fetched HTML from {url}")
             if is_incapsula_challenge(response.text):
                 logging.warning(f"Incapsula challenge returned from {url}; not saving HTML")
-                return None
+                return None, True
 
             html_content = normalize_html(response.text)
             html_path = os.path.join(cave_dir, "page.html")
             with open(html_path, "w", encoding="utf-8") as f:
                 f.write(html_content)
             logging.debug(f"Saved HTML to {html_path}")
-            return html_content
+            return html_content, False
         else:
             logging.warning(f"Failed to fetch HTML from {url}. Status: {response.status_code}")
-            return None
+            return None, False
     except Timeout:
         logging.error(f"Timeout while fetching {url}")
-        return None
+        return None, False
     except RequestException as e:
         logging.error(f"Error while fetching {url}: {e!s}", exc_info=True)
-        return None
+        return None, False
 
 
-def fetch_images(html_content, cave_dir):
+def fetch_images(session, html_content, cave_dir):
     """Fetch images and their metadata using zoom=10."""
     image_id_matches = re.findall(r"showImageInfo\((\d+)\)", html_content)
     if not image_id_matches:
         logging.warning("No image IDs found in HTML content")
         return
-
-    headers = get_random_headers()
 
     for image_id in image_id_matches:
         logging.info(f"Processing image ID: {image_id}")
@@ -149,9 +153,7 @@ def fetch_images(html_content, cave_dir):
         # Fetch image metadata
         metadata_url = "https://jaskiniepolski.pgi.gov.pl/Details/ImageInformation"
         try:
-            response = requests.post(
-                metadata_url, data={"id": image_id}, headers=headers, timeout=10
-            )
+            response = session.post(metadata_url, data={"id": image_id}, timeout=10)
             if response.status_code == 200:
                 metadata = response.json()
                 metadata_path = os.path.join(cave_dir, f"metadata_{image_id}.json")
@@ -162,9 +164,11 @@ def fetch_images(html_content, cave_dir):
                 logging.warning(
                     f"Failed to fetch metadata for image {image_id}. Status: {response.status_code}"
                 )
+                sleep_between_requests()
                 continue
         except Exception as e:
             logging.error(f"Error fetching metadata for image {image_id}: {e!s}", exc_info=True)
+            sleep_between_requests()
             continue
 
         # Fetch image at zoom level 10
@@ -172,12 +176,13 @@ def fetch_images(html_content, cave_dir):
         timestamp = get_current_timestamp()
         image_url = f"https://jaskiniepolski.pgi.gov.pl/Details/RenderImage?id={image_id}&zoom={zoom}&ifGet=false&date={timestamp}"
         try:
-            response = requests.get(image_url, headers=headers, timeout=10)
+            response = session.get(image_url, timeout=10)
             if response.status_code == 200:
                 if not is_jpeg_response(response):
                     logging.warning(
                         f"Image endpoint for {image_id} returned non-JPEG content; not saving image"
                     )
+                    sleep_between_requests()
                     continue
 
                 image_content = response.content
@@ -197,14 +202,15 @@ def fetch_images(html_content, cave_dir):
         sleep_between_requests()
 
 
-def process_cave(url, cave_dir, cave_id):
+def process_cave(session, url, cave_dir, cave_id):
     """Process a single cave entry."""
     logging.info(f"Processing cave ID: {cave_id}")
-    html_content = fetch_html(url, cave_dir)
+    html_content, was_challenge = fetch_html(session, url, cave_dir)
 
     if html_content:
         logging.info(f"Successfully processed cave ID {cave_id}")
-        fetch_images(html_content, cave_dir)
+        fetch_images(session, html_content, cave_dir)
+        return False
     else:
         # Remove directory only when it is still empty (fresh run).
         try:
@@ -214,12 +220,15 @@ def process_cave(url, cave_dir, cave_id):
             logging.warning(
                 f"Cave ID {cave_id} did not return HTML, leaving existing files in {cave_dir}"
             )
+        return was_challenge
 
 
 def main():
     """Main function."""
     setup_logging()
     logging.info("Starting main processing loop")
+    session = create_session()
+    consecutive_challenges = 0
 
     for cave_id in range(START_ID, END_ID + 1):
         directory_name = get_directory_name(cave_id)
@@ -228,9 +237,21 @@ def main():
         url = f"https://jaskiniepolski.pgi.gov.pl/Details/Information/{cave_id}"
 
         try:
-            process_cave(url, cave_dir, cave_id)
+            was_challenge = process_cave(session, url, cave_dir, cave_id)
         except Exception as e:
             logging.error(f"Error processing cave {cave_id}: {e!s}", exc_info=True)
+            was_challenge = False
+
+        if was_challenge:
+            consecutive_challenges += 1
+            if consecutive_challenges >= MAX_CONSECUTIVE_CHALLENGES:
+                logging.error(
+                    "Stopping after %s consecutive Incapsula challenges",
+                    consecutive_challenges,
+                )
+                break
+        else:
+            consecutive_challenges = 0
 
         sleep_between_requests()
 
