@@ -152,7 +152,7 @@ def main():
 
         # Process results as they complete
         for i, future in enumerate(as_completed(futures), 1):
-            image_path, success, error = future.result()
+            _image_path, success, error = future.result()
 
             if success:
                 if error == "Already processed":
@@ -165,7 +165,7 @@ def main():
             # Progress update
             if i % 10 == 0 or i == total:
                 logger.info(
-                    f"Progress: {i}/{total} ({i*100//total}%) - "
+                    f"Progress: {i}/{total} ({i * 100 // total}%) - "
                     f"Success: {successful}, Failed: {failed}, Skipped: {skipped}"
                 )
 

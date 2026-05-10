@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -24,7 +24,7 @@ uv run python <script_name>.py
 - **Package mode**: `[tool.uv] package = false` because this is a script-based project, not a distributable package
 - **Lockfile**: `uv.lock` is the source of reproducible dependency versions
 - **Dev dependencies**: Uses `[dependency-groups].dev` for `ruff`, `ty`, `pytest`, `pre-commit`, and hook helpers
-- **Required domains for sandbox**: When running inside Claude Code or sandboxed environments, ensure `pypi.org` and `files.pythonhosted.org` are allowlisted
+- **Required domains for sandbox**: When running inside Codex or sandboxed environments, ensure `pypi.org` and `files.pythonhosted.org` are allowlisted
 
 ## Data Pipeline Architecture
 
@@ -37,7 +37,8 @@ The pipeline follows a three-stage ETL process that must be executed in sequence
   - `page.html`: Main cave information page
   - `image_{id}_zoom_10.jpg`: Cave images at zoom level 10
   - `metadata_{id}.json`: Image metadata
-- Uses rotating user agents and implements rate limiting (configurable via `SLEEP_TIME`)
+- Uses one persistent `requests.Session()` per run with a stable User-Agent, cookies, and rate limiting (`SLEEP_TIME` + `SLEEP_JITTER`)
+- Stops early after repeated Incapsula/Imperva anti-bot challenges (`MAX_CONSECUTIVE_CHALLENGES`)
 - Cave ID range configurable via `START_ID` and `END_ID` constants (default: 380-13000)
 - Implements robust error handling with detailed logging to `logs/cave_scraper_{timestamp}.log`
 
@@ -134,8 +135,10 @@ The PySpark schema in `create_cave_schema()` defines the complete data structure
 ### Configuration Constants
 **fetch.py**:
 - `START_ID`, `END_ID`: Cave ID range to scrape
-- `SLEEP_TIME`: Delay between requests (default: 0.1s)
-- `USER_AGENTS`: List of browser user agents for rotation
+- `SLEEP_TIME`: Base delay between requests (default: 3.0s)
+- `SLEEP_JITTER`: Random extra delay added to the base delay (default: 2.0s)
+- `MAX_CONSECUTIVE_CHALLENGES`: Stop threshold for repeated Incapsula challenge pages
+- `USER_AGENTS`: List of browser user agents; one is selected per persistent session
 
 **parse.py**:
 - `CAVES_DIR`: Source directory (default: "caves")
@@ -424,7 +427,7 @@ If `uv sync` fails with network errors:
 
 When running `clean.py`, PySpark needs to bind to local ports for the Java gateway. If you encounter "Operation not permitted (Bind failed)" errors:
 
-1. **In sandboxed environments (e.g., Claude Code)**:
+1. **In sandboxed environments (e.g., Codex)**:
    - Add Java to the tools allowlist in the security dashboard
    - Or run the script with `dangerouslyDisableSandbox: true`
    - Or run directly from your terminal outside the sandbox
@@ -442,3 +445,28 @@ When running `clean.py`, PySpark needs to bind to local ports for the Java gatew
 ### HTML Parsing Issues
 
 The parser uses `get_text(' ', strip=True)` to preserve spacing between inline HTML elements. If you see concatenated text (e.g., scientific names without spaces), verify this setting in `parse.py:60`.
+
+### Scraper Anti-Bot / Incapsula Issues
+
+The CBDG site may return an Incapsula/Imperva anti-bot challenge with HTTP 200 instead of a real cave page. Treat this as a blocked request, not a successful scrape.
+
+Symptoms:
+- HTML contains `/_Incapsula_Resource`
+- Cookies/headers include values like `visid_incap_*` or `incap_ses_*`
+- The page is missing the normal `tableDetails1` table
+- Image endpoints may return HTML challenge content instead of JPEG bytes
+
+Current `fetch.py` protections:
+- Uses one `requests.Session()` for the whole run to keep cookies and headers stable
+- Uses one stable User-Agent per session instead of rotating per request
+- Sleeps for `SLEEP_TIME + random jitter` between requests
+- Does not save Incapsula challenge HTML as `page.html`
+- Does not save image responses unless the response bytes look like a JPEG
+- Stops the run after `MAX_CONSECUTIVE_CHALLENGES` consecutive Incapsula pages
+
+For a single-cave smoke test, cave ID `395` (`000395`) is a good known-working example. A successful run should produce:
+- `caves/000395/page.html` containing `tableDetails1`
+- `caves/000395/metadata_40.json`
+- `caves/000395/image_40_zoom_10.jpg` as a real JPEG
+
+When testing from Codex or any sandbox, run single-cave checks in a temporary directory (for example under `/private/tmp`) so blocked responses cannot overwrite the repository's existing `caves/` data. If a single request is blocked, stop testing for a while instead of repeatedly retrying, because repeated challenges may extend the WAF block.

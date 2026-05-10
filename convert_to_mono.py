@@ -211,7 +211,7 @@ def main() -> int:
             # Progress update
             if i % 10 == 0 or i == total:
                 logger.info(
-                    f"Progress: {i}/{total} ({i*100//total}%) - "
+                    f"Progress: {i}/{total} ({i * 100 // total}%) - "
                     f"Success: {successful}, Failed: {failed}, Skipped: {skipped}"
                 )
 

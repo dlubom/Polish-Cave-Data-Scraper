@@ -13,7 +13,7 @@ Waypoint fields:
         <desc>NR_INWENT: ... | REGION: ... | GMINA: ...</desc>
 
 Usage:
-    poetry run python locations/caves_to_gpx.py \
+    uv run python locations/caves_to_gpx.py \
         --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
         --output locations/jaskinie_wgs84.gpx
 """
