@@ -339,24 +339,75 @@ The `convert_to_mono.py` script converts cave images to monochrome (1-bit) TIFF 
 
 ### Running
 ```bash
-# Default: converts caves_upscaled/ → caves_mono/
+# Default: converts caves_upscaled/ → caves_mono/, method chosen per image from metadata
 uv run python convert_to_mono.py
 
 # Custom directories
 uv run python convert_to_mono.py --input caves --output caves_mono
+
+# Metadata lives in caves/ by default; point elsewhere if needed
+uv run python convert_to_mono.py --input caves_upscaled --metadata-dir caves
+
+# Tune the threshold (higher = more black) or force old dithering for everything
+uv run python convert_to_mono.py --threshold 55
+uv run python convert_to_mono.py --dither
 ```
 
+### Conversion method is chosen per image from metadata
+
+The method is selected from the CBDG **graphic type** recorded in each image's
+`metadata_{id}.json` file (fields `typ_grafiki_id` / `typ_grafiki_nazwa`):
+
+| `typ_grafiki_id` | Type (`typ_grafiki_nazwa`) | Meaning | Method |
+|---|---|---|---|
+| 1 | `zdjęcie` | photograph | **Floyd-Steinberg dithering** |
+| 2 | `plan` | plan | **threshold** |
+| 3 | `szkic` | sketch | **threshold** |
+| 4 | `przekrój` | cross-section | **threshold** |
+| 5 | `lokalizacja` | location | **threshold** |
+| 6 | `plan i przekrój` | plan + section | **threshold** |
+
+- **Maps/sketches are line art** → a plain luminance threshold keeps lines and
+  text crisp. Dithering used to amplify faint JPEG halos around lines into
+  scattered black **speckle artifacts** (visible e.g. in cave 001495).
+- **Photographs are continuous-tone** → dithering is the only way they survive a
+  1-bit reduction at all (a threshold turns a photo into an unreadable blob).
+
+The mapping lives in `PHOTO_TYPE_IDS` / `LINEART_TYPE_IDS` in the script. The
+image `caves_upscaled/<cave>/image_<gid>_zoom_10.jpg` is matched to its metadata
+at `<metadata_dir>/<cave>/metadata_<gid>.json` (the `<gid>` is parsed from the
+filename).
+
 ### Configuration
-- **Conversion method**: Grayscale + Floyd-Steinberg dithering → monochrome
+- **Threshold**: configurable via `--threshold` (percent; higher = more black; default 50)
+- **Force dithering**: `--dither` overrides the per-image choice and dithers everything
+- **Metadata directory**: `--metadata-dir` (default: `caves`)
 - **Compression**: CCITTFAX4 (Group4) - optimal for 1-bit images
 - **Parallelization**: 4 workers (configurable via `--workers`)
 - **Input**: `caves_upscaled/*/image_*_zoom_10.jpg`
 - **Output**: `caves_mono/` (same directory structure, `.tif` extension)
 - **Logs**: `logs/convert_mono_{timestamp}.log`
+- **Review report**: `logs/mono_review_{timestamp}.txt`
+
+> **Regenerating after changing the method/threshold**: conversion skips images
+> that already exist in the output directory. To force a re-conversion of already
+> processed images, delete the affected `.tif` files (or the whole `caves_mono/`)
+> first, then re-run.
+
+### Manual Review Report
+
+Images whose graphic type **cannot be determined** (metadata missing/unreadable,
+or an unrecognised type id) are thresholded as a safe fallback and listed in
+`logs/mono_review_{timestamp}.txt`. If any such image is actually a photograph,
+re-run it with `--dither` or fix its `metadata_{id}.json`. When every image has
+valid metadata this report is empty. The run summary also logs a graphic-type →
+method breakdown so you can confirm each type was handled as expected.
 
 ### Features
 - Parallel processing with configurable workers
 - Automatically skips already processed images
+- Per-image method selection driven by CBDG graphic-type metadata
+- Flags images with missing/unknown metadata for manual review
 - 2-minute timeout per image
 - Preserves directory structure
 
