@@ -215,7 +215,7 @@ def fetch_bibliography(
             print(f"Fetched page {page} of {total_pages}")
 
         # Stop when we've processed all pages.
-        if total_pages and page >= total_pages:
+        if page >= total_pages:
             break
         page += 1
 

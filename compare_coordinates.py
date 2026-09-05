@@ -3,7 +3,7 @@
 Compare coordinates between scraped data and PGI shapefile data.
 
 This script:
-1. Loads scraped cave data from parquet file
+1. Loads scraped cave data from JSONL
 2. Loads PGI shapefile data from CSV
 3. Matches caves by inventory number
 4. Compares coordinates and calculates differences

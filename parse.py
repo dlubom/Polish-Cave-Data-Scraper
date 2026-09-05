@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 
 from bs4 import BeautifulSoup
 
@@ -127,23 +128,40 @@ def main():
     logging.info("Starting parsing of caves data.")
 
     output_path = OUTPUT_FILE
-    with open(output_path, "w", encoding="utf-8") as out_f:
-        caves_processed = 0
-        caves_skipped = 0
-        for cave_dir in sorted(os.listdir(CAVES_DIR)):
-            cave_path = os.path.join(CAVES_DIR, cave_dir)
-            if os.path.isdir(cave_path):
-                logging.info(f"Processing cave {cave_dir}")
-                cave_data = parse_cave_directory(cave_path)
-                if cave_data:
-                    out_f.write(json.dumps(cave_data, ensure_ascii=False) + "\n")
-                    caves_processed += 1
-                else:
-                    logging.warning(f"Skipping cave {cave_dir} due to missing or invalid data.")
-                    caves_skipped += 1
-        logging.info(
-            f"Processing complete. Caves processed: {caves_processed}, Caves skipped: {caves_skipped}"
-        )
+    cave_directories = sorted(os.listdir(CAVES_DIR))
+    caves_processed = 0
+    caves_skipped = 0
+    temp_path = None
+    try:
+        # Keep the previous dataset intact until its replacement is complete.
+        # The same directory ensures os.replace stays on one filesystem.
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=os.path.dirname(os.path.abspath(output_path)),
+            prefix=f".{os.path.basename(output_path)}.",
+            suffix=".tmp",
+            delete=False,
+        ) as out_f:
+            temp_path = out_f.name
+            for cave_dir in cave_directories:
+                cave_path = os.path.join(CAVES_DIR, cave_dir)
+                if os.path.isdir(cave_path):
+                    logging.info(f"Processing cave {cave_dir}")
+                    cave_data = parse_cave_directory(cave_path)
+                    if cave_data:
+                        out_f.write(json.dumps(cave_data, ensure_ascii=False) + "\n")
+                        caves_processed += 1
+                    else:
+                        logging.warning(f"Skipping cave {cave_dir} due to missing or invalid data.")
+                        caves_skipped += 1
+        os.replace(temp_path, output_path)
+    finally:
+        if temp_path is not None and os.path.exists(temp_path):
+            os.remove(temp_path)
+    logging.info(
+        f"Processing complete. Caves processed: {caves_processed}, Caves skipped: {caves_skipped}"
+    )
 
 
 if __name__ == "__main__":

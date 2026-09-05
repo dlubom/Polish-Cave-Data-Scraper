@@ -1,144 +1,126 @@
 # Polish-Cave-Data-Scraper
 
-## Overview
+Python scripts for collecting and processing Polish cave records, together with a browser tool for georeferencing cave plans.
 
-**Polish-Cave-Data-Scraper** is a robust Python-based tool designed to scrape and collect comprehensive data on Polish caves from the **Central Geological Database of Polish Caves (CBDG)** managed by the **Polish Society for Friends of Earth Sciences (PTPNoZ)**. The scraper gathers standardized information, including geolocation, morphology, environmental data, historical descriptions, and graphic attachments such as plans, sections, and photographs. This dataset serves as a valuable resource for researchers, conservationists, and speleologists interested in the geological and environmental aspects of Polish caves.
+The data comes from [Jaskinie Polski](https://jaskiniepolski.pgi.gov.pl/), the caves subsystem of the Central Geological Database (CBDG), managed by the Polish Geological Institute – National Research Institute (PIG-PIB). Records include location, morphology, environmental information, exploration history, bibliography, plans, sections, and photographs. PTPNoZ contributes the substantive cave documentation; see the [official CBDG subsystem description](https://baza.pgi.gov.pl/podsystemy/jaskinie) for source responsibilities and context.
 
-## Requirements
+## Requirements and installation
 
-- Python 3.9 or higher
-- uv (Python package and environment manager)
+- Python 3.9 or higher, as declared in `pyproject.toml`.
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) for Python environments and dependencies.
+- JDK 17 for the PySpark transformation step (`clean.py`), with `JAVA_HOME` pointing to the JDK. The project pins PySpark 3.5.3; see the [Spark 3.5 installation requirements](https://spark.apache.org/docs/3.5.7/api/python/getting_started/install.html#dependencies).
 
-## Installation
+```bash
+git clone https://github.com/dlubom/Polish-Cave-Data-Scraper.git
+cd Polish-Cave-Data-Scraper
+uv sync --locked
+```
 
-1. First, ensure you have uv installed on your system. For example:
+This is a script-based project, not an installable Python package. `uv.lock` defines the reproducible dependency versions, including development tools. Run the commands below from the repository root. To reinstall the locked environment, use `uv sync --locked --reinstall`.
 
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
+## Data pipeline
 
-2. Clone the repository:
+| Stage | Command | Input | Output |
+| --- | --- | --- | --- |
+| Fetch | `uv run python fetch.py` | CBDG website | `caves/{six-digit-id}/page.html`, image JPEGs, and image metadata JSON |
+| Parse | `uv run python parse.py` | Local `caves/` directories | `caves.jsonl` with Polish field names and linked image metadata |
+| Transform | `uv run python clean.py` | `caves.jsonl` | `caves_transformed.jsonl` and `caves_transformed.parquet` |
 
-   ```bash
-   git clone https://github.com/yourusername/polish-cave-data-scraper.git
-   cd polish-cave-data-scraper
-   ```
+Run these stages in order when collecting a new dataset. If the raw cave files are already available, begin with parsing. The scripts write to these paths in the working directory and can replace existing data, so use a separate working directory for experiments. Fetch and parse logs are written under `logs/`.
 
-3. Install project dependencies using uv:
+### Fetch configuration and blocked requests
 
-   ```bash
-   uv sync
-   ```
+`fetch.py` is configured through constants at the top of the script; it has no command-line flags for selecting cave IDs. The defaults cover IDs 380–13000, inclusive. Set `START_ID` and `END_ID` to the intended range before a live run.
 
-## Creating a Clean Environment
+The scraper keeps one HTTP session and one User-Agent per run. `SLEEP_TIME` (3 seconds) and `SLEEP_JITTER` (up to 2 additional seconds) control its delays. It rejects recognized Incapsula/Imperva challenge pages, checks the JPEG signature before saving image responses, and stops after `MAX_CONSECUTIVE_CHALLENGES` (3) consecutive cave-page challenges.
 
-To ensure a clean environment for the project:
+An HTTP 200 response can still be a challenge page. Use a temporary directory for a live smoke test, and pause live testing if the server blocks the request. A completed run does not guarantee complete coverage; inspect its logs for skipped or failed records.
 
-1. Reinstall the locked environment:
-   ```bash
-   uv sync --reinstall
-   ```
+### Parsing and restored descriptions
 
-## Usage
+`parse.py` reads the `tableDetails1` HTML table, preserves spaces around inline formatting, and associates images with their local metadata files. Its input and output paths are configured by `CAVES_DIR` and `OUTPUT_FILE`.
 
-The scraper consists of three main scripts that should be run in sequence:
+For each cave, the parser uses `page_web_archive.html` when that file exists; otherwise it uses `page.html`. Some descriptions were restored from archived material while preserving the original downloaded page. Restored HTML must retain the CBDG table structure. Historical descriptions reflect their source date, rather than a current confirmation of the cave's condition.
 
-1. First, run the data fetching script:
-   ```bash
-   uv run python fetch.py
-   ```
-   This script collects raw data from the CBDG database.
+### Transformation
 
-2. Then, run the parsing script:
-   ```bash
-   uv run python parse.py
-   ```
-   This script processes the collected data into a structured format.
+`clean.py` uses PySpark to rename fields into English, convert DMS coordinates into decimal latitude and longitude, normalize numeric values with Polish decimal commas, clean text, and rename nested image metadata fields. It excludes the two test IDs `010569` and `011054`.
 
-3. Finally, run the cleaning script:
-   ```bash
-   uv run python clean.py
-   ```
-   This script transforms and cleans the data using PySpark.
+Spark settings can be supplied through `SparkConfig` in `clean.py`. Spark also needs permission to open local ports for its Java processes. If startup fails, check the Java installation, `JAVA_HOME`, and the environment's local networking permissions.
 
-## Bibliography Download
+## Additional tools
 
-The project includes a separate script for downloading bibliography data from the CBDG database:
+### Bibliography
 
 ```bash
 uv run python download_bibliography.py
 ```
 
-This script fetches all bibliography records from the Polish Geological Institute's cave database using the JSON endpoint. The bibliography includes citations for publications related to Polish caves, organized by region.
+This downloads paginated bibliography records from `/Search/SearchBibliography` to `bibliography.jsonl`. It trims string fields and adds readable region names when the region lookup succeeds. Edit `name_filter`, `region_filter`, `rows_per_page`, and `output_file` in `main()` to change the request or output. The default requests all bibliography records, separately from the cave pipeline.
 
-Features:
-- Downloads complete bibliography dataset via paginated API
-- Filters by author, year, title, or cave region
-- Saves data to `bibliography.jsonl` in JSON Lines format (matching project conventions)
-- Automatically trims whitespace from all string fields
-- Handles session cookies and request headers automatically
+### Image upscaling
 
-The script can be customized by editing configuration variables in the `main()` function for specific search criteria.
+Download a suitable [waifu2x-ncnn-vulkan release](https://github.com/nihui/waifu2x-ncnn-vulkan/releases), then set `WAIFU2X_EXECUTABLE` and `MODELS_DIR` in `upscale_images.py` to its executable and models directory. The current paths target the `20250915` macOS release.
 
-## Image Upscaling
+```bash
+uv run python upscale_images.py
+```
 
-Cave images (plans, sections, and diagrams) can be upscaled and denoised using waifu2x-ncnn-vulkan:
+The defaults process `caves/*/image_*_zoom_10.jpg` with 2× scaling, denoise level 2, the `cunet` model, and four workers. Results go to `caves_upscaled/`, preserving cave directories. Existing output images are skipped.
 
-1. Download waifu2x-ncnn-vulkan from [releases](https://github.com/nihui/waifu2x-ncnn-vulkan/releases) and extract to project directory
+### Monochrome TIFF conversion
 
-2. Run the upscaling script:
-   ```bash
-   uv run python upscale_images.py
-   ```
+Install ImageMagick 7 or higher so the `magick` command is available, then run:
 
-This processes all images in `caves/` directory, applying 2x upscaling and level-2 denoising. Upscaled images are saved to `caves_upscaled/` with the same directory structure.
+```bash
+# Convert upscaled images into caves_mono/
+uv run python convert_to_mono.py
+
+# Or convert the original images with explicit paths and worker count
+uv run python convert_to_mono.py --input caves --output caves_mono --workers 4
+```
+
+The script produces 1-bit TIFF images using Floyd–Steinberg dithering and Group4 compression, for use with WMSA overlays. Existing TIFF outputs are skipped. Both image tools write progress logs under `logs/`.
+
+### Location exports and coordinate comparison
+
+The `locations/` directory contains a dated PIG-PIB shapefile export and scripts that convert it to WGS84 CSV and GPX waypoints. See [location data and conversion commands](locations/README.md).
+
+```bash
+uv run python compare_coordinates.py
+```
+
+This compares `caves_transformed.jsonl` with `locations/jaskinie_wspolrzedne_wgs84.csv`, joining on inventory number and calculating Haversine distances. It prints a report and replaces `locations/coordinate_comparison.csv`. Coordinate agreement between these two CBDG representations measures consistency; it does not establish their accuracy against surveyed positions.
+
+### Cave Plan Georeferencer
+
+The static web application in `index.html` lets you calibrate a cave plan using the entrance coordinates, a scale bar, and an optional north arrow. It generates a world file and GDAL commands for producing a GeoTIFF. GDAL is required to run those commands locally; ImageMagick is also needed for the monochrome variant.
+
+Use the [hosted georeferencer](https://dlubom.github.io/Polish-Cave-Data-Scraper/) and follow the [georeferencing guide](GEOREFERENCER.md) (in Polish). The application loads the published cave data and images from this repository's `main` branch and also accepts local plan images.
 
 ## Development
 
-### Code Quality Tools
-
-The project uses modern Python code quality tools to maintain high standards:
-
-- **ruff** - Fast linting, import sorting, code modernization, and formatting
-- **ty** - Fast static type checking
-- **pytest** - Test runner
-- **pre-commit** - Git hooks for automated quality checks
-
-### Running Quality Checks
+The project uses Ruff for linting and formatting, ty for type checking, pytest for tests, and local pre-commit hooks. After `uv sync --locked`, run:
 
 ```bash
-# Run linter and auto-fix issues
-uv run ruff check . --fix
-
-# Format code
-uv run ruff format .
-
-# Check types
+uv run ruff check .
+uv run ruff format --check .
 uv run ty check
-
-# Run tests
 uv run pytest
-
-# Run all checks at once
-uv run pre-commit run --all-files
 ```
 
-### Pre-commit Hooks
-
-Install pre-commit hooks to automatically run quality checks before each commit:
+To apply lint and formatting fixes, use `uv run ruff check . --fix` and `uv run ruff format .`.
 
 ```bash
-# One-time setup
+# Install the hooks once
 uv run pre-commit install
 
-# Run manually on all files
+# Run the complete hook set; some hooks apply fixes
 uv run pre-commit run --all-files
 ```
 
-The hooks are local and run through `uv run`, so they use the same locked project environment as normal development commands.
+The hooks run through `uv run`. Tool scopes and exclusions are defined in `pyproject.toml` and `.pre-commit-config.yaml` so large data directories are not treated as application source code. Tests do not require running the full scraper or regenerating datasets.
 
-### Running Tests
+## Working with Codex
 
-```bash
-uv run pytest
-```
+Development guidance is maintained in [AGENTS.md](AGENTS.md). See [Codex setup and workflow](docs/codex.md) for the Astra/OpenAI model setup and repository skills.
