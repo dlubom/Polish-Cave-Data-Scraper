@@ -1,114 +1,79 @@
-# Locations Directory
+# Location data
 
-This directory contains alternative coordinate data for Polish caves obtained from an independent source.
+This directory contains a shapefile export of Polish cave locations from the [PIG-PIB download manager](https://dm.pgi.gov.pl/) and scripts for converting it into CSV and GPX. The shapefile and the cave website are distribution channels of the same [CBDG caves subsystem](https://baza.pgi.gov.pl/podsystemy/jaskinie), so this is an alternative representation rather than an independent survey.
 
-## Source
+## Source and files
 
-The original data was downloaded from the official Polish Geological Institute database:
-- **URL**: https://dm.pgi.gov.pl/
-- **Original file**: `cbdg_srodowisko_jaskinie_2025_11_20.zip`
-- **Download date**: 2025-11-20
+The archived download is dated **2025-11-20**, with the original filename `cbdg_srodowisko_jaskinie_2025_11_20.zip`. That date identifies the stored export, not a claim about when each cave was last surveyed or when the live service was last updated.
 
-## Contents
+| File or directory | Purpose |
+| --- | --- |
+| `cbdg_srodowisko_jaskinie_2025_11_20.zip` | Original shapefile archive |
+| `cbdg_srodowisko_jaskinie_2025_11_20/` | Extracted geometry, attributes, projection, and supporting shapefile components |
+| `caves_to_csv.py` | Converts the archive to CSV with WGS84 coordinates |
+| `caves_to_gpx.py` | Converts the archive to GPX 1.1 waypoints |
+| `jaskinie_wspolrzedne_wgs84.csv` | Exported attributes and decimal longitude/latitude |
+| `jaskinie_wgs84.gpx` | Exported cave waypoints |
+| `coordinate_comparison.csv` | Stored comparison against an earlier scraped dataset |
 
-### Original Files
-- **`cbdg_srodowisko_jaskinie_2025_11_20.zip`** - Original ZIP archive downloaded from PGI
-- **`cbdg_srodowisko_jaskinie_2025_11_20/`** - Extracted shapefile data containing:
-  - `.shp` - Geometry (point locations)
-  - `.dbf` - Attribute data (cave information)
-  - `.prj` - Coordinate system definition
-  - `.shp.xml` - Metadata
-  - Other supporting files (.sbn, .sbx, .shx, .CPG)
+## Convert the data
 
-### Processed Files
-- **`jaskinie_wspolrzedne_wgs84.csv`** - Extracted cave coordinates in WGS84 format with attributes (converted from shapefile using `caves_to_csv.py`)
-- **`jaskinie_wgs84.gpx`** - GPS Exchange Format for use in navigation applications (converted from shapefile using `caves_to_gpx.py`)
-
-### Processing Scripts
-- **`caves_to_csv.py`** - Converts the shapefile from ZIP to CSV with WGS84 coordinates
-- **`caves_to_gpx.py`** - Converts the shapefile from ZIP to GPX format with waypoints
-
-## Data Quality Notes
-
-### Coordinate Comparison
-A detailed comparison of cave locations between this dataset and the scraped data from the main directory was performed using the `compare_coordinates.py` script (in the root directory).
-
-**Key Findings:**
-- **5,326 caves matched** between both datasets by inventory number
-- **82.1% of caves have effectively identical coordinates** (< 1cm difference)
-- **Mean distance difference: 0.02 meters** (2 centimeters)
-- **Maximum distance difference: 0.18 meters** (18 centimeters)
-- **All caves within 1 meter** of each other
-
-**Distance Distribution:**
-- 0-1mm: 25.3% of caves (1,347 caves)
-- 1-10mm: 56.8% of caves (3,024 caves)
-- 10-50mm: 2.2% of caves (116 caves)
-- 50-100mm: 7.1% of caves (378 caves)
-- 100-150mm: 7.0% of caves (372 caves)
-- 150-200mm: 1.7% of caves (89 caves)
-
-This confirms that **the coordinates are essentially identical between both sources**, with differences being only due to floating-point precision and coordinate system conversion. This strongly suggests that the shapefile data from https://dm.pgi.gov.pl/ is automatically generated from the same source database that is scraped by this project.
-
-### Quality Issues
-Both data sources (scraped HTML and PGI shapefile) suffer from similar quality problems:
-
-1. **Low coordinate accuracy** - The coordinates appear to be of limited precision
-2. **Outdated information** - Both sources have not been updated recently
-3. **Better alternatives exist** - For popular caves, coordinates from sources like **mapy.cz** appear to be more accurate and reliable
-
-### Recommendation
-When working with cave locations, especially for popular or well-known caves, consider cross-referencing with alternative mapping sources (e.g., mapy.cz, OpenStreetMap) to verify coordinate accuracy before using them for navigation or scientific purposes.
-
-## Processing the Data
-
-To regenerate the CSV and GPX files from the original shapefile:
+From the repository root, install the locked environment and run the required export:
 
 ```bash
-# Generate CSV with WGS84 coordinates
+uv sync --locked
+
+# CSV with WGS84 coordinates
 uv run python locations/caves_to_csv.py \
     --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
     --output locations/jaskinie_wspolrzedne_wgs84.csv
 
-# Generate GPX file with waypoints
+# GPX waypoints
 uv run python locations/caves_to_gpx.py \
     --zip locations/cbdg_srodowisko_jaskinie_2025_11_20.zip \
     --output locations/jaskinie_wgs84.gpx
 ```
 
-Both scripts assume the source coordinate system is **EPSG:2180 (Poland CS92)** and reproject to **EPSG:4326 (WGS84)**.
+Each script extracts the ZIP to a temporary directory and reads the first shapefile it finds. It uses the shapefile's declared coordinate reference system (CRS), then reprojects to **EPSG:4326 (WGS84)**. If the source has no CRS, it assumes **EPSG:2180 (Poland CS92)**; `--src-crs` changes that fallback. It does not override an existing CRS declaration.
 
-## File Structure
+The commands replace the named output files. Use a different `--output` path to inspect a conversion before replacing the stored export.
 
-```
-locations/
-├── README.md                                           # This file
-├── caves_to_csv.py                                    # Script: Shapefile → CSV converter
-├── caves_to_gpx.py                                    # Script: Shapefile → GPX converter
-├── cbdg_srodowisko_jaskinie_2025_11_20.zip            # Original ZIP archive
-├── cbdg_srodowisko_jaskinie_2025_11_20/               # Extracted shapefile
-│   ├── cbdg_srodowisko_jaskinie_2025_11_20.shp        # Geometry
-│   ├── cbdg_srodowisko_jaskinie_2025_11_20.dbf        # Attributes
-│   ├── cbdg_srodowisko_jaskinie_2025_11_20.prj        # Projection
-│   └── ...                                             # Other shapefile components
-├── jaskinie_wspolrzedne_wgs84.csv                     # Processed CSV with WGS84 coordinates
-└── jaskinie_wgs84.gpx                                 # GPX format for GPS devices
+## Coordinate comparison
+
+The root script [compare_coordinates.py](../compare_coordinates.py) reads `caves_transformed.jsonl` and `locations/jaskinie_wspolrzedne_wgs84.csv`. It joins records on inventory number, calculates Haversine distances, prints statistics, and writes `locations/coordinate_comparison.csv`:
+
+```bash
+uv run python compare_coordinates.py
 ```
 
-## CSV Format
+The checked-in comparison CSV is a **historical report** with the following values:
 
-The `jaskinie_wspolrzedne_wgs84.csv` file contains the following columns:
-- `NR_INWENT` - Inventory number
-- `NAZWA` - Cave name
-- `REGION` - Region
-- `GMINA` - Municipality
-- `WLASCICIEL` - Land owner
-- `DLUGOSC` - Length (m)
-- `GLEBOKOSC` - Depth (m)
-- `PRZEWYZSZE` - Elevation difference (m)
-- `DENIWELACJ` - Denivelation (m)
-- `OSUWISKOWA` - Landslide flag
-- `X_1992`, `Y_1992` - Coordinates in PUWG 1992 coordinate system
-- `ID` - Cave ID
-- `ROK_AKTUAL` - Year of last update
-- `lon`, `lat` - Coordinates in WGS84 (decimal degrees)
+| Measure | Stored report |
+| --- | ---: |
+| Matched rows | 5,326 |
+| Difference below 1 cm | 4,371 (82.1%) |
+| Mean difference | 0.020 m |
+| Maximum difference | 0.179 m |
+| Difference at most 1 m | 5,326 (100%) |
+
+These statistics describe that report only. It contains neither input hashes nor a generation timestamp, so they should not be treated as a fresh comparison of the current input files. Regenerate the report when the inputs change, and record which input versions were compared.
+
+Close agreement shows consistency between the compared coordinates. It does not by itself establish absolute positional accuracy, the cause of the differences, the age of individual records, or whether another map has better coordinates. Those claims require separate evidence, such as dated survey measurements.
+
+## CSV fields
+
+The stored `jaskinie_wspolrzedne_wgs84.csv` contains these columns. The converter preserves the source attributes, so the attribute set can differ for another shapefile export.
+
+| Fields | Meaning |
+| --- | --- |
+| `NR_INWENT`, `NAZWA` | Inventory number and cave name |
+| `REGION`, `GMINA` | Region and municipality |
+| `WLASCICIEL` | Land owner |
+| `DLUGOSC`, `GLEBOKOSC` | Length and depth in metres |
+| `PRZEWYZSZE`, `DENIWELACJ` | Elevation difference and vertical range in metres |
+| `OSUWISKOWA` | Landslide flag |
+| `X_1992`, `Y_1992` | Source coordinates in the Polish 1992 coordinate system |
+| `ID`, `ROK_AKTUAL` | Source cave ID and recorded update year |
+| `lon`, `lat` | Longitude and latitude in WGS84 decimal degrees |
+
+GPX waypoints use the cave name and include inventory number, region, and municipality in the description.

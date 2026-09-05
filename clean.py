@@ -18,9 +18,7 @@ class SparkConfig:
     config_options: Optional[dict[str, str]] = None
 
     def get_default_configs(self) -> dict[str, str]:
-        return {
-            "spark.some.config.option": "some-value",
-        }
+        return {}
 
 
 def create_spark_session(config: SparkConfig) -> SparkSession:
